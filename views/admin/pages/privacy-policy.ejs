@@ -1,0 +1,159 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Messages</h3>
+        <ul>
+          <li><a href="">Privacy Policy</a></li>
+          <li class="active"><a href="">Message</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dashTable">
+      <form
+        action="/admin/pages/privacy-policy-form"
+        class="frmAjax"
+        method="post"
+        enctype="multipart/form-data">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-header">
+                <h5>Page Title & Meta Details</h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="txtGrp">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <label class="form-label"
+                            >Page Title
+                            <abbr class="required" title="required">*</abbr>
+                          </label>
+                          <input
+                            type="text"
+                            name="page_title"
+                            value="<%= contentData.page_title || '' %>"
+                            class="input"
+                            required="" />
+                        </div>
+                      </div>
+                    </div>
+                    <div class="txtGrp">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <label class="form-label"
+                            >Meta Title
+                            <abbr class="required" title="required">*</abbr>
+                          </label>
+                          <input
+                            type="text"
+                            name="meta_title"
+                            value="<%= contentData.meta_title || '' %>"
+                            class="input"
+                            required="" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="txtGrp">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <label class="form-label"
+                            >Meta Description<abbr
+                              class="required"
+                              title="required"
+                              >*</abbr
+                            >
+                          </label>
+                          <textarea rows="5" name="meta_desc" class="input">
+      <%= contentData.meta_desc || '' %></textarea
+                          >
+                        </div>
+                      </div>
+                    </div>
+                    <div class="txtGrp">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <label class="form-label"
+                            >Meta Keywords
+                            <abbr class="required" title="required">*</abbr>
+                          </label>
+                          <textarea rows="5" name="meta_keywords" class="input">
+      <%= contentData.meta_keywords || '' %></textarea
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-header">
+                <h5>Banner</h5>
+              </div>
+              <div class="card-body full_width">
+                <div class="row">
+                  <div class="col-md-4">
+                    <div class="col-md-12">
+                      <div class="txtGrp">
+                        <label class="form-label"
+                          >Heading 1<abbr class="required" title="required"
+                            >*</abbr
+                          ></label
+                        >
+                        <input
+                          name="heading1"
+                          value="<%= contentData.heading1 %>"
+                          class="input" />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="col-md-12">
+                      <div class="txtGrp">
+                        <label class="form-label"
+                          >Heading 2<abbr class="required" title="required"
+                            >*</abbr
+                          ></label
+                        >
+                        <input
+                          name="heading2"
+                          value="<%= contentData.heading2 %>"
+                          class="input" />
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-9">
+                    <div class="txtGrp">
+                      <div class="txtGrp">
+                        <label class="form-label" for="detail"
+                          >Description 1<abbr class="required" title="required"
+                            >*</abbr
+                          ></label
+                        >
+                        <textarea
+                          class="ckeditor"
+                          name="description1"
+                          id="description1">
+      <%= contentData.description1 || '' %></textarea
+                        >
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

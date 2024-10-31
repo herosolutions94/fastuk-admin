@@ -1,0 +1,602 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Messages</h3>
+        <ul>
+          <li><a href="">Home</a></li>
+          <li class="active"><a href="">Message</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dashTable">
+      <form
+        action="/admin/pages/home-form"
+        class="frmAjax"
+        method="post"
+        enctype="multipart/form-data">
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-header">
+                <h5>Page Title & Meta Details</h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-12">
+                    <div class="txtGrp">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <label class="form-label"
+                            >Page Title
+                            <abbr class="required" title="required">*</abbr>
+                          </label>
+                          <input
+                            type="text"
+                            name="page_title"
+                            value="<%= contentData.page_title || '' %>"
+                            class="input"
+                            required="" />
+                        </div>
+                      </div>
+                    </div>
+                    <div class="txtGrp">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <label class="form-label"
+                            >Meta Title
+                            <abbr class="required" title="required">*</abbr>
+                          </label>
+                          <input
+                            type="text"
+                            name="meta_title"
+                            value="<%= contentData.meta_title || '' %>"
+                            class="input"
+                            required="" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="txtGrp">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <label class="form-label"
+                            >Meta Description<abbr
+                              class="required"
+                              title="required"
+                              >*</abbr
+                            >
+                          </label>
+                          <textarea rows="5" name="meta_desc" class="input">
+<%= contentData.meta_desc || '' %></textarea
+                          >
+                        </div>
+                      </div>
+                    </div>
+                    <div class="txtGrp">
+                      <div class="row">
+                        <div class="col-md-12">
+                          <label class="form-label"
+                            >Meta Keywords
+                            <abbr class="required" title="required">*</abbr>
+                          </label>
+                          <textarea rows="5" name="meta_keywords" class="input">
+<%= contentData.meta_keywords || '' %></textarea
+                          >
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-header">
+                <h5>Banner</h5>
+              </div>
+              <div class="card-body full_width">
+                <div class="row">
+                  <div class="col-md-3">
+                    <div class="card">
+                      <div class="card-body preview">
+                        <h5 class="card-title">Image 1</h5>
+                        <div class="blog_img">
+                          <img
+                            src="<%=/uploads/+ contentData.image1 %>"
+                            class="card-img-top"
+                            alt="" />
+                        </div>
+                        <div class="in-upload">
+                          <button type="button" class="uploadImg">
+                            <i class="fa-regular fa-image"></i>choose another
+                            image
+                          </button>
+                          <input type="file" name="image1" class="uploadFile" />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-9">
+                    <div class="txtGrp">
+                      <div class="txtGrp">
+                        <label class="form-label" for="detail"
+                          >Description 1<abbr class="required" title="required"
+                            >*</abbr
+                          ></label
+                        >
+                        <textarea
+                          class="ckeditor"
+                          name="description1"
+                          id="section1_desc1">
+<%= contentData.description1 || '' %></textarea
+                        >
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Section 1</h5>
+                        </div>
+                  <div class="col-md-12 full_width">
+                    <div class="row">
+                        <% for (let i = 0; i < 4; i++) { %>
+                            <div class="col-md-4">
+                                <div class="col-md-12">
+                                    <div class="card">
+                                        <div class="card-body preview">
+                                            <h5 class="card-title">Image <%= i + 2 %></h5>
+                                            <div class="blog_img forth_icon">
+                                                <img src="<%=/uploads/+ contentData[`sec1_image_${i}`] %>" class="card-img-top" alt="">
+                                            </div>
+                                            <div class="in-upload">
+                                                <button type="button" class="uploadImg">
+                                                    <i class="fa-regular fa-image"></i> choose another image
+                                                </button>
+                                                <input type="file" name="sec1_image_<%= i %>" class="uploadFile">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="txtGrp">
+                                        <label class="form-label">Number <%= i + 1  %><abbr class="required" title="required">*</abbr></label>
+                                        <input type="number" name="sec1_number_<%= i %>" value="<%= contentData[`sec1_number_${i}`] || '' %>" class="input">
+                                    </div>
+                                    <div class="txtGrp">
+                                        <label class="form-label">Heading <%= i + 1 %><abbr class="required" title="required">*</abbr></label>
+                                        <input name="sec1_heading_<%= i %>" value="<%= contentData[`sec1_heading_${i}`] || '' %>" class="input">
+                                    </div>
+                                </div>
+                            </div>
+                        <% } %>
+                </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-12">
+              <div class="card">
+                  <div class="card-header">
+                      <h5>Section 2</h5>
+                  </div>
+                <div class="col-md-12 full_width">
+                  <div class="row">
+                    <div class="col-md-9">
+                      <div class="txtGrp">
+                        <div class="txtGrp">
+                          <label class="form-label" for="detail"
+                            >Description 2<abbr class="required" title="required"
+                              >*</abbr
+                            ></label
+                          >
+                          <textarea
+                            class="ckeditor"
+                            name="description2"
+                            id="description2">
+  <%= contentData.description2 || '' %></textarea
+                          >
+                        </div>
+                      </div>
+                    </div>
+                      <% for (let i = 0; i < 4; i++) { %>
+                          <div class="col-md-4">
+                              <div class="col-md-12">
+                                  <div class="card">
+                                      <div class="card-body preview">
+                                          <h5 class="card-title">Image <%= i + 6 %></h5>
+                                          <div class="blog_img forth_icon">
+                                              <img src="<%=/uploads/+ contentData[`sec2_image_${i}`] %>" class="card-img-top" alt="">
+                                          </div>
+                                          <div class="in-upload">
+                                              <button type="button" class="uploadImg">
+                                                  <i class="fa-regular fa-image"></i> choose another image
+                                              </button>
+                                              <input type="file" name="sec2_image_<%= i %>" class="uploadFile">
+                                          </div>
+                                      </div>
+                                  </div>
+                                  <div class="txtGrp">
+                                      <label class="form-label">Text <%= i + 1  %><abbr class="required" title="required">*</abbr></label>
+                                      <textarea type="text" name="sec2_text_<%= i %>" class="input"><%= contentData[`sec2_text_${i}`] || '' %></textarea>
+                                  </div>
+                                  <div class="txtGrp">
+                                      <label class="form-label">Heading <%= i + 5 %><abbr class="required" title="required">*</abbr></label>
+                                      <input name="sec2_heading_<%= i %>" value="<%= contentData[`sec2_heading_${i}`] || '' %>" class="input">
+                                  </div>
+                              </div>
+                          </div>
+                      <% } %>
+              </div>
+              </div>
+            </div>
+          </div>
+              <div class="col-md-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Section 3</h5>
+                    </div>
+              <div class="col-md-12 full_width">
+                
+                <div class="row">
+                  <div class="col-md-9">
+                    <div class="txtGrp">
+                      <div class="txtGrp">
+                        <label class="form-label" for="detail"
+                          >Description 3<abbr class="required" title="required"
+                            >*</abbr
+                          ></label
+                        >
+                        <textarea
+                          class="ckeditor"
+                          name="description3"
+                          id="description3">
+<%= contentData.description3 || '' %></textarea
+                        >
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                        <label class="form-label">Link Text <abbr
+                                class="required" title="required">*</abbr>
+                        </label>
+                        <input type="text" name="link_text1" value="<%= contentData.link_text1 || '' %>"
+                            class="input">
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="txtGrp">
+                        <label class="form-label">Link URL <abbr
+                                class="required" title="required">*</abbr>
+                        </label>
+                        <input type="text" name="link_url1" value="<%= contentData.link_url1 || '' %>"
+                            class="input">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card">
+                    <div class="card-body preview">
+                      <h5 class="card-title">Image 10</h5>
+                      <div class="blog_img">
+                        <img
+                          src="<%=/uploads/+ contentData.image10 %>"
+                          class="card-img-top"
+                          alt="" />
+                      </div>
+                      <div class="in-upload">
+                        <button type="button" class="uploadImg">
+                          <i class="fa-regular fa-image"></i>choose another
+                          image
+                        </button>
+                        <input type="file" name="image10" class="uploadFile" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+            </div>
+            </div>
+          </div>
+        </div>
+            <div class="col-md-12">
+              <div class="card">
+                  <div class="card-header">
+                      <h5>Section 4</h5>
+                  </div>
+            <div class="col-md-12 full_width">
+              
+              <div class="row">
+                <div class="col-md-9">
+                  <div class="txtGrp">
+                    <div class="txtGrp">
+                      <label class="form-label" for="detail"
+                        >Description 4<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <textarea
+                        class="ckeditor"
+                        name="description4"
+                        id="description4">
+<%= contentData.description4 || '' %></textarea
+                      >
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-3">
+                  <div class="card">
+                    <div class="card-body preview">
+                      <h5 class="card-title">Image 11</h5>
+                      <div class="blog_img">
+                        <img
+                          src="<%=/uploads/+ contentData.image11 %>"
+                          class="card-img-top"
+                          alt="" />
+                      </div>
+                      <div class="in-upload">
+                        <button type="button" class="uploadImg">
+                          <i class="fa-regular fa-image"></i>choose another
+                          image
+                        </button>
+                        <input type="file" name="image11" class="uploadFile" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="card preview">
+                  <div class="card-body">
+                      <h5 class="card-title">Popup Video</h5>
+                      <video loop controls>
+                          <source src="/uploads/<%= contentData.video %>">
+                          Your browser does not support the video tag.
+                      </video>
+                      <div class="in-upload">
+                          <button type="button" class="uploadImg">
+                              <i class="fa-regular fa-image"></i> Choose Another File
+                          </button>
+                          <input type="file" name="video" class="uploadFile">
+                      </div>
+                  </div>
+              </div>
+              
+            
+          </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Section 5</h5>
+            </div>
+      <div class="col-md-12 full_width">
+        
+        <div class="row">
+          <div class="col-md-9">
+            <div class="txtGrp">
+              <div class="txtGrp">
+                <label class="form-label" for="detail"
+                  >Description 5<abbr class="required" title="required"
+                    >*</abbr
+                  ></label
+                >
+                <textarea
+                  class="ckeditor"
+                  name="description5"
+                  id="description5">
+<%= contentData.description5 || '' %></textarea
+                >
+              </div>
+            </div>
+          </div>
+          <div class="col-md-6">
+            <div class="txtGrp">
+                <label class="form-label">Link Text <abbr
+                        class="required" title="required">*</abbr>
+                </label>
+                <input type="text" name="link_text2" value="<%= contentData.link_text2 || '' %>"
+                    class="input">
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="txtGrp">
+                <label class="form-label">Link URL <abbr
+                        class="required" title="required">*</abbr>
+                </label>
+                <input type="text" name="link_url2" value="<%= contentData.link_url2 || '' %>"
+                    class="input">
+            </div>
+        </div>
+        <% for (let i = 0; i < 4; i++) { %>
+          <div class="col-md-4">
+              <div class="col-md-12">
+                  <div class="card">
+                      <div class="card-body preview">
+                          <h5 class="card-title">Image <%= i + 12 %></h5>
+                          <div class="blog_img forth_icon">
+                              <img src="<%=/uploads/+ contentData[`sec5_image_${i}`] %>" class="card-img-top" alt="">
+                          </div>
+                          <div class="in-upload">
+                              <button type="button" class="uploadImg">
+                                  <i class="fa-regular fa-image"></i> choose another image
+                              </button>
+                              <input type="file" name="sec5_image_<%= i %>" class="uploadFile">
+                          </div>
+                      </div>
+                  </div>
+                  <div class="txtGrp">
+                      <label class="form-label">Text <%= i + 5  %><abbr class="required" title="required">*</abbr></label>
+                      <textarea type="text" name="sec5_text_<%= i %>" class="input"><%= contentData[`sec5_text_${i}`] || '' %></textarea>
+                  </div>
+                  <div class="txtGrp">
+                      <label class="form-label">Heading <%= i + 9 %><abbr class="required" title="required">*</abbr></label>
+                      <input name="sec5_heading_<%= i %>" value="<%= contentData[`sec5_heading_${i}`] || '' %>" class="input">
+                  </div>
+              </div>
+          </div>
+      <% } %>
+    </div>
+    </div>
+  </div>
+</div>
+<div class="col-md-12">
+  <div class="card">
+      <div class="card-header">
+          <h5>Section 6</h5>
+      </div>
+<div class="col-md-12 full_width">
+  
+  <div class="row">
+    
+  <% for (let i = 0; i < 4; i++) { %>
+    <div class="col-md-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body preview">
+                    <h5 class="card-title">Image <%= i + 16 %></h5>
+                    <div class="blog_img forth_icon">
+                        <img src="<%=/uploads/+ contentData[`sec6_image_${i}`] %>" class="card-img-top" alt="">
+                    </div>
+                    <div class="in-upload">
+                        <button type="button" class="uploadImg">
+                            <i class="fa-regular fa-image"></i> choose another image
+                        </button>
+                        <input type="file" name="sec6_image_<%= i %>" class="uploadFile">
+                    </div>
+                </div>
+            </div>
+            <div class="txtGrp">
+                <label class="form-label">Text <%= i + 9  %><abbr class="required" title="required">*</abbr></label>
+                <textarea type="text" name="sec6_text_<%= i %>" class="input"><%= contentData[`sec6_text_${i}`] || '' %></textarea>
+            </div>
+            <div class="txtGrp">
+                <label class="form-label">Heading <%= i + 13 %><abbr class="required" title="required">*</abbr></label>
+                <input name="sec6_heading_<%= i %>" value="<%= contentData[`sec6_heading_${i}`] || '' %>" class="input">
+            </div>
+        </div>
+    </div>
+<% } %>
+</div>
+</div>
+</div>
+</div>
+<div class="col-md-12">
+  <div class="card">
+      <div class="card-header">
+          <h5>Section 7</h5>
+      </div>
+<div class="col-md-12 full_width">
+  
+  <div class="row">
+    <div class="col-md-3">
+      <div class="card">
+        <div class="card-body preview">
+          <h5 class="card-title">Image 20</h5>
+          <div class="blog_img">
+            <img
+              src="<%=/uploads/+ contentData.image20 %>"
+              class="card-img-top"
+              alt="" />
+          </div>
+          <div class="in-upload">
+            <button type="button" class="uploadImg">
+              <i class="fa-regular fa-image"></i>choose another
+              image
+            </button>
+            <input type="file" name="image20" class="uploadFile" />
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-9">
+      <div class="txtGrp">
+        <div class="txtGrp">
+          <label class="form-label" for="detail"
+            >Description 6<abbr class="required" title="required"
+              >*</abbr
+            ></label
+          >
+          <textarea
+            class="ckeditor"
+            name="description6"
+            id="section1_desc1">
+<%= contentData.description6 || '' %></textarea
+          >
+        </div>
+      </div>
+    </div>
+    
+  <% for (let i = 0; i < 4; i++) { %>
+    <div class="col-md-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body preview">
+                    <h5 class="card-title">Image <%= i + 21 %></h5>
+                    <div class="blog_img forth_icon">
+                        <img src="<%=/uploads/+ contentData[`sec7_image_${i}`] %>" class="card-img-top" alt="">
+                    </div>
+                    <div class="in-upload">
+                        <button type="button" class="uploadImg">
+                            <i class="fa-regular fa-image"></i> choose another image
+                        </button>
+                        <input type="file" name="sec7_image_<%= i %>" class="uploadFile">
+                    </div>
+                </div>
+            </div>
+            <div class="txtGrp">
+                <label class="form-label">Text <%= i + 13  %><abbr class="required" title="required">*</abbr></label>
+                <textarea type="text" name="sec7_text_<%= i %>" class="input"><%= contentData[`sec7_text_${i}`] || '' %></textarea>
+            </div>
+            <div class="txtGrp">
+                <label class="form-label">Heading <%= i + 17 %><abbr class="required" title="required">*</abbr></label>
+                <input name="sec7_heading_<%= i %>" value="<%= contentData[`sec7_heading_${i}`] || '' %>" class="input">
+            </div>
+        </div>
+    </div>
+<% } %>
+</div>
+</div>
+</div>
+</div>
+<div class="col-md-12">
+  <div class="card">
+      <div class="card-header">
+          <h5>Section 8</h5>
+      </div>
+<div class="col-md-12 full_width">
+  
+  <div class="row">
+    
+    <div class="col-md-9">
+      <div class="txtGrp">
+        <div class="txtGrp">
+          <label class="form-label" for="detail"
+            >Description 7<abbr class="required" title="required"
+              >*</abbr
+            ></label
+          >
+          <textarea
+            class="ckeditor"
+            name="description7"
+            id="section1_desc1">
+<%= contentData.description7 || '' %></textarea
+          >
+        </div>
+      </div>
+    </div>
+    
+  
+</div>
+</div>
+</div>
+</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="text-center">
+          <button type="submit" class="btn btn-primary">Submit</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,469 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Site Settings</h3>
+      </div>
+      <!-- <div class="text text2">
+        <a href="blog.php" class="webBtn mdBtn greenBtn"
+          ><i class="fa-regular fa-arrow-left"></i>Cancel</a
+        >
+      </div> -->
+    </div>
+    <div class="dashTable">
+      <div class="card">
+        <div class="card-header">
+          <h5>General Detail</h5>
+        </div>
+        <div class="card-body">
+          <form
+            role="form"
+            class="form-horizontal frmAjax"
+            id="frmSetting"
+            method="POST"
+            action="/admin/update-settings"
+            enctype="multipart/form-data">
+            <div class="row">
+              <div class="col-md-6">
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Site Domain
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <input
+                        type="text"
+                        name="site_domain"
+                        value="<%= settings.site_domain || '' %>"                        
+                        class="input"
+                        required="" />
+                    </div>
+                  </div>
+                </div>
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Site Name
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <input
+                        type="text"
+                        name="site_name"
+                        value="<%= settings.site_name || '' %>"
+                        class="input"
+                        required="" />
+                    </div>
+                  </div>
+                </div>
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Site Email
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <input
+                        type="text"
+                        name="site_email"
+                        value="<%= settings.site_email || '' %>"
+                        class="input"
+                        required="" />
+                    </div>
+                  </div>
+                </div>
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Address <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <textarea
+                        rows="5"
+                        name="site_address"
+                        class="input"><%= settings.site_address || '' %></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Site Email for receiving emails
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <input
+                        type="text"
+                        name="receiving_site_email"
+                        value="<%= settings.receiving_site_email || '' %>"
+                        class="input"
+                        required="" />
+                    </div>
+                  </div>
+                </div>
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Site No-Reply Email
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <input
+                        type="text"
+                        name="site_noreply_email"
+                        value="<%= settings.site_noreply_email || '' %>"
+                        class="input"
+                        required="" />
+                    </div>
+                  </div>
+                </div>
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Site Phone
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <input
+                        type="text"
+                        name="site_phone"
+                        value="<%= settings.site_phone || '' %>"
+                        class="input"
+                        required="" />
+                    </div>
+                  </div>
+                </div>
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Footer Copyright
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <textarea
+                        rows="5"
+                        name="footer_copyright"
+                        class="input"><%= settings.footer_copyright || '' %></textarea>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          
+        
+      <div class="card">
+        <div class="card-header">
+          <h5>Social Media</h5>
+        </div>
+        <div class="card-body">
+          
+            <div class="row">
+              <div class="col-md-6">
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Facebook Link
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <i class="fab fa-facebook ic-left"></i>
+
+                      <input
+                        type="text"
+                        name="site_facebook"
+                        value="<%= settings.site_facebook || '' %>"
+                        class="input" />
+                    </div>
+                  </div>
+                </div>
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Twitter Link
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <i class="fab fa-twitter ic-left"></i>
+
+                      <input
+                        type="text"
+                        name="site_twitter"
+                        value="<%= settings.site_twitter || '' %>"
+                        class="input" />
+                    </div>
+                  </div>
+                </div>
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Instagram Link
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <i class="fab fa-instagram ic-left"></i>
+
+                      <input
+                        type="text"
+                        name="site_instagram"
+                        value="<%= settings.site_instagram || '' %>"
+                        class="input" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Youtube Link
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <i class="fab fa-youtube ic-left"></i>
+
+                      <input
+                        type="text"
+                        name="site_youtube"
+                        value="<%= settings.site_youtube || '' %>"
+                        class="input" />
+                    </div>
+                  </div>
+                </div>
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Spotify Link
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <i class="fab fa-spotify ic-left"></i>
+
+                      <input
+                        type="text"
+                        name="site_spotify"
+                        value="<%= settings.site_spotify || '' %>"
+                        class="input" />
+                    </div>
+                  </div>
+                </div>
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Etsy Link
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <i class="fab fa-etsy ic-left"></i>
+
+                      <input
+                        type="text"
+                        name="site_etsy"
+                        value="<%= settings.site_etsy || '' %>"
+                        class="input" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h5>Payment Setting</h5>
+        </div>
+        <div class="card-body strip_it">
+          
+            <div class="row">
+              <div class="col-md-12">
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Payment Mode
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <select
+                        type="text"
+                        name="site_sandbox"
+                        value="<%= settings.site_sandbox || '' %>"
+                        class="input">
+                        <option value="1">Testing</option>
+                        <option value="0">Live</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+      
+      <div class="card">
+        <div class="card-header">
+          <h5>Site Images</h5>
+        </div>
+        <div class="card-body strip_it">
+          
+            <div class="row">
+              <div class="col-md-12">
+                <div class="bg-site-margin">
+                  <div class="row">
+                    <div class="col-md-4">
+                      <div class="panel panel-primary">
+                        <div class="panel-heading">
+                          <div class="panel-title">Logo Image</div>
+                          <div class="panel-options">
+                            <a href="javascript:void(0)">
+                              <i class="fa fa-chevron-down"></i>
+                            </a>
+                          </div>
+                        </div>
+                        <div class="panel-body">
+                          <div class="fileinput fileinput-new">
+                            <input type="hidden" />
+                            <div
+                              class="fileinput-new thumbnail"
+                              style="max-width: 310px"
+                              data-trigger="fileinput">
+                              <img src="<%= helpers.getImage(settings.logo_image) %>" alt="--" />
+                            </div>
+                            <div
+                              class="fileinput-preview fileinput-exists thumbnail"
+                              style="
+                                max-width: 320px;
+                                max-height: 160px;
+                                line-height: 6px;
+                              "></div>
+                            <div>
+                              <span class="btn btn-white btn-file">
+                                <span class="fileinput-new">Select image</span>
+                                <span class="fileinput-exists">Change</span>
+                                <input
+                                  type="file"
+                                  name="logo_image"
+                                  accept="image/*" />
+                              </span>
+                              <a
+                                href="#"
+                                class="btn btn-orange fileinput-exists"
+                                data-dismiss="fileinput"
+                                >Remove</a
+                              >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="panel panel-primary">
+                        <div class="panel-heading">
+                          <div class="panel-title">Favicon Image</div>
+                          <div class="panel-options">
+                            <a href="javascript:void(0)">
+                              <i class="fa fa-chevron-down"></i>
+                            </a>
+                          </div>
+                        </div>
+                        <div class="panel-body">
+                          <div class="fileinput fileinput-new">
+                            <input type="hidden" />
+                            <div
+                              class="fileinput-new thumbnail"
+                              style="max-width: 310px"
+                              data-trigger="fileinput">
+                              <img src="<%= helpers.getImage(settings.favicon_image) %>" alt="--" />
+                            </div>
+                            <div
+                              class="fileinput-preview fileinput-exists thumbnail"
+                              style="
+                                max-width: 320px;
+                                max-height: 160px;
+                                line-height: 6px;
+                              "></div>
+                            <div>
+                              <span class="btn btn-white btn-file">
+                                <span class="fileinput-new">Select image</span>
+                                <span class="fileinput-exists">Change</span>
+                                <input
+                                  type="file"
+                                  name="favicon_image"
+                                  accept="image/*" />
+                              </span>
+                              <a
+                                href="#"
+                                class="btn btn-orange fileinput-exists"
+                                data-dismiss="fileinput"
+                                >Remove</a
+                              >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="col-md-4">
+                      <div class="panel panel-primary">
+                        <div class="panel-heading">
+                          <div class="panel-title">Thumb Image</div>
+                          <div class="panel-options">
+                            <a href="javascript:void(0)">
+                              <i class="fa fa-chevron-down"></i>
+                            </a>
+                          </div>
+                        </div>
+                        <div class="panel-body">
+                          <div class="fileinput fileinput-new">
+                            <input type="hidden" />
+                            <div
+                              class="fileinput-new thumbnail"
+                              style="max-width: 310px"
+                              data-trigger="fileinput">
+                              <img src="<%= helpers.getImage(settings.thumb_image) %>" alt="--" />
+                            </div>
+                            <div
+                              class="fileinput-preview fileinput-exists thumbnail"
+                              style="
+                                max-width: 320px;
+                                max-height: 160px;
+                                line-height: 6px;
+                              "></div>
+                            <div>
+                              <span class="btn btn-white btn-file">
+                                <span class="fileinput-new">Select image</span>
+                                <span class="fileinput-exists">Change</span>
+                                <input
+                                  type="file"
+                                  name="thumb_image"
+                                  accept="image/*" />
+                              </span>
+                              <a
+                                href="#"
+                                class="btn btn-orange fileinput-exists"
+                                data-dismiss="fileinput"
+                                >Remove</a
+                              >
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                <div class="form-group text-right">
+                  <div class="col-md-12 text-center">
+                    <button class="webBtn" type="submit">Update Settings <i class="spinner hidden"></i></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </form>
+          
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

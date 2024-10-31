@@ -1,0 +1,51 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="row">
+      <div class="col-md-12">
+        <div class="login-card">
+          <div>
+            <a class="logo text-center" href="/admin/login">
+              <img
+                class="for-light"
+                src="<%=helpers.getImage(adminData.logo_image) %>"
+                alt="Loftus"
+                height="80" />
+            </a>
+          </div>
+          <div class="login-main">
+            <!-- Wrap inputs inside one form and define action and method -->
+            <form action="/admin/login" method="POST" class="frmAjax">
+              <h4>Sign in to account</h4>
+              <p>Enter your email & password to login</p>
+              <div class="txtGrp">
+                <input
+                  type="text"
+                  name="user_name"
+                  class="input"
+                  placeholder="John Doe"
+                  required />
+              </div>
+
+              <div class="txtGrp">
+                <input
+                  type="password"
+                  name="password"
+                  class="input"
+                  placeholder="Password"
+                  required />
+              </div>
+
+              <div class="form-group text-right">
+                <div class="col-md-12 text-center">
+                  <button type="submit" class="webBtn">
+                    Login <i class="spinner hidden"></i>
+                  </button>
+                </div>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,111 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Messages</h3>
+        <ul>
+          <li><a href="">Home</a></li>
+          <li class="active"><a href="">Message</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dashTable">
+      <table class="dataTable display" id="basic-1">
+        <thead>
+          <tr class="table-scnd-row message-table">
+            <th width="8%">
+              <p>#</p>
+            </th>
+            <th width="16%">
+              <p>Name</p>
+            </th>
+            <th width="20%">
+              <p>Email</p>
+            </th>
+
+            <th width="20%">
+              <p>Phone</p>
+            </th>
+            <th width="14%">
+              <p>Date</p>
+            </th>
+            <th width="12%">
+              <p>Status</p>
+            </th>
+
+            <th width="10%">
+              <p>Action</p>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (messages && messages.length > 0) { %> <%
+          messages.forEach((message, index) => { %>
+          <tr class="bottom-cntnt" id="message-<%= message.id %>">
+            <td>
+              <p><%= index + 1 %></p>
+            </td>
+            <td>
+              <p><%= message.name %></p>
+            </td>
+            <td>
+              <p><%= message.email %></p>
+            </td>
+            <td>
+              <p><%= message.phone_number %></p>
+            </td>
+
+            <td>
+              <p>
+                <%= new Date(message.created_date).toLocaleDateString("en-US", {
+                year: "numeric", month: "short", day: "numeric" }) %>
+              </p>
+            </td>
+
+            <td>
+              <p>
+                <% if (message.status === 1) { %>
+                <a href="#" class="status badge success">Read</a>
+                <% } else { %>
+                <a href="#" class="status badge warning">Unread</a>
+                <% } %>
+              </p>
+            </td>
+
+            <td>
+              <div class="btn-group">
+                <button
+                  type="button"
+                  class="dropdown-toggle"
+                  data-toggle="dropdown">
+                  <i class="fa fa-ellipsis-h"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-primary" role="menu">
+                  <li>
+                    <a href="/admin/message-detail/<%= message.id %>">
+                      <i class="fa fa-building" aria-hidden="true"></i>Detail
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="#"
+                      class="delete-item"
+                      data-id="<%= message.id %>"
+                      data-url="/admin/messages/delete/<%= message.id %>">
+                      <i class="fa fa-trash" aria-hidden="true"></i>Delete
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+          <% }) %> <% } else { %>
+          <tr>
+            <td colspan="8"><p>No messages found.</p></td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

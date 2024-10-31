@@ -1,0 +1,119 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Edit Service</h3>
+        <ul>
+          <li><a href="">Home</a></li>
+          <li class="active"><a href="">Edit Service</a></li>
+        </ul>
+      </div>
+      <div class="text text2">
+        <a href="blog.php" class="webBtn mdBtn greenBtn"
+          ><i class="fa-regular fa-arrow-left"></i>Cancel</a
+        >
+      </div>
+    </div>
+    <div class="dashTable">
+      <div class="card editor_card">
+        <div class="card-header">
+          <h5>Service Block</h5>
+        </div>
+        <div class="card-body full_width">
+          <form
+            id="editServiceForm"
+            class="frmAjax"
+            action="/admin/services/update/<%= service.id %>"
+            method="post"
+            enctype="multipart/form-data">
+            <div class="row">
+              <div class="col-md-3">
+                <div class="card">
+                  <div class="card-body preview">
+                    <h5 class="card-title">Image</h5>
+                    <div class="blog_img">
+                      <% if (imageFilenames && imageFilenames[0]) { %>
+
+                      <img
+                        src="<%= helpers.getImage(imageFilenames[0]) %>"
+                        class="card-img-top"
+                        alt="" />
+                      <% } %>
+                    </div>
+                    <div class="in-upload">
+                      <button type="button" class="uploadImg">
+                        <i class="fa-regular fa-image"></i>choose another image
+                      </button>
+                      <input
+                        type="file"
+                        name="service_image"
+                        value="<%= editServiceId ? service.service_image : '' %>"
+                        class="uploadFile" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-9">
+                <div class="row switch-showcase">
+                  <div class="col-md-12">
+                    <div class="txtGrp media">
+                      <label class="form-label">Status</label>
+                      <div
+                        class="txtGrp-body text-end icon-state switch-outline">
+                        <label class="switch">
+                          <input type="checkbox" name="status" /><span
+                            class="switch-state bg-primary"></span>
+                        </label>
+                        <select name="status">
+                          <option value="1" <%= service.status == 1 ? 'selected' : '' %>>Active</option>
+                          <option value="0" <%= service.status == 0 ? 'selected' : '' %>>Inactive</option>
+                      </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >Name<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="title"
+                        type="text"
+                        name="title"
+                        value="<%= editServiceId ? service.title : '' %>" />
+                    </div>
+                  </div>
+                  <div class="col-md-12">
+                    <div class="txtGrp">
+                      <label class="form-label" for="detail"
+                        >Description<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <textarea
+                        class="ckeditor"
+                        name="description"
+                        id="editor1">
+<%= editServiceId ? service.description : '' %></textarea
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer text-end">
+              <button class="webBtn" type="submit">
+                Update Content <i class="spinner hidden"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+        <hr />
+      </div>
+    </div>
+  </div>
+</section>

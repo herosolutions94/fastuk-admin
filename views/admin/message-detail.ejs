@@ -1,0 +1,50 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>View Massages</h3>
+        <ul>
+          <li><a href="">Home</a></li>
+          <li class="active"><a href="">Message Detail</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dashTable">
+      <div class="card">
+        <div class="card-header">
+          <h5>Message Details:</h5>
+        </div>
+
+        <div class="card-body">
+          <div class="list-group details-group">
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Name: </strong><%= message.name %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Email: </strong><%= message.email %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Phone: </strong><%= message.phone_number %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Subject: </strong><%= message.subject %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Message: </strong><%= message.message %></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

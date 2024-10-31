@@ -1,0 +1,112 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Add New Team Member</h3>
+        <ul>
+          <li><a href="">Home</a></li>
+          <li class="active"><a href="">New Team Member</a></li>
+        </ul>
+      </div>
+      <div class="text text2">
+        <a href="blog.php" class="webBtn mdBtn greenBtn"
+          ><i class="fa-regular fa-arrow-left"></i>Cancel</a
+        >
+      </div>
+    </div>
+    <div class="dashTable">
+      <div class="card editor_card">
+        <div class="card-header">
+          <h5>Team Member Block</h5>
+        </div>
+        <div class="card-body full_width">
+          <form
+            id="addTeamMemberForm"
+            class="frmAjax"
+            action="/admin/add-team-members"
+            method="post"
+            enctype="multipart/form-data">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="row switch-showcase">
+                  <div class="col-md-3">
+                    <div class="txtGrp status_custom">
+                      <label class="form-label">Status </label>
+                      <div
+                        class="txtGrp-body text-end icon-state switch-outline">
+                        <select name="status" class="txtBox" required>
+                          <option value="1">Active</option>
+                          <option value="0">Inactive</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-6">
+                <div class="card">
+                  <div class="card-body preview">
+                    <h5 class="card-title">Image</h5>
+                    <div class="blog_img">
+                      <img
+                        src="images/no-image.svg"
+                        class="card-img-top"
+                        alt="" />
+                    </div>
+                    <div class="in-upload">
+                      <button type="button" class="uploadImg">
+                        <i class="fa-regular fa-image"></i>choose another image
+                      </button>
+                      <input
+                        type="file"
+                        name="team_mem_image"
+                        class="uploadFile" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="row switch-showcase">
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >Name<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="title"
+                        type="text"
+                        name="title" />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >Designation<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="designation"
+                        type="text"
+                        name="designation" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer text-end">
+              <button class="webBtn" type="submit">
+                Update Content <i class="spinner hidden"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+        <hr />
+      </div>
+    </div>
+  </div>
+</section>

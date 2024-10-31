@@ -1,0 +1,54 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Upload Component</h3>
+        <ul>
+          <li><a href="">Home</a></li>
+          <li class="active"><a href="">Upload Component</a></li>
+        </ul>
+      </div>
+    </div>
+    <!-- image -->
+    <div class="image-uploading">
+      <div class="card">
+        <div class="upload-container">
+          <div id="drop-area">
+            <h3>
+              Drag & drop images, videos, or any file, or browse files on your
+              computer
+            </h3>
+            <input type="file" id="fileElem" multiple accept="image/*" />
+            <label for="fileElem" class="webBtn">Select Image</label>
+          </div>
+          <progress id="progress-bar" value="0" max="100"></progress>
+        </div>
+        <!-- <div class="image-preview">
+                    <h3>Uploaded Image Preview</h3>
+                    <div class="image" id="image-preview">
+                        <img src="images/team-1.jpeg" alt="Uploaded Image">
+                    </div>
+                </div> -->
+      </div>
+    </div>
+    <!-- video -->
+    <div class="image-uploading">
+      <div class="card">
+        <div class="upload-container">
+          <div id="drop-area">
+            <h3>Drag & Drop or Select a Video File</h3>
+            <input type="file" id="fileElem" accept="video/*" />
+            <label for="fileElem" class="webBtn">Select Video</label>
+          </div>
+          <progress id="progress-bar" value="0" max="100"></progress>
+        </div>
+        <!-- <div class="video-preview">
+                    <h3>Uploaded Video Preview</h3>
+                    <div class="video-prev" id="video-preview">
+                        <video></video>
+                    </div>
+                </div> -->
+      </div>
+    </div>
+  </div>
+</section>
