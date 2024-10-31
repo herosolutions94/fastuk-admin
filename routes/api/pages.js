@@ -5,9 +5,9 @@ const PagesController = require('../../controllers/api/pages');
 
 const pagesController = new PagesController();
 
+
 router.get('/home', (req, res) => pagesController.getHomeData(req, res));
 router.get('/about', (req, res) => pagesController.getAboutData(req, res));
-
 router.get('/contact', (req, res) => pagesController.getContactData(req, res));
 router.get('/privacy-policy', (req, res) => pagesController.getPrivacyPolicyData(req, res));
 router.get('/terms-conditions', (req, res) => pagesController.getTermsConditionsData(req, res));
