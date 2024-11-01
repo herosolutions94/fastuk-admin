@@ -3,6 +3,7 @@ const BaseController = require('../baseController');
 const PageModel = require('../../models/api/pages'); // Assuming you have this model
 const TestimonialModel = require('../../models/api/testimonialModel');
 const TeamModel = require('../../models/api/teamModel');
+const FaqModel = require('../../models/api/faqModel');
 
 const pool  = require('../../config/db-connection');
 
@@ -170,6 +171,8 @@ class PagesController extends BaseController {
     }
 
     async getFaqData(req, res) {
+        const faqModel = new FaqModel();
+
 
         try {
             const siteSettings = res.locals.adminData;
@@ -177,6 +180,9 @@ class PagesController extends BaseController {
             // Get the main page content
             const pageContent = await this.pageModel.findByKey('faq');
             const formData = pageContent ? JSON.parse(pageContent.content || '{}') : {};
+
+            const faqsData = await faqModel.findFeatured();
+
     
     
     
@@ -184,6 +190,7 @@ class PagesController extends BaseController {
             const jsonResponse = {
                 siteSettings,
                 content: formData,
+                faqs: faqsData
             };
     
             // Return data in JSON format
