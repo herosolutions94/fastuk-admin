@@ -66,7 +66,7 @@ class TeamController extends BaseController {
         res.json({
             status: 1,
             message: 'Team Member added successfully!',
-            redirect_url: '/admin/team-members-list'
+            redirect_url: '/admin/team-members'
         });        
     } catch (error) {
             return res.status(200).json({ // Changed to status 500 for server errors
@@ -175,7 +175,7 @@ class TeamController extends BaseController {
             res.json({
                 status: 1,
                 message: 'Team member updated successfully!',
-                redirect_url: '/admin/team-members-list'
+                redirect_url: '/admin/team-members'
             });
         } catch (error) {
             console.error('Failed to update team member:', error);
@@ -223,12 +223,12 @@ class TeamController extends BaseController {
             const result = await Team.deleteTeamMemberById(teamMemId);
             if (result) {
                 // Redirect to the riders list after deletion
-                this.sendSuccess(res, {}, 'Team Member deleted successfully!', 200, '/admin/team-members-list')
+                this.sendSuccess(res, {}, 'Team Member deleted successfully!', 200, '/admin/team-members')
 
                 // res.json({
                 //     status: 1,
                 //     message: 'Team Member deleted successfully!',
-                //     redirect_url: '/admin/team-members-list'
+                //     redirect_url: '/admin/team-members'
                 // });            
                 } else {
                 this.sendError(res, 'Failed to delete team member');

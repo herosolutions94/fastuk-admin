@@ -9,7 +9,7 @@
         </ul>
       </div>
       <div class="text text2">
-        <a href="blog.php" class="webBtn mdBtn greenBtn"
+        <a href="/admin/team-members" class="webBtn mdBtn greenBtn"
           ><i class="fa-regular fa-arrow-left"></i>Cancel</a
         >
       </div>
@@ -55,23 +55,7 @@
               </div>
               <div class="col-md-9">
                 <div class="row switch-showcase">
-                  <div class="col-md-12">
-                    <div class="txtGrp media">
-                      <label class="form-label">Status</label>
-                      <div
-                        class="txtGrp-body text-end icon-state switch-outline">
-                        <label class="switch">
-                          <input type="checkbox" name="status" /><span
-                            class="switch-state bg-primary"></span>
-                        </label>
-                        <select name="status">
-                          <option value="1" <%= teamMember.status == 1 ? 'selected' : '' %>>Active</option>
-                          <option value="0" <%= teamMember.status == 0 ? 'selected' : '' %>>Inactive</option>
-                      </select>
-                      
-                      </div>
-                    </div>
-                  </div>
+                  
 
                   <div class="col-md-6">
                     <div class="txtGrp">
@@ -101,6 +85,19 @@
                         type="text"
                         name="designation"
                         value="<%= editTeamMemberId ? teamMember.designation : '' %>" />
+                    </div>
+                  </div>
+                  <div class="col-md-4">
+                    <div class="txtGrp">
+                      <label class="form-label">Status</label>
+                      <div
+                        class="txtGrp">
+                        <select name="status" class="input">
+                          <option value="1" <%= teamMember.status == 1 ? 'selected' : '' %>>Active</option>
+                          <option value="0" <%= teamMember.status == 0 ? 'selected' : '' %>>Inactive</option>
+                        </select>
+                      
+                      </div>
                     </div>
                   </div>
                 </div>

@@ -100,7 +100,7 @@ class RiderController extends BaseController {
             await Rider.updateRider(riderId, riderData);
     
             // Redirect to the riders list with a success message
-            this.sendSuccess(res, {}, 'Updated Successfully!', 200, '/admin/riders-list')
+            this.sendSuccess(res, {}, 'Updated Successfully!', 200, '/admin/riders')
         } catch (error) {
             console.error('Failed to update rider:', error);
             this.sendError(res, 'Failed to update rider');
@@ -143,7 +143,7 @@ class RiderController extends BaseController {
             const result = await Rider.deleteRiderById(riderId);
             if (result) {
                 // Redirect to the riders list after deletion
-                this.sendSuccess(res, {}, 'Rider deleted successfully!', 200, '/admin/riders-list')
+                this.sendSuccess(res, {}, 'Rider deleted successfully!', 200, '/admin/riders')
 
             } else {
                 this.sendError(res, 'Failed to delete rider');

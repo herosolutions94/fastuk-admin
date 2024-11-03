@@ -4,12 +4,12 @@
       <div class="text">
         <h3>Add New Service</h3>
         <ul>
-          <li><a href="">Home</a></li>
+          <li><a href="/admin/dashboard">Dashboard</a></li>
           <li class="active"><a href="">New Service</a></li>
         </ul>
       </div>
       <div class="text text2">
-        <a href="blog.php" class="webBtn mdBtn greenBtn"
+        <a href="/admin/services" class="webBtn mdBtn greenBtn"
           ><i class="fa-regular fa-arrow-left"></i>Cancel</a
         >
       </div>
@@ -33,7 +33,7 @@
                     <h5 class="card-title">Image</h5>
                     <div class="blog_img">
                       <img
-                        src="images/no-image.svg"
+                        src="/images/no-image.svg"
                         class="card-img-top"
                         alt="" />
                     </div>
@@ -51,16 +51,12 @@
               </div>
               <div class="col-md-9">
                 <div class="row switch-showcase">
-                  <div class="col-md-12">
-                    <div class="txtGrp media">
+                  <div class="col-md-6">
+                    <div class="txtGrp">
                       <label class="form-label">Status</label>
                       <div
-                        class="txtGrp-body text-end icon-state switch-outline">
-                        <label class="switch">
-                          <input type="checkbox" name="status" /><span
-                            class="switch-state bg-primary"></span>
-                        </label>
-                        <select name="status" class="txtBox" required>
+                        class="txtGrp">
+                        <select name="status" class="input" required>
                           <option value="1">Active</option>
                           <option value="0">Inactive</option>
                         </select>

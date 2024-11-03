@@ -31,6 +31,24 @@ $(document).ready(function () {
   $(document).on("click", ".uploadImg", function () {
     $(this).parent().find(".uploadFile").trigger("click");
   });
+
+  $(document).on("change", ".uploadFile", function () {
+    var file = this.files[0];
+    if (file) {
+      var reader = new FileReader();
+      reader.onload = function (e) {
+        if ($(this).hasClass("uploadVideo")) {
+          // Update video source if file is a video
+          $(this).closest(".in-upload").prev("video").find("source").attr("src", e.target.result);
+          $(this).closest(".in-upload").prev("video")[0].load();  // Reload video to apply new source
+        } else {
+          // Update image source if file is an image
+          $(this).closest(".card-body").find("img").attr("src", e.target.result);
+        }
+      }.bind(this);
+      reader.readAsDataURL(file);
+    }
+  });
 });
 
 // rateyo
@@ -59,7 +77,7 @@ $(document).ready(function () {
   });
 });
 
-$(document).ready(function() {
+$(document).ready(function () {
   // Function to add a new row
   function addRow(tableId) {
     let $table = $(`#${tableId}`);
@@ -80,16 +98,16 @@ $(document).ready(function() {
   }
 
   // Event listener for adding a new row to Section 2
-  $('#addNewRowTbl').click(function() {
+  $('#addNewRowTbl').click(function () {
     addRow('newTable');
   });
 
-  $('#addNewRowSection2').click(function() {
+  $('#addNewRowSection2').click(function () {
     addRow('newTableSection2');
   });
 
   // Event listener for adding a new row to Section 3
-  $('#addNewRowSection3').click(function() {
+  $('#addNewRowSection3').click(function () {
     addRow('newTableSection3');
   });
 

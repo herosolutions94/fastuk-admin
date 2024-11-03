@@ -51,4 +51,27 @@ module.exports = {
             return defaultImage; // Return the default image path if the file doesn't exist
         }
     },
+    // Function to sanitize and trim input
+    sanitizeInput: function (input) {
+        if (typeof input === 'string') {
+            return input
+                .trim();
+        }
+        return input; // Return as-is for non-string types like numbers or booleans
+    },
+
+    // Function to sanitize each field in an object (recursive for nested objects)
+    sanitizeData: function (data) {
+        const sanitizedData = {};
+        Object.keys(data).forEach(key => {
+            if (typeof data[key] === 'object' && !Array.isArray(data[key])) {
+                sanitizedData[key] = this.sanitizeData(data[key]);
+            } else if (Array.isArray(data[key])) {
+                sanitizedData[key] = data[key].map(item => this.sanitizeInput(item));
+            } else {
+                sanitizedData[key] = this.sanitizeInput(data[key]);
+            }
+        });
+        return sanitizedData;
+    }
 };

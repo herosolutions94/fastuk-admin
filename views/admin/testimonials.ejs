@@ -9,7 +9,7 @@
         </ul> -->
       </div>
       <div class="text text2">
-        <a href="/admin/add-form" class="webBtn mdBtn greenBtn"
+        <a href="/admin/testimonial/add" class="webBtn mdBtn greenBtn"
           ><i class="fa-light fa-plus"></i>Add New</a
         >
       </div>
@@ -42,8 +42,8 @@
           </tr>
         </thead>
         <tbody>
-          <% if (testimonials && testimonials.length > 0) { %> <%
-          testimonials.forEach((testimonial, index) => { %>
+          <% if (testimonials_rows && testimonials_rows.length > 0) { %> <%
+            testimonials_rows.forEach((testimonial, index) => { %>
           <tr class="bottom-cntnt" id="testimonial-<%= testimonial.id %>">
             <td>
               <p><%= index + 1 %></p>
@@ -83,7 +83,7 @@
                 </button>
                 <ul class="dropdown-menu dropdown-primary" role="menu">
                   <li>
-                    <a href="/admin/testimonials/edit/<%= testimonial.id %>"
+                    <a href="/admin/testimonial/edit/<%= testimonial.id %>"
                       ><i class="fa fa-pencil" aria-hidden="true"></i>Edit</a
                     >
                   </li>
@@ -92,7 +92,7 @@
                       href="#"
                       class="delete-item"
                       data-id="<%= testimonial.id %>"
-                      data-url="/admin/testimonials/delete/<%= testimonial.id %>">
+                      data-url="/admin/testimonial/delete/<%= testimonial.id %>">
                       <i class="fa fa-trash" aria-hidden="true"></i> Delete
                     </a>
                   </li>

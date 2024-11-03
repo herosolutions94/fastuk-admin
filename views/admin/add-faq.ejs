@@ -27,37 +27,14 @@
             method="post"
             enctype="multipart/form-data">
             <div class="row">
-              <div class="col-md-3">
-                <div class="card">
-                  <div class="card-body preview">
-                    <h5 class="card-title">Image</h5>
-                    <div class="blog_img">
-                      <img
-                        src="images/no-image.svg"
-                        class="card-img-top"
-                        alt="" />
-                    </div>
-                    <div class="in-upload">
-                      <button type="button" class="uploadImg">
-                        <i class="fa-regular fa-image"></i>choose another image
-                      </button>
-                      <input type="file" name="faq_image" class="uploadFile" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-9">
+              <div class="col-md-12">
                 <div class="row switch-showcase">
-                  <div class="col-md-12">
-                    <div class="txtGrp media">
+                  <div class="col-md-6">
+                    <div class="txtGrp">
                       <label class="form-label">Status</label>
                       <div
-                        class="txtGrp-body text-end icon-state switch-outline">
-                        <label class="switch">
-                          <input type="checkbox" name="status" /><span
-                            class="switch-state bg-primary"></span>
-                        </label>
-                        <select name="status" class="txtBox" required>
+                        class="txtGrp">
+                        <select name="status" class="input" required>
                           <option value="1">Active</option>
                           <option value="0">Inactive</option>
                         </select>
@@ -75,14 +52,17 @@
                       <input class="input" id="ques" type="text" name="ques" />
                     </div>
                   </div>
-                  <div class="col-md-6">
+                  <div class="col-md-12">
                     <div class="txtGrp">
                       <label class="form-label" for="title"
                         >Answer<abbr class="required" title="required"
                           >*</abbr
                         ></label
                       >
-                      <input class="input" id="ans" type="text" name="ans" />
+                      <textarea
+                        class="ckeditor"
+                        name="ans"
+                        id="editor1"></textarea>
                     </div>
                   </div>
                 </div>

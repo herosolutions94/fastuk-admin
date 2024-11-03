@@ -9,7 +9,7 @@
         </ul>
       </div>
       <div class="text text2">
-        <a href="/admin/add-faq-form" class="webBtn mdBtn greenBtn"
+        <a href="/admin/faqs/add" class="webBtn mdBtn greenBtn"
           ><i class="fa-light fa-plus"></i>Add New</a
         >
       </div>
@@ -21,14 +21,8 @@
             <th width="10%">
               <p>Sr#</p>
             </th>
-            <th width="15%">
-              <p>Image</p>
-            </th>
             <th width="20%">
               <p>Question</p>
-            </th>
-            <th width="20%">
-              <p>Answer</p>
             </th>
             <th width="15%">
               <p>Status</p>
@@ -46,15 +40,7 @@
               <p><%= index + 1 %></p>
             </td>
             <td>
-              <div class="image-blog">
-                <img src="<%= helpers.getImage(faq.faq_image) %>" />
-              </div>
-            </td>
-            <td>
               <p><%= faq.ques %></p>
-            </td>
-            <td>
-              <p><%= faq.ans %></p>
             </td>
             <td>
               <p>

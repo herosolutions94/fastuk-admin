@@ -2,10 +2,10 @@
   <div class="contain-fluid">
     <div class="heading">
       <div class="text">
-        <h3>Messages</h3>
+        <h3>Login</h3>
         <ul>
-          <li><a href="">Login</a></li>
-          <li class="active"><a href="">Message</a></li>
+          <li><a href="/admin/dashbaord">Dashboard</a></li>
+          <li class="active"><a href="">Login</a></li>
         </ul>
       </div>
     </div>
@@ -29,7 +29,7 @@
                         <div class="col-md-12">
                           <label class="form-label"
                             >Page Title
-                            <abbr class="required" title="required">*</abbr>
+                            
                           </label>
                           <input
                             type="text"
@@ -45,7 +45,7 @@
                         <div class="col-md-12">
                           <label class="form-label"
                             >Meta Title
-                            <abbr class="required" title="required">*</abbr>
+                            
                           </label>
                           <input
                             type="text"
@@ -61,15 +61,9 @@
                       <div class="row">
                         <div class="col-md-12">
                           <label class="form-label"
-                            >Meta Description<abbr
-                              class="required"
-                              title="required"
-                              >*</abbr
-                            >
+                            >Meta Description
                           </label>
-                          <textarea rows="5" name="meta_desc" class="input">
-            <%= contentData.meta_desc || '' %></textarea
-                          >
+                          <textarea rows="5" name="meta_desc" class="input"><%= contentData.meta_desc || '' %></textarea>
                         </div>
                       </div>
                     </div>
@@ -78,11 +72,9 @@
                         <div class="col-md-12">
                           <label class="form-label"
                             >Meta Keywords
-                            <abbr class="required" title="required">*</abbr>
+                            
                           </label>
-                          <textarea rows="5" name="meta_keywords" class="input">
-            <%= contentData.meta_keywords || '' %></textarea
-                          >
+                          <textarea rows="5" name="meta_keywords" class="input"><%= contentData.meta_keywords || '' %></textarea>
                         </div>
                       </div>
                     </div>
@@ -98,21 +90,21 @@
               </div>
               <div class="card-body full_width">
                 <div class="row">
-                  <div class="col-md-9">
+                  
+                  <div class="col-md-12">
                     <div class="txtGrp">
                       <div class="txtGrp">
                         <label class="form-label" for="detail"
-                          >Description 1<abbr class="required" title="required"
-                            >*</abbr
-                          ></label
+                          >Description</label
                         >
                         <textarea
                           class="ckeditor"
                           name="description1"
-                          id="description1">
-            <%= contentData.description1 || '' %></textarea
-                        >
+                          id="description1"><%= contentData.description1 || '' %></textarea>
                       </div>
+                    </div>
+                    <div class="text-right">
+                      <button type="submit" class="webBtn">Update</button>
                     </div>
                   </div>
                 </div>
@@ -120,9 +112,7 @@
             </div>
           </div>
         </div>
-        <div class="text-center">
-          <button type="submit" class="btn btn-primary">Submit</button>
-        </div>
+        
       </form>
     </div>
   </div>

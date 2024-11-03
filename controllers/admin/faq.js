@@ -56,7 +56,7 @@ class FaqController extends BaseController {
 
             // Verify OTP was stored properly
         const createdFaq = await this.faq.findById(faqId);
-        this.sendSuccess(res, {}, 'Faq added successfully!', 200, '/admin/faqs-list')
+        this.sendSuccess(res, {}, 'Faq added successfully!', 200, '/admin/faqs')
 
         console.log('Created faq:', createdFaq); // Log the created rider
         
@@ -162,7 +162,7 @@ class FaqController extends BaseController {
     
             // Update the testimonial in the database
             await Faq.updateFaq(faqId, faqData);
-            this.sendSuccess(res, {}, 'Faq updated successfully!', 200, '/admin/faqs-list')
+            this.sendSuccess(res, {}, 'Faq updated successfully!', 200, '/admin/faqs')
 
         } catch (error) {
             console.error('Failed to update faq:', error);
@@ -206,7 +206,7 @@ class FaqController extends BaseController {
             const result = await Faq.deleteFaqById(faqId);
             if (result) {
                 // Redirect to the riders list after deletion
-                this.sendSuccess(res, {}, 'Faq deleted successfully!', 200, '/admin/faqs-list')
+                this.sendSuccess(res, {}, 'Faq deleted successfully!', 200, '/admin/faqs')
 
             } else {
                 this.sendError(res, 'Failed to delete faq');

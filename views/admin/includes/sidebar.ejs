@@ -13,31 +13,25 @@
     <ul id="sidebarnav">
       <li class="small_head">Main</li>
       <li class="sidebar-item">
-        <a href="/admin/dashboard" class="sidebar-link">
+        <a href="/admin/dashboard" class="<%= currentPath === 'dashboard' ? 'active sidebar-link' : 'sidebar-link' %>">
           <i class="fa-light fa-gauge"></i>
           <span class="hide-menu">Dashboard</span></a
         >
       </li>
-      <li class="sidebar-item">
-        <a href="/admin/messages-list" class="sidebar-link">
-          <i class="fa-light fa-table-list"></i>
-          <span class="hide-menu">Contact List</span></a
-        >
-      </li>
 
       <li class="sidebar-item">
-        <a href="javascript:void(0)" class="sidebar-link has-arrow">
+        <a href="javascript:void(0)" class="<%= currentPath === 'members' || currentPath === 'riders' ? 'active sidebar-link has-arrow' : 'sidebar-link has-arrow' %>">
           <i class="fa-light fa-calendar"></i>
           <span class="hide-menu">Users</span></a
         >
-        <ul class="sub-menu">
+        <ul class="<%= currentPath === 'members' || currentPath === 'riders' ? 'sub-menu show' : 'sub-menu' %>">
           <li class="sidebar-item">
-            <a href="/admin/members-list" class="sidebar-link">
+            <a href="/admin/members" class="<%= currentPath === 'members' ? 'active sidebar-link' : 'sidebar-link' %>">
               <span class="hide-menu">Users</span></a
             >
           </li>
           <li class="sidebar-item">
-            <a href="/admin/riders-list" class="sidebar-link">
+            <a href="/admin/riders" class="<%= currentPath === 'riders' ? 'active sidebar-link' : 'sidebar-link' %>">
               <span class="hide-menu">Riders</span></a
             >
           </li>
@@ -45,50 +39,50 @@
       </li>
       <li class="small_head">Pages</li>
       <li class="sidebar-item">
-        <a href="/admin/pages" class="sidebar-link">
+        <a href="/admin/pages" class="<%= currentPath === 'pages' ? 'active sidebar-link' : 'sidebar-link' %>">
           <i class="fa-light fa-clipboard"></i>
           <span class="hide-menu">Manage Pages</span></a
         >
       </li>
       <li class="sidebar-item">
-        <a href="/admin/team-members-list" class="sidebar-link">
+        <a href="/admin/team-members" class="<%= currentPath === 'team-members' ? 'active sidebar-link' : 'sidebar-link' %>">
           <i class="fa-light fa-circle-dollar"></i>
           <span class="hide-menu">Team</span></a
         >
       </li>
       <li class="sidebar-item">
-        <a href="/admin/testimonials-list" class="sidebar-link">
+        <a href="/admin/testimonial" class="<%= currentPath === 'testimonial' ? 'active sidebar-link' : 'sidebar-link' %>">
           <i class="fa-light fa-circle-question"></i>
           <span class="hide-menu">Testimonials</span></a
         >
       </li>
       <li class="sidebar-item">
-        <a href="/admin/faqs-list" class="sidebar-link">
+        <a href="/admin/faqs" class="<%= currentPath === 'faqs' ? 'active sidebar-link' : 'sidebar-link' %>">
           <i class="fa-light fa-circle-question"></i>
           <span class="hide-menu">Faqs</span></a
         >
       </li>
       <li class="sidebar-item">
-        <a href="/admin/services-list" class="sidebar-link">
+        <a href="/admin/services" class="<%= currentPath === 'services' ? 'active sidebar-link' : 'sidebar-link' %>">
           <i class="fa-light fa-circle-question"></i>
           <span class="hide-menu">Services</span></a
         >
       </li>
       <li class="sidebar-item">
-        <a href="/admin/messages-list" class="sidebar-link">
+        <a href="/admin/messages-list" class="<%= currentPath === 'messages-list' ? 'active sidebar-link' : 'sidebar-link' %>">
           <i class="fa-light fa-circle-question"></i>
           <span class="hide-menu">Messages</span></a
         >
       </li>
       <li class="sidebar-item">
-        <a href="/admin/site-settings" class="sidebar-link">
+        <a href="/admin/site-settings" class="<%= currentPath === 'site-settings' ? 'active sidebar-link' : 'sidebar-link' %>">
           <i class="fa-light fa-circle-user"></i>
           <span class="hide-menu">Site Settings</span></a
         >
       </li>
 
       <li class="sidebar-item">
-        <a href="/admin/change-password-form" class="sidebar-link">
+        <a href="/admin/change-password-form" class="<%= currentPath === 'change-password-form' ? 'active sidebar-link' : 'sidebar-link' %>">
           <i class="fa-sharp fa-light fa-command"></i>
           <span class="hide-menu">Change Pssword</span></a
         >

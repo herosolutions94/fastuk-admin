@@ -4,12 +4,12 @@ const pool  = require("../config/db-connection");
 const siteInfoMiddleware = async(req, res, next) => {
 
     try{
-
+        const pathSegments = req.path.split('/').filter(Boolean); // Split URL path and remove empty segments
+        res.locals.currentPath = pathSegments[1] || null;
         const [rows] = await pool.query('SELECT * FROM tbl_admin LIMIT 1')
 
         if (rows.length > 0){
             const adminData = rows[0];
-
             res.locals.adminData = adminData;
         }else{
             res.locals.adminData = {

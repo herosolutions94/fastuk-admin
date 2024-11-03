@@ -122,12 +122,16 @@
   padding-top: 0;
 }
 .dashTable .blog_img {
-  width: 50%;
+  width: 100%;
   border-radius: 10px;
   margin-top: 16px;
+  height: 150px;
+  overflow: hidden;
 }
 .dashTable .blog_img img {
   border-radius: 10px;
+  height: 100%;
+  object-fit: contain;
 }
 .switch-showcase .switch {
   position: relative;
@@ -339,6 +343,11 @@ button.Bt-btn {
 .dashTable .forth_icon {
   width: 17%;
 }
+.dashTable .forth_icon.blog_img {
+  width: 100%;
+  background-color: #eee;
+}
+
 .card video {
   width: 100%;
   height: 200px;
@@ -505,7 +514,7 @@ button.Bt-btn {
     transform: rotate(-360deg);
   }
 }
-.dashTable tr th a.full_width{
+.dashTable tr th a.full_width {
   width: 100%;
   background: transparent;
 }

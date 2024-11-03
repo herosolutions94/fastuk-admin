@@ -62,7 +62,7 @@ class TestimonialController extends BaseController {
         res.json({
             status: 1,
             message: 'Testimonial added successfully!',
-            redirect_url: '/admin/testimonials-list'
+            redirect_url: '/admin/testimonial'
         });
 
 
@@ -82,7 +82,7 @@ class TestimonialController extends BaseController {
 
             if (testimonials && testimonials.length > 0) {
                 // Corrected res.render with only two arguments
-                res.render('admin/testimonials', { testimonials: testimonials || [] });
+                res.render('admin/testimonials', { testimonials_rows: testimonials || [] });
             } else {
                 this.sendError(res, 'No riders found');
             }
@@ -134,13 +134,11 @@ class TestimonialController extends BaseController {
             const currentTestimonial = (await Testimonial.getTestimonialById(testimonialId))[0];
     
             // Debugging output
-            console.log('Current Testimonial:', currentTestimonial);
             
             // Check if a new image is uploaded
             const testimonialImage = req.files && req.files["testi_image"] ? req.files["testi_image"][0].filename : null;
     
             // Debugging output
-            console.log('New testimonialImage:', testimonialImage);
     
             // Handle image replacement
             if (testimonialImage) {
@@ -177,7 +175,7 @@ class TestimonialController extends BaseController {
             res.json({
                 status: 1,
                 message: 'Testimonial updated successfully!',
-                redirect_url: '/admin/testimonials-list'
+                redirect_url: '/admin/testimonial'
             });
         } catch (error) {
             console.error('Failed to update testimonial:', error);
@@ -227,7 +225,7 @@ class TestimonialController extends BaseController {
                 res.json({
                     status: 1,
                     message: 'Testimonial deleted successfully!',
-                    redirect_url: '/admin/testimonials-list'
+                    redirect_url: '/admin/testimonial'
                 });            } else {
                 this.sendError(res, 'Failed to delete rider');
             }

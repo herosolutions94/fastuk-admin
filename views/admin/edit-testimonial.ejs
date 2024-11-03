@@ -4,12 +4,12 @@
       <div class="text">
         <h3>Edit Testimonial</h3>
         <ul>
-          <li><a href="">Home</a></li>
+          <li><a href="/admin/dashbaord">Dashboard</a></li>
           <li class="active"><a href="">Edit Testimonial</a></li>
         </ul>
       </div>
       <div class="text text2">
-        <a href="blog.php" class="webBtn mdBtn greenBtn"
+        <a href="/admin/testimonial" class="webBtn mdBtn greenBtn"
           ><i class="fa-regular fa-arrow-left"></i>Cancel</a
         >
       </div>
@@ -55,20 +55,17 @@
               </div>
               <div class="col-md-9">
                 <div class="row switch-showcase">
-                  <div class="col-md-6">
+                  <div class="col-md-2">
                     <div class="txtGrp">
-                      <label class="switch">Status
-                        <input type="checkbox" name="status" /><span
-                          class="switch-state bg-primary"></span>
-                      </label>
-                      <select name="status">
+                      <label class="form-label">Status</label>
+                      <select name="status" class="input">
                         <option value="1" <%= testimonial.status == 1 ? 'selected' : '' %>>Active</option>
                         <option value="0" <%= testimonial.status == 0 ? 'selected' : '' %>>Inactive</option>
                     </select>
                     </div>
                   </div>
 
-                  <div class="col-md-6">
+                  <div class="col-md-5">
                     <div class="txtGrp">
                       <label class="form-label" for="title"
                         >Name<abbr class="required" title="required"
@@ -83,7 +80,7 @@
                         value="<%= editTestimonialId ? testimonial.title : '' %>" />
                     </div>
                   </div>
-                  <div class="col-md-6">
+                  <div class="col-md-5">
                     <div class="txtGrp">
                       <label class="form-label" for="title"
                         >Designation<abbr class="required" title="required"
