@@ -97,6 +97,7 @@ const upload = multer({
   { name: 'business_image11', maxCount: 1 },
   { name: 'rider_image1', maxCount: 1 },
   { name: 'rider_image2', maxCount: 1 },
+  { name: 'rider_image3', maxCount: 1 },
   { name: 'sec3_rider_image_0', maxCount: 1 },
   { name: 'sec3_rider_image_1', maxCount: 1 },
   { name: 'sec3_rider_image_2', maxCount: 1 },
@@ -105,6 +106,7 @@ const upload = multer({
   { name: 'sec4_rider_image_1', maxCount: 1 },
   { name: 'sec4_rider_image_2', maxCount: 1 },
   { name: 'sec4_rider_image_3', maxCount: 1 },
+  { name: 'vehicle_image', maxCount: 1 },
 
 
 

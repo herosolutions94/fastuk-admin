@@ -24,15 +24,14 @@ class Member {
 
     // Add a method to update member info
     static async updateMember(id, memberData) {
-        const { mem_fname, mem_lname, mem_email, mem_phone, mem_address1, mem_city, mem_state, mem_status, created_at, mem_image } = memberData;
+        const { full_name, email, mem_phone, mem_address1, mem_city, mem_state, mem_status, created_at, mem_image } = memberData;
         try {
 
             const sql = `
             UPDATE members 
             SET 
-                mem_fname = ?, 
-                mem_lname = ?, 
-                mem_email = ?, 
+                full_name = ?, 
+                email = ?, 
                 mem_phone = ?, 
                 mem_address1 = ?, 
                 mem_city = ?, 
@@ -43,7 +42,7 @@ class Member {
             WHERE id = ?
         `;
     
-        await pool.query(sql, [mem_fname, mem_lname, mem_email, mem_phone, mem_address1, mem_city, mem_state, mem_status, mem_image, id]);
+        await pool.query(sql, [full_name, email, mem_phone, mem_address1, mem_city, mem_state, mem_status, mem_image, id]);
     
     } catch (error) {
         console.error('Error updating member in database:', error.message);

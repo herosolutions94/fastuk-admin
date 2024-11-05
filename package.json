@@ -27,6 +27,7 @@
     "mysql2": "^3.11.3",
     "nodemailer": "^6.9.16",
     "pg": "^8.13.0",
+    "sanitize-html": "^2.13.1",
     "validator": "^13.12.0"
   }
 }

@@ -4,6 +4,7 @@ const PageModel = require('../../models/api/pages'); // Assuming you have this m
 const TestimonialModel = require('../../models/api/testimonialModel');
 const TeamModel = require('../../models/api/teamModel');
 const FaqModel = require('../../models/api/faqModel');
+const VehicleModel = require('../../models/api/vehicleModel');
 
 const pool  = require('../../config/db-connection');
 
@@ -337,6 +338,34 @@ class PagesController extends BaseController {
             const jsonResponse = {
                 siteSettings,
                 content: formData,
+            };
+    
+            // Return data in JSON format
+            res.json(jsonResponse);
+        } catch (err) {
+            console.error('Error:', err);
+            res.status(200).json({ error: 'Internal Server Error' });
+        }
+    }
+
+    async multiStepForm(req, res) {
+        const vehicleModel = new VehicleModel();
+
+
+        try {
+            const siteSettings = res.locals.adminData;
+    
+            // Get the main page content
+            const pageContent = await this.pageModel.findByKey('rider');
+            const vehiclesData = await vehicleModel.findFeatured();
+
+    
+    
+    
+            // Combine the content and multi_text data
+            const jsonResponse = {
+                siteSettings,
+                vehicles: vehiclesData
             };
     
             // Return data in JSON format

@@ -19,5 +19,6 @@ router.get('/signup', (req, res) => pagesController.getSignUpData(req, res));
 router.get('/reset-password', (req, res) => pagesController.getResetPasswordData(req, res));
 router.get('/business', (req, res) => pagesController.getBusinessData(req, res));
 router.get('/rider', (req, res) => pagesController.getRiderData(req, res));
+router.get('/multistepform', (req, res) => pagesController.multiStepForm(req, res));
 
 module.exports = router;

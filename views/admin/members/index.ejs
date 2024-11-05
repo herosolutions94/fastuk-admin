@@ -54,11 +54,11 @@
                     alt="Member Image" />
                 </div>
                 <div class="custm-cntnt">
-                  <p><%= member.mem_fname %> <%= member.mem_lname %></p>
+                  <p><%= member.full_name %></p>
                 </div>
               </div>
             </td>
-            <td><p><%= member.mem_email %></p></td>
+            <td><p><%= member.email %></p></td>
             <td><p><%= member.mem_phone %></p></td>
             <td><p><%- helpers.getStatus(member.mem_status) %></p></td>
             <td>
