@@ -1,10 +1,14 @@
 // controllers/HomeController.js
+const axios = require('axios');
+
 const BaseController = require('../baseController');
 const PageModel = require('../../models/api/pages'); // Assuming you have this model
 const TestimonialModel = require('../../models/api/testimonialModel');
 const TeamModel = require('../../models/api/teamModel');
 const FaqModel = require('../../models/api/faqModel');
 const VehicleModel = require('../../models/api/vehicleModel');
+const HERE_API_KEY = process.env.HERE_API_KEY;
+
 
 const pool  = require('../../config/db-connection');
 
@@ -356,12 +360,8 @@ class PagesController extends BaseController {
             const siteSettings = res.locals.adminData;
     
             // Get the main page content
-            const pageContent = await this.pageModel.findByKey('rider');
             const vehiclesData = await vehicleModel.findFeatured();
-
-    
-    
-    
+   
             // Combine the content and multi_text data
             const jsonResponse = {
                 siteSettings,
@@ -375,6 +375,39 @@ class PagesController extends BaseController {
             res.status(200).json({ error: 'Internal Server Error' });
         }
     }
+
+async getAddress(req, res) {
+        const { zipCode } = req.body;
+      
+        if (!zipCode) {
+          return res.status(200).json({ error: 'Zip code is required' });
+        }
+      
+        try {
+          // Make request to HERE API to get addresses for the given zip code
+          const hereResponse = await axios.get(
+            `https://geocode.search.hereapi.com/v1/geocode`,
+            {
+              params: {
+                q: zipCode,
+                apiKey: HERE_API_KEY,
+              },
+            }
+          );
+      
+          // Extract relevant data
+          const addresses = hereResponse.data.items.map((item) => ({
+            address: item.address.label,
+            city: item.address.city,
+          }));
+      
+          res.json({ addresses });
+        } catch (error) {
+          console.error('Error fetching data from HERE API:', error.message);
+          res.status(200).json({ error: 'An error occurred while fetching addresses' });
+        }
+    }
+    
 }
 
 module.exports = PagesController;
