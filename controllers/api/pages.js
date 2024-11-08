@@ -377,9 +377,11 @@ class PagesController extends BaseController {
     }
 
 async getAddress(req, res) {
-        const { zipCode } = req.body;
+    console.log(req.body); // Log the body to check if it's coming through correctly
+
+        const { zip_code } = req.body;
       
-        if (!zipCode) {
+        if (!zip_code) {
           return res.status(200).json({ error: 'Zip code is required' });
         }
       
@@ -389,7 +391,7 @@ async getAddress(req, res) {
             `https://geocode.search.hereapi.com/v1/geocode`,
             {
               params: {
-                q: zipCode,
+                q: zip_code,
                 apiKey: HERE_API_KEY,
               },
             }

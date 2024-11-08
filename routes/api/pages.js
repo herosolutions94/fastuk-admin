@@ -2,6 +2,7 @@
 const express = require('express');
 const router = express.Router();
 const PagesController = require('../../controllers/api/pages');
+const upload = require('../../file-upload');
 
 const pagesController = new PagesController();
 
@@ -20,6 +21,6 @@ router.get('/reset-password', (req, res) => pagesController.getResetPasswordData
 router.get('/business', (req, res) => pagesController.getBusinessData(req, res));
 router.get('/rider', (req, res) => pagesController.getRiderData(req, res));
 router.get('/multistepform', (req, res) => pagesController.multiStepForm(req, res));
-router.post('/get-addresses', (req, res) => pagesController.getAddress(req, res));
+router.post('/get-addresses', upload, (req, res) => pagesController.getAddress(req, res));
 
 module.exports = router;

@@ -1,8 +1,13 @@
 require('dotenv').config();
 
+const cors = require('cors');
+
+
 const express = require('express');
 
 const app = express();
+app.use(express.json());
+
 
 const PORT = process.env.PORT || 4000;
 
@@ -18,6 +23,8 @@ app.use((req, res, next) => {
 
 
 const bodyParser = require('body-parser');
+app.use(bodyParser.json()); // Use body-parser for parsing JSON
+
 const session = require('express-session');
 
 const expressLayouts = require('express-ejs-layouts');
@@ -77,7 +84,12 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 
-
+// Configure CORS to allow requests from http://localhost:3000
+app.use(cors({
+    origin: 'http://localhost:3000', // Allow only your frontend's origin
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: ['Content-Type', 'Authorization'] // Add headers you need to allow
+  }));
 
 app.use(siteInfoMiddleware)
 app.use(authenticationMiddleware)
