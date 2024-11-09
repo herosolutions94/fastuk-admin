@@ -10,7 +10,7 @@ class AdminController extends BaseController {
         this.admin = Admin;
     }
 
-    
+
 
     // Render the login page
     renderLoginPage(req, res) {
@@ -65,7 +65,8 @@ class AdminController extends BaseController {
             const {
                 site_domain, site_name, site_email, site_address, receiving_site_email, site_noreply_email,
                 site_phone, footer_copyright, site_facebook, site_twitter, site_instagram, site_youtube,
-                site_spotify, site_etsy
+                site_spotify, site_etsy,
+                site_sandbox
             } = req.body;
 
             // Fetch the current settings from the database to retain existing images if not updated
@@ -100,7 +101,8 @@ class AdminController extends BaseController {
                 site_etsy: Array.isArray(site_etsy) ? site_etsy.join(',') : site_etsy,
                 logo_image,
                 favicon_image,
-                thumb_image
+                thumb_image,
+                site_sandbox
             };
 
             // Call the model to update the settings

@@ -21,27 +21,31 @@ class AdminModel extends BaseModel {
         const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
         const [rows] = await pool.query(query, [userId]);
         console.log(rows)
-    return rows.length ? rows[0] : null; // Return the first result or null
+        return rows.length ? rows[0] : null; // Return the first result or null
     }
 
     // Update site settings
+    // Update site settings
     async updateSettings(data) {
         const query = `
-            UPDATE ${this.tableName} 
-            SET 
-                site_domain = ?, site_name = ?, site_email = ?, site_address = ?, receiving_site_email = ?, 
-                site_noreply_email = ?, site_phone = ?, footer_copyright = ?, site_facebook = ?, site_twitter = ?, 
-                site_instagram = ?, site_youtube = ?, site_spotify = ?, site_etsy = ?, logo_image = ?, 
-                favicon_image = ?, thumb_image = ? 
-            WHERE id = 1`;
-    
+        UPDATE ${this.tableName} 
+        SET 
+            site_domain = ?,
+            site_name = ?, site_email = ?, site_address = ?, receiving_site_email = ?, 
+            site_noreply_email = ?, site_phone = ?, footer_copyright = ?, site_facebook = ?, site_twitter = ?, 
+            site_instagram = ?, site_youtube = ?, site_spotify = ?, site_etsy = ?, logo_image = ?, 
+            favicon_image = ?, thumb_image = ?,
+            site_sandbox = ?
+        WHERE id = 1`;
+
         const values = [
             data.site_domain || '', data.site_name || '', data.site_email || '', data.site_address || '', data.receiving_site_email || '',
             data.site_noreply_email || '', data.site_phone || '', data.footer_copyright || '', data.site_facebook || '', data.site_twitter || '',
             data.site_instagram || '', data.site_youtube || '', data.site_spotify || '', data.site_etsy || '', data.logo_image || null,
-            data.favicon_image || null, data.thumb_image || null
+            data.favicon_image || null, data.thumb_image || null,
+            data.site_sandbox ? parseInt(data.site_sandbox) : 0,
         ];
-    
+
         try {
             console.log('Query:', query);
             console.log('Values:', values);
@@ -53,11 +57,12 @@ class AdminModel extends BaseModel {
         }
     }
 
+
     async getSettings() {
         // Use a parameterized query with the appropriate value for the placeholder
         const query = 'SELECT * FROM tbl_admin WHERE id = ?';
         const values = [1]; // Assuming you're fetching settings for the admin with id = 1
-    
+
         try {
             const [rows] = await pool.query(query, values); // Destructure to get the rows from the result
             console.log('Fetched settings:', rows); // Log the fetched settings
@@ -67,23 +72,23 @@ class AdminModel extends BaseModel {
             throw error;
         }
     }
-    
+
 
 
     // Update the AdminModel class
-async updatePassword(adminId, newPassword) {
-    const query = `UPDATE ${this.tableName} SET password = ? WHERE id = ?`;
-    const values = [newPassword, adminId];
+    async updatePassword(adminId, newPassword) {
+        const query = `UPDATE ${this.tableName} SET password = ? WHERE id = ?`;
+        const values = [newPassword, adminId];
 
-    try {
-        await pool.query(query, values);
-        return true;
-    } catch (error) {
-        console.error('Error updating password:', error);
-        throw error;
+        try {
+            await pool.query(query, values);
+            return true;
+        } catch (error) {
+            console.error('Error updating password:', error);
+            throw error;
+        }
     }
-}
-    
+
 
 }
 
