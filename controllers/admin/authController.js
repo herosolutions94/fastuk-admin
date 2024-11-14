@@ -31,7 +31,7 @@ class AdminController extends BaseController {
 
             // Check if admin exists in the database
             const admin = await Admin.findByUsername(user_name);
-            console.log('Admin:', admin);  // Check if admin is null or valid
+            // console.log('Admin:', admin);  // Check if admin is null or valid
 
             if (!admin) {
                 return this.sendError(res, 'Admin not found', 200);
@@ -39,7 +39,7 @@ class AdminController extends BaseController {
 
             // Compare the provided password with the hashed password stored in the database
             const isPasswordValid = await bcrypt.compare(password, admin.password);
-            console.log('Is password valid:', isPasswordValid);  // Should be true or false
+            // console.log('Is password valid:', isPasswordValid);  // Should be true or false
 
             if (!isPasswordValid) {
                 return this.sendError(res, 'Invalid email or password', 200);
@@ -66,7 +66,7 @@ class AdminController extends BaseController {
                 site_domain, site_name, site_email, site_address, receiving_site_email, site_noreply_email,
                 site_phone, footer_copyright, site_facebook, site_twitter, site_instagram, site_youtube,
                 site_spotify, site_etsy,
-                site_sandbox
+                site_sandbox,site_processing_fee
             } = req.body;
 
             // Fetch the current settings from the database to retain existing images if not updated
@@ -102,7 +102,8 @@ class AdminController extends BaseController {
                 logo_image,
                 favicon_image,
                 thumb_image,
-                site_sandbox
+                site_sandbox,
+                site_processing_fee
             };
 
             // Call the model to update the settings

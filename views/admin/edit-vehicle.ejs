@@ -46,7 +46,7 @@
                       </button>
                       <input
                         type="file"
-                        name="service_image"
+                        name="vehicle_image"
                         value="<%= editVehicleId ? vehicle.vehicle_image : '' %>"
                         class="uploadFile" />
                     </div>
@@ -100,6 +100,19 @@
                         type="text"
                         name="price"
                         value="<%= editVehicleId ? vehicle.price : '' %>" />
+                    </div>
+                    <div class="txtGrp">
+                      <label class="form-label" for="detail"
+                        >Remote Price<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="remote_price"
+                        type="text"
+                        name="remote_price"
+                        value="<%= editVehicleId ? vehicle.remote_price : '' %>" />
                     </div>
                   </div>
                 </div>

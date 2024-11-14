@@ -191,6 +191,7 @@ $(document).ready(function () {
                 url: deleteUrl, // Use the URL specified in the data attribute
                 type: 'DELETE',
                 success: function (response) {
+                    console.log(response)
                     if (response.status == 1) {
                         // Show the success toast
                         showToast(response.message, 'success');

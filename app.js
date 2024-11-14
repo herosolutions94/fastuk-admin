@@ -58,6 +58,7 @@ const teamMemberRoutes = require('./routes/admin/team');
 const serviceRoutes = require('./routes/admin/service');
 const faqRoutes = require('./routes/admin/faq');
 const vehicleRoutes = require('./routes/admin/vehicle');
+const remotePostCodeRoutes = require('./routes/admin/remote-post-code');
 const pagesRoutes = require('./routes/admin/pages');
 
 const authMiddleware = require('./middleware/authMiddleware');
@@ -107,6 +108,7 @@ app.use('/admin', teamMemberRoutes);
 app.use('/admin', serviceRoutes);
 app.use('/admin', faqRoutes);
 app.use('/admin', vehicleRoutes);
+app.use('/admin', remotePostCodeRoutes);
 app.use('/admin', pagesRoutes);
 
 
