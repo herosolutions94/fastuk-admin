@@ -28,8 +28,6 @@ class BaseModel {
     // Insert a new record
     async create(data) {
         try {
-            console.log('Data being inserted:', data);  // Log the data object to check its structure
-    
             const [result] = await pool.query(`INSERT INTO ?? SET ?`, [this.tableName, data]); // Table name and data as placeholders
             return result.insertId;
         } catch (error) {

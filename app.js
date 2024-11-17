@@ -89,7 +89,8 @@ app.set('views', path.join(__dirname, 'views'));
 app.use(cors({
     origin: 'http://localhost:3000', // Allow only your frontend's origin
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    allowedHeaders: ['Content-Type', 'Authorization'] // Add headers you need to allow
+    allowedHeaders: ['Content-Type', 'Authorization'], // Add headers you need to allow
+    credentials: true
   }));
 
 app.use(siteInfoMiddleware)

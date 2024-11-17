@@ -63,7 +63,19 @@ class PagesModel extends BaseModel {
             await pool.query(insertQuery, [key, text]);
         }
     }
-    
+
+    static async findByEmail(email) {
+        const result = await pool.query('SELECT * FROM members WHERE email = $1', [email]);
+        return result.rows[0]; // Return user if found
+    }
+
+    static async create(name, email) {
+        const result = await pool.query(
+            'INSERT INTO members (name, email, type) VALUES ($1, $2, $3) RETURNING id',
+            [name, email, 'member']
+        );
+        return result.rows[0].id; // Return newly created user ID
+    }
     
     
 

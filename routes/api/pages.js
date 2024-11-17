@@ -22,5 +22,7 @@ router.get('/business', (req, res) => pagesController.getBusinessData(req, res))
 router.get('/rider', (req, res) => pagesController.getRiderData(req, res));
 router.get('/multistepform', (req, res) => pagesController.multiStepForm(req, res));
 router.post('/get-addresses', upload, (req, res) => pagesController.getAddress(req, res));
+router.post('/create-payment-intent', upload, (req, res) => pagesController.paymentIntent(req, res));
+router.post('/save-request-quote', upload, (req, res) => pagesController.createRequestQuote(req, res));
 
 module.exports = router;

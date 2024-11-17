@@ -17,11 +17,27 @@ const validatePhoneNumber = (phone) => {
     const phoneRegex = /^(\+44\s?7\d{3}|\(?07\d{3}\)?)\s?\d{3}\s?\d{3}$/;  // UK mobile format
     return phoneRegex.test(phone);
 };
+function validateFields(body, requiredFields) {
+    const errors = [];
+
+    requiredFields.forEach((field) => {
+        if (!body[field] || body[field].toString().trim() === '') {
+            errors.push(`${field} is required.`);
+        }
+    });
+
+    return {
+        isValid: errors.length === 0,
+        errors,
+    };
+}
+
 
 module.exports = {
     validateRequiredFields,
     validateEmail,
-    validatePhoneNumber
+    validatePhoneNumber,
+    validateFields
 };
 
 

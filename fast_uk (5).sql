@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 05, 2024 at 07:11 PM
+-- Generation Time: Nov 17, 2024 at 04:55 PM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -82,7 +82,31 @@ CREATE TABLE `members` (
 
 INSERT INTO `members` (`id`, `full_name`, `mem_type`, `mem_fname`, `mem_mname`, `mem_lname`, `email`, `mem_phone`, `mem_business_phone`, `password`, `mem_dob`, `mem_address1`, `mem_address2`, `mem_city`, `mem_state`, `mem_zip`, `mem_bio`, `mem_image`, `mem_employee`, `mem_status`, `mem_verified`, `mem_email_verified`, `mem_phone_verified`, `created_at`, `otp`) VALUES
 (3, 'Ayan', 'user', NULL, NULL, NULL, 'ayan@gmail.com', '+44 7123 456 789', NULL, '$2b$10$kEMglpVpDF1FxGWtJ6se9utATcohkx3hxEx7IqSX.4UGFHF35.PJa', NULL, 'Pakistan', NULL, 'Sargodha', 0, NULL, NULL, '1730703198043-662504459.png', NULL, 1, 0, NULL, NULL, '2024-11-04 07:01:18', 773238),
-(7, 'Naik khan', 'user', NULL, NULL, NULL, 'naik@gmail.com', '+44 1237 456 789', NULL, '$2b$10$JE8LpwbXaXFJVxpd/NPWIe.DCKTwpiolkaYVI8iVKgppIfSxiYhzC', NULL, 'Sargodha , Pakistan', NULL, 'Sargodha', 0, NULL, NULL, '1730703278534-92249136.png', NULL, 1, 0, NULL, NULL, '2024-11-04 07:01:36', 284803);
+(7, 'Naik khan', 'user', NULL, NULL, NULL, 'naik@gmail.com', '+44 1237 456 789', NULL, '$2b$10$JE8LpwbXaXFJVxpd/NPWIe.DCKTwpiolkaYVI8iVKgppIfSxiYhzC', NULL, 'Sargodha , Pakistan', NULL, 'Sargodha', 0, NULL, NULL, '1730703278534-92249136.png', NULL, 1, 0, NULL, NULL, '2024-11-04 07:01:36', 284803),
+(10, 'Ayan', 'user', NULL, NULL, NULL, 'asifaa@gmail.com', NULL, NULL, '$2b$10$kexWMyM60gq134jzZseRKuISl0RSA1VA48iQpmAXnmtYc9hQ5WAy2', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 01:56:46', 369393),
+(11, 'Faiq', 'user', NULL, NULL, NULL, 'faiq@gmail.com', NULL, NULL, '$2b$10$31TghKofMYBHEM4cHHLy3uU5oEZXE2.NvCwKGdOP9nWtAQzy5XYx2', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 02:08:48', 609011),
+(12, 'Hassan', 'user', NULL, NULL, NULL, 'hassan@gmail.com', NULL, NULL, '$2b$10$3RZK/EGB/7XLBSYIBcSD6Og1fKRmx2rRNXE7/.lpF0L.EDJCqCgT6', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 02:11:13', 829177),
+(13, 'Asia', 'user', NULL, NULL, NULL, 'asiaa@gmail.com', NULL, NULL, '$2b$10$P5Hf2yJlNZn./YBTane9weeiv9LxfJYBqo9WSfF5CQJpP7jcPiqDy', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 02:16:50', 654463),
+(14, 'Raina', 'user', NULL, NULL, NULL, 'rainaa@gmail.com', NULL, NULL, '$2b$10$6nu.9jZPw32k5WfFUw/FPeoGekZnbVNwakz87L9Vk8yHyW8uk36jy', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 02:26:22', 910387),
+(15, 'Raina', 'user', NULL, NULL, NULL, 'rainaaa@gmail.com', NULL, NULL, '$2b$10$PZTTnEBZovXQHrXOC0qPweJbFjTTeMsc3VXxiqwfMy5kepMXk9.fi', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 02:31:34', 880206),
+(16, 'Hassan', 'user', NULL, NULL, NULL, 'john@gmail.com', NULL, NULL, '$2b$10$f.vCWXnzXHnUMMe/9A2qP.sAq7KefuIYDsghDO5L88N0xkk9qgv3u', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 02:35:46', 890604),
+(17, 'Hassan', 'user', NULL, NULL, NULL, 'johnn@gmail.com', NULL, NULL, '$2b$10$b7ug9qofD6kMR6ywwrGVYOCqjDNGIFjtXwfmnHNz5aKSix0Nc/6QW', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 02:37:11', 152771),
+(18, 'Asifa', 'user', NULL, NULL, NULL, 'asifaaaaa@gmail.com', NULL, NULL, '$2b$10$8e.guqOSnp.qQPVX.s3cT.gvsY3ekc9RsSOAqDasjikYGopD/3Zo6', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 07:15:25', 910277),
+(19, 'Asifa', 'user', NULL, NULL, NULL, 'asifaaaaaaa@gmail.com', NULL, NULL, '$2b$10$xE7QlJ6ojZGzmis.47Q7q.xfswirhKGaBcGZk3c8a3OrKauDMB5RS', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 07:15:56', 305300),
+(20, 'Asifa', 'user', NULL, NULL, NULL, 'abidaaaaaaa@gmail.com', NULL, NULL, '$2b$10$mQzZCVzOItZeDXQIRxWydeXTs.s4iGSFn8Wea7Db6oBfGek7RURWq', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 07:20:12', 532099),
+(21, 'Asifa', 'user', NULL, NULL, NULL, 'ayannnn@gmail.com', NULL, NULL, '$2b$10$uKvS3cCHhiA/wjZZgWUS3e7r2HaNOqT2CzUlh.kQJvKUEacn8dixS', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 07:21:47', 202021),
+(22, 'Asifa', 'user', NULL, NULL, NULL, 'ayannnnn@gmail.com', NULL, NULL, '$2b$10$9wOadPyAwkKkxfPwxBBfpe.f8xVkGCPEqUt9K//07I7PS1ltVMntm', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 07:23:17', 104992),
+(23, 'Asifa', 'user', NULL, NULL, NULL, 'ayannnnnm@gmail.com', NULL, NULL, '$2b$10$LKx31tQfEYxJR2GEy5lL9erMnaK3qhzbDXjkoaMEvVbjJkTTJhQre', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 08:46:23', 913804),
+(24, 'Asifa', 'user', NULL, NULL, NULL, 'ayannnnnmjh@gmail.com', NULL, NULL, '$2b$10$e4WOqMtC.mFOIGMNhrfJOeMHq54c1cfDBREtOlKgfaJVyUr38pYNe', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 08:50:01', 927594),
+(25, 'Asifa', 'user', NULL, NULL, NULL, 'ayanjhnnnnmjh@gmail.com', NULL, NULL, '$2b$10$1sTPjtf.Anlfj/SyK5hj1uxrMKcLl5WawcQXOesSFSOMh2VqHgE5a', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 08:52:29', 735713),
+(26, 'Asifa', 'user', NULL, NULL, NULL, 'ayanjhnnnnmdfjh@gmail.com', NULL, NULL, '$2b$10$EAF94SVWZevRHXCctm1JR.ETwT9/Srm1/QB2aG0/G1gcFbv6WTOwy', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 08:53:52', 924602),
+(27, 'Asifa', 'user', NULL, NULL, NULL, 'ayanjhnnnnmdfjffh@gmail.com', NULL, NULL, '$2b$10$8CcUpg7/VJcNQK.u6P01M.z2Yql6b8WHEP.iC9RGtvM3/hFv5lwPq', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 08:59:06', 116836),
+(28, 'Asifa', 'user', NULL, NULL, NULL, 'ayanjjjdfjffh@gmail.com', NULL, NULL, '$2b$10$xB/Aztb6X6xMa7lhP5pmNeLgfU9449fAlkGQZVfegnVPC4ZENq/7C', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 09:02:14', 304739),
+(29, 'Asifa', 'user', NULL, NULL, NULL, 'ayanjjjdfjffsh@gmail.com', NULL, NULL, '$2b$10$a7mxh.hzWp/.gGO74V6hHu4fbfAfIO3KJ13uJAfG4yMPzqkxSmFna', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 09:06:02', 486119),
+(30, 'Abida', 'user', NULL, NULL, NULL, 'zia@gmail.com', NULL, NULL, '$2b$10$hP4F5uwFBuYjqVwRBnible1YzAn7cEUX9np99oA8GgGH4EVjLL4pe', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 09:14:24', 516045),
+(31, 'Hassan', 'user', NULL, NULL, NULL, 'ziaa@gmail.com', NULL, NULL, '$2b$10$2hUJZAxzpvd9DljeVdGjX.4lcDniGkzczUkjkSMX6.PYWf.xDyhsy', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 09:19:01', 731951),
+(32, 'Abida', 'user', NULL, NULL, NULL, 'ziaaa@gmail.com', NULL, NULL, '$2b$10$a320VxjljTvuMQU3DFO5E.INvblpAsrpOK.ewfU1KSYXqET6ge3R.', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 09:24:02', 473542),
+(33, 'Hassan', 'user', NULL, NULL, NULL, 'ziaaaaa@gmail.com', NULL, NULL, '$2b$10$7pkjVLcuFCEwMhQU8ziPsukurQ5I4YjzjPyvmJi/4jgicVzsu4.Uq', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, 1, NULL, NULL, NULL, '2024-11-17 09:27:27', 243588);
 
 -- --------------------------------------------------------
 
@@ -189,7 +213,7 @@ CREATE TABLE `pages` (
 --
 
 INSERT INTO `pages` (`id`, `key`, `content`) VALUES
-(1, 'home', '{\"page_title\":\"Subscription\",\"meta_title\":\"Subscription\",\"meta_desc\":\"Subscription\",\"meta_keywords\":\"Subscription\",\"description1\":\"<p><strong>We are a UK based top Movers company</strong></p>\\r\\n\\r\\n<p>Moving services can significantly reduce the stress of relocating, allowing you to focus on setting into your new home.</p>\\r\\n\",\"sec1_number_0\":\"543\",\"sec1_heading_0\":\"Consulting Success\",\"sec1_number_1\":\"612\",\"sec1_heading_1\":\"Financial Consulting\",\"sec1_number_2\":\"356\",\"sec1_heading_2\":\"Market Research\",\"sec1_number_3\":\"287\",\"sec1_heading_3\":\"Happy Client\",\"image1\":\"/1730448329341-850066758.png\",\"sec1_image_0\":\"/1730450670169-463766425.png\",\"sec1_image_1\":\"/1730450670169-204203586.png\",\"sec1_image_2\":\"/1730450670170-364127055.png\",\"sec1_image_3\":\"/1730450670171-733055571.png\",\"description2\":\"<p><strong>OUR COMPANY</strong></p>\\r\\n\\r\\n<p><strong>We are experienced work lovers focussed on quality</strong></p>\\r\\n\",\"sec2_text_0\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do\",\"sec2_heading_0\":\"Corporate Location\",\"sec2_text_1\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do\",\"sec2_heading_1\":\"Door to Door Service\",\"sec2_text_2\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do\",\"sec2_heading_2\":\"Warehousing &amp; Storage\",\"sec2_text_3\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do\",\"sec2_heading_3\":\"Transportation Service\",\"sec2_image_0\":\"/1730450766797-64108129.png\",\"sec2_image_1\":\"/1730450766798-29376825.png\",\"sec2_image_2\":\"/1730450766801-779969670.png\",\"sec2_image_3\":\"/1730450766802-466338243.png\",\"description3\":\"<p><strong>ABOUT US </strong></p>\\r\\n\\r\\n<p><strong>Welcome Worldwide Best Transport Company</strong></p>\\r\\n\\r\\n<p>Competently implement efficient e-commerce without cross-unit growth strategies. Unlimited Revisions</p>\\r\\n\\r\\n<p>Best Solutions</p>\\r\\n\\r\\n<p>Best Fitness Excercise</p>\\r\\n\\r\\n<p>Combine Fitness and &nbsp;</p>\\r\\n\",\"link_text1\":\"About More\",\"link_url1\":\"/about\",\"image10\":\"/1730448445211-372554912.png\",\"video\":\"/1729847792254-292081144.mp4\",\"description4\":\"<p><strong>Fast And Reliable Moving Solutions Managers Since 1989</strong></p>\\r\\n\",\"image11\":\"/1729848569894-701758818.jpg\",\"description5\":\"<p><strong>why people choose us?</strong></p>\\r\\n\\r\\n<p><strong>We have 25+ years of experiences give you better results.</strong> &nbsp;</p>\\r\\n\",\"link_text2\":\"Read More\",\"link_url2\":\"/read\",\"sec5_text_0\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec5_heading_0\":\"Economical Air Freight\",\"sec5_text_1\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec5_heading_1\":\"Time Bound deliveries\",\"sec5_text_2\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec5_heading_2\":\"Same day Delivery\",\"sec5_text_3\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec5_heading_3\":\"Multi-modal Transport\",\"sec5_image_0\":\"/1730450902375-963025364.png\",\"sec5_image_1\":\"/1730450902376-972173986.png\",\"sec5_image_2\":\"/1730450902376-578491998.png\",\"sec5_image_3\":\"/1730450902376-279506823.png\",\"sec6_text_0\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec6_heading_0\":\"Free Estimate\",\"sec6_text_1\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec6_heading_1\":\"Packaging\",\"sec6_text_2\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec6_heading_2\":\"Moving Protection\",\"sec6_text_3\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec6_heading_3\":\"Contact Office\",\"sec6_image_0\":\"/1730451094134-288079691.png\",\"sec6_image_1\":\"/1730451094134-330399913.png\",\"sec6_image_2\":\"/1730451094134-442063859.png\",\"sec6_image_3\":\"/1730451094135-738193941.png\",\"description6\":\"<p><strong>How It Works? </strong></p>\\r\\n\\r\\n<p><strong>How We Deliver Your Parcel</strong></p>\\r\\n\",\"sec7_text_0\":\"One of the key components of best logistics solutions industy\",\"sec7_heading_0\":\"Parcel Register\",\"sec7_text_1\":\"One of the key components of best logistics solutions industy\",\"sec7_heading_1\":\"Parcel Loading\",\"sec7_text_2\":\"One of the key components of best logistics solutions industy\",\"sec7_heading_2\":\"Parcel In-transit\",\"sec7_text_3\":\"One of the key components of best logistics solutions industy\",\"sec7_heading_3\":\"Parcel Delivery\",\"sec7_image_0\":\"/1730451232294-686095641.png\",\"sec7_image_1\":\"/1730451232294-336430463.png\",\"sec7_image_2\":\"/1730451232294-604069875.png\",\"sec7_image_3\":\"/1730451232294-633306197.png\",\"image20\":\"/1730448567921-578719029.png\",\"description7\":\"<p><strong>TESTIMONIALS </strong></p>\\r\\n\\r\\n<p><strong>What Our Clients Say</strong></p>\\r\\n\\r\\n<p>Meet the agents who will assist you&nbsp;</p>\\r\\n\"}'),
+(1, 'home', '{\"page_title\":\"Subscription\",\"meta_title\":\"Subscription\",\"meta_desc\":\"Subscription\",\"meta_keywords\":\"Subscription\",\"description1\":\"<p><strong>We are a UK based top Movers company</strong></p>\\r\\n\\r\\n<p>Moving services can significantly reduce the stress of relocating, allowing you to focus on setting into your new home.</p>\\r\\n\",\"sec1_number_0\":\"543\",\"sec1_heading_0\":\"Consulting Success\",\"sec1_number_1\":\"612\",\"sec1_heading_1\":\"Financial Consulting\",\"sec1_number_2\":\"356\",\"sec1_heading_2\":\"Market Research\",\"sec1_number_3\":\"287\",\"sec1_heading_3\":\"Happy Client\",\"image1\":\"/1730448329341-850066758.png\",\"sec1_image_0\":\"/1730450670169-463766425.png\",\"sec1_image_1\":\"/1730450670169-204203586.png\",\"sec1_image_2\":\"/1730450670170-364127055.png\",\"sec1_image_3\":\"/1730450670171-733055571.png\",\"description2\":\"<p><strong>OUR COMPANY</strong></p>\\r\\n\\r\\n<p><strong>We are experienced work lovers focussed on quality</strong></p>\\r\\n\",\"sec2_text_0\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do\",\"sec2_heading_0\":\"Corporate Location\",\"sec2_text_1\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do\",\"sec2_heading_1\":\"Door to Door Service\",\"sec2_text_2\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do\",\"sec2_heading_2\":\"Warehousing &amp; Storage\",\"sec2_text_3\":\"Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do\",\"sec2_heading_3\":\"Transportation Service\",\"sec2_image_0\":\"/1730450766797-64108129.png\",\"sec2_image_1\":\"/1730450766798-29376825.png\",\"sec2_image_2\":\"/1730450766801-779969670.png\",\"sec2_image_3\":\"/1730450766802-466338243.png\",\"description3\":\"<p><strong>ABOUT US </strong></p>\\r\\n\\r\\n<p><strong>Welcome Worldwide Best Transport Company</strong></p>\\r\\n\\r\\n<p>Competently implement efficient e-commerce without cross-unit growth strategies. Unlimited Revisions</p>\\r\\n\\r\\n<p>Best Solutions</p>\\r\\n\\r\\n<p>Best Fitness Excercise</p>\\r\\n\\r\\n<p>Combine Fitness and &nbsp;</p>\\r\\n\",\"link_text1\":\"About More\",\"link_url1\":\"/about\",\"image10\":\"/1730448445211-372554912.png\",\"video\":\"/1729847792254-292081144.mp4\",\"description4\":\"<p><strong>Fast And Reliable Moving Solutions Managers Since 1989</strong></p>\\r\\n\",\"image11\":\"/1731071513184-894207635.png\",\"description5\":\"<p><strong>why people choose us?</strong></p>\\r\\n\\r\\n<p><strong>We have 25+ years of experiences give you better results.</strong> &nbsp;</p>\\r\\n\",\"link_text2\":\"Read More\",\"link_url2\":\"/read\",\"sec5_text_0\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec5_heading_0\":\"Economical Air Freight\",\"sec5_text_1\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec5_heading_1\":\"Time Bound deliveries\",\"sec5_text_2\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec5_heading_2\":\"Same day Delivery\",\"sec5_text_3\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec5_heading_3\":\"Multi-modal Transport\",\"sec5_image_0\":\"/1730450902375-963025364.png\",\"sec5_image_1\":\"/1730450902376-972173986.png\",\"sec5_image_2\":\"/1730450902376-578491998.png\",\"sec5_image_3\":\"/1730450902376-279506823.png\",\"sec6_text_0\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec6_heading_0\":\"Free Estimate\",\"sec6_text_1\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec6_heading_1\":\"Packaging\",\"sec6_text_2\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec6_heading_2\":\"Moving Protection\",\"sec6_text_3\":\"Lorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\\r\\nLorem ipsum dolor sit amet,con sec tetur adipisicing elit,sed do.\",\"sec6_heading_3\":\"Contact Office\",\"sec6_image_0\":\"/1730451094134-288079691.png\",\"sec6_image_1\":\"/1730451094134-330399913.png\",\"sec6_image_2\":\"/1730451094134-442063859.png\",\"sec6_image_3\":\"/1730451094135-738193941.png\",\"description6\":\"<p><strong>How It Works? </strong></p>\\r\\n\\r\\n<p><strong>How We Deliver Your Parcel</strong></p>\\r\\n\",\"sec7_text_0\":\"One of the key components of best logistics solutions industy\",\"sec7_heading_0\":\"Parcel Register\",\"sec7_text_1\":\"One of the key components of best logistics solutions industy\",\"sec7_heading_1\":\"Parcel Loading\",\"sec7_text_2\":\"One of the key components of best logistics solutions industy\",\"sec7_heading_2\":\"Parcel In-transit\",\"sec7_text_3\":\"One of the key components of best logistics solutions industy\",\"sec7_heading_3\":\"Parcel Delivery\",\"sec7_image_0\":\"/1730451232294-686095641.png\",\"sec7_image_1\":\"/1730451232294-336430463.png\",\"sec7_image_2\":\"/1730451232294-604069875.png\",\"sec7_image_3\":\"/1730451232294-633306197.png\",\"image20\":\"/1730448567921-578719029.png\",\"description7\":\"<p><strong>TESTIMONIALS </strong></p>\\r\\n\\r\\n<p><strong>What Our Clients Say</strong></p>\\r\\n\\r\\n<p>Meet the agents who will assist you&nbsp;</p>\\r\\n\"}'),
 (2, 'about', '{\"page_title\":\"About\",\"meta_title\":\"About\",\"meta_desc\":\"About\",\"meta_keywords\":\"About\",\"description1\":\"<p><strong>Who we are</strong></p>\\r\\n\\r\\n<p><strong>Digital &amp;&nbsp;Trusted&nbsp;Transport Logistics Company</strong></p>\\r\\n\\r\\n<p>Nulla vitae ex nunc Morbi quis purus convallis fermentum metus volutpat sodales purus Nunc quis mauris et eros vulputate mattis Nulla vitae ex nunc Mor bi quis the purus convallis fermentum metus volutpat &nbsp;</p>\\r\\n\",\"link_text1\":\"About More\",\"link_url1\":\"/about\",\"abt_image1\":\"/1730451432275-787410133.png\",\"description2\":\"<p><strong>We give you complete control of your any type shipment.</strong></p>\\r\\n\\r\\n<p>It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. The point of using Lorem Ipsum is that it has a more-or-less normal distribution. &nbsp;</p>\\r\\n\",\"text\":\"We Create A Honest, Hassle-Free And Quality Moving Experience\",\"abt_image2\":\"/1730451512621-153824523.png\",\"abt_image3\":\"/1730451512621-574064704.png\",\"description3\":\"<p><strong>Professionals</strong></p>\\r\\n\\r\\n<p><strong>Our Expert Teams</strong></p>\\r\\n\\r\\n<p>It is a long established fact that a reader will be distracted by the readable content of a page when looking at its layout. &nbsp;</p>\\r\\n\",\"description4\":\"<p><strong>Fast And Reliable Moving Solutions Managers Since 1989</strong></p>\\r\\n\",\"sec4_number_0\":\"10K\",\"sec4_heading_0\":\"Projects Completed\",\"sec4_number_1\":\"240+\",\"sec4_heading_1\":\"Projects Completed\",\"sec4_number_2\":\"8K\",\"sec4_heading_2\":\"Projects Completed\",\"sec4_number_3\":\"80+\",\"sec4_heading_3\":\"Projects Completed\",\"abt_video\":\"/1729856781706-27457260.mp4\",\"abt_image5\":\"/1730451859259-582992788.png\",\"sec4_abt_image_0\":\"/1730451859267-121235552.png\",\"sec4_abt_image_1\":\"/1730451859268-480020516.png\",\"sec4_abt_image_2\":\"/1730451859268-449441563.png\",\"abt_image4\":\"/1730451606354-406226733.png\",\"sec4_abt_image_3\":\"/1730451859268-961650252.png\",\"description5\":\"<p><span style=\\\"color:#ff0000\\\"><strong>Who we are </strong></span></p>\\r\\n\\r\\n<p><strong>Benefits for using our services</strong></p>\\r\\n\\r\\n<ul>\\r\\n\\t<li>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt.</li>\\r\\n\\t<li>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt.</li>\\r\\n\\t<li>Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt.</li>\\r\\n</ul>\\r\\n\\r\\n<p>testing &nbsp;</p>\\r\\n\",\"link_text2\":\"About More\",\"link_url2\":\"/about more\",\"abt_image10\":\"/1730451859268-882029342.png\"}'),
 (3, 'contact', '{\"page_title\":\"Contact Us\",\"meta_title\":\"Contact Us\",\"meta_desc\":\"Contact Us\",\"meta_keywords\":\"Contact Us\",\"description1\":\"<p><strong>CONTACT</strong></p>\\r\\n\\r\\n<p><strong>Who we are</strong></p>\\r\\n\\r\\n<p><strong>Let&rsquo;s Start a Conversation</strong> &nbsp;</p>\\r\\n\",\"description2\":\"<p><strong>Ask How can We Help You</strong></p>\\r\\n\\r\\n<p><strong>Seek our platform in action</strong> Our company provides a full range of services for the construction of private houses and cottages since 199</p>\\r\\n\\r\\n<p><strong>Seek our platform in action</strong> Our company provides a full range of services for the construction of private houses and cottages since 199</p>\\r\\n\\r\\n<p><strong>Seek our platform in action</strong> Our company provides a full range of services for the construction of private houses and cottages since 199 &nbsp;</p>\\r\\n\",\"sec1_heading_0\":\"Address\",\"sec1_heading_1\":\"Email\",\"sec1_heading_2\":\"Phone\",\"heading1\":\"Let\'s Start\"}'),
 (4, 'privacy-policy', '{\"page_title\":\"Privacy Policy\",\"meta_title\":\"Privacy Policy\",\"meta_desc\":\"Privacy Policy\",\"meta_keywords\":\"Privacy Policy\",\"heading1\":\"Our Policies\",\"heading2\":\"Privacy Policy\",\"description1\":\"<p>Welcome to fastuk! We are committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website FastUk.com, use our platform, or engage with our services. By using our platform, you agree to the collection and use of information in accordance with this policy.</p>\\r\\n\\r\\n<p><strong>Information We Collect</strong></p>\\r\\n\\r\\n<p><strong>Personal Information</strong></p>\\r\\n\\r\\n<p>We collect personal information that you provide to us directly, such as when you create an account, update your profile, or contact us. This information may include: Name Email address Phone number Address Payment information Profile information, including photos and biographies for agents</p>\\r\\n\\r\\n<p><strong>Non-Personal Information</strong></p>\\r\\n\\r\\n<p>We also collect non-personal information automatically when you use our platform. This may include: IP address Browser type Device information Usage data (e.g., pages visited, time spent on the site)</p>\\r\\n\\r\\n<p><strong>How We Use Your Information</strong></p>\\r\\n\\r\\n<p>We use the information we collect for various purposes, including: To provide and maintain our services To process transactions and send you related information To personalize your experience on our platform To improve our website and services To communicate with you, including responding to your comments, questions, and requests To send you promotional materials and other communications To detect, prevent, and address technical issues and security concerns</p>\\r\\n\\r\\n<p><strong>Cookies and Tracking Technologies</strong>&nbsp;</p>\\r\\n\\r\\n<p>Our platform uses cookies and similar tracking technologies to enhance your experience. Cookies are small data files stored on your device. We use cookies to: Remember your login details Understand how you use our platform Personalize content and advertisements Improve our services You can choose to disable cookies through your browser settings, but this may affect your ability to use certain features of our platform.</p>\\r\\n\\r\\n<p><strong>Sharing Your Information</strong></p>\\r\\n\\r\\n<p>We do not sell, trade, or otherwise transfer your personal information to outside parties without your consent, except in the following circumstances: To trusted third-party service providers who assist us in operating our platform, conducting our business, or providing services to you To comply with legal obligations, such as responding to a subpoena or similar legal process To protect and defend our rights or property In connection with a merger, acquisition, or sale of all or a portion of our assets</p>\\r\\n\\r\\n<p><strong>Data Security</strong></p>\\r\\n\\r\\n<p>We implement a variety of security measures to maintain the safety of your personal information. These measures include: Using SSL encryption for sensitive data Restricting access to personal information to authorized personnel only Regularly updating our security practices to protect against unauthorized access</p>\\r\\n\\r\\n<p><strong>Changes to This Privacy Policy</strong></p>\\r\\n\\r\\n<p>We may update our Privacy Policy from time to time. We will notify you of any changes by posting the new Privacy Policy on this page. You are advised to review this Privacy Policy periodically for any changes. Changes to this Privacy Policy are effective when they are posted on this page.</p>\\r\\n\\r\\n<p><strong>Contact Information</strong></p>\\r\\n\\r\\n<p>If you have any questions or concerns about this Privacy Policy, please contact us at:  Phone: (123) 456-7890</p>\\r\\n\"}'),
@@ -202,6 +226,71 @@ INSERT INTO `pages` (`id`, `key`, `content`) VALUES
 (11, 'reset-password', '{\"page_title\":\"Reset Password\",\"meta_title\":\"Reset Password\",\"meta_desc\":\"Reset Password            \",\"meta_keywords\":\"Reset Password            \",\"description1\":\"<p><strong>Reset your Password&nbsp;</strong><br />\\r\\n&nbsp;</p>\\r\\n\"}'),
 (12, 'business', '{\"page_title\":\"Business\",\"meta_title\":\"Business\",\"meta_desc\":\"Business\",\"meta_keywords\":\"Business\",\"description1\":\"<p><strong>For Businesses<br />\\r\\nBusiness Solutions - Delivering Excellence for Your Business</strong><br />\\r\\nWe understand that every business is unique. That&rsquo;s why we offer customized shipping solutions to meet your specific needs, whether you&rsquo;re a small startup or a large enterprise. From bulk deliveries to urgent express services, we have the right plan for your business.<br />\\r\\n&nbsp;</p>\\r\\n\",\"link_text1\":\"Get a Quote\",\"link_url1\":\"/quote\",\"business_image1\":\"/1730727652508-484900474.png\",\"heading1\":\"PROCESS\",\"heading2\":\"Our Process\",\"link_text2\":\"Request a Consultation\",\"link_url2\":\"/request\",\"sec1_text_0\":\"Count on us for fast and dependable delivery services. We ensure your packages reach their destination safely.\",\"sec1_heading_0\":\"Speed & Reliability\",\"sec1_text_1\":\"Our business solutions come with competitive rates and no hidden fees.\",\"sec1_heading_1\":\"Competitive Pricing\",\"sec1_text_2\":\"We prioritize the safety of your goods, with secure packaging solutions.\",\"sec1_heading_2\":\"Secure & Safe Handling\",\"sec1_text_3\":\"Expand your business without boundaries\",\"sec1_heading_3\":\"Global Research\",\"sec1_business_image_0\":\"/1730727652516-530584361.png\",\"sec1_business_image_1\":\"/1730727652516-577720571.png\",\"sec1_business_image_2\":\"/1730727652517-708724335.png\",\"sec1_business_image_3\":\"/1730727652517-884721132.png\",\"description2\":\"<p><strong>PARTNERS<br />\\r\\nExclusive Discounts &amp; Rewards</strong><br />\\r\\nPartner with us and enjoy exclusive discounts on bulk shipments, subscription plans, and seasonal offers. We reward your loyalty with benefits designed to save you time and money, so you can focus on what matters most&mdash;growing your business.</p>\\r\\n\",\"link_text3\":\"Get a Quote\",\"link_url3\":\"/quote\",\"business_image6\":\"/1730727652518-684549090.png\",\"description3\":\"<p><strong>OPERATIONS<br />\\r\\nSeamless Integration with Your Business Operations</strong><br />\\r\\n<br />\\r\\n<br />\\r\\n<br />\\r\\n<br />\\r\\n&nbsp;</p>\\r\\n\",\"sec3_text_0\":\"<p><strong>API &amp; E-Commerce Integration</strong><br />\\r\\nEasily connect your online store or business management software with our platform through our API. Automate order processing and shipping labels directly from your system.</p>\\r\\n\",\"sec3_text_1\":\"<p><strong>Automated Shipping &amp; Label Generation</strong><br />\\r\\nWith our integration, you can automate the creation of shipping labels and invoices as soon as an order is placed.</p>\\r\\n\",\"sec3_text_2\":\"<p><strong>Inventory &amp; Order Management Synchronization</strong><br />\\r\\nKeep your inventory and order statuses up to date with real-time synchronization.<br />\\r\\n&nbsp;</p>\\r\\n\",\"sec3_text_3\":\"<p><strong>Customizable Shipping Rules &amp; Settings</strong><br />\\r\\nTailor your shipping preferences to match your business needs. Set custom rules based on order value, weight, or delivery location.</p>\\r\\n\",\"sec3_business_image_0\":\"/1730727652529-11052765.png\",\"sec3_business_image_1\":\"/1730727652530-919293913.png\",\"sec3_business_image_2\":\"/1730727652536-590437590.png\",\"sec3_business_image_3\":\"/1730727652536-855943281.png\",\"description8\":\"<p><strong>TRACKING<br />\\r\\nReal-Time Tracking &amp; Transparency</strong><br />\\r\\nStay in control of your shipments with our advanced tracking system. Our platform provides real-time updates and full transparency, allowing you and your customers to track packages every step of the way.<br />\\r\\n&nbsp;</p>\\r\\n\",\"link_text4\":\"About More\",\"link_url4\":\"/about\",\"business_image11\":\"/1730727652541-721234912.png\"}'),
 (13, 'rider', '{\"page_title\":\"Rider\",\"meta_title\":\"Rider\",\"meta_desc\":\"Rider\",\"meta_keywords\":\"Rider\",\"description1\":\"<p><strong>Become a Rider<br />\\r\\nWhy Ride with Us?</strong><br />\\r\\nDiscover the freedom and benefits of joining our rider community. Enjoy flexible schedules, competitive pay, and the opportunity to explore your city while delivering packages. Whether you&rsquo;re looking for full-time work or a way to earn extra income in your spare time, we have a place for you.<br />\\r\\n&nbsp;</p>\\r\\n\",\"link_text1\":\"Get a Quote\",\"link_url1\":\"/quote\",\"rider_image1\":\"/1730728686830-95236240.png\",\"description2\":\"<p><strong>CHOOSE</strong></p>\\r\\n\\r\\n<p><strong>Rider Requirements</strong><br />\\r\\nTo join our team, make sure you meet these basic requirements<br />\\r\\n&nbsp;</p>\\r\\n\",\"sec_text\":[\"Valid driving license\",\"Reliable transportation\",\"Smartphone with internet access\",\"Good knowledge of local roads\",\"Safety practices\"],\"description3\":\"<p><strong>WORK</strong><br />\\r\\n<strong>Flexible Work Schedule</strong><br />\\r\\nWe know life can be busy, so we give you the flexibility to set your own hours. Choose when you want to work&mdash;day, evening, or weekend shifts&mdash;so you can balance your deliveries with your personal life and other commitments.<br />\\r\\n&nbsp;</p>\\r\\n\\r\\n<p>&nbsp;</p>\\r\\n\",\"link_text2\":\"Get a Quote\",\"link_url2\":\"/quote\",\"rider_image2\":\"/1730728686837-715153109.png\",\"description4\":\"<p><strong>Rider Perks &amp; Benefits</strong><br />\\r\\nWe believe in taking care of our riders, which is why we offer exclusive benefits<br />\\r\\n<br />\\r\\n<br />\\r\\n<br />\\r\\n&nbsp;</p>\\r\\n\",\"sec3_text_0\":\"Discounts on fuel and vehicle maintenance.\",\"sec3_text_1\":\"Access to affordable insurance options and safety gear\",\"sec3_text_2\":\"Special rewards programs for consistent performance\",\"sec3_text_3\":\"Opportunity to grow within our company\",\"sec3_rider_image_0\":\"/1730728686839-984463850.png\",\"sec3_rider_image_1\":\"/1730728686839-450821426.png\",\"sec3_rider_image_2\":\"/1730728686839-458236692.png\",\"sec3_rider_image_3\":\"/1730114046826-247746083.jpg\",\"description5\":\"<p><strong>WHY FastUK</strong></p>\\r\\n\\r\\n<p><strong>Our Riders Safety First</strong><br />\\r\\n<br />\\r\\n<br />\\r\\n<br />\\r\\n&nbsp;</p>\\r\\n\",\"sec4_text_0\":\"Emphasize Expertise\",\"sec4_text_1\":\"Stress-Free Experience\",\"sec4_text_2\":\"Personalized Solutions\",\"sec4_text_3\":\"Unbeatable Value \",\"sec4_rider_image_0\":\"/1730728686840-611564274.png\",\"sec4_rider_image_1\":\"/1730728686840-250091285.png\",\"sec4_rider_image_2\":\"/1730728686840-863920928.png\",\"sec4_rider_image_3\":\"/1730728686840-669185425.png\"}');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `remote_post_codes`
+--
+
+CREATE TABLE `remote_post_codes` (
+  `id` int(255) NOT NULL,
+  `title` varchar(255) DEFAULT NULL,
+  `status` tinyint(4) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `remote_post_codes`
+--
+
+INSERT INTO `remote_post_codes` (`id`, `title`, `status`) VALUES
+(2, 'kj', 1);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `request_parcels`
+--
+
+CREATE TABLE `request_parcels` (
+  `id` int(255) NOT NULL,
+  `parcel_number` varchar(255) DEFAULT NULL,
+  `parcel_type` varchar(255) DEFAULT NULL,
+  `length` varchar(255) DEFAULT NULL,
+  `width` varchar(255) DEFAULT NULL,
+  `height` varchar(255) DEFAULT NULL,
+  `source` varchar(255) DEFAULT NULL,
+  `destination` varchar(255) DEFAULT NULL,
+  `distance` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `request_quote`
+--
+
+CREATE TABLE `request_quote` (
+  `id` int(255) NOT NULL,
+  `user_id` int(255) DEFAULT NULL,
+  `selected_vehicle` int(255) DEFAULT NULL,
+  `vehicle_price` varchar(255) DEFAULT NULL,
+  `total_amount` varchar(255) DEFAULT NULL,
+  `payment_intent` varchar(255) DEFAULT NULL,
+  `customer_id` int(255) DEFAULT NULL,
+  `source_postcode` varchar(255) DEFAULT NULL,
+  `source_address` varchar(255) DEFAULT NULL,
+  `source_name` varchar(255) DEFAULT NULL,
+  `source_phone_number` varchar(255) DEFAULT NULL,
+  `source_city` varchar(255) DEFAULT NULL,
+  `dest_postcode` varchar(255) DEFAULT NULL,
+  `dest_address` varchar(255) DEFAULT NULL,
+  `dest_name` varchar(255) DEFAULT NULL,
+  `dest_phone_number` varchar(255) DEFAULT NULL,
+  `dest_city` varchar(255) DEFAULT NULL,
+  `payment_method` varchar(255) DEFAULT NULL,
+  `payment_method_id` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -290,15 +379,16 @@ CREATE TABLE `tbl_admin` (
   `site_etsy` varchar(255) DEFAULT NULL,
   `logo_image` varchar(255) DEFAULT NULL,
   `favicon_image` varchar(255) DEFAULT NULL,
-  `thumb_image` varchar(255) DEFAULT NULL
+  `thumb_image` varchar(255) DEFAULT NULL,
+  `site_sandbox` tinyint(4) NOT NULL DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `tbl_admin`
 --
 
-INSERT INTO `tbl_admin` (`id`, `user_name`, `password`, `site_domain`, `site_name`, `site_phone`, `site_email`, `receiving_site_email`, `site_noreply_email`, `site_address`, `footer_copyright`, `site_instagram`, `site_facebook`, `site_youtube`, `site_twitter`, `site_processing_fee`, `site_spotify`, `site_etsy`, `logo_image`, `favicon_image`, `thumb_image`) VALUES
-(1, 'admin', '$2b$10$IQM2Rggdci9pjbBm9zoRY.AdZ1QuV45MGj5IHBQq5hr/rAEAPV9s2', 'www.fastukcouriers.co.uk', 'Fast UK', '(540) 229-6647', 'info.fastuk@gmail.com', 'asifaa.rehman@gmail.com', 'noreply@herosolutions.com.pk', '401 New Mexico 195, Elephant Butte New York, 87935', 'All rights reserved.', 'instagram.com', 'facebook.com', 'youtube.com', 'twitter.com', 0, 'spotify.com', 'etsy.com', '1729671186053-53027456.png', '1730285707710-604130236.png', '1729671186054-282612478.png');
+INSERT INTO `tbl_admin` (`id`, `user_name`, `password`, `site_domain`, `site_name`, `site_phone`, `site_email`, `receiving_site_email`, `site_noreply_email`, `site_address`, `footer_copyright`, `site_instagram`, `site_facebook`, `site_youtube`, `site_twitter`, `site_processing_fee`, `site_spotify`, `site_etsy`, `logo_image`, `favicon_image`, `thumb_image`, `site_sandbox`) VALUES
+(1, 'admin', '$2b$10$IQM2Rggdci9pjbBm9zoRY.AdZ1QuV45MGj5IHBQq5hr/rAEAPV9s2', 'www.fastukcouriers.co.uk', 'Fast UK', '(540) 229-6647', 'info.fastuk@gmail.com', 'asifaa.rehman@gmail.com', 'noreply@herosolutions.com.pk', '401 New Mexico 195, Elephant Butte New York, 87935', 'All rights reserved.', 'instagram.com', 'facebook.com', 'youtube.com', 'twitter.com', 20, 'spotify.com', 'etsy.com', '1729671186053-53027456.png', '1730285707710-604130236.png', '1729671186054-282612478.png', 1);
 
 -- --------------------------------------------------------
 
@@ -420,7 +510,20 @@ INSERT INTO `tokens` (`id`, `user_id`, `token`, `type`, `created_at`, `expiry_da
 (52, 9, 'member', '1972a2f6685ce799493e225700e17426b70066e7ba86e06f33', '2024-10-30 09:03:04', '0000-00-00 00:00:00', '2024-10-30 15:03:04.030', 'b888157b1eba60396ad256fbd282f0df124238db6c0cdd30228785c4d823bc43'),
 (53, 9, 'member', '31b0afab2abd767f6ea11c52504334eb32b9996f4ad3daefb1', '2024-10-30 09:06:38', '0000-00-00 00:00:00', '2024-10-30 15:06:38.474', 'b888157b1eba60396ad256fbd282f0df124238db6c0cdd30228785c4d823bc43'),
 (54, 9, 'member', 'c20104af1a84871943be2abd84dfd735a747d01533c2749d92', '2024-10-30 09:16:46', '0000-00-00 00:00:00', '2024-10-30 15:16:46.595', 'b888157b1eba60396ad256fbd282f0df124238db6c0cdd30228785c4d823bc43'),
-(55, 9, 'member', '35c47e20d22fe1d47b6882191e8b0d755e8160b3d34759c3cf', '2024-10-30 10:02:40', '0000-00-00 00:00:00', '2024-10-30 16:02:40.762', 'b888157b1eba60396ad256fbd282f0df124238db6c0cdd30228785c4d823bc43');
+(55, 9, 'member', '35c47e20d22fe1d47b6882191e8b0d755e8160b3d34759c3cf', '2024-10-30 10:02:40', '0000-00-00 00:00:00', '2024-10-30 16:02:40.762', 'b888157b1eba60396ad256fbd282f0df124238db6c0cdd30228785c4d823bc43'),
+(56, 21, 'fe663921808eb53b904d9354e5c95288be13b80aef7427e71402b037a08375f9', 'user', '2024-11-17 12:21:47', '2024-11-17 13:21:47', '82ab3e00f56b7c80ae3c3aa7d090fd532293c0005d6e09e316ac749de56ff7fd', 'user'),
+(57, 22, '790e25004a49d1b7b0f612fb8030319876d7706cd8bd8134e564d669919426dc', 'user', '2024-11-17 12:23:17', '2024-11-17 13:23:17', '82ab3e00f56b7c80ae3c3aa7d090fd532293c0005d6e09e316ac749de56ff7fd', 'user'),
+(58, 23, '3bf58707368f38c1279e32877c2303b69a7a8f7736a0db31e0cce618a6feb42b', 'user', '2024-11-17 13:46:23', '2024-11-17 14:46:23', '82ab3e00f56b7c80ae3c3aa7d090fd532293c0005d6e09e316ac749de56ff7fd', 'user'),
+(59, 24, '7453cd15d3059e62bc09df4702a3a83a4538b005c352407216650d484af493b2', 'user', '2024-11-17 13:50:01', '2024-11-17 14:50:01', '82ab3e00f56b7c80ae3c3aa7d090fd532293c0005d6e09e316ac749de56ff7fd', 'user'),
+(60, 25, '42f5b94b578fd7d1c6596fc9f45a9ed713256a4cee64db5b09fca30141f779d5', 'user', '2024-11-17 13:52:29', '2024-11-17 14:52:29', '82ab3e00f56b7c80ae3c3aa7d090fd532293c0005d6e09e316ac749de56ff7fd', 'user'),
+(61, 26, '1b7b7d689412c09418333b8223380a6ec55a173691ec2060ed6005f3490f6ecb', 'user', '2024-11-17 13:53:52', '2024-11-17 14:53:52', '82ab3e00f56b7c80ae3c3aa7d090fd532293c0005d6e09e316ac749de56ff7fd', 'user'),
+(62, 27, '04871391a254bb7c2eb51fb717c073a97a2c6b6986a18a9c5d083d75e114a543', 'user', '2024-11-17 13:59:06', '2024-11-17 14:59:06', '82ab3e00f56b7c80ae3c3aa7d090fd532293c0005d6e09e316ac749de56ff7fd', 'user'),
+(63, 28, 'db3232b04377c9b4a3f2f4ae8e58f6ef4fbfde38e92f4635fccbbbbf78f85abe', 'user', '2024-11-17 14:02:14', '2024-11-17 15:02:14', '82ab3e00f56b7c80ae3c3aa7d090fd532293c0005d6e09e316ac749de56ff7fd', 'user'),
+(64, 29, '072e1c99cc89a6924e7f6cd264ad076be600ff42348481c176145974432969fd', 'user', '2024-11-17 14:06:02', '2024-11-17 15:06:02', '82ab3e00f56b7c80ae3c3aa7d090fd532293c0005d6e09e316ac749de56ff7fd', 'user'),
+(65, 30, 'c0c4e788ac6e88a42061d7039769c11fac958b975e247a8f5dd90cafc8c8f28a', 'user', '2024-11-17 14:14:24', '2024-11-17 15:14:24', '82ab3e00f56b7c80ae3c3aa7d090fd532293c0005d6e09e316ac749de56ff7fd', 'user'),
+(66, 31, '94120229cc8b9293338e30daa36b3b1c73ec69494e36a0022c79047cbd7ff75c', 'user', '2024-11-17 14:19:01', '2024-11-17 15:19:01', '82ab3e00f56b7c80ae3c3aa7d090fd532293c0005d6e09e316ac749de56ff7fd', 'user'),
+(67, 32, '0168114988546d86d2e4e7ba021a9016062c9a65a6b1383ede5aeea0bdd0f048', 'user', '2024-11-17 14:24:02', '2024-11-17 15:24:02', '82ab3e00f56b7c80ae3c3aa7d090fd532293c0005d6e09e316ac749de56ff7fd', 'user'),
+(68, 33, 'fa03e655b956c424ad0b845dfcee4435d9e34f1e4bb8bfbceb7c75ebc92b3177', 'user', '2024-11-17 14:27:27', '2024-11-17 15:27:27', '82ab3e00f56b7c80ae3c3aa7d090fd532293c0005d6e09e316ac749de56ff7fd', 'user');
 
 -- --------------------------------------------------------
 
@@ -441,7 +544,8 @@ CREATE TABLE `vehicles` (
 --
 
 INSERT INTO `vehicles` (`id`, `title`, `price`, `status`, `vehicle_image`) VALUES
-(1, 'Car', '54435', 1, '1730708161686-340125557.jpg');
+(1, 'Car', '500', 1, '1731562683628-929475679.webp'),
+(2, 'Truck', '200', 1, '1731562530740-895353201.jpg');
 
 --
 -- Indexes for dumped tables
@@ -475,6 +579,24 @@ ALTER TABLE `multi_text`
 -- Indexes for table `pages`
 --
 ALTER TABLE `pages`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `remote_post_codes`
+--
+ALTER TABLE `remote_post_codes`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `request_parcels`
+--
+ALTER TABLE `request_parcels`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `request_quote`
+--
+ALTER TABLE `request_quote`
   ADD PRIMARY KEY (`id`);
 
 --
@@ -533,7 +655,7 @@ ALTER TABLE `faqs`
 -- AUTO_INCREMENT for table `members`
 --
 ALTER TABLE `members`
-  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(20) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=34;
 
 --
 -- AUTO_INCREMENT for table `messages`
@@ -552,6 +674,24 @@ ALTER TABLE `multi_text`
 --
 ALTER TABLE `pages`
   MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+
+--
+-- AUTO_INCREMENT for table `remote_post_codes`
+--
+ALTER TABLE `remote_post_codes`
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `request_parcels`
+--
+ALTER TABLE `request_parcels`
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `request_quote`
+--
+ALTER TABLE `request_quote`
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `riders`
@@ -587,13 +727,13 @@ ALTER TABLE `testimonials`
 -- AUTO_INCREMENT for table `tokens`
 --
 ALTER TABLE `tokens`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=56;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
 
 --
 -- AUTO_INCREMENT for table `vehicles`
 --
 ALTER TABLE `vehicles`
-  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(255) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

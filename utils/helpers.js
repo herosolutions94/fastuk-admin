@@ -97,5 +97,33 @@ module.exports = {
             validatedData[key] = this.validateInput(this.sanitizeInput(data[key]), type);
         });
         return validatedData;
+    },
+    create_current_date: function () {
+        const now = new Date();
+    
+        // Extract components in UK timezone
+        const options = { timeZone: 'Europe/London', hour12: false };
+        const formatter = new Intl.DateTimeFormat('en-GB', {
+            timeZone: 'Europe/London',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+        });
+    
+        // Format date and time components
+        const parts = formatter.formatToParts(now);
+        const year = parts.find((part) => part.type === 'year').value;
+        const month = parts.find((part) => part.type === 'month').value;
+        const day = parts.find((part) => part.type === 'day').value;
+        const hour = parts.find((part) => part.type === 'hour').value;
+        const minute = parts.find((part) => part.type === 'minute').value;
+        const second = parts.find((part) => part.type === 'second').value;
+    
+        // Return the formatted date-time string
+        return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
     }
+    
 };
