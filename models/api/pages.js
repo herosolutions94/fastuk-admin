@@ -28,13 +28,13 @@ class PageModel extends BaseModel {
             
         `;
         const values = [
-            data.user_id, 
-            data.selected_vehicle, 
-            data.vehicle_price, 
-            data.total_amount, 
-            data.payment_intent, 
-            data.customer_id, 
-            data.source_postcode, 
+            data.user_id,
+            data.selected_vehicle,
+            data.vehicle_price,
+            data.total_amount,
+            data.payment_intent,
+            data.customer_id,
+            data.source_postcode,
             data.source_address,
             data.source_name,
             data.source_phone_number,
@@ -67,19 +67,19 @@ class PageModel extends BaseModel {
             parcel_number,
             distance,
             parcel_type)
-            VALUES(?, ?, ?, ?, ?, ?,?, ?, ?)
+            VALUES(?,?,?,?,?,?,?,?,?,?)
             
         `;
         for (const parcel of parcels) {
-            const values = [parcel.request_id, parcel.length, parcel.width, parcel.height,parcel.weight, parcel.destination, parcel.source, parcel.parcelNumber, parcel.distance, parcel.parcelType];
+            const values = [parcel.request_id, parcel.length, parcel.width, parcel.height, parcel.weight, parcel.destination, parcel.source, parcel.parcelNumber, parcel.distance, parcel.parcelType];
             console.log('Inserting values:', values);
 
             const [result] = await pool.query(query, values);
             console.log('Insert result:', result);
         }
     }
-    
-    
+
+
 }
 
 module.exports = PageModel;
