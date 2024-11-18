@@ -25,13 +25,17 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // Use your actual API
 
 
 const pool  = require('../../config/db-connection');
-const { validateFields } = require('../../utils/validators');
+const { validateFields, validateRequiredFields, validateEmail } = require('../../utils/validators');
 const helpers = require('../../utils/helpers')
 
 class PagesController extends BaseController {
     constructor() {
         super();
         this.pageModel = new PageModel();
+        this.tokenModel = new Token();
+        this.memberModel = new MemberModel();  // Create an instance of MemberModel
+
+
 
     }
     async getHomeData(req, res) {
@@ -426,6 +430,208 @@ async getAddress(req, res) {
           res.status(200).json({ error: 'An error occurred while fetching addresses' });
         }
     }
+
+    async signUp(req, res) {
+
+        try {
+            const {
+                full_name,
+                email,
+                password,
+                mem_status,
+                mem_verified,  
+                fingerprint // Keep fingerprint as a parameter
+            } = req.body;
+
+
+
+            // Clean and trim data
+            const cleanedData = {
+                full_name: typeof full_name === 'string' ? full_name.trim() : '',
+                email: typeof email === 'string' ? email.trim().toLowerCase() : '',
+                password: typeof password === 'string' ? password.trim() : '',
+                created_at: new Date(),
+                mem_status: mem_status || 0,
+                mem_verified: mem_verified || 0,
+            };
+
+            // Validation for empty fields
+            if (!validateRequiredFields(cleanedData)) {
+                return res.status(200).json({ status: 0, msg: 'All fields are required.' });
+            }
+
+            // Email validation
+            if (!validateEmail(cleanedData.email)) {
+                return res.status(200).json({ status: 0, msg: 'Invalid email format.' });
+            }
+
+            // Check if email already exists
+            const existingUser = await this.memberModel.findByEmail(cleanedData.email);
+            if (existingUser) {
+                return res.status(200).json({
+                    success: false,
+                    message: 'Email already exists.'
+                });
+            }
+
+            // Hash the password
+            cleanedData.password = await bcrypt.hash(password, 10);  
+            
+            // Generate OTP
+            const otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
+            cleanedData.otp =  parseInt(otp, 10);;  // Add OTP to cleanedData
+
+            // console.log('Generated OTP:', otp);
+            // console.log('cleanedData with OTP:', cleanedData);
+
+
+            // Create the rider
+            const userId = await this.memberModel.createMember(cleanedData);
+            console.log('Created user ID:', userId); // Log the created rider ID
+
+
+            // Verify OTP was stored properly
+        const createdUser = await this.memberModel.findById(userId);
+        console.log('Created User:', createdUser); // Log the created rider
+ 
+        // console.log('Stored OTP after creation:', createdRider.otp); 
+
+            // If fingerprint is not provided, generate a pseudo-fingerprint
+            let actualFingerprint = fingerprint || this.generatePseudoFingerprint(req); // Use let to allow reassignment
+
+
+            // Generate a random number and create the token
+            const randomNum = crypto.randomBytes(16).toString('hex');
+            const tokenType = 'user';
+            const expiryDate = new Date();
+            expiryDate.setHours(expiryDate.getHours() + 1); // Token expires in 1 hour
+
+            // Create the token
+            const token = crypto.createHash('sha256').update(`${randomNum}-${tokenType}-${userId}`).digest('hex');
+
+            // Store the token in the tokens table
+            await this.tokenModel.storeToken(userId, token, tokenType, expiryDate, actualFingerprint);
+
+            this.sendSuccess(res, { userId, token }, 'User registered successfully.');
+        } catch (error) {
+            return res.status(200).json({ // Changed to status 500 for server errors
+                status: 0,
+                msg: 'An error occurred during registration.',
+                error: error.message
+            });
+        }
+    ;
+    }
+
+    generatePseudoFingerprint(req) {
+        const userAgent = req.headers['user-agent'] || '';
+        const ipAddress = req.ip || '';
+        const acceptHeader = req.headers['accept'] || '';
+        const combined = `${userAgent}:${ipAddress}:${acceptHeader}`;
+        
+        // Create a hash of the combined string for uniqueness
+        return crypto.createHash('sha256').update(combined).digest('hex');
+    }
+    async loginUser(req, res) {
+        try {
+            let { email, password } = req.body;
+
+            // Clean and trim data
+            email = typeof email === 'string' ? email.trim().toLowerCase() : '';
+            password = typeof password === 'string' ? password.trim() : '';
+
+
+            // Validate required fields
+            if (!validateRequiredFields({ email, password })) {
+                return res.status(200).json({ status: 0, msg: 'Email and password are required.' });
+            }
+
+            // Email validation
+            if (!validateEmail(email)) {
+                return res.status(200).json({ status: 0, msg: 'Invalid email format.' });
+            }
+
+            // Check if the rider exists by email
+            const existingUser = await this.memberModel.findByEmail(email);
+            if (!existingUser) {
+                return res.status(200).json({ status: 0, msg: 'Email or password is incorrect.' });
+            }
+
+            // Compare the provided password with the hashed password
+            const passwordMatch = await bcrypt.compare(password, existingUser.password);
+            if (!passwordMatch) {
+                return res.status(200).json({ status: 0, msg: 'Email or password is incorrect.' });
+            }
+
+            // Generate a random number and create the token
+            const randomNum = crypto.randomBytes(16).toString('hex');
+            const tokenType = 'user';
+            const expiryDate = new Date();
+            expiryDate.setHours(expiryDate.getHours() + 1); // Token expires in 1 hour
+
+            // Create the token
+            const token = crypto.createHash('sha256').update(`${randomNum}-${tokenType}-${existingUser.id}`).digest('hex');
+
+            // Store the token in the tokens table (optional, based on your implementation)
+            await this.tokenModel.storeToken(existingUser.id, token, tokenType, expiryDate);
+
+            // Send success response
+            this.sendSuccess(res, { userId: existingUser.id, token }, 'Successfully logged in.');
+        } catch (error) {
+            return res.status(200).json({
+                status: 0, msg: 'An error occurred during login.',
+                error: error.message
+            });
+        }
+    }
+
+    async verifyEmail(req, res) {
+        try {
+            const { token, otp } = req.body;
+    
+            if (!token || !otp) {
+                return res.status(200).json({ status: 0, msg: 'Token and OTP are required.' });
+            }
+    
+            const storedToken = await this.tokenModel.findByToken(token);
+            console.log("Token query result:", storedToken);
+    
+            const userId = Array.isArray(storedToken) ? storedToken[0]?.user_id : storedToken?.user_id;
+    
+            if (!userId) {
+                return res.status(200).json({ status: 0, msg: 'Invalid or expired token.' });
+            }
+    
+            console.log("User ID:", userId);
+    
+            const user = await this.memberModel.findById(userId);
+            console.log("User:", user);
+    
+            if (!user || user.length === 0) {
+                return res.status(200).json({ status: 0, msg: 'User not found.' });
+            }
+    
+            const storedOtp = parseInt(user.otp, 10);
+            const providedOtp = parseInt(otp, 10);
+    
+            if (storedOtp !== providedOtp) {
+                return res.status(200).json({ status: 0, msg: 'Incorrect OTP.' });
+            }
+    
+            await this.memberModel.updateMemberVerification(user.id);
+    
+            return res.status(200).json({ status: 1, msg: 'Email verified successfully.' });
+        } catch (error) {
+            console.error("Error during email verification:", error);
+            return res.status(200).json({
+                status: 0,
+                msg: 'An error occurred during email verification.',
+                error: error.message,
+            });
+        }
+    }
+    
+      
     
 
 // router.post('/create-payment-intent', async (req, res) => {
@@ -470,8 +676,6 @@ generatePseudoFingerprint(req) {
 }
 
 async paymentIntent(req, res) {
-    this.memberModel = new MemberModel();  // Create an instance of MemberModel
-    this.tokenModel = new Token();
 
 
     const { selectedVehicle,
