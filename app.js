@@ -87,12 +87,20 @@ app.set('views', path.join(__dirname, 'views'));
 
 
 // Configure CORS to allow requests from http://localhost:3000
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:4000'];
+
 app.use(cors({
-    origin: 'http://localhost:3000', // Allow only your frontend's origin
-    methods: ['GET,HEAD,PUT,PATCH,POST,DELETE','OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'], // Add headers you need to allow
-    credentials: true
-  }));
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, origin);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true // Allows cookies and other credentials
+}));
 
 app.use(siteInfoMiddleware)
 app.use(authenticationMiddleware)
