@@ -49,8 +49,10 @@ class PageModel extends BaseModel {
             'paid'
         ];
         const result = await pool.query(query, values);
-        console.log(result)
-        return result.rows[0].id;
+        const insertId = result[0].insertId; // Access insertId from the first element
+        console.log(insertId);
+        return insertId;
+
     }
 
     async insertParcels(parcels) {
@@ -70,7 +72,10 @@ class PageModel extends BaseModel {
         `;
         for (const parcel of parcels) {
             const values = [parcel.request_id, parcel.length, parcel.width, parcel.height,parcel.weight, parcel.destination, parcel.source, parcel.parcelNumber, parcel.distance, parcel.parcelType];
-            await pool.query(query, values);
+            console.log('Inserting values:', values);
+
+            const [result] = await pool.query(query, values);
+            console.log('Insert result:', result);
         }
     }
     

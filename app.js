@@ -60,6 +60,7 @@ const faqRoutes = require('./routes/admin/faq');
 const vehicleRoutes = require('./routes/admin/vehicle');
 const remotePostCodeRoutes = require('./routes/admin/remote-post-code');
 const pagesRoutes = require('./routes/admin/pages');
+const requestQuoteRoutes = require('./routes/admin/request-quote');
 
 const authMiddleware = require('./middleware/authMiddleware');
 const authenticationMiddleware = require('./middleware/authentication');
@@ -88,7 +89,7 @@ app.set('views', path.join(__dirname, 'views'));
 // Configure CORS to allow requests from http://localhost:3000
 app.use(cors({
     origin: 'http://localhost:3000', // Allow only your frontend's origin
-    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    methods: ['GET,HEAD,PUT,PATCH,POST,DELETE','OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'], // Add headers you need to allow
     credentials: true
   }));
@@ -111,6 +112,7 @@ app.use('/admin', faqRoutes);
 app.use('/admin', vehicleRoutes);
 app.use('/admin', remotePostCodeRoutes);
 app.use('/admin', pagesRoutes);
+app.use('/admin', requestQuoteRoutes);
 
 
 

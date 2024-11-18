@@ -16,20 +16,19 @@ class RequestQuoteController extends BaseController {
     
     async getRequestQuotes(req, res) {
         try {
-            const requestQuotes = await RequestQuote.getAllRequestQuotes();
-            // console.log('Fetched Riders:', riders); // Log the fetched riders
-
-            if (requestQuotes && requestQuotes.length > 0) {
-                // Corrected res.render with only two arguments
-                res.render('admin/request-quotes', { requestQuotes: requestQuotes || [] });
+            const requestQuotesWithMembers = await RequestQuote.getRequestQuotesWithMembers();
+    
+            if (requestQuotesWithMembers && requestQuotesWithMembers.length > 0) {
+                res.render('admin/request-quotes', { requestQuotes: requestQuotesWithMembers });
             } else {
-                this.sendError(res, 'No request Quote found');
+                this.sendError(res, 'No request quotes found');
             }
         } catch (error) {
-            console.error('Error fetching request quote:', error); // Log the error for debugging
-            this.sendError(res, 'Failed to fetch request quote');
+            console.error('Error fetching request quotes with members:', error);
+            this.sendError(res, 'Failed to fetch request quotes');
         }
     }
+    
 
     
     async deleteRequestQuote(req, res) {

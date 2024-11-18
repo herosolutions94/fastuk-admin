@@ -656,6 +656,11 @@ async createRequestQuote(req, res) {
             return res.status(400).json({ error: 'Invalid token, user not found' });
         }
 
+         // Validate parcels
+         if (!Array.isArray(parcels)) {
+            return res.status(400).json({ error: "'parcels' must be an array" });
+        }
+
         // Create Request Quote record
         const requestQuoteId = await this.pageModel.createRequestQuote({
             user_id: user.id,
