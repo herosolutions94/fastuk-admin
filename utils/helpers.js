@@ -2,6 +2,7 @@ const fs = require('fs'); // Importing the file system module
 const path = require('path'); // Importing the path module
 const sanitizeHtml = require('sanitize-html'); // Importing sanitize-html for XSS protection
 const validator = require('validator'); // Importing validator for input validation
+const crypto = require('crypto'); // Importing crypto for encryption and hashing
 
 module.exports = {
     // A sample function that formats a status with secure HTML
@@ -12,7 +13,7 @@ module.exports = {
             return '<span class="status badge danger">InActive</span>';
         }
     },
-    
+
     getVerifiedStatus: function (status) {
         if (status === 1) {
             return '<span class="status badge success">Verified</span>';
@@ -63,8 +64,7 @@ module.exports = {
     // Function to validate and sanitize data (recursive for nested objects)
     sanitizeData: function (input) {
         if (typeof input === 'string') {
-            return input
-                .trim();
+            return input.trim();
         }
         return input;
     },
@@ -98,9 +98,10 @@ module.exports = {
         });
         return validatedData;
     },
+
     create_current_date: function () {
         const now = new Date();
-    
+
         // Extract components in UK timezone
         const options = { timeZone: 'Europe/London', hour12: false };
         const formatter = new Intl.DateTimeFormat('en-GB', {
@@ -112,7 +113,7 @@ module.exports = {
             minute: '2-digit',
             second: '2-digit',
         });
-    
+
         // Format date and time components
         const parts = formatter.formatToParts(now);
         const year = parts.find((part) => part.type === 'year').value;
@@ -121,9 +122,38 @@ module.exports = {
         const hour = parts.find((part) => part.type === 'hour').value;
         const minute = parts.find((part) => part.type === 'minute').value;
         const second = parts.find((part) => part.type === 'second').value;
-    
+
         // Return the formatted date-time string
         return `${year}-${month}-${day} ${hour}:${minute}:${second}`;
+    },
+
+    // Generate a secure, encrypted token
+    generateToken: function (userId) {
+        const randomNum = crypto.randomBytes(16).toString('hex');
+        const tokenType = 'user';
+        const expiryDate = new Date();
+        expiryDate.setHours(expiryDate.getHours() + 1);
+
+        const plainTextToken = `${randomNum}-${tokenType}-${userId}-${expiryDate.toISOString()}`;
+        const key = crypto.randomBytes(32); // Key for AES encryption (securely store this)
+        const iv = crypto.randomBytes(16);
+
+        const cipher = crypto.createCipheriv('aes-256-cbc', key, iv);
+        let encryptedToken = cipher.update(plainTextToken, 'utf8', 'hex');
+        encryptedToken += cipher.final('hex');
+
+        return `${encryptedToken}:${iv.toString('hex')}:${key.toString('hex')}`;
+    },
+
+    // Decrypt the secure token
+    decryptToken: function (encryptedTokenWithIvKey) {
+        const [encryptedToken, ivHex, keyHex] = encryptedTokenWithIvKey.split(':');
+        const iv = Buffer.from(ivHex, 'hex');
+        const key = Buffer.from(keyHex, 'hex');
+
+        const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv);
+        let decrypted = decipher.update(encryptedToken, 'hex', 'utf8');
+        decrypted += decipher.final('utf8');
+        return decrypted;
     }
-    
 };

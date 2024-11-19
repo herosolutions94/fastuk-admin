@@ -25,7 +25,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // Use your actual API
 
 
 const pool = require('../../config/db-connection');
-const { validateFields, validateRequiredFields, validateEmail } = require('../../utils/validators');
+const { validateFields, validateRequiredFields,validateSignUPRequiredFields, validateEmail, validatePassword } = require('../../utils/validators');
 const helpers = require('../../utils/helpers')
 
 class PagesController extends BaseController {
@@ -438,10 +438,12 @@ class PagesController extends BaseController {
                 full_name,
                 email,
                 password,
+                confirm_password,
                 mem_status,
                 mem_verified,
                 fingerprint // Keep fingerprint as a parameter
             } = req.body;
+            console.log(req.body)
 
 
 
@@ -450,15 +452,25 @@ class PagesController extends BaseController {
                 full_name: typeof full_name === 'string' ? full_name.trim() : '',
                 email: typeof email === 'string' ? email.trim().toLowerCase() : '',
                 password: typeof password === 'string' ? password.trim() : '',
+                confirm_password: typeof confirm_password === 'string' ? confirm_password.trim() : '',
                 created_at: new Date(),
                 mem_status: mem_status || 0,
                 mem_verified: mem_verified || 0,
             };
+            console.log(cleanedData)
 
             // Validation for empty fields
             if (!validateRequiredFields(cleanedData)) {
                 return res.status(200).json({ status: 0, msg: 'All fields are required.' });
             }
+            if (cleanedData.password !== cleanedData.confirm_password) {
+                return res.status(200).json({ status: 0, msg: 'Passwords do not match.' });
+            }
+            // Password strength validation
+        // const passwordValidation = validatePassword(cleanedData.password);
+        if (!validatePassword(cleanedData.password)) {
+            return res.status(200).json({ status: 0, msg: 'Password must be at least 8 characters long, include one uppercase letter, one lowercase letter, one digit, and one special character.' });
+        }
 
             // Email validation
             if (!validateEmail(cleanedData.email)) {
@@ -469,13 +481,17 @@ class PagesController extends BaseController {
             const existingUser = await this.memberModel.findByEmail(cleanedData.email);
             if (existingUser) {
                 return res.status(200).json({
-                    success: false,
-                    message: 'Email already exists.'
+                    status: 0,
+                    msg: 'Email already exists.'
                 });
             }
 
             // Hash the password
-            cleanedData.password = await bcrypt.hash(password, 10);
+            cleanedData.password = await bcrypt.hash(cleanedData.password, 10);
+
+            // Remove `confirm_password` as it is not needed in the database
+        delete cleanedData.confirm_password;
+
 
             // Generate OTP
             const otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
@@ -507,12 +523,13 @@ class PagesController extends BaseController {
             expiryDate.setHours(expiryDate.getHours() + 1); // Token expires in 1 hour
 
             // Create the token
-            const token = crypto.createHash('sha256').update(`${randomNum}-${tokenType}-${userId}`).digest('hex');
+            const token = helpers.generateToken(`${userId}-${randomNum}-${tokenType}`);
 
             // Store the token in the tokens table
             await this.tokenModel.storeToken(userId, token, tokenType, expiryDate, actualFingerprint);
 
-            this.sendSuccess(res, { userId, token }, 'User registered successfully.');
+            this.sendSuccess(res, { mem_type:'user', authToken:token }, 'User registered successfully.');
+            
         } catch (error) {
             return res.status(200).json({ // Changed to status 500 for server errors
                 status: 0,
@@ -570,7 +587,7 @@ class PagesController extends BaseController {
             expiryDate.setHours(expiryDate.getHours() + 1); // Token expires in 1 hour
 
             // Create the token
-            const token = crypto.createHash('sha256').update(`${randomNum}-${tokenType}-${existingUser.id}`).digest('hex');
+            const token = helpers.generateToken(`${existingUser.id}-${randomNum}-${tokenType}`);
 
             // Store the token in the tokens table (optional, based on your implementation)
             await this.tokenModel.storeToken(existingUser.id, token, tokenType, expiryDate);
@@ -588,38 +605,38 @@ class PagesController extends BaseController {
     async verifyEmail(req, res) {
         try {
             const { token, otp } = req.body;
-
+    
             if (!token || !otp) {
                 return res.status(200).json({ status: 0, msg: 'Token and OTP are required.' });
             }
-
+    
             const storedToken = await this.tokenModel.findByToken(token);
             console.log("Token query result:", storedToken);
-
+    
             const userId = Array.isArray(storedToken) ? storedToken[0]?.user_id : storedToken?.user_id;
-
+    
             if (!userId) {
                 return res.status(200).json({ status: 0, msg: 'Invalid or expired token.' });
             }
-
+    
             console.log("User ID:", userId);
-
+    
             const user = await this.memberModel.findById(userId);
             console.log("User:", user);
-
+    
             if (!user || user.length === 0) {
                 return res.status(200).json({ status: 0, msg: 'User not found.' });
             }
-
+    
             const storedOtp = parseInt(user.otp, 10);
             const providedOtp = parseInt(otp, 10);
-
+    
             if (storedOtp !== providedOtp) {
                 return res.status(200).json({ status: 0, msg: 'Incorrect OTP.' });
             }
-
+    
             await this.memberModel.updateMemberVerification(user.id);
-
+    
             return res.status(200).json({ status: 1, msg: 'Email verified successfully.' });
         } catch (error) {
             console.error("Error during email verification:", error);
@@ -631,39 +648,53 @@ class PagesController extends BaseController {
         }
     }
 
+    
+
+    async getMemberFromToken(req, res) {
+        try {
+            const { token } = req.body;
+            console.log(req.body)
+            if (!token) {
+                return res.status(400).json({ status: 0, msg: 'Token is required.' });
+            }
 
 
+            // Decrypt the token
+            let decryptedToken;
+            try {
+                decryptedToken = helpers.decryptToken(token);
+            } catch (err) {
+                return res.status(400).json({ status: 0, msg: 'Invalid or corrupted token.' });
+            }
+            const parts = decryptedToken.split('-');
+            if (parts.length < 3) {
+                return res.status(400).json({ status: 0, msg: 'Invalid token format.' });
+            }
 
-    // router.post('/create-payment-intent', async (req, res) => {
-    //     async paymentIntent(req, res) {
+            const userId = parts[2]; // Extract userId
+            console.log(parts)
+            const member = await this.memberModel.findById(userId);
+            if (!member) {
+                return res.status(404).json({ status: 0, msg: 'Member not found.' });
+            }
 
-    //     const { payment_method_id, amount } = req.body;
-    //     console.log("req.body:",req.body)
+            return res.status(200).json({
+                status: 1,
+                member,
+            });
+        } catch (error) {
+            console.error('Error in getMemberFromToken:', error.message);
+            return res.status(500).json({
+                status: 0,
+                msg: 'An error occurred while processing the request.',
+                error: error.message,
+            });
+        }
+    }
+   
+    
 
-    //     try {
-    //         // Validate and parse amount
-    //         const amount = parseFloat(req.body.amount);
-    //         if (isNaN(amount) || amount <= 0) {
-    //             return res.status(400).json({ error: "Invalid amount provided" });
-    //         }
 
-    //         const amountInCents = Math.round(amount * 100);
-
-    //         // Create a PaymentIntent with the specified amount and payment method
-    //         const paymentIntent = await stripe.paymentIntents.create({
-    //             amount: amountInCents, // Amount in smallest currency unit (e.g., cents for USD)
-    //             currency: 'usd',
-    //             payment_method: payment_method_id,
-    //             confirmation_method: 'manual',
-    //         });
-    //         console.log("paymentIntent:",paymentIntent);return
-
-    //         res.status(200).json({ status: 1, payment_intent_id:paymentIntent.id,  client_secret: paymentIntent.client_secret  });
-    //     } catch (error) {
-    //         console.error('Error creating payment intent:', error);
-    //         res.status(400).json({ status: 0, msg: 'Failed to create payment intent', error: error.message });
-    //     }
-    // };
 
     generatePseudoFingerprint(req) {
         const userAgent = req.headers['user-agent'] || '';
