@@ -30,11 +30,11 @@ class MemberModel extends BaseModel {
     // Method to create a new rider with validation
     async createMember(data) {
         console.log('Attempting to insert user:', data); // Log the data to insert
-    
+
         if (await this.findByEmail(data.email)) {
             throw new Error(`Email ${data.email} is already in use.`);
         }
-    
+
         try {
             const userId = await this.create(data); // Call the BaseModel's create method
             console.log('Inserted user ID:', userId); // Log the inserted ID
@@ -44,12 +44,12 @@ class MemberModel extends BaseModel {
             throw error;
         }
     }
-    
+
     async findById(memberId) {
         const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
         const [rows] = await pool.query(query, [memberId]);
         console.log(rows)
-    return rows.length ? rows[0] : null; // Return the first result or null
+        return rows.length ? rows[0] : null; // Return the first result or null
     }
 
     // Function to update rider's verified status and set OTP to null
@@ -57,6 +57,21 @@ class MemberModel extends BaseModel {
         const query = `UPDATE members SET mem_verified = 1, otp = NULL WHERE id = ?`;
         await pool.query(query, [memberId]);
     }
+    async updateMemberData(memberId, data) {
+        // Extract keys and values from the data object
+        const keys = Object.keys(data); // ['otp', 'expire_time']
+        const values = Object.values(data); // [newOtp, newExpireTime]
+
+        // Construct the SET clause dynamically
+        const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
+
+        // Build the query dynamically
+        const query = `UPDATE members SET ${setClause} WHERE id = ?`;
+
+        // Execute the query, adding the memberId to the values array
+        await pool.query(query, [...values, memberId]);
+    }
+
 
     async updatePassword(memberId, hashedPassword) {
         const query = `UPDATE ${this.tableName} SET password = ? WHERE id = ?`;

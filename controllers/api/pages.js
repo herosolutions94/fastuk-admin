@@ -14,6 +14,7 @@ const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 
 const jwt = require('jsonwebtoken'); // Make sure to require the jwt package
+const moment = require('moment');
 
 
 const HERE_API_KEY = process.env.HERE_API_KEY;
@@ -25,7 +26,7 @@ const stripe = new Stripe(process.env.STRIPE_SECRET_KEY); // Use your actual API
 
 
 const pool = require('../../config/db-connection');
-const { validateFields, validateRequiredFields,validateSignUPRequiredFields, validateEmail, validatePassword } = require('../../utils/validators');
+const { validateFields, validateRequiredFields, validateSignUPRequiredFields, validateEmail, validatePassword } = require('../../utils/validators');
 const helpers = require('../../utils/helpers')
 
 class PagesController extends BaseController {
@@ -467,10 +468,10 @@ class PagesController extends BaseController {
                 return res.status(200).json({ status: 0, msg: 'Passwords do not match.' });
             }
             // Password strength validation
-        // const passwordValidation = validatePassword(cleanedData.password);
-        if (!validatePassword(cleanedData.password)) {
-            return res.status(200).json({ status: 0, msg: 'Password must be at least 8 characters long, include one uppercase letter, one lowercase letter, one digit, and one special character.' });
-        }
+            // const passwordValidation = validatePassword(cleanedData.password);
+            if (!validatePassword(cleanedData.password)) {
+                return res.status(200).json({ status: 0, msg: 'Password must be at least 8 characters long, include one uppercase letter, one lowercase letter, one digit, and one special character.' });
+            }
 
             // Email validation
             if (!validateEmail(cleanedData.email)) {
@@ -490,12 +491,13 @@ class PagesController extends BaseController {
             cleanedData.password = await bcrypt.hash(cleanedData.password, 10);
 
             // Remove `confirm_password` as it is not needed in the database
-        delete cleanedData.confirm_password;
+            delete cleanedData.confirm_password;
 
 
             // Generate OTP
             const otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
             cleanedData.otp = parseInt(otp, 10);;  // Add OTP to cleanedData
+            cleanedData.expire_time = moment().add(3, 'minutes').format('YYYY-MM-DD HH:mm:ss')
 
             // console.log('Generated OTP:', otp);
             // console.log('cleanedData with OTP:', cleanedData);
@@ -528,8 +530,8 @@ class PagesController extends BaseController {
             // Store the token in the tokens table
             await this.tokenModel.storeToken(userId, token, tokenType, expiryDate, actualFingerprint);
 
-            this.sendSuccess(res, { mem_type:'user', authToken:token }, 'User registered successfully.');
-            
+            this.sendSuccess(res, { mem_type: 'user', authToken: token }, 'User registered successfully.');
+
         } catch (error) {
             return res.status(200).json({ // Changed to status 500 for server errors
                 status: 0,
@@ -593,7 +595,7 @@ class PagesController extends BaseController {
             await this.tokenModel.storeToken(existingUser.id, token, tokenType, expiryDate);
 
             // Send success response
-            this.sendSuccess(res, { userId: existingUser.id, token }, 'Successfully logged in.');
+            this.sendSuccess(res, { userId: existingUser.id, authToken: token }, 'Successfully logged in.');
         } catch (error) {
             return res.status(200).json({
                 status: 0, msg: 'An error occurred during login.',
@@ -605,38 +607,47 @@ class PagesController extends BaseController {
     async verifyEmail(req, res) {
         try {
             const { token, otp } = req.body;
-    
+            console.log(req.body);
+
             if (!token || !otp) {
                 return res.status(200).json({ status: 0, msg: 'Token and OTP are required.' });
             }
-    
+
             const storedToken = await this.tokenModel.findByToken(token);
             console.log("Token query result:", storedToken);
-    
+
             const userId = Array.isArray(storedToken) ? storedToken[0]?.user_id : storedToken?.user_id;
-    
+
             if (!userId) {
                 return res.status(200).json({ status: 0, msg: 'Invalid or expired token.' });
             }
-    
+
             console.log("User ID:", userId);
-    
+
             const user = await this.memberModel.findById(userId);
             console.log("User:", user);
-    
+
             if (!user || user.length === 0) {
                 return res.status(200).json({ status: 0, msg: 'User not found.' });
             }
-    
+            const currentTime = new Date();
+            const expireTime = new Date(user.expire_time);
+
+            if (currentTime > expireTime) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: 'OTP has expired. Please generate a new OTP.',
+                });
+            }
             const storedOtp = parseInt(user.otp, 10);
             const providedOtp = parseInt(otp, 10);
-    
+
             if (storedOtp !== providedOtp) {
                 return res.status(200).json({ status: 0, msg: 'Incorrect OTP.' });
             }
-    
+
             await this.memberModel.updateMemberVerification(user.id);
-    
+
             return res.status(200).json({ status: 1, msg: 'Email verified successfully.' });
         } catch (error) {
             console.error("Error during email verification:", error);
@@ -648,12 +659,11 @@ class PagesController extends BaseController {
         }
     }
 
-    
+
 
     async getMemberFromToken(req, res) {
         try {
             const { token } = req.body;
-            console.log(req.body)
             if (!token) {
                 return res.status(400).json({ status: 0, msg: 'Token is required.' });
             }
@@ -672,7 +682,6 @@ class PagesController extends BaseController {
             }
 
             const userId = parts[2]; // Extract userId
-            console.log(parts)
             const member = await this.memberModel.findById(userId);
             if (!member) {
                 return res.status(404).json({ status: 0, msg: 'Member not found.' });
@@ -691,8 +700,8 @@ class PagesController extends BaseController {
             });
         }
     }
-   
-    
+
+
 
 
 

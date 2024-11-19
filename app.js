@@ -21,15 +21,6 @@ app.use((req, res, next) => {
     next();
 });
 
-
-const bodyParser = require('body-parser');
-app.use(bodyParser.json()); // Use body-parser for parsing JSON
-
-const session = require('express-session');
-
-const expressLayouts = require('express-ejs-layouts');
-
-const path = require('path');
 // Configure CORS to allow requests from http://localhost:3000
 const allowedOrigins = ['http://localhost:3000', 'http://localhost:4000'];
 
@@ -45,6 +36,15 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true // Allows cookies and other credentials
 }));
+const bodyParser = require('body-parser');
+app.use(bodyParser.json()); // Use body-parser for parsing JSON
+
+const session = require('express-session');
+
+const expressLayouts = require('express-ejs-layouts');
+
+const path = require('path');
+
 
 app.use(session({
     secret: 'your-secret-key', // Replace with a strong secret key
