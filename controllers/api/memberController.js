@@ -15,7 +15,7 @@ class MemberController extends BaseController {
         this.tokenModel = new Token();
     }
 
-    async registerMember(req, res) { 
+    async registerMember(req, res) {
         try {
             const {
                 mem_type,
@@ -27,7 +27,7 @@ class MemberController extends BaseController {
                 mem_verified,
                 fingerprint
             } = req.body;
-    
+
             // Clean and trim data
             const cleanedData = {
                 mem_type: typeof mem_type === 'string' ? mem_type.trim() : '',
@@ -38,22 +38,22 @@ class MemberController extends BaseController {
                 mem_status: mem_status || 0,
                 mem_verified: mem_verified || 0,
             };
-    
+
             // Validation for empty fields
             if (!validateRequiredFields(cleanedData) || !confirmPassword) {
                 return res.status(200).json({ success: false, message: 'All fields are required.' });
             }
-    
+
             // Confirm password validation
             if (password !== confirmPassword) {
                 return res.status(200).json({ success: false, message: 'Passwords do not match.' });
             }
-    
+
             // Email validation
             if (!validateEmail(cleanedData.email)) {
                 return res.status(200).json({ success: false, message: 'Invalid email format.' });
             }
-    
+
             // Check if email already exists
             const existingMember = await this.member.findByEmail(cleanedData.email);
             if (existingMember) {
@@ -62,34 +62,34 @@ class MemberController extends BaseController {
                     message: 'Email already exists.'
                 });
             }
-    
+
             // Hash the password
-            cleanedData.password = await bcrypt.hash(password, 10);  
-            
+            cleanedData.password = await bcrypt.hash(password, 10);
+
             // Generate OTP
             const otp = Math.floor(100000 + Math.random() * 900000);
             cleanedData.otp = parseInt(otp, 10);
-    
+
             // Create the member
             const memberId = await this.member.createMember(cleanedData);
-    
+
             // Verify OTP was stored properly
             const createdMember = await this.member.findById(memberId);
-    
+
             // If fingerprint is not provided, generate a pseudo-fingerprint
             let actualFingerprint = fingerprint || this.generatePseudoFingerprint(req);
-    
+
             // Generate token
             const randomNum = crypto.randomBytes(16).toString('hex');
             const tokenType = 'member';
             const expiryDate = new Date();
             expiryDate.setHours(expiryDate.getHours() + 1);
-    
+
             const token = crypto.createHash('sha256').update(`${randomNum}-${tokenType}-${memberId}`).digest('hex');
-    
+
             // Store the token in the tokens table
             await this.tokenModel.storeToken(memberId, token, tokenType, expiryDate, actualFingerprint);
-    
+
             this.sendSuccess(res, { memberId, token }, 'Member registered successfully.');
         } catch (error) {
             return res.status(200).json({
@@ -99,14 +99,14 @@ class MemberController extends BaseController {
             });
         }
     }
-    
+
 
     generatePseudoFingerprint(req) {
         const userAgent = req.headers['user-agent'] || '';
         const ipAddress = req.ip || '';
         const acceptHeader = req.headers['accept'] || '';
         const combined = `${userAgent}:${ipAddress}:${acceptHeader}`;
-        
+
         // Create a hash of the combined string for uniqueness
         return crypto.createHash('sha256').update(combined).digest('hex');
     }
@@ -163,54 +163,168 @@ class MemberController extends BaseController {
             });
         }
     }
+    async ResendOtp(req, res) {
+        try {
+            const { token } = req.body;
+            console.log(req.body);
+
+            // Validate the token
+            if (!token) {
+                return res.status(200).json({ status: 0, msg: 'Token is required.' });
+            }
+
+            // Find the token in the database
+            const storedToken = await this.tokenModel.findByToken(token);
+            if (!storedToken || !storedToken.user_id || storedToken.expiry_date < new Date()) {
+                return res.status(200).json({ status: 0, msg: 'Invalid or expired token.' });
+            }
+
+            console.log("Stored Token:", storedToken);
+
+            // Find the member by user ID
+            const member = await this.member.findById(storedToken.user_id);
+            console.log("Member ID:", storedToken.user_id);
+
+            if (!member) {
+                return res.status(200).json({ status: 0, msg: 'Member not found.' });
+            }
+
+            // Generate a new OTP
+            const newOtp = Math.floor(100000 + Math.random() * 900000); // Generate a 6-digit OTP
+            const newExpireTime = new Date();
+            newExpireTime.setMinutes(newExpireTime.getMinutes() + 3); // Set expire time to 3 minutes from now
+
+            console.log("Generated OTP:", newOtp, "Expire Time:", newExpireTime);
+
+            // Update the OTP and expire_time in the members table
+            await this.member.updateMemberData(member.id, {
+                otp: newOtp,
+                expire_time: newExpireTime
+            });
+
+            // Respond with the new OTP's expiry time
+            return res.status(200).json({
+                status: 1,
+                msg: 'New OTP generated successfully.',
+                expire_time: newExpireTime,
+            });
+        } catch (error) {
+            // Server error handling
+            console.error("Error generating new OTP:", error);
+            return res.status(200).json({
+                status: 0,
+                msg: 'An error occurred while generating a new OTP.',
+                error: error.message
+            });
+        }
+    }
+    async deactivateAccount(req, res) {
+        try {
+            const { token, reason } = req.body;
+            console.log(req.body);
+
+            // Validate the token
+            if (!token) {
+                return res.status(200).json({ status: 0, msg: 'Token is required.' });
+            }
+
+            // Find the token in the database
+            const storedToken = await this.tokenModel.findByToken(token);
+            if (!storedToken || !storedToken.user_id || storedToken.expiry_date < new Date()) {
+                return res.status(200).json({ status: 0, msg: 'Invalid or expired token.' });
+            }
+
+            console.log("Stored Token:", storedToken);
+
+            // Find the member by user ID
+            const member = await this.member.findById(storedToken.user_id);
+            console.log("Member ID:", storedToken.user_id);
+
+            if (!member) {
+                return res.status(200).json({ status: 0, msg: 'Member not found.' });
+            }
+
+            // Generate a new OTP
+
+
+            // Update the OTP and expire_time in the members table
+            await this.member.updateMemberData(member.id, {
+                deactivated_reason: reason,
+                is_deactivated: 1
+            });
+
+            // Respond with the new OTP's expiry time
+            return res.status(200).json({
+                status: 1,
+                msg: 'Account Deactivated successfully!',
+            });
+        } catch (error) {
+            // Server error handling
+            console.error("Error generating new OTP:", error);
+            return res.status(200).json({
+                status: 0,
+                msg: 'An error occurred while generating a new OTP.',
+                error: error.message
+            });
+        }
+    }
 
     async verifyEmail(req, res) {
         try {
             const { token, otp } = req.body;
-    
+            console.log(req.body);
+
             // Validate required fields
             if (!token || !otp) {
-                return res.status(200).json({ success: false, message: 'Token and OTP are required.' }); // Changed to 400 for bad request
+                return res.status(200).json({ status: 0, msg: 'Token and OTP are required.' }); // Changed to 400 for bad request
             }
             // Find the token in the database
             const storedToken = await this.tokenModel.findByToken(token);
             if (!storedToken || !storedToken.user_id || storedToken.expiry_date < new Date()) {
-                return res.status(200).json({ success: false, message: 'Invalid or expired token.' }); // Changed to 400 for invalid token
+                return res.status(200).json({ status: 0, msg: 'Invalid or expired token.' }); // Changed to 400 for invalid token
             }
-            console.log("storedToken:",storedToken[0])
-    
+            console.log("storedToken:", storedToken)
+
             // Find the rider by stored token's rider ID
-            const member = await this.member.findById(storedToken[0]?.user_id);
-            console.log("member id:",storedToken[0].member_id)
+            const member = await this.member.findById(storedToken?.user_id);
+            console.log("member id:", storedToken.user_id)
 
             if (!member) {
-                return res.status(200).json({ success: false, message: 'Member not found.' }); // Use 404 when rider is not found
+                return res.status(200).json({ status: 0, msg: 'Member not found.' }); // Use 404 when rider is not found
             }
             console.log(member[0])
             console.log('Stored OTP:', member.otp, 'Provided OTP:', otp);
-    
+            const currentTime = new Date();
+            const expireTime = new Date(member.expire_time);
+
+            if (currentTime > expireTime) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: 'OTP has expired. Please generate a new OTP.',
+                });
+            }
             // Parse OTPs as integers to avoid comparison issues
             const storedOtp = parseInt(member.otp, 10);  // Parse stored OTP as an integer (base 10)
             const providedOtp = parseInt(otp, 10);      // Parse provided OTP as an integer (base 10)
-    
+
             // Verify OTP
             if (storedOtp !== providedOtp) {
-                return res.status(200).json({ success: false, message: 'Incorrect OTP.' }); // Changed to 400 for incorrect OTP
+                return res.status(200).json({ status: 0, msg: 'OTP is invalid.' }); // Changed to 400 for incorrect OTP
             }
-    
+
             // If OTP matches, update the rider's verified status
             await this.member.updateMemberVerification(member.id);
-    
+
             // // Remove or invalidate the token
             // await this.tokenModel.deleteToken(token);
-    
+
             // Success response
-            return res.status(200).json({ success: true, message: 'Email verified successfully.' });
+            return res.status(200).json({ status: 1, msg: 'Email verified successfully.' });
         } catch (error) {
             // Server error handling
             return res.status(200).json({
-                success: false,
-                message: 'An error occurred during email verification.',
+                status: 0,
+                msg: 'An error occurred during email verification.',
                 error: error.message
             });
         }
@@ -218,8 +332,8 @@ class MemberController extends BaseController {
 
     async requestPasswordReset(req, res) {
         try {
-            const { email , fingerprint} = req.body;
-    
+            const { email, fingerprint } = req.body;
+
             // Check if the member exists
             const member = await this.member.findByEmail(email);
             if (!member) {
@@ -229,17 +343,17 @@ class MemberController extends BaseController {
             const tokenType = 'member';
 
 
-    
+
             // Generate a reset token
             const resetToken = crypto.randomBytes(32).toString('hex');
             const expiryDate = new Date();
             expiryDate.setHours(expiryDate.getHours() + 1); // Token expires in 1 hour
-    
+
             // Store the token in the database with the expiry date
-            const insertId = await this.tokenModel.storeToken(member.id, tokenType, resetToken, 'reset', expiryDate,actualFingerprint);
+            const insertId = await this.tokenModel.storeToken(member.id, tokenType, resetToken, 'reset', expiryDate, actualFingerprint);
             console.log('Token stored with ID:', insertId);
 
-    
+
             // Nodemailer setup
             const transporter = nodemailer.createTransport({
                 host: 'smtp.gmail.com',
@@ -248,9 +362,9 @@ class MemberController extends BaseController {
                 auth: {
                     user: SMTP_MAIL,
                     pass: SMTP_PASSWORD
-        }
+                }
             });
-    
+
             // Email options
             const mailOptions = {
                 from: SMTP_MAIL,
@@ -258,10 +372,10 @@ class MemberController extends BaseController {
                 subject: 'Password Reset Request',
                 text: `You requested a password reset. Here is your reset token: ${resetToken}\n\nThe token is valid for 1 hour.`
             };
-    
+
             // Send the email
             await transporter.sendMail(mailOptions);
-    
+
             return res.status(200).json({
                 success: true,
                 message: 'Password reset link has been sent to your email.'
@@ -313,7 +427,7 @@ class MemberController extends BaseController {
             return res.status(200).json({ success: false, message: 'An error occurred.', error: error.message });
         }
     }
-   
+
 }
 
 
