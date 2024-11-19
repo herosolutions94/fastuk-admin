@@ -30,6 +30,21 @@ const session = require('express-session');
 const expressLayouts = require('express-ejs-layouts');
 
 const path = require('path');
+// Configure CORS to allow requests from http://localhost:3000
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:4000'];
+
+app.use(cors({
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, origin);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    credentials: true // Allows cookies and other credentials
+}));
 
 app.use(session({
     secret: 'your-secret-key', // Replace with a strong secret key
@@ -86,21 +101,6 @@ app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
 
-// Configure CORS to allow requests from http://localhost:3000
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:4000'];
-
-app.use(cors({
-    origin: (origin, callback) => {
-        if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, origin);
-        } else {
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
-    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
-    credentials: true // Allows cookies and other credentials
-}));
 
 app.use(siteInfoMiddleware)
 app.use(authenticationMiddleware)
