@@ -77,6 +77,14 @@ class MemberModel extends BaseModel {
         const query = `UPDATE ${this.tableName} SET password = ? WHERE id = ?`;
         await pool.query(query, [hashedPassword, memberId]);
     }
-}
 
+
+async updateMemberImage (userId, imageUrl) {
+  const query = `UPDATE ${this.tableName} SET mem_image = ? WHERE id = ? RETURNING mem_image`;
+  const values = [imageUrl, userId];
+  const result = await pool.query(query, values);
+  return result.rows[0];
+};
+
+}
 module.exports = MemberModel;
