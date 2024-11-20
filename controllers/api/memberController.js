@@ -2,10 +2,12 @@
 const BaseController = require('../baseController');
 const Member = require('../../models/memberModel');
 const Token = require('../../models/tokenModel');
+const Addresses = require('../../models/api/addressModel');
 const { validateEmail, validatePhoneNumber, validateRequiredFields } = require('../../utils/validators');
 const bcrypt = require('bcrypt');
 const crypto = require('crypto');
 const nodemailer = require('nodemailer');
+const helpers = require('../../utils/helpers');
 const { SMTP_MAIL, SMTP_PASSWORD } = process.env;
 
 class MemberController extends BaseController {
@@ -13,6 +15,7 @@ class MemberController extends BaseController {
         super();
         this.member = new Member();
         this.tokenModel = new Token();
+        this.addressModel = new Addresses();
     }
 
     async registerMember(req, res) {
@@ -426,6 +429,299 @@ class MemberController extends BaseController {
         } catch (error) {
             return res.status(200).json({ success: false, message: 'An error occurred.', error: error.message });
         }
+    }
+
+    async getAddresses (req, res) {
+        try {
+            const { token } = req.body;
+    
+            // Check if token is provided
+            if (!token) {
+                return res.status(200).json({
+                    status: 0,
+                    not_logged_in: true,
+                    msg: "Token is required."
+                });
+            }
+    
+            // Decrypt the token to get the user ID
+            let decryptedToken;
+            try {
+                decryptedToken = helpers.decryptToken(token);
+            } catch (err) {
+                return res.status(200).json({
+                    status: 0,
+                    not_logged_in: true,
+                    msg: "Invalid or corrupted token."
+                });
+            }
+    
+            const parts = decryptedToken.split("-");
+            if (parts.length < 3) {
+                return res.status(200).json({
+                    status: 0,
+                    not_logged_in: true,
+                    msg: "Invalid token format."
+                });
+            }
+    
+            const userId = parts[2]; // Extract user ID from the token
+    
+            // Fetch the user by ID
+            const user = await this.member.findById(userId);
+            if (!user) {
+                return res.status(200).json({
+                    status: 0,
+                    not_logged_in: true,
+                    msg: "User not found."
+                });
+            }
+    
+            // Fetch all addresses associated with the user
+            const addresses = await this.addressModel.getAddressesByUserId(userId);
+    console.log(addresses)
+            // Return the array of addresses
+            return res.status(200).json({
+                status: 1,
+                addresses: addresses?.length<=0 ? [] : addresses
+            });
+    
+        } catch (error) {
+            console.error("Error fetching addresses:", error.message);
+            return res.status(200).json({
+                status: 0,
+                msg: "Server error.",
+                details: error.message
+            });
+        }
+    };
+
+    async getAndInsertAddress (req, res)  {
+        try {
+            const { token, first_name, last_name, phone_number, address, post_code, city } = req.body;
+    
+            // Validate token
+            if (!token) {
+                return res.status(401).json({
+                    status: 0,
+                    msg: "Token is required."
+                });
+            }
+    
+            // Decrypt token to get userId
+            let decryptedToken;
+            try {
+                decryptedToken = helpers.decryptToken(token); // Assuming decryptToken is implemented
+            } catch (err) {
+                return res.status(401).json({
+                    status: 0,
+                    not_logged_in: true,
+                    msg: "Invalid or corrupted token."
+                });
+            }
+    
+            const parts = decryptedToken.split("-");
+            if (parts.length < 3) {
+                return res.status(401).json({
+                    status: 0,
+                    msg: "Invalid token format."
+                });
+            }
+    
+            const userId = parts[2];
+    
+            // Validate input data
+            if (!first_name || !last_name || !phone_number || !address || !city || !post_code) {
+                return res.status(400).json({
+                    status: 0,
+                    msg: "Address  city, and postcode are required."
+                });
+            }
+    
+            // Insert the address into the database
+            const newAddress = {
+            mem_id:userId,
+            first_name,
+            last_name,
+            phone_number,
+            address,
+            post_code,
+            city,
+            default:0
+            };
+            console.log(newAddress)
+            const insertedAddress = await this.addressModel.insertAddress(newAddress);
+    
+            // Fetch all addresses for the user
+            const addresses = await this.addressModel.getAddressesByUserId(userId);
+    
+            return res.status(200).json({
+                status: 1,
+                msg: "Address added successfully.",
+                addresses:addresses
+            });
+        } catch (error) {
+            console.error("Error in getAndInsertAddress:", error.message);
+            return res.status(500).json({
+                status: 0,
+                msg: "Server error.",
+                details: error.message
+            });
+        }
+    
+    }   
+    async updateAddress (req, res)  {
+        try {
+            const { token, first_name, last_name, phone_number, address, post_code, city,address_id } = req.body;
+    
+            // Validate token
+            if (!token) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: "Token is required."
+                });
+            }
+            if (!address_id) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: "Address is required."
+                });
+            }
+    
+            // Decrypt token to get userId
+            let decryptedToken;
+            try {
+                decryptedToken = helpers.decryptToken(token); // Assuming decryptToken is implemented
+            } catch (err) {
+                return res.status(401).json({
+                    status: 0,
+                    not_logged_in: true,
+                    msg: "Invalid or corrupted token."
+                });
+            }
+    
+            const parts = decryptedToken.split("-");
+            if (parts.length < 3) {
+                return res.status(401).json({
+                    status: 0,
+                    msg: "Invalid token format."
+                });
+            }
+    
+            const userId = parts[2];
+    
+            // Validate input data
+            if (!first_name || !last_name || !phone_number || !address || !city || !post_code) {
+                return res.status(400).json({
+                    status: 0,
+                    msg: "Address  city, and postcode are required."
+                });
+            }
+            const address_row=await this.addressModel.getAddressById(address_id,userId);
+            if(!address_row){
+                return res.status(200).json({
+                    status: 0,
+                    msg: "Address is required."
+                });
+            }
+            // Insert the address into the database
+            const newAddress = {
+            first_name,
+            last_name,
+            phone_number,
+            address,
+            post_code,
+            city,
+            };
+            console.log(newAddress)
+            const insertedAddress = await this.addressModel.updateData(address_id,newAddress);
+    
+            // Fetch all addresses for the user
+            const addresses = await this.addressModel.getAddressesByUserId(userId);
+    
+            return res.status(200).json({
+                status: 1,
+                msg: "Address updated successfully.",
+                addresses:addresses
+            });
+        } catch (error) {
+            console.error("Error in getAndInsertAddress:", error.message);
+            return res.status(500).json({
+                status: 0,
+                msg: "Server error.",
+                details: error.message
+            });
+        }
+    
+    }
+    async deleteAddress (req, res)  {
+        try {
+            const { token, address_id } = req.body;
+    
+            // Validate token
+            if (!token) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: "Token is required."
+                });
+            }
+            if (!address_id) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: "Address is required."
+                });
+            }
+    
+            // Decrypt token to get userId
+            let decryptedToken;
+            try {
+                decryptedToken = helpers.decryptToken(token); // Assuming decryptToken is implemented
+            } catch (err) {
+                return res.status(401).json({
+                    status: 0,
+                    not_logged_in: true,
+                    msg: "Invalid or corrupted token."
+                });
+            }
+    
+            const parts = decryptedToken.split("-");
+            if (parts.length < 3) {
+                return res.status(401).json({
+                    status: 0,
+                    msg: "Invalid token format."
+                });
+            }
+    
+            const userId = parts[2];
+    
+            
+            const address_row=await this.addressModel.getAddressById(address_id,userId);
+            if(!address_row){
+                return res.status(200).json({
+                    status: 0,
+                    msg: "Address is required."
+                });
+            }
+            
+            const insertedAddress = await this.addressModel.deleteAddress(address_id);
+    
+            // Fetch all addresses for the user
+            const addresses = await this.addressModel.getAddressesByUserId(userId);
+    
+            return res.status(200).json({
+                status: 1,
+                msg: "Address deleted successfully.",
+                addresses:addresses
+            });
+        } catch (error) {
+            console.error("Error in getAndInsertAddress:", error.message);
+            return res.status(500).json({
+                status: 0,
+                msg: "Server error.",
+                details: error.message
+            });
+        }
+    
     }
 
 }

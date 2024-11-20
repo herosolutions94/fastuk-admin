@@ -701,6 +701,216 @@ class PagesController extends BaseController {
         }
     }
 
+    // API Endpoint to Upload Profile Picture
+// app.post('/upload-profile-pic', verifyToken, upload.single('file'), async (req, res) => {
+    // Route to handle image upload
+    uploadProfileImage = async (req, res) => {
+        try {
+          
+          const { token } = req.body; // Assuming token is sent in the request body
+          console.log(token)
+          let decryptedToken;
+          try {
+            decryptedToken = helpers.decryptToken(token);
+          } catch (err) {
+            return res.status(200).json({ status: 0, msg: "Invalid or corrupted token." });
+          }
+      
+        //   // Validate token format and extract userId
+          const parts = decryptedToken.split("-");
+          if (parts.length < 3) {
+            return res.status(200).json({ status: 0, msg: "Invalid token format." });
+          }
+      
+          const userId = parts[2]; // Extract userId from the token
+      
+        //   // Check if member exists
+          const member = await this.memberModel.findById(userId);
+          if (!member) {
+            return res.status(200).json({ status: 0, msg: "Member not found." });
+          }
+        if (!req.file) {
+            return res.status(200).json({ status: 0, msg: "No file uploaded." });
+        }
+
+        // Get the uploaded file
+        const memImage = req.file.filename;
+
+        // Construct the file path
+        const imageUrl = `${memImage}`;
+      
+          // Update the member's profile image in the database
+          await this.memberModel.updateMemberData(member.id, {
+            mem_image:imageUrl
+        });
+      
+          // Send response including token, file object, and image URL
+          return res.status(200).json({
+            status: 1,
+            msg: "Image uploaded successfully.",
+            mem_image:imageUrl,
+            token: decryptedToken,
+            file: req.file, // File metadata from multer
+          });
+        } catch (error) {
+          console.error("Error uploading profile image:", error.message);
+          return res.status(500).json({
+            status: 0,
+            msg: "Server error.",
+            details: error.message,
+          });
+        }
+      };
+
+      updateProfile = async (req, res) => {
+        try {
+            const { token, first_name, last_name, mem_phone, address, bio } = req.body; // Assuming token and user data are sent in the request body
+            
+            // If no token is provided
+            if (!token) {
+                return res.status(400).json({ status: 0, msg: "Token is required." });
+            }
+            
+            // Verify token and extract user information
+            let decryptedToken;
+            try {
+                decryptedToken = helpers.decryptToken(token); // Assuming decryptToken is a function that decrypts the token
+            } catch (err) {
+                return res.status(200).json({ status: 0, msg: "Invalid or corrupted token." });
+            }
+    
+            // Validate token format and extract userId
+            const parts = decryptedToken.split("-");
+            if (parts.length < 3) {
+                return res.status(200).json({ status: 0, msg: "Invalid token format." });
+            }
+    
+            const userId = parts[2]; // Extract userId from the token
+    
+            // Check if member exists
+            const member = await this.memberModel.findById(userId);
+            if (!member) {
+                return res.status(200).json({ status: 0, msg: "Member not found." });
+            }
+    
+            // Validate the fields
+            if (!first_name || !last_name || !mem_phone || !address) {
+                return res.status(400).json({ status: 0, msg: "First name, last name, phone number, and address are required." });
+            }
+    
+            
+    
+            // Save the updated member data
+            const updatedMemberData = {
+                full_name:first_name+" "+last_name,
+                mem_phone,
+                mem_address1:address,
+                mem_bio: bio || "", // If bio is provided, use it; otherwise, set it to an empty string
+            };
+    
+            await this.memberModel.updateMemberData(userId, updatedMemberData); // Assuming `updateMemberData` is a function that updates the user's data in the DB
+    
+            // Send a success response
+            return res.status(200).json({ status: 1, msg: "Profile updated successfully.",mem_name:first_name+" "+last_name });
+        } catch (error) {
+            console.error("Error updating profile:", error.message);
+            return res.status(500).json({
+                status: 0,
+                msg: "Server error.",
+                details: error.message,
+            });
+        }
+    };
+
+    
+    
+ changePassword = async (req, res) => {
+        try {
+            const { token, current_password, new_password, confirm_password } = req.body;
+    
+            // Check if all fields are provided
+            if (!token || !current_password || !new_password || !confirm_password) {
+                return res.status(400).json({
+                    status: 0,
+                    msg: "All fields are required."
+                });
+            }
+    
+            // Validate that the new password and confirm password match
+            if (new_password !== confirm_password) {
+                return res.status(400).json({
+                    status: 0,
+                    msg: "New password and confirm password do not match."
+                });
+            }
+    
+            // Decode the token to extract user ID
+            let decryptedToken;
+            try {
+                decryptedToken = helpers.decryptToken(token); // Decrypt token using helper method
+            } catch (err) {
+                return res.status(400).json({
+                    status: 0,
+                    msg: "Invalid or corrupted token."
+                });
+            }
+    
+            const parts = decryptedToken.split("-");
+            if (parts.length < 3) {
+                return res.status(400).json({ status: 0, msg: "Invalid token format." });
+            }
+    
+            const userId = parts[2]; // Extract user ID from the token
+    
+            // Get the user from the database
+            const member = await this.memberModel.findById(userId);
+            if (!member) {
+                return res.status(404).json({
+                    status: 0,
+                    msg: "User not found."
+                });
+            }
+    
+            // Check if the current password matches the one in the database
+            const isCurrentPasswordValid = await bcrypt.compare(current_password, member.password);
+            if (!isCurrentPasswordValid) {
+                return res.status(400).json({
+                    status: 0,
+                    msg: "Current password is incorrect."
+                });
+            }
+    
+            // Hash the new password before saving
+            const hashedPassword = await bcrypt.hash(new_password, 10);
+    
+            // Update the user's password in the database
+// Prepare updated data object
+            const updatedMemberData = {
+                password: hashedPassword
+            };            
+            await this.memberModel.updateMemberData(userId, updatedMemberData); // Assuming `updateMemberData` is a function that updates the user's data in the DB
+    
+            return res.status(200).json({
+                status: 1,
+                msg: "Password updated successfully."
+            });
+    
+        } catch (error) {
+            console.error("Error changing password:", error.message);
+            return res.status(500).json({
+                status: 0,
+                msg: "Server error.",
+                details: error.message
+            });
+        }
+    };
+    
+    
+          
+      
+      
+      
+
 
 
 

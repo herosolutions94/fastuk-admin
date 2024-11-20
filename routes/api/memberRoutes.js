@@ -14,5 +14,9 @@ router.post('/resend-email', upload, memberController.ResendOtp.bind(memberContr
 router.post('/deactivate-account', upload, memberController.deactivateAccount.bind(memberController));
 router.post('/request-password-reset', memberController.requestPasswordReset.bind(memberController));
 router.post('/reset-password', memberController.resetPassword.bind(memberController));
+router.post('/get-addresses', upload,memberController.getAddresses.bind(memberController));
+router.post('/add-addresses', upload,memberController.getAndInsertAddress.bind(memberController));
+router.post('/update-addresses', upload,memberController.updateAddress.bind(memberController));
+router.post('/delete-addresses', upload,memberController.deleteAddress.bind(memberController));
 
 module.exports = router;
