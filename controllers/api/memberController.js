@@ -537,6 +537,12 @@ class MemberController extends BaseController {
                     msg: "Address  city, and postcode are required."
                 });
             }
+
+            // Check if user already has addresses
+        const existingAddresses = await this.addressModel.getAddressesByUserId(userId);
+
+        // Determine default value
+        const isDefault = existingAddresses.length === 0 ? 1 : 0;
     
             // Insert the address into the database
             const newAddress = {
@@ -547,7 +553,7 @@ class MemberController extends BaseController {
             address,
             post_code,
             city,
-            default:0
+            default:isDefault
             };
             console.log(newAddress)
             const insertedAddress = await this.addressModel.insertAddress(newAddress);
@@ -723,6 +729,309 @@ class MemberController extends BaseController {
         }
     
     }
+
+    async setAsDefaultAddress(req, res) {
+        try {
+            const { token, address_id } = req.body;
+    
+            // Validate token
+            if (!token) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: "Token is required.",
+                });
+            }
+            if (!address_id) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: "Address ID is required.",
+                });
+            }
+    
+            // Decrypt token to get userId
+            let decryptedToken;
+            try {
+                decryptedToken = helpers.decryptToken(token);
+            } catch (err) {
+                return res.status(401).json({
+                    status: 0,
+                    not_logged_in: true,
+                    msg: "Invalid or corrupted token.",
+                });
+            }
+    
+            const parts = decryptedToken.split("-");
+            if (parts.length < 3) {
+                return res.status(401).json({
+                    status: 0,
+                    msg: "Invalid token format.",
+                });
+            }
+    
+            const userId = parts[2];
+    
+            // Check if the address exists for the user
+            const address_row = await this.addressModel.getAddressById(address_id, userId);
+            if (!address_row) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: "Address not found or does not belong to the user.",
+                });
+            }
+    
+            // Reset default for all addresses
+            await this.addressModel.resetDefaultStatusForUser(userId);
+            console.log("All addresses reset to default = 0");
+    
+            // Set specific address as default
+            const isDefaultSet = await this.addressModel.setAsDefaultAddress(address_id);
+            if (!isDefaultSet) {
+                return res.status(500).json({
+                    status: 0,
+                    msg: "Failed to set address as default.",
+                });
+            }
+            console.log(`Address ${address_id} set as default`);
+    
+            // Fetch updated addresses for the user
+            const addresses = await this.addressModel.getAddressesByUserId(userId);
+            if (!addresses || addresses.length === 0) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: "No addresses found.",
+                });
+            }
+    
+            return res.status(200).json({
+                status: 1,
+                msg: "Address set as default successfully.",
+                addresses: addresses,
+            });
+        } catch (error) {
+            console.error("Error in setAsDefaultAddress:", error.message);
+            return res.status(500).json({
+                status: 0,
+                msg: "Server error.",
+                details: error.message,
+            });
+        }
+    }
+
+     // API to generate OTP for the provided email
+     async forgetPassword(req, res) {
+        try {
+            const { email } = req.body;
+
+            // Validate if email is provided
+            if (!email) {
+                return res.status(200).json({ status: 0, msg: 'Email is required.' });
+            }
+
+            // Clean the email data
+            const cleanedEmail = typeof email === 'string' ? email.trim() : '';
+
+            // Check if the email exists in the database
+            const existingMember = await this.member.findByEmail(cleanedEmail);
+            if (!existingMember) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: 'Email does not exist in the system.',
+                });
+            }
+
+            // Generate a random OTP
+            const otp = Math.floor(100000 + Math.random() * 900000); // OTP between 100000 and 999999
+
+            // Store the OTP in the member record
+            existingMember.otp = otp;
+            await this.member.updateOtp(existingMember.id, otp);
+
+            // Send success response
+            return res.status(200).json({
+                status: 1, // OTP generated successfully
+                msg: 'An otp is sent to your email.',
+            });
+        } catch (error) {
+            console.log(error)
+            // Handle any errors that occur during the process
+            return res.status(200).json({
+                status: 0,
+                msg: 'An error occurred while generating OTP.',
+                error: error.message,
+            });
+        }
+    }
+    // API to verify OTP, generate a reset token, and store it
+    async verifyOtpAndGenerateToken(req, res) {
+        try {
+            const { otp,fingerprint } = req.body;
+    
+            // Validate input
+            if (!otp) {
+                return res.status(200).json({ status: 0, msg: 'OTP is required.' });
+            }
+    
+            // Clean the OTP data
+            const cleanedOtp = parseInt(otp, 10);
+    
+            // Check if the OTP exists in the database and get the member
+            const existingMember = await this.member.findByOtp(cleanedOtp);  // Assuming you have a method findByOtp
+    
+            if (!existingMember) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: 'OTP does not exist in the system.',
+                });
+            }
+    
+            // Validate OTP from the database
+            if (existingMember.otp !== cleanedOtp) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: 'Invalid OTP.',
+                });
+            }
+    
+            // OTP is correct, now generate a reset token
+            let userId = existingMember?.id;
+            let actualFingerprint =
+            fingerprint || this.generatePseudoFingerprint(req); // Use let to allow reassignment
+    
+          // Generate a random number and create the token
+          const randomNum = crypto.randomBytes(16).toString("hex");
+          const tokenType = "user";
+          const expiryDate = new Date();
+          expiryDate.setHours(expiryDate.getHours() + 1); // Token expires in 1 hour
+    
+          // Create the token
+          const token = helpers.generateToken(
+            `${userId}-${randomNum}-${tokenType}`
+          );
+          await this.tokenModel.storeToken(
+            userId,
+            token,
+            tokenType,
+            expiryDate,
+            actualFingerprint
+          );
+            return res.status(200).json({
+                status: 1,
+                resetToken:token, // Return the reset token to the frontend
+                msg: 'OTP verified successfully and reset token generated.',
+            });
+        } catch (error) {
+            // Handle any errors
+            return res.status(200).json({
+                status: 0,
+                msg: 'An error occurred while verifying OTP and generating reset token.',
+                error: error.message,
+            });
+        }
+    }
+
+    resetPassword = async (req, res) => {
+        try {
+            console.log(req.body)
+            const { token, new_password, confirm_password,fingerprint } = req.body;
+    
+            // Check if all fields are provided
+            if (!token || !new_password || !confirm_password) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: "All fields are required.",
+                });
+            }
+    
+            // Validate that the new password and confirm password match
+            if (new_password !== confirm_password) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: "New password and confirm password do not match.",
+                });
+            }
+    
+            // Decode the token to extract user ID
+            let decryptedToken;
+            try {
+                decryptedToken = helpers.decryptToken(token); // Decrypt token using helper method
+            } catch (err) {
+                return res.status(200).json({
+                    status: 0,
+                    msg: "Invalid or corrupted token.",
+                });
+            }
+    
+            const parts = decryptedToken.split("-");
+            if (parts.length < 3) {
+                return res
+                    .status(200)
+                    .json({ status: 0, msg: "Invalid token format." });
+            }
+    
+            const userId = parts[2]; // Extract user ID from the token
+    
+            // Get the user from the database
+            const member = await this.member.findById(userId);
+            if (!member) {
+                return res.status(404).json({
+                    status: 0,
+                    msg: "User not found.",
+                });
+            }
+    
+            // Hash the new password before saving
+            const hashedPassword = await bcrypt.hash(new_password, 10);
+    
+            // Update the user's password in the database
+            const updatedMemberData = {
+                password: hashedPassword,
+            };
+            await this.member.updateMemberData(userId, updatedMemberData); // Assuming `updateMemberData` is a function that updates the user's data in the DB
+    
+            // Optionally, you can regenerate a new token if needed
+            let actualFingerprint =
+            fingerprint || this.generatePseudoFingerprint(req); // Use let to allow reassignment
+    
+          // Generate a random number and create the token
+          const randomNum = crypto.randomBytes(16).toString("hex");
+          const tokenType = "user";
+          const expiryDate = new Date();
+          expiryDate.setHours(expiryDate.getHours() + 1); // Token expires in 1 hour
+    
+          // Create the token
+          const authToken = helpers.generateToken(
+            `${userId}-${randomNum}-${tokenType}`
+          );
+          await this.tokenModel.storeToken(
+            userId,
+            authToken,
+            tokenType,
+            expiryDate,
+            actualFingerprint
+          );// Generate a new token (or use the same token if appropriate)
+    
+            // Send the success response with the reset token
+            return res.status(200).json({
+                status: 1,
+                msg: "Password updated successfully.",
+                authToken: authToken, // Send the reset token (or use the existing token)
+            });
+        } catch (error) {
+            console.error("Error changing password:", error.message);
+            return res.status(500).json({
+                status: 0,
+                msg: "Server error.",
+                details: error.message,
+            });
+        }
+    };
+    
+    
+    
+
+    
+        
+    
 
 }
 
