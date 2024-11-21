@@ -17,6 +17,15 @@ class MemberModel extends BaseModel {
         }
     }
 
+    async findByOtp(otp) {
+        try {
+            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE otp = ?`, [otp]);
+            return rows.length ? rows[0] : null; // Return the first result or null
+        } catch (error) {
+            throw new Error(`Error fetching member by otp from ${this.tableName}: ${error.message}`);
+        }
+    }
+
     // Method to check if an email already exists
     async emailExists(email) {
         try {
@@ -72,7 +81,11 @@ class MemberModel extends BaseModel {
         await pool.query(query, [...values, memberId]);
     }
 
-
+    async updateOtp(memberId, otp) {
+        const query = 'UPDATE members SET otp = ? WHERE id = ?';
+        const values = [otp, memberId];
+        await pool.query(query, values); // Updates the OTP for the member
+    }
     async updatePassword(memberId, hashedPassword) {
         const query = `UPDATE ${this.tableName} SET password = ? WHERE id = ?`;
         await pool.query(query, [hashedPassword, memberId]);

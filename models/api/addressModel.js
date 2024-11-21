@@ -86,6 +86,20 @@ class AddressModel extends BaseModel {
             throw new Error('Failed to delete rider');
         }
     }
+    async resetDefaultStatusForUser(userId) {
+        const query = `UPDATE ${this.tableName} SET \`default\` = 0 WHERE mem_id = ?`;
+        const [result] = await pool.query(query, [userId]);
+        console.log(`resetDefaultStatusForUser: Updated rows: ${result.affectedRows}`);
+    }
+    
+    async setAsDefaultAddress(address_id) {
+        const query = `UPDATE ${this.tableName} SET \`default\` = 1 WHERE id = ?`;
+        const [result] = await pool.query(query, [address_id]);
+        console.log(`setAsDefaultAddress: Updated rows: ${result.affectedRows}`);
+        return result.affectedRows > 0; // Returns true if at least one row was updated
+    }
+    
+        
 
 }
 
