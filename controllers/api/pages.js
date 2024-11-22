@@ -376,9 +376,9 @@ class PagesController extends BaseController {
 
       // Initialize member as null by default
       let member = null;
-console.log(token,'token')
+      console.log(token, 'token')
       // If a token is provided, decrypt it and fetch user details
-      if (token!==undefined && token!==null && token!=='' && token!=='null') {
+      if (token !== undefined && token !== null && token !== '' && token !== 'null') {
         let decryptedToken;
         try {
           decryptedToken = helpers.decryptToken(token); // Assuming decryptToken is a function that decrypts the token
@@ -659,7 +659,7 @@ console.log(token,'token')
       // Send success response
       this.sendSuccess(
         res,
-        { userId: existingUser.id, authToken: token },
+        { mem_type: existingUser.mem_type, authToken: token },
         "Successfully logged in."
       );
     } catch (error) {
@@ -1058,7 +1058,7 @@ console.log(token,'token')
       "dest_city",
       "source_full_address",
       "dest_full_address",
-      "charge_agreement",      
+      "charge_agreement",
       "card_holder_name",
       "confirm",
       "totalAmount",
@@ -1067,9 +1067,9 @@ console.log(token,'token')
     ];
     // If no token is provided, validate additional fields
     if (!token) {
-        requiredFields.push("full_name", "email", "password", "confirm_password");
-      }
-console.log(token,'token')
+      requiredFields.push("full_name", "email", "password", "confirm_password");
+    }
+    console.log(token, 'token')
     // Validate fields
     const { isValid, errors } = validateFields(req.body, requiredFields);
     if (!isValid) {
@@ -1082,7 +1082,7 @@ console.log(token,'token')
 
     try {
       let userId;
-        let token_arr={}
+      let token_arr = {}
       // Handle user authentication/creation
       if (token) {
         // Decode the token to extract user ID
@@ -1154,18 +1154,18 @@ console.log(token,'token')
 
       // Generate token for user if not provided
       let actualFingerprint =
-      fingerprint || this.generatePseudoFingerprint(req); // Use let to allow reassignment
+        fingerprint || this.generatePseudoFingerprint(req); // Use let to allow reassignment
 
-    // Generate a random number and create the token
-    const randomNum = crypto.randomBytes(16).toString("hex");
-    const tokenType = "user";
-    const expiryDate = new Date();
-    expiryDate.setHours(expiryDate.getHours() + 1); // Token expires in 1 hour
+      // Generate a random number and create the token
+      const randomNum = crypto.randomBytes(16).toString("hex");
+      const tokenType = "user";
+      const expiryDate = new Date();
+      expiryDate.setHours(expiryDate.getHours() + 1); // Token expires in 1 hour
 
-    // Create the token
-    const authToken = helpers.generateToken(
-      `${userId}-${randomNum}-${tokenType}`
-    );
+      // Create the token
+      const authToken = helpers.generateToken(
+        `${userId}-${randomNum}-${tokenType}`
+      );
       if (!token) {
         await this.tokenModel.storeToken(
           userId,
@@ -1176,7 +1176,7 @@ console.log(token,'token')
           "user"
         );
         console.log("Token stored for user:", userId);
-        token_arr={authToken,type:"user"}
+        token_arr = { authToken, type: "user" }
       }
 
       // Handle payment logic
@@ -1215,7 +1215,7 @@ console.log(token,'token')
         customer_id: stripeCustomer.id,
         payment_intent_id: paymentIntent.id,
         client_secret: paymentIntent.client_secret,
-        authToken:token_arr?.authToken,
+        authToken: token_arr?.authToken,
         mem_type: token_arr?.type,
       });
     } catch (error) {
@@ -1286,14 +1286,14 @@ console.log(token,'token')
 
         // Now you have the user (member) and their ID, use member.id instead of user.id
         const userId = member.id;
-        let parcelsArr=[]
-        if(parcels){
-            parcelsArr=JSON.parse(parcels)
+        let parcelsArr = []
+        if (parcels) {
+          parcelsArr = JSON.parse(parcels)
         }
         console.log(parcelsArr)
         // Validate parcels
         if (!Array.isArray(parcelsArr)) {
-          return res.status(200).json({status:0, msg: "'parcels' must be an array" });
+          return res.status(200).json({ status: 0, msg: "'parcels' must be an array" });
         }
 
         // Create Request Quote record
@@ -1352,7 +1352,7 @@ console.log(token,'token')
         details: error.message,
       });
     }
-}
+  }
 }
 
 module.exports = PagesController;
