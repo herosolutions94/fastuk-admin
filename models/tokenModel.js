@@ -7,11 +7,11 @@ class Token {
             VALUES (?, ?, ?, ?, NOW(), ?, ?);
         `;
         const values = [userId, userType, token, type, expiryDate, fingerprint];
-        console.log('values:',values)
+        // console.log('values:',values)
     
         // Extracting insertId correctly from the result array
         const [result] = await db.query(query, values); // Destructuring to access first element directly
-        console.log('Token stored with ID:', result.insertId); // Should now correctly log the insertId
+        // console.log('Token stored with ID:', result.insertId); // Should now correctly log the insertId
         return result.insertId;
     }
     
@@ -20,7 +20,7 @@ class Token {
     async findByToken(token) {
         const query = `SELECT * FROM tokens WHERE token = ?`;
         const [result] = await db.query(query, [token]);
-        console.log("Result from findByToken query:", result); // Check output here
+        // console.log("Result from findByToken query:", result); // Check output here
 
         return result[0]|| null;
     }

@@ -29,6 +29,8 @@ router.get('/pages/forgot-password', ensureAuthenticated, pagesController.forgot
 router.post('/pages/forgot-password-form', ensureAuthenticated, upload, pagesController.forgotPasswordForm.bind(pagesController));
 router.get('/pages/sign-up', ensureAuthenticated, pagesController.signUpView.bind(pagesController));
 router.post('/pages/sign-up-form', ensureAuthenticated, upload, pagesController.signUpForm.bind(pagesController));
+router.get('/pages/rider-signup', ensureAuthenticated, pagesController.riderSignUpView.bind(pagesController));
+router.post('/pages/rider-signup-form', ensureAuthenticated, upload, pagesController.riderSignUpForm.bind(pagesController));
 router.get('/pages/reset-password', ensureAuthenticated, pagesController.resetPasswordView.bind(pagesController));
 router.post('/pages/reset-password-form', ensureAuthenticated, upload, pagesController.resetPasswordForm.bind(pagesController));
 router.get('/pages/business', ensureAuthenticated, pagesController.businessView.bind(pagesController));
