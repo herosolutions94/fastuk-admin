@@ -65,6 +65,7 @@ const messageRoutes = require('./routes/api/messageRoutes');
 const apiPagesRoutes = require('./routes/api/pages');
 
 const authRoutes = require('./routes/admin/authRoutes');
+const authApiRoutes = require('./routes/api/authRoutes');
 const adminRiderRoutes = require('./routes/admin/rider');
 const adminMemberRoutes = require('./routes/admin/member');
 const adminMessageRoutes = require('./routes/admin/message');
@@ -108,6 +109,7 @@ app.use('/api', riderRoutes);
 app.use('/api', memberRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', apiPagesRoutes);
+app.use('/api', authApiRoutes);
 app.use('/admin', accountRoutes);
 app.use('/admin', authRoutes);
 app.use('/admin', adminRiderRoutes);

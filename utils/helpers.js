@@ -3,6 +3,7 @@ const path = require('path'); // Importing the path module
 const sanitizeHtml = require('sanitize-html'); // Importing sanitize-html for XSS protection
 const validator = require('validator'); // Importing validator for input validation
 const crypto = require('crypto'); // Importing crypto for encryption and hashing
+const pool = require('../config/db-connection');
 
 module.exports = {
     // A sample function that formats a status with secure HTML
@@ -128,11 +129,10 @@ module.exports = {
     },
 
     // Generate a secure, encrypted token
-    generateToken: function (userId) {
+    generateToken: function (userId,tokenType) {
         const randomNum = crypto.randomBytes(16).toString('hex');
-        const tokenType = 'user';
         const expiryDate = new Date();
-        expiryDate.setHours(expiryDate.getHours() + 1);
+        expiryDate.setMonth(expiryDate.getMonth() + 1);
 
         const plainTextToken = `${randomNum}-${tokenType}-${userId}-${expiryDate.toISOString()}`;
         const key = crypto.randomBytes(32); // Key for AES encryption (securely store this)
@@ -155,7 +155,23 @@ module.exports = {
         let decrypted = decipher.update(encryptedToken, 'hex', 'utf8');
         decrypted += decipher.final('utf8');
         return decrypted;
+    },
+
+    getCities: async function () {
+        try {
+            const query = `
+                SELECT id, name, state_id
+                FROM cities ORDER BY name
+            `;
+            const [rows] = await pool.execute(query);
+            console.log(rows)
+            return rows;
+        } catch (error) {
+            console.error('Error fetching cities:', error.message);
+            throw new Error('Could not fetch cities');
+        }
     }
+      
 
     
 };

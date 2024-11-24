@@ -44,9 +44,70 @@ class RiderModel extends BaseModel {
 
     // Function to update rider's verified status and set OTP to null
     async updateRiderVerification(riderId) {
-        const query = `UPDATE riders SET verified = 1, otp = NULL WHERE id = ?`;
+        const query = `UPDATE riders SET mem_verified = 1, otp = NULL WHERE id = ?`;
         await pool.query(query, [riderId]);
     }
+
+    async updateRiderData(riderId, data) {
+        // Extract keys and values from the data object
+        const keys = Object.keys(data); // ['otp', 'expire_time']
+        const values = Object.values(data); // [newOtp, newExpireTime]
+
+        // Construct the SET clause dynamically
+        const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
+
+        // Build the query dynamically
+        const query = `UPDATE ${this.tableName} SET ${setClause} WHERE id = ?`;
+
+        // Execute the query, adding the memberId to the values array
+        await pool.query(query, [...values, riderId]);
+    }
+    async getRequestQuotesByCity (city) {
+        const query = `
+            SELECT * FROM request_quote
+            WHERE source_city = ? AND assigned_rider IS NULL
+        `;
+        const [rows] = await pool.query(query, [city]); // Using promise wrapper
+        return rows;
+    };
+
+    // Fetch vias for a request_quote
+    async getViasByQuoteId  (quoteId)  {
+    const query = `
+        SELECT * FROM vias
+        WHERE request_id = ?
+    `;
+    const [rows] = await pool.query(query, [quoteId]);
+    return rows;
+};
+  
+
+// Fetch parcels for a request_quote
+async getParcelsByQuoteId (quoteId) {
+    const query = `
+        SELECT * FROM request_parcels
+        WHERE request_id = ?
+    `;
+    const [rows] = await pool.query(query, [quoteId]);
+    return rows;
+};
+
+async getRequestQuoteById(requestId) {
+    const query = `SELECT * FROM request_quote WHERE id = ?`;
+    const [rows] = await pool.query(query, [requestId]);
+    return rows[0]; // Return the first row if it exists
+}
+
+async assignRiderToRequest(requestId, riderId) {
+    // Get current date in YYYY-MM-DD format
+    const assignedDate = new Date().toISOString().split('T')[0]; 
+
+    const query = `UPDATE request_quote SET assigned_rider = ?, assigned_date = ? WHERE id = ?`;
+    const [result] = await pool.query(query, [riderId, assignedDate, requestId]);
+    return result; // Contains affectedRows and other info
+}
+
+
 }
 
 module.exports = RiderModel;
