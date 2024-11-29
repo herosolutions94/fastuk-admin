@@ -174,7 +174,8 @@ class MemberController extends BaseController {
         }
         let existingUser=''
         if(memType==='user'){
-          existingUser = await this.member.findByEmail(email);
+          existingUser = await this.member.findByEmail(email)
+;
           if (!existingUser) {
             return res
               .status(200)
@@ -182,7 +183,8 @@ class MemberController extends BaseController {
           }
         }
         else if(memType==='rider'){
-          existingUser = await this.rider.findByEmail(email);
+          existingUser = await this.rider.findByEmail(email)
+;
           if (!existingUser) {
             return res
               .status(200)

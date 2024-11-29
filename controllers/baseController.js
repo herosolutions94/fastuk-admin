@@ -37,13 +37,13 @@ class BaseController {
       try {
         //   console.log(token)
           const tokenRecord = await tokenModel.findByToken(token);
-          console.log("tokenRecord:",tokenRecord)
+        //   console.log("tokenRecord:",tokenRecord)
           if (!tokenRecord) {
               return { status: 0, msg: "Invalid or expired token." };
           }
   
           const { type: tokenType, user_id: userId, expiry_date: expiryDate } = tokenRecord;
-  
+  console.log(new Date(expiryDate) , new Date())
           // Check if token has expired
           if (new Date(expiryDate) < new Date()) {
               return { status: 0, msg: "Token has expired." };

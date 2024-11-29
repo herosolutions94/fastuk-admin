@@ -21,7 +21,7 @@ class AdminController extends BaseController {
 
     async login(req, res) {
         try {
-            console.log(req.body)
+            // console.log(req.body)
             const { user_name, password } = req.body;
 
             // Validate email and password presence

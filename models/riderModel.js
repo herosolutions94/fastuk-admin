@@ -38,7 +38,7 @@ class RiderModel extends BaseModel {
     async findById(riderId) {
         const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
         const [rows] = await pool.query(query, [riderId]);
-        console.log(rows)
+        // console.log(rows)
     return rows.length ? rows[0] : null; // Return the first result or null
     }
 
@@ -80,6 +80,12 @@ class RiderModel extends BaseModel {
     const [rows] = await pool.query(query, [quoteId]);
     return rows;
 };
+
+async updateOtp(memberId, otp) {
+    const query = `UPDATE ${this.tableName} SET otp = ? WHERE id = ?`;
+    const values = [otp, memberId];
+    await pool.query(query, values); // Updates the OTP for the member
+}
   
 
 // Fetch parcels for a request_quote
@@ -98,14 +104,60 @@ async getRequestQuoteById(requestId) {
     return rows[0]; // Return the first row if it exists
 }
 
-async assignRiderToRequest(requestId, riderId) {
+async assignRiderAndUpdateStatus(requestId, riderId) {
     // Get current date in YYYY-MM-DD format
-    const assignedDate = new Date().toISOString().split('T')[0]; 
+    const assignedDate = new Date().toISOString().split('T')[0];
 
-    const query = `UPDATE request_quote SET assigned_rider = ?, assigned_date = ? WHERE id = ?`;
+    const query = `
+        UPDATE request_quote 
+        SET 
+            assigned_rider = ?, 
+            assigned_date = ?, 
+            status = 'accepted' 
+        WHERE 
+            id = ? AND status = 'paid'`; // Ensure the current status is 'paid'
+
     const [result] = await pool.query(query, [riderId, assignedDate, requestId]);
     return result; // Contains affectedRows and other info
 }
+
+async getOrdersByRiderAndStatus({ riderId, status }) {
+    try {
+        const query = `
+            SELECT 
+                rq.*, 
+                m.full_name AS user_name, 
+                m.mem_image AS user_image,
+                m.email AS user_email,
+                m.mem_phone AS user_phone,
+                COALESCE(SUM(rp.distance), 0) AS total_distance
+            FROM 
+                request_quote rq
+            INNER JOIN 
+                members m 
+            ON 
+                rq.user_id = m.id
+            LEFT JOIN 
+                request_parcels rp 
+            ON 
+                rq.id = rp.request_id
+            WHERE 
+                rq.assigned_rider = ? AND rq.status = ?
+            GROUP BY 
+                rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
+        `;
+        const values = [riderId, status];
+        const [rows] = await pool.query(query, values);
+        return rows; // Return the list of orders with user and parcel details
+    } catch (err) {
+        console.error("Error fetching orders:", err.message);
+        throw new Error("Failed to fetch orders.");
+    }
+}
+
+
+
+
 
 
 }

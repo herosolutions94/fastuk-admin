@@ -11,7 +11,7 @@ class PagesModel extends BaseModel {
     async findByKey(key) {
         try {
             const [rows] = await pool.query(`SELECT * FROM ?? WHERE \`key\` = ?`, [this.tableName, key]);
-            console.log(rows)
+            // console.log(rows)
             return rows.length ? rows[0] : null;
         } catch (error) {
             throw new Error(`Error fetching data with key ${key}: ${error.message}`);
@@ -22,7 +22,7 @@ class PagesModel extends BaseModel {
         try {
             const insertText = `INSERT INTO ?? (\`key\`, content) VALUES (?, ?)`;
             const [result] = await pool.query(insertText, [this.tableName, key, null]);
-            console.log(result)
+            // console.log(result)
             return result.insertId;
         } catch (error) {
             throw new Error(`Error inserting into ${this.tableName}: ${error.message}`);

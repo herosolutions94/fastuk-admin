@@ -27,11 +27,11 @@ class MemberController extends BaseController {
         try {
             const memberId = req.params.id;  // Get the rider ID from the request parameters
 
-            console.log('Fetching member with ID:', memberId); // Log the ID
+            // console.log('Fetching member with ID:', memberId); // Log the ID
 
             const members = await Member.getMemberById(memberId); // Expecting an array from the model
             const member = members[0]; // Get the first member if it exists
-            console.log('Member:', member); // Log the rider data
+            // console.log('Member:', member); // Log the rider data
 
             if (member) {
                 res.render('admin/members/edit-member', {
@@ -58,12 +58,12 @@ class MemberController extends BaseController {
 
             // If a new image is uploaded
             const memberImage = req.files["mem_image"] ? req.files["mem_image"][0].filename : null;
-            console.log('New memberImage:', memberImage); // Debugging to confirm the new image value
+            // console.log('New memberImage:', memberImage); // Debugging to confirm the new image value
 
             // Check if there's an old image to delete
             if (memberImage && currentMember.mem_image) {
                 const oldImagePath = path.join(__dirname, '../../uploads/', currentMember.mem_image);
-                console.log('Old Image Path:', oldImagePath); // Log the old image path
+                // console.log('Old Image Path:', oldImagePath); // Log the old image path
 
                 // Check if the old image file exists before trying to delete
                 if (fs.existsSync(oldImagePath)) {
@@ -108,16 +108,16 @@ class MemberController extends BaseController {
             }
 
             const memberImage = currentMember.mem_image; // Get the image filename
-            console.log('Member to delete:', currentMember); // Log rider details for debugging
+            // console.log('Member to delete:', currentMember); // Log rider details for debugging
 
             // Step 2: Check if the rider has an associated image
             if (memberImage) {
                 const imagePath = path.join(__dirname, '../../uploads/', memberImage);
-                console.log('Image Path:', imagePath); // Log the image path
+                // console.log('Image Path:', imagePath); // Log the image path
 
                 // Check if the image file exists before trying to delete
                 if (fs.existsSync(imagePath)) {
-                    console.log('Image found. Deleting now...');
+                    // console.log('Image found. Deleting now...');
                     fs.unlink(imagePath, (err) => {
                         if (err) {
                             console.error('Error deleting rider image:', err); // Log the error if deletion fails
