@@ -479,7 +479,7 @@ class MemberController extends BaseController {
       memType,
     } = req.body;
 
-    console.log(req.body);
+    console.log(req.body); return;
 
     const requiredFields = [
       "selectedVehicle",
@@ -517,7 +517,7 @@ class MemberController extends BaseController {
         errors,
       });
     }
-console.log(memType)
+    console.log(memType)
     try {
       let userId;
       let token_arr = {};
@@ -687,7 +687,8 @@ console.log(memType)
         payment_method_id,
         vias,
         memType,
-        date, // Include start_date from the frontend
+        date,
+        notes
       } = req.body;
       console.log("create request:", req.body);
 
@@ -757,6 +758,7 @@ console.log(memType)
           payment_method_id,
           created_date: new Date(), // Set current date as created_date
           start_date: parsedStartDate,
+          notes: notes
           // Pass start_date from the frontend
         });
 
@@ -842,31 +844,31 @@ console.log(memType)
   uploadProfileImage = async (req, res) => {
     try {
       const { token, memType } = req.body; // Extract token and memType from request body
-  
+
       // Validate token
       if (!token) {
         return res.status(200).json({ status: 0, msg: "Token is required." });
       }
-  
+
       // Validate token and get user data
       const userResponse = await this.validateTokenAndGetMember(token, memType);
-  
+
       if (userResponse.status === 0) {
         // If validation fails, return the error message
         return res.status(200).json(userResponse);
       }
-  
+
       const member = userResponse.user;
-  
+
       // Check if file was uploaded
       if (!req.file) {
         return res.status(200).json({ status: 0, msg: "No file uploaded." });
       }
-  
+
       // Get the uploaded file and construct the file path
       const memImage = req.file.filename;
       const imageUrl = `${memImage}`; // Customize the path based on your application structure if needed
-  
+
       // Update the profile image in the database based on memType
       if (memType === "user") {
         await this.member.updateMemberData(member.id, {
@@ -879,7 +881,7 @@ console.log(memType)
       } else {
         return res.status(200).json({ status: 0, msg: "Invalid memType provided." });
       }
-  
+
       // Send success response
       return res.status(200).json({
         status: 1,
@@ -895,7 +897,7 @@ console.log(memType)
       });
     }
   };
-  
+
 
   updateProfile = async (req, res) => {
     try {
@@ -965,7 +967,7 @@ console.log(memType)
         confirm_password,
         memType,
       } = req.body;
-  
+
       // Check if all fields are provided
       if (!token || !current_password || !new_password || !confirm_password) {
         return res.status(200).json({
@@ -973,7 +975,7 @@ console.log(memType)
           msg: "All fields are required.",
         });
       }
-  
+
       // Validate that the new password and confirm password match
       if (new_password !== confirm_password) {
         return res.status(200).json({
@@ -981,39 +983,39 @@ console.log(memType)
           msg: "New password and confirm password do not match.",
         });
       }
-  
+
       // Validate token and fetch user data
       const userResponse = await this.validateTokenAndGetMember(token, memType);
-  
+
       if (userResponse.status === 0) {
         // If validation fails, return the error message
         return res.status(200).json(userResponse);
       }
-  
+
       const user = userResponse.user;
       const userId = user?.id;
-  
+
       // Check if the current password matches the one in the database
       const isCurrentPasswordValid = await bcrypt.compare(
         current_password,
         user.password
       );
-  
+
       if (!isCurrentPasswordValid) {
         return res.status(200).json({
           status: 0,
           msg: "Current password is incorrect.",
         });
       }
-  
+
       // Hash the new password before saving
       const hashedPassword = await bcrypt.hash(new_password, 10);
-  
+
       // Update the user's password in the database
       const updatedData = {
         password: hashedPassword,
       };
-  
+
       if (memType === "user") {
         // Update password for member
         await this.member.updateMemberData(userId, updatedData);
@@ -1026,7 +1028,7 @@ console.log(memType)
           msg: "Invalid member type.",
         });
       }
-  
+
       return res.status(200).json({
         status: 1,
         msg: "Password updated successfully.",
@@ -1040,7 +1042,7 @@ console.log(memType)
       });
     }
   };
-  
+
 }
 
 module.exports = MemberController;

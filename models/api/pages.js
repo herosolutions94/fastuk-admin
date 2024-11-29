@@ -11,7 +11,7 @@ class PageModel extends BaseModel {
         return rows.length ? rows[0] : null;
     }
 
-    
+
 
     async createRequestQuote(data) {
         const query = `
@@ -25,8 +25,8 @@ class PageModel extends BaseModel {
         dest_phone_number,
         dest_city,
         payment_method,
-        payment_method_id, status, start_date,created_date)
-            VALUES(?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?)
+        payment_method_id, status, start_date,created_date,notes)
+            VALUES(?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?,?)
             
         `;
         const values = [
@@ -49,9 +49,10 @@ class PageModel extends BaseModel {
             data.payment_method,
             data.payment_method_id,
             'paid',
-            data.start_date,  
-            data.created_date, // Current date
-            
+            data.start_date,
+            data.created_date,
+            data.notes
+
         ];
         const result = await pool.query(query, values);
         const insertId = result[0].insertId; // Access insertId from the first element
