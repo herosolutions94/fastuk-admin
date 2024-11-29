@@ -19,7 +19,7 @@ class RequestQuoteModel extends BaseModel {
     async findById(vehicleId) {
         const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
         const [rows] = await pool.query(query, [vehicleId]);
-        console.log(rows)
+        // console.log(rows)
     return rows.length ? rows[0] : null; // Return the first result or null
     }
 
@@ -47,7 +47,7 @@ class RequestQuoteModel extends BaseModel {
                 WHERE rq.id = ?
             `;
             const [rows] = await pool.query(query, [id]);
-            console.log("getRequestQuotesWithMembers:",rows)
+            // console.log("getRequestQuotesWithMembers:",rows)
             return rows; // Return the rows with request quotes and member details
         } catch (error) {
             console.error('Error fetching request quotes with members:', error);

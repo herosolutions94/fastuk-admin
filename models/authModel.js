@@ -20,7 +20,7 @@ class AdminModel extends BaseModel {
     async findById(userId) {
         const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
         const [rows] = await pool.query(query, [userId]);
-        console.log(rows)
+        // console.log(rows)
         return rows.length ? rows[0] : null; // Return the first result or null
     }
 
@@ -47,8 +47,8 @@ class AdminModel extends BaseModel {
         ];
 
         try {
-            console.log('Query:', query);
-            console.log('Values:', values);
+            // console.log('Query:', query);
+            // console.log('Values:', values);
             await pool.query(query, values);
             return true;
         } catch (error) {
@@ -65,7 +65,7 @@ class AdminModel extends BaseModel {
 
         try {
             const [rows] = await pool.query(query, values); // Destructure to get the rows from the result
-            console.log('Fetched settings:', rows); // Log the fetched settings
+            // console.log('Fetched settings:', rows); // Log the fetched settings
             return rows[0]; // Return the first row (the settings)
         } catch (error) {
             console.error('Error fetching site settings:', error);

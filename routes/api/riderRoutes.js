@@ -13,10 +13,12 @@ router.post('/login', riderController.loginRider.bind(riderController));
 router.post('/verify-email', upload,riderController.verifyEmail.bind(riderController));
 router.post('/rider-jobs', upload,riderController.getRequestQuotesByCity.bind(riderController));
 router.post('/accept-request-quote-by-rider', upload,riderController.assignRiderToRequest.bind(riderController));
+router.post('/get-rider-orders', upload, riderController.getRiderOrders.bind(riderController));
+
 const upload_file = multer({ 
     dest: 'uploads/', 
     limits: { fileSize: 5 * 1024 * 1024 }  // Set file size limit to 5MB
-  }).single('driving_license');
+  }).single('mem_image');
   
   router.post('/upload-rider-image', (req, res, next) => {
     upload_file(req, res, (err) => {

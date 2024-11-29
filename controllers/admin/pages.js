@@ -41,7 +41,7 @@ class PagesController extends BaseController {
                     contentData = { error: 'Failed to load content.' };
                 }
             }
-            console.log(contentData)
+            // console.log(contentData)
             res.render('admin/pages/home', { jsonContent: req.body, contentData });
         } catch (error) {
             next(error);
@@ -74,7 +74,7 @@ class PagesController extends BaseController {
 
             // Initialize formData with existing content
             const formData = { ...existingContent, ...helpers.sanitizeData(req.body) };
-            console.log('data form', formData)
+            // console.log('data form', formData)
             if (req.files) {
                 const imageKeys = [
                     'image1', 'sec1_image_0', 'sec1_image_1', 'sec1_image_2', 'sec1_image_3',
@@ -92,7 +92,7 @@ class PagesController extends BaseController {
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
-            console.log("json content", jsonContent);
+            // console.log("json content", jsonContent);
 
             // Step 4: Update the database with the new JSON value for "home" key
             await this.pages.updatePageContent('home', jsonContent);
@@ -173,7 +173,7 @@ class PagesController extends BaseController {
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
-            console.log("json content", jsonContent);
+            // console.log("json content", jsonContent);
 
             // Step 4: Update the database with the new JSON value for "home" key
             await this.pages.updatePageContent('about', jsonContent);
@@ -240,7 +240,7 @@ class PagesController extends BaseController {
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
-            console.log("json content", jsonContent);
+            // console.log("json content", jsonContent);
 
             // Step 4: Update the database with the new JSON value for "home" key
             await this.pages.updatePageContent('contact', jsonContent);

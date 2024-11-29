@@ -164,7 +164,7 @@ module.exports = {
                 FROM cities ORDER BY name
             `;
             const [rows] = await pool.execute(query);
-            console.log(rows)
+            // console.log(rows)
             return rows;
         } catch (error) {
             console.error('Error fetching cities:', error.message);

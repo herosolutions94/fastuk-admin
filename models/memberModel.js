@@ -38,7 +38,7 @@ class MemberModel extends BaseModel {
 
     // Method to create a new rider with validation
     async createMember(data) {
-        console.log('Attempting to insert user:', data); // Log the data to insert
+        // console.log('Attempting to insert user:', data); // Log the data to insert
 
         if (await this.findByEmail(data.email)) {
             throw new Error(`Email ${data.email} is already in use.`);
@@ -46,7 +46,7 @@ class MemberModel extends BaseModel {
 
         try {
             const userId = await this.create(data); // Call the BaseModel's create method
-            console.log('Inserted user ID:', userId); // Log the inserted ID
+            // console.log('Inserted user ID:', userId); // Log the inserted ID
             return userId;
         } catch (error) {
             console.error('Error creating member:', error.message); // Log the error
@@ -57,7 +57,7 @@ class MemberModel extends BaseModel {
     async findById(memberId) {
         const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
         const [rows] = await pool.query(query, [memberId]);
-        console.log(rows)
+        // console.log(rows)
         return rows.length ? rows[0] : null; // Return the first result or null
     }
 

@@ -30,11 +30,11 @@ class FaqController extends BaseController {
                 ans,
                 status,
             } = req.body;
-            console.log("req.body",req.body);  // To check if name and description are being sent
+            // console.log("req.body",req.body);  // To check if name and description are being sent
 
 
             const faqImage = req.files && req.files["faq_image"] ? req.files["faq_image"][0].filename : '';
-            console.log("req.file:",req.file);  // To check if the file is being uploaded
+            // console.log("req.file:",req.file);  // To check if the file is being uploaded
 
 
             // Clean and trim data
@@ -51,14 +51,14 @@ class FaqController extends BaseController {
             }
             // Create the rider
             const faqId = await this.faq.createFaq(cleanedData);
-            console.log('Created faq ID:', faqId); // Log the created rider ID
+            // console.log('Created faq ID:', faqId); // Log the created rider ID
 
 
             // Verify OTP was stored properly
         const createdFaq = await this.faq.findById(faqId);
         this.sendSuccess(res, {}, 'Faq added successfully!', 200, '/admin/faqs')
 
-        console.log('Created faq:', createdFaq); // Log the created rider
+        // console.log('Created faq:', createdFaq); // Log the created rider
         
 
 
@@ -88,13 +88,13 @@ class FaqController extends BaseController {
     async editFaq(req, res) {
         try {
             const faqId = req.params.id;  // Get the rider ID from the request parameters
-            console.log('Fetching faq with ID:', faqId); // Log the ID
+            // console.log('Fetching faq with ID:', faqId); // Log the ID
     
             // Fetch the rider by ID
             const faq = (await Faq.getFaqById(faqId))[0]; // Extract the first rider if it's returned as an array
-            console.log('Fetched faq:', faq); // Log fetched rider data
+            // console.log('Fetched faq:', faq); // Log fetched rider data
 
-            console.log('Faq data before rendering:', faq); // Log the rider data
+            // console.log('Faq data before rendering:', faq); // Log the rider data
 
     
             // Check if rider exists
@@ -125,13 +125,13 @@ class FaqController extends BaseController {
             const currentFaq = (await Faq.getFaqById(faqId))[0];
     
             // Debugging output
-            console.log('Current faq:', currentFaq);
+            // console.log('Current faq:', currentFaq);
             
             // Check if a new image is uploaded
             const faqImage = req.files && req.files["faq_image"] ? req.files["faq_image"][0].filename : null;
     
             // Debugging output
-            console.log('New faq image:', faqImage);
+            // console.log('New faq image:', faqImage);
     
             // Handle image replacement
             if (faqImage) {
@@ -180,16 +180,16 @@ class FaqController extends BaseController {
             }
 
             const faqImage = currentFaq.faq_image; // Get the image filename
-            console.log('Faq to delete:', faqImage); // Log rider details for debugging
+            // console.log('Faq to delete:', faqImage); // Log rider details for debugging
 
             // Step 2: Check if the rider has an associated image
             if (faqImage) {
                 const imagePath = path.join(__dirname, '../../uploads/', faqImage);
-                console.log('Image Path:', imagePath); // Log the image path
+                // console.log('Image Path:', imagePath); // Log the image path
 
                 // Check if the image file exists before trying to delete
                 if (fs.existsSync(imagePath)) {
-                    console.log('Image found. Deleting now...');
+                    // console.log('Image found. Deleting now...');
                     fs.unlink(imagePath, (err) => {
                         if (err) {
                             console.error('Error deleting faq image:', err); // Log the error if deletion fails

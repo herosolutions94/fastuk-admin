@@ -25,13 +25,13 @@ class MessageController extends BaseController {
     async messageDetail(req, res) {
         try {
             const messageId = req.params.id;  // Get the rider ID from the request parameters
-            console.log('Fetching rider with ID:', messageId); // Log the ID
+            // console.log('Fetching rider with ID:', messageId); // Log the ID
     
             // Fetch the rider by ID
             const message = (await Message.getMessageById(messageId))[0]; // Extract the first rider if it's returned as an array
-            console.log('Fetched message:', message); // Log fetched rider data
+            // console.log('Fetched message:', message); // Log fetched rider data
 
-            console.log('Message data before rendering:', message); // Log the rider data
+            // console.log('Message data before rendering:', message); // Log the rider data
 
     
             // Check if rider exists

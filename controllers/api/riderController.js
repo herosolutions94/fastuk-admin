@@ -27,9 +27,9 @@ class RiderController extends BaseController {
                 email,
                 password,
                 confirm_password,
-                phone_number,
+                mem_phone,
                 dob,
-                address,
+                mem_address1,
                 city,
                 vehicle_owner,
                 vehicle_type,
@@ -48,9 +48,9 @@ class RiderController extends BaseController {
                 email: typeof email === 'string' ? email.trim().toLowerCase() : '',
                 password: typeof password === "string" ? password.trim() : "",
                 confirm_password: typeof confirm_password === "string" ? confirm_password.trim() : "",
-                phone_number: typeof phone_number === 'string' ? phone_number.trim() : '',
+                mem_phone: typeof mem_phone === 'string' ? mem_phone.trim() : '',
                 dob: typeof dob === 'string' ? dob.trim() : '',
-                address: typeof address === 'string' ? address.trim() : '',
+                mem_address1: typeof mem_address1 === 'string' ? mem_address1.trim() : '',
                 city: typeof city === 'string' ? city.trim() : '',
                 vehicle_owner: vehicle_owner || 0,
                 vehicle_type: typeof vehicle_type === 'string' ? vehicle_type.trim() : '',
@@ -176,34 +176,36 @@ class RiderController extends BaseController {
 
             // Validate required fields
             if (!validateRequiredFields({ email, password })) {
-                return res.status(200).json({ success: false, message: 'Email and password are required.' });
+                return res.status(200).json({ status: 0, msg: 'Email and password are required.' });
             }
 
             // Email validation
             if (!validateEmail(email)) {
-                return res.status(200).json({ success: false, message: 'Invalid email format.' });
+                return res.status(200).json({ status: 0, msg: 'Invalid email format.' });
             }
 
             // Check if the rider exists by email
             const existingRider = await this.rider.findByEmail(email);
             if (!existingRider) {
-                return res.status(200).json({ success: false, message: 'Email or password is incorrect.' });
+                return res.status(200).json({ status: 0, msg: 'Email or password is incorrect.' });
             }
+            console.log(existingRider)
 
             // Compare the provided password with the hashed password
             const passwordMatch = await bcrypt.compare(password, existingRider.password);
             if (!passwordMatch) {
-                return res.status(200).json({ success: false, message: 'Email or password is incorrect.' });
+                return res.status(200).json({ status: 0, msg: 'Email or password is incorrect.' });
             }
+            console.log(password)
 
             // Generate a random number and create the token
-            const randomNum = crypto.randomBytes(16).toString('hex');
-            const tokenType = 'rider';
-            const expiryDate = new Date();
-            expiryDate.setHours(expiryDate.getHours() + 1); // Token expires in 1 hour
-
-            // Create the token
-            const token = crypto.createHash('sha256').update(`${randomNum}-${tokenType}-${existingRider.id}`).digest('hex');
+            let actualFingerprint =
+            fingerprint || this.generatePseudoFingerprint(req);
+            const token=await this.storeAndReturnToken(
+                existingRider.id,
+            'rider',
+            actualFingerprint
+            );
 
             // Store the token in the tokens table (optional, based on your implementation)
             await this.tokenModel.storeToken(existingRider.id, token, tokenType, expiryDate);
@@ -303,7 +305,7 @@ uploadRiderLicense = async (req, res) => {
     async getRequestQuotesByCity(req, res) {
         try {
             // Extract the token and memType from the request body
-            const { token, memType } = req.body;
+            const { token, memType, city } = req.body;
     
             // Check if the token is provided
             if (!token) {
@@ -311,18 +313,20 @@ uploadRiderLicense = async (req, res) => {
             }
             // Call the method from BaseController to get the user data
             const userResponse = await this.validateTokenAndGetMember(token, memType);
-            console.log("userResponse:",userResponse)
+            // console.log("userResponse:",userResponse)
             
             // Check if the userResponse contains city info
             if (!userResponse || !userResponse?.user?.city) {
                 return res.status(200).json({ status: 0, msg: "City not found for the given token." });
             }
-            const rider=userResponse?.user
-            // Extract the city from the userResponse
-            const city = rider.city;
+             // Validate and prioritize the city from the frontend
+        const isCityValid = (city) =>
+            city !== undefined && city !== null && typeof city === "string" && city.trim().length > 0;
+
+        const city_name = isCityValid(city) ? city.trim() : userResponse.user.city;
 
             // Fetch quotes by city using the model
-        const requestQuotes = await this.rider.getRequestQuotesByCity(city);
+        const requestQuotes = await this.rider.getRequestQuotesByCity(city_name);
     
     
     
@@ -356,19 +360,18 @@ uploadRiderLicense = async (req, res) => {
         });
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ status: 0, msg: "An error occurred.", error: error.message });
+        return res.status(200).json({ status: 0, msg: "An error occurred.", error: error.message });
     }
 }
 
 async assignRiderToRequest(req, res) {
     try {
         const { token, memType, request_id } = req.body;
-console.log(req.body)
+// console.log(req.body)
         // Validate input
         if (!token || !memType || !request_id) {
-            return res.status(400).json({ status: 0, msg: "Token, memType, and requestId are required." });
+            return res.status(200).json({ status: 0, msg: "Token, memType, and requestId are required." });
         }
-
         // Step 1: Validate token and fetch user details
         const userResponse = await this.validateTokenAndGetMember(token, memType);
         if (userResponse.status === 0) {
@@ -380,7 +383,7 @@ console.log(req.body)
         // Step 2: Fetch the request quote by ID
         const requestQuote = await this.rider.getRequestQuoteById(request_id);
         if (!requestQuote) {
-            return res.status(404).json({ status: 0, msg: "Request quote not found." });
+            return res.status(200).json({ status: 0, msg: "Request quote not found." });
         }
 
         // Step 3: Check if a rider is already assigned
@@ -389,9 +392,9 @@ console.log(req.body)
         }
 
         // Step 4: Assign the user ID to the assigned_rider column
-        const updateStatus = await this.rider.assignRiderToRequest(request_id, user.id);
+        const updateStatus = await this.rider.assignRiderAndUpdateStatus(request_id, user.id);
         if (updateStatus.affectedRows === 0) {
-            return res.status(500).json({ status: 0, msg: "Failed to assign rider to the request." });
+            return res.status(200).json({ status: 0, msg: "Failed to assign rider to the request." });
         }
         let request_row = await this.rider.getRequestQuoteById(request_id);
         if(request_row){
@@ -405,9 +408,54 @@ console.log(req.body)
         return res.status(200).json({ status: 1, msg: "Rider assigned successfully.",request_row:request_row });
     } catch (error) {
         console.error("Error assigning rider:", error.message);
-        return res.status(500).json({ status: 0, msg: "An error occurred.", error: error.message });
+        return res.status(200).json({ status: 0, msg: "An error occurred.", error: error.message });
     }
 }
+
+async getRiderOrders(req, res) {
+    try {
+        const { token, memType } = req.body;
+
+        if (!token) {
+            return res.status(200).json({ status: 0, msg: "Token is required." });
+        }
+
+        if (memType !== "rider") {
+            return res.status(200).json({ status: 0, msg: "Invalid member type. Only riders can access this endpoint." });
+        }
+
+        // Validate the token and get the rider details
+        const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+        if (userResponse.status === 0) {
+            return res.status(200).json(userResponse); // Return validation error response
+        }
+
+        const rider = userResponse.user;
+
+        // Fetch requests for which the assigned rider is this user and status is 'accepted'
+        const riderOrders = await this.rider.getOrdersByRiderAndStatus({
+            riderId: rider.id,
+            status: "accepted",
+        });
+        // const cities = await helpers.getCities();
+        // Return the fetched orders
+        return res.status(200).json({
+            status: 1,
+            msg: "Orders fetched successfully.",
+            orders: riderOrders,
+            // cities:cities
+        });
+    } catch (error) {
+        console.error("Error in getRiderOrders:", error);
+        return res.status(200).json({
+            status: 0,
+            msg: "Internal server error.",
+            error: error.message,
+        });
+    }
+}
+
 
                   
         

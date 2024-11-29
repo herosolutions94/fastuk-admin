@@ -25,8 +25,8 @@ class PageModel extends BaseModel {
         dest_phone_number,
         dest_city,
         payment_method,
-        payment_method_id, status)
-            VALUES(?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?)
+        payment_method_id, status, start_date,created_date)
+            VALUES(?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?)
             
         `;
         const values = [
@@ -48,7 +48,10 @@ class PageModel extends BaseModel {
             data.dest_city,
             data.payment_method,
             data.payment_method_id,
-            'paid'
+            'paid',
+            data.start_date,  
+            data.created_date, // Current date
+            
         ];
         const result = await pool.query(query, values);
         const insertId = result[0].insertId; // Access insertId from the first element
@@ -94,10 +97,10 @@ class PageModel extends BaseModel {
         `;
         for (const via of vias) {
             const values = [via.request_id, via.full_name, via.phone_number, via.post_code, via.address, via.city];
-            console.log('Inserting values:', values);
+            // console.log('Inserting values:', values);
 
             const [result] = await pool.query(query, values);
-            console.log('Insert result:', result);
+            // console.log('Insert result:', result);
         }
     }
 
