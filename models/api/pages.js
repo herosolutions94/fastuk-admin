@@ -15,19 +15,10 @@ class PageModel extends BaseModel {
 
     async createRequestQuote(data) {
         const query = `
-            INSERT INTO request_quote(user_id, selected_vehicle, vehicle_price, total_amount, payment_intent, customer_id, source_postcode,source_address,
-        source_name,
-        source_phone_number,
-        source_city,
-        dest_postcode,
-        dest_address,
-        dest_name,
-        dest_phone_number,
-        dest_city,
-        payment_method,
-        payment_method_id, status, start_date,created_date,notes)
-            VALUES(?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?,?)
-            
+            INSERT INTO request_quote(user_id, selected_vehicle, vehicle_price, total_amount, payment_intent, customer_id, source_postcode, source_address,
+            source_name, source_phone_number, source_city, dest_postcode, dest_address, dest_name, dest_phone_number, dest_city,
+            payment_method, payment_method_id, status, start_date, created_date, notes)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const values = [
             data.user_id,
@@ -52,14 +43,24 @@ class PageModel extends BaseModel {
             data.start_date,
             data.created_date,
             data.notes
-
         ];
+        console.log("values:",values)
+    
         const result = await pool.query(query, values);
-        const insertId = result[0].insertId; // Access insertId from the first element
-        console.log(insertId);
+        console.log("result:",result)
+        const insertId = result[0].insertId;
+    
+        // Generate unique booking_id
+        const bookingId = `RQ-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${insertId}`;
+    
+        // Update the booking_id in the database
+        const updateQuery = `UPDATE request_quote SET booking_id = ? WHERE id = ?`;
+        console.log( await pool.query(updateQuery, [bookingId, insertId]))
+        console.log(updateQuery)
+    
         return insertId;
-
     }
+    
 
     async insertParcels(parcels) {
         const query = `

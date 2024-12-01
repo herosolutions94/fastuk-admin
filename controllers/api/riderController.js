@@ -341,11 +341,13 @@ uploadRiderLicense = async (req, res) => {
             const user = await this.member.findById(quote.user_id);
             const vias = await this.rider.getViasByQuoteId(quote.id);
             const parcels = await this.rider.getParcelsByQuoteId(quote.id);
+
             if(user){
                 quote={...quote,user_name:user?.full_name,user_image:user?.mem_image}
             }
             enrichedQuotes.push({
                 ...quote,
+                booking_id: quote.booking_id,
                 source_address: quote.source_address, // Include source address
                 destination_address: quote.destination_address, // Include destination address
                 vias,
@@ -438,13 +440,22 @@ async getRiderOrders(req, res) {
             riderId: rider.id,
             status: "accepted",
         });
-        // const cities = await helpers.getCities();
-        // Return the fetched orders
+
+        console.log("Rider Orders before encoding:", riderOrders);
+
+        // Encode the `id` for each order
+        const ordersWithEncodedIds = riderOrders.map((order) => {
+            const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string
+            return { ...order, encodedId }; // Add encodedId to each order
+        });
+
+        console.log("Rider Orders with Encoded IDs:", ordersWithEncodedIds);
+
+        // Return the fetched orders with encoded IDs
         return res.status(200).json({
             status: 1,
             msg: "Orders fetched successfully.",
-            orders: riderOrders,
-            // cities:cities
+            orders: ordersWithEncodedIds,
         });
     } catch (error) {
         console.error("Error in getRiderOrders:", error);
@@ -455,6 +466,71 @@ async getRiderOrders(req, res) {
         });
     }
 }
+
+async getOrderDetailsByEncodedId(req, res) {
+    try {
+        const { token } = req.body;
+        const { encodedId } = req.params;
+
+        if (!token) {
+            return res.status(200).json({ status: 0, msg: "Token is required." });
+        }
+
+        if (!encodedId) {
+            return res.status(200).json({ status: 0, msg: "Encoded ID is required." });
+        }
+
+        // Validate the token and get the rider details
+        const userResponse = await this.validateTokenAndGetMember(token, "rider");
+
+        if (userResponse.status === 0) {
+            return res.status(200).json(userResponse); // Return validation error response
+        }
+
+        const rider = userResponse.user;
+
+        // Decode the encoded ID
+        const decodedId = helpers.doDecode(encodedId);
+        console.log("Decoded ID:", decodedId); // Add this line to log the decoded ID
+
+        // Fetch the order using the decoded ID and check if the rider_id matches the logged-in rider's ID
+        let order = await this.rider.getOrderDetailsById({ assignedRiderId: rider.id, requestId: decodedId });
+        console.log("Order from DB:", order); // Add this line to log the order fetched from the database
+
+        if (!order) {
+            return res.status(200).json({ status: 0, msg: "Order not found." });
+        }
+        
+        // Check if the assigned rider matches the logged-in rider
+        if (order.assigned_rider !== rider.id) {
+            return res.status(200).json({ status: 0, msg: "This order is not assigned to the logged-in rider." });
+        }
+        order={...order,formatted_start_date:helpers.formatDateToUK(order?.start_date)}
+        // Fetch parcels and vias based on the quoteId from the order
+        const parcels = await this.rider.getParcelsByQuoteId(order.id); // Assuming order.quote_id is the relevant field
+        const vias = await this.rider.getViasByQuoteId(order.id); // Assuming order.quote_id is the relevant field
+
+        // Return the order details along with parcels and vias
+        return res.status(200).json({
+            status: 1,
+            msg: "Order details fetched successfully.",
+            order,
+            parcels, // Add parcels to the response
+            vias,    // Add vias to the response
+        });
+    } catch (error) {
+        console.error("Error in getOrderDetailsByEncodedId:", error);
+        return res.status(200).json({
+            status: 0,
+            msg: "Internal server error.",
+            error: error.message,
+        });
+    }
+}
+
+
+
+
 
 
                   

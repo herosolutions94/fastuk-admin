@@ -148,6 +148,8 @@ async getOrdersByRiderAndStatus({ riderId, status }) {
         `;
         const values = [riderId, status];
         const [rows] = await pool.query(query, values);
+        console.log("orders rows:",rows)
+
         return rows; // Return the list of orders with user and parcel details
     } catch (err) {
         console.error("Error fetching orders:", err.message);
@@ -155,11 +157,56 @@ async getOrdersByRiderAndStatus({ riderId, status }) {
     }
 }
 
+async getOrderDetailsById( {assignedRiderId, requestId}) {
+    try {
+        // Query to fetch the order by ID
+        const query = `SELECT 
+    rq.*, 
+    m.full_name AS user_name, 
+    m.mem_image AS user_image,
+    m.email AS user_email,
+    m.mem_phone AS user_phone,
+    COALESCE(SUM(rp.distance), 0) AS total_distance
+FROM 
+    request_quote rq
+INNER JOIN 
+    members m 
+ON 
+    rq.user_id = m.id
+LEFT JOIN 
+    request_parcels rp 
+ON 
+    rq.id = rp.request_id
+WHERE 
+    rq.assigned_rider = ? 
+    AND rq.id = ? 
+    AND rq.status = 'accepted'  
+GROUP BY 
+    rq.id, m.full_name, m.mem_image, m.email, m.mem_phone;
+`;
+        
+        // Execute the query using the connection pool
+        const [rows, fields] = await pool.query(query, [assignedRiderId, requestId]);
+        console.log("assignedRiderId:",assignedRiderId,"requestId:",requestId)
+        console.log("rows:",rows)
 
+        // If no rows are returned, the order doesn't exist
+        if (rows.length === 0) {
+            return null;
+        }
 
+        // Return the order details (first row since we expect a single result)
+        return rows[0];
+    } catch (error) {
+        console.error("Error in getOrderDetailsById:", error);
+        throw new Error("Database query failed.");
+    }
 
 
 
 }
+
+}
+
 
 module.exports = RiderModel;

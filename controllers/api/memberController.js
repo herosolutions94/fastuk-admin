@@ -75,13 +75,13 @@ class MemberController extends BaseController {
         city,
         memType,
       } = req.body;
-      console.log(memType)
+      // console.log(memType)
 
       if (!token) {
         return res.status(200).json({ status: 0, msg: "Token is required." });
       }
       const userResponse = await this.validateTokenAndGetMember(token, memType);
-      console.log(userResponse)
+      // console.log(userResponse)
 
       if (userResponse.status === 0) {
         // If validation fails, return the error message
@@ -479,7 +479,7 @@ class MemberController extends BaseController {
       memType,
     } = req.body;
 
-    console.log(req.body); return;
+    // console.log(req.body); 
 
     const requiredFields = [
       "selectedVehicle",
@@ -732,12 +732,12 @@ class MemberController extends BaseController {
         const parsedStartDate = date ? new Date(date) : null;
         if (!parsedStartDate || isNaN(parsedStartDate)) {
           return res
-            .status(400)
+            .status(200)
             .json({ status: 0, msg: "Invalid start_date format" });
         }
 
         // Create Request Quote record
-        const requestQuoteId = await this.pageModel.createRequestQuote({
+        const requestQuoteId  = await this.pageModel.createRequestQuote({
           user_id: userId, // Save the userId in the request
           selected_vehicle: selectedVehicle,
           vehicle_price: vehiclePrice,
@@ -793,10 +793,16 @@ class MemberController extends BaseController {
         // console.log(viaRecords)
         // return;
 
+
+
         // Send success response
         res.status(200).json({
           status: 1,
           msg: "Request Quote, Parcels and vias created successfully",
+          data: {
+            requestId: requestQuoteId
+            
+        }
         });
       } else {
         return res.status(200).json({
