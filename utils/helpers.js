@@ -4,6 +4,8 @@ const sanitizeHtml = require('sanitize-html'); // Importing sanitize-html for XS
 const validator = require('validator'); // Importing validator for input validation
 const crypto = require('crypto'); // Importing crypto for encryption and hashing
 const pool = require('../config/db-connection');
+const moment = require('moment-timezone');
+
 
 module.exports = {
     // A sample function that formats a status with secure HTML
@@ -170,8 +172,62 @@ module.exports = {
             console.error('Error fetching cities:', error.message);
             throw new Error('Could not fetch cities');
         }
-    }
-      
+    },
+    // helpers.js or helpers.ts
 
+     formatDateToUK:function(date) {
+        // Use moment to parse the date and convert it to UK timezone (Europe/London)
+        return moment(date)
+          .tz('Europe/London') // Set the timezone to UK (Europe/London)
+          .format('D MMMM YYYY'); // Format the date in UK format
+      },
+
+    getUtcTimeInSeconds:function() {
+        return moment.utc().unix();  // Returns the UTC time in seconds
+      },
+      
+  
+  
+
+
+ doEncode:function (string, key = 'preciousprotection') {
+    let hash = '';
+    const base64String = Buffer.from(string).toString('base64');
+    const shaKey = crypto.createHash('sha1').update(key).digest('hex');
+    const strLen = base64String.length;
+    const keyLen = shaKey.length;
+    let j = 0;
+
+    for (let i = 0; i < strLen; i++) {
+        const ordStr = base64String.charCodeAt(i);
+        if (j === keyLen) j = 0;
+        const ordKey = shaKey.charCodeAt(j);
+        j++;
+        const encodedChar = Number(ordStr + ordKey).toString(16); // Convert to hex
+        hash += [...encodedChar].reverse().join(''); // Reverse and add to hash
+    }
+
+    return hash;
+},
+
+doDecode: function (string, key = 'preciousprotection') {
+    let hash = '';
+    const shaKey = crypto.createHash('sha1').update(key).digest('hex');
+    const strLen = string.length;
+    const keyLen = shaKey.length;
+    let j = 0;
+
+    for (let i = 0; i < strLen; i += 2) {
+        const revHex = [...string.substr(i, 2)].reverse().join(''); // Reverse 2-character substring
+        const ordStr = parseInt(revHex, 16); // Convert back from hex
+        if (j === keyLen) j = 0;
+        const ordKey = shaKey.charCodeAt(j);
+        j++;
+        hash += String.fromCharCode(ordStr - ordKey); // Decode character
+    }
+
+    const decodedString = Buffer.from(hash, 'base64').toString();
+    return decodedString;
+}
     
 };
