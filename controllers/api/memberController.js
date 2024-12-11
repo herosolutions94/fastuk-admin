@@ -4,6 +4,7 @@ const Member = require("../../models/memberModel");
 const Rider = require("../../models/riderModel");
 const VehicleModel = require("../../models/api/vehicleModel");
 const PageModel = require("../../models/api/pages"); // Assuming you have this model
+const PaymentMethodModel = require("../../models/api/paymentMethodModel"); // Assuming you have this model
 
 const Token = require("../../models/tokenModel");
 const Addresses = require("../../models/api/addressModel");
@@ -28,6 +29,7 @@ class MemberController extends BaseController {
     this.pageModel = new PageModel();
     this.tokenModel = new Token();
     this.addressModel = new Addresses();
+    this.paymentMethodModel = new PaymentMethodModel();
   }
 
   async getAddresses(req, res) {
@@ -75,13 +77,13 @@ class MemberController extends BaseController {
         city,
         memType,
       } = req.body;
-      console.log(memType)
+      // console.log(memType)
 
       if (!token) {
         return res.status(200).json({ status: 0, msg: "Token is required." });
       }
       const userResponse = await this.validateTokenAndGetMember(token, memType);
-      console.log(userResponse)
+      // console.log(userResponse)
 
       if (userResponse.status === 0) {
         // If validation fails, return the error message
@@ -479,7 +481,7 @@ class MemberController extends BaseController {
       memType,
     } = req.body;
 
-    console.log(req.body); return;
+    // console.log(req.body); 
 
     const requiredFields = [
       "selectedVehicle",
@@ -732,12 +734,12 @@ class MemberController extends BaseController {
         const parsedStartDate = date ? new Date(date) : null;
         if (!parsedStartDate || isNaN(parsedStartDate)) {
           return res
-            .status(400)
+            .status(200)
             .json({ status: 0, msg: "Invalid start_date format" });
         }
 
         // Create Request Quote record
-        const requestQuoteId = await this.pageModel.createRequestQuote({
+        const requestQuoteId  = await this.pageModel.createRequestQuote({
           user_id: userId, // Save the userId in the request
           selected_vehicle: selectedVehicle,
           vehicle_price: vehiclePrice,
@@ -793,10 +795,16 @@ class MemberController extends BaseController {
         // console.log(viaRecords)
         // return;
 
+
+
         // Send success response
         res.status(200).json({
           status: 1,
           msg: "Request Quote, Parcels and vias created successfully",
+          data: {
+            requestId: requestQuoteId
+            
+        }
         });
       } else {
         return res.status(200).json({
@@ -1042,6 +1050,248 @@ class MemberController extends BaseController {
       });
     }
   };
+
+ getUserOrders = async (req, res) => {
+    try {
+        const { token, memType } = req.body;
+        console.log(req.body)
+
+        if (!token) {
+            return res.status(200).json({ status: 0, msg: "Token is required." });
+        }
+
+        if (memType !== "user") {
+            return res.status(200).json({ status: 0, msg: "Invalid member type." });
+        }
+
+        // Validate the token and get the rider details
+        const userResponse = await this.validateTokenAndGetMember(token, memType);
+        
+
+        if (userResponse.status === 0) {
+            return res.status(200).json(userResponse); // Return validation error response
+        }
+
+        const member = userResponse.user;
+
+        // Fetch requests for which the assigned rider is this user and status is 'accepted'
+        const memberOrders = await this.member.getOrdersByUserAndStatus({
+            userId: member.id,
+            status: "accepted",
+        });
+
+        console.log("User Orders before encoding:", memberOrders);
+
+        // Encode the `id` for each order
+        const ordersWithEncodedIds = memberOrders.map((order) => {
+            const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string
+            return { ...order, encodedId }; // Add encodedId to each order
+        });
+
+        console.log("Member Orders with Encoded IDs:", ordersWithEncodedIds);
+
+        // Return the fetched orders with encoded IDs
+        return res.status(200).json({
+            status: 1,
+            msg: "Orders fetched successfully.",
+            orders: ordersWithEncodedIds,
+        });
+    } catch (error) {
+        console.error("Error in getRiderOrders:", error);
+        return res.status(200).json({
+            status: 0,
+            msg: "Internal server error.",
+            error: error.message,
+        });
+    }
+}
+
+async getUserOrderDetailsByEncodedId(req, res) {
+  try {
+      const { token } = req.body;
+      console.log(token)
+      const { encodedId } = req.params;
+
+      if (!token) {
+          return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
+
+      if (!encodedId) {
+          return res.status(200).json({ status: 0, msg: "Encoded ID is required." });
+      }
+
+      // Validate the token and get the rider details
+      const userResponse = await this.validateTokenAndGetMember(token, "user");
+
+      if (userResponse.status === 0) {
+          return res.status(200).json(userResponse); // Return validation error response
+      }
+
+      const member = userResponse.user;
+
+      // Decode the encoded ID
+      const decodedId = helpers.doDecode(encodedId);
+      console.log("Decoded ID:", decodedId); // Add this line to log the decoded ID
+
+      // Fetch the order using the decoded ID and check if the rider_id matches the logged-in rider's ID
+      let order = await this.member.getUserOrderDetailsById({ userId: member.id, requestId: decodedId });
+
+      console.log("Order from DB:", order); // Add this line to log the order fetched from the database
+
+      if (!order) {
+          return res.status(200).json({ status: 0, msg: "Order not found." });
+      }
+      
+      // Check if the assigned rider matches the logged-in rider
+      if (order.user_id !== member.id) {
+          return res.status(200).json({ status: 0, msg: "This order does not belong to the user." });
+      }
+
+      const parcels = await this.rider.getParcelsByQuoteId(order.id); // Assuming order.quote_id is the relevant field
+      const vias = await this.rider.getViasByQuoteId(order.id);
+      const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
+      order={...order,formatted_start_date:helpers.formatDateToUK(order?.start_date),encodedId:encodedId,parcels:parcels,vias:vias, invoices:invoices}
+      // Fetch parcels and vias based on the quoteId from the order
+      // Assuming order.quote_id is the relevant field
+
+      // Return the order details along with parcels and vias
+      return res.status(200).json({
+          status: 1,
+          msg: "Order details fetched successfully.",
+          order,    // Add vias to the response
+      });
+  } catch (error) {
+      console.error("Error in getOrderDetailsByEncodedId:", error);
+      return res.status(200).json({
+          status: 0,
+          msg: "Internal server error.",
+          error: error.message,
+      });
+  }
+}
+
+async userPaymentMethod(req, res) {
+  try {
+      const { token, memType } = req.body;
+
+      console.log(req.body); // Log request body for debugging
+
+      // Check if token is provided
+      if (!token) {
+          return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
+
+      // Validate the member type
+      if (memType !== "user") {
+          return res.status(200).json({ status: 0, msg: "Invalid member type." });
+      }
+
+      // Validate the token and fetch member details
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+      if (userResponse.status === 0) {
+          return res.status(200).json(userResponse); // Return validation error response
+      }
+
+      // Extract member details from response
+      const member = userResponse.user;
+      if (!member) {
+          return res.status(404).json({ status: 0, msg: "Member not found." });
+      }
+
+      // Fetch site settings or other additional data
+      const siteSettings = res.locals.adminData;
+
+      // Combine member data and site settings
+      const jsonResponse = {
+          status: 1,
+          msg: "Member data fetched successfully.",
+              member,
+              siteSettings,
+          
+      };
+
+      // Return the combined JSON response
+      return res.status(200).json(jsonResponse);
+  } catch (err) {
+      console.error("Error:", err.message);
+      return res.status(500).json({ status: 0, msg: "Internal Server Error" });
+  }
+}
+
+async addPaymentMethod(req, res) {
+  try {
+    const { payment_method_id, exp_month, exp_year, card_number, token, memType } = req.body;
+
+    // Validate input fields
+    if (!payment_method_id || !exp_month || !exp_year || !card_number || !token || !memType) {
+      return res.status(200).json({ status: 0, msg: "All fields are required." });
+    }
+
+    // Validate member type (user or rider)
+    if (memType !== "user" && memType !== "rider") {
+      return res.status(200).json({ status: 0, msg: "Invalid member type." });
+    }
+
+    // Validate token and retrieve member details
+    const memberResponse = await this.validateTokenAndGetMember(token, memType);
+    if (memberResponse.status === 0) {
+      return res.status(200).json(memberResponse);
+    }
+
+    const member = memberResponse.user;
+    if (!member) {
+      return res.status(200).json({ status: 0, msg: "Member not found." });
+    }
+
+    // Retrieve the payment method from Stripe using the payment method ID
+    const paymentMethod = await stripe.paymentMethods.retrieve(payment_method_id);
+
+    if (!paymentMethod) {
+      return res.status(200).json({ status: 0, msg: "Payment method not found." });
+    }
+
+    // Validate expiration month/year and card number
+    if (paymentMethod.card.exp_month !== parseInt(exp_month) || paymentMethod.card.exp_year !== parseInt(exp_year)) {
+      return res.status(200).json({ status: 0, msg: "Invalid expiration date." });
+    }
+
+    if (paymentMethod.card.last4 !== card_number) {
+      return res.status(200).json({ status: 0, msg: "Card number does not match." });
+    }
+
+    // Check if the user already has a payment method
+    const existingMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(member.id);
+    const isDefault = existingMethods.length === 0 ? 1 : 0;
+
+    // Insert the retrieved payment method into the database
+    const newPaymentMethod = {
+      user_id: member.id,
+      user_type: memType,
+      payment_method_id: paymentMethod.id,
+      card_number: paymentMethod.card.last4,
+      exp_month: paymentMethod.card.exp_month,
+      exp_year: paymentMethod.card.exp_year,
+      brand: paymentMethod.card.brand,
+      is_default: isDefault,
+    };
+
+    const insertedPaymentMethod = await this.paymentMethodModel.addPaymentMethod(newPaymentMethod);
+    const paymentMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(member.id, memType);
+
+    return res.status(200).json({
+      status: 1,
+      msg: "Payment method added successfully.",
+      paymentMethod: insertedPaymentMethod,
+      paymentMethods
+    });
+  } catch (err) {
+    console.error("Error adding payment method:", err.message);
+    return res.status(200).json({ status: 0, msg: "Internal Server Error" });
+  }
+}
+
+
 
 }
 

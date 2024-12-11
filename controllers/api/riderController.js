@@ -117,6 +117,22 @@ class RiderController extends BaseController {
             // console.log('Generated OTP:', otp);
             // console.log('cleanedData with OTP:', cleanedData);
 
+            // Create a customer in Stripe
+        const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY); // Initialize Stripe with your secret key
+        const customer = await stripe.customers.create({
+          name: cleanedData.full_name,
+          email: cleanedData.email,
+        });
+
+        if (!customer || !customer.id) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Failed to create customer in Stripe." });
+        }
+
+        cleanedData.customer_id = customer.id;
+
+
 
             // Create the rider
             const riderId = await this.rider.createRider(cleanedData);
@@ -146,7 +162,7 @@ class RiderController extends BaseController {
             // Store the token in the tokens table
             await this.tokenModel.storeToken(riderId, token, tokenType, expiryDate, actualFingerprint);
 
-            this.sendSuccess(res, { mem_type:tokenType, authToken:token }, 'Rider registered successfully.');
+            this.sendSuccess(res, { mem_type:tokenType, authToken:token, customer_id: customer.id }, 'Rider registered successfully.');
         } catch (error) {
             return res.status(200).json({ // Changed to status 500 for server errors
                 status: 0, msg: 'An error occurred during registration.',
@@ -341,11 +357,13 @@ uploadRiderLicense = async (req, res) => {
             const user = await this.member.findById(quote.user_id);
             const vias = await this.rider.getViasByQuoteId(quote.id);
             const parcels = await this.rider.getParcelsByQuoteId(quote.id);
+
             if(user){
                 quote={...quote,user_name:user?.full_name,user_image:user?.mem_image}
             }
             enrichedQuotes.push({
                 ...quote,
+                booking_id: quote.booking_id,
                 source_address: quote.source_address, // Include source address
                 destination_address: quote.destination_address, // Include destination address
                 vias,
@@ -438,13 +456,22 @@ async getRiderOrders(req, res) {
             riderId: rider.id,
             status: "accepted",
         });
-        // const cities = await helpers.getCities();
-        // Return the fetched orders
+
+        console.log("Rider Orders before encoding:", riderOrders);
+
+        // Encode the `id` for each order
+        const ordersWithEncodedIds = riderOrders.map((order) => {
+            const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string
+            return { ...order, encodedId }; // Add encodedId to each order
+        });
+
+        console.log("Rider Orders with Encoded IDs:", ordersWithEncodedIds);
+
+        // Return the fetched orders with encoded IDs
         return res.status(200).json({
             status: 1,
             msg: "Orders fetched successfully.",
-            orders: riderOrders,
-            // cities:cities
+            orders: ordersWithEncodedIds,
         });
     } catch (error) {
         console.error("Error in getRiderOrders:", error);
@@ -455,6 +482,357 @@ async getRiderOrders(req, res) {
         });
     }
 }
+
+async getOrderDetailsByEncodedId(req, res) {
+    try {
+        const { token } = req.body;
+        const { encodedId } = req.params;
+
+        if (!token) {
+            return res.status(200).json({ status: 0, msg: "Token is required." });
+        }
+
+        if (!encodedId) {
+            return res.status(200).json({ status: 0, msg: "Encoded ID is required." });
+        }
+
+        // Validate the token and get the rider details
+        const userResponse = await this.validateTokenAndGetMember(token, "rider");
+
+        if (userResponse.status === 0) {
+            return res.status(200).json(userResponse); // Return validation error response
+        }
+
+        const rider = userResponse.user;
+
+        // Decode the encoded ID
+        const decodedId = helpers.doDecode(encodedId);
+        console.log("Decoded ID:", decodedId); // Add this line to log the decoded ID
+
+        // Fetch the order using the decoded ID and check if the rider_id matches the logged-in rider's ID
+        let order = await this.rider.getOrderDetailsById({ assignedRiderId: rider.id, requestId: decodedId });
+        // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
+
+        if (!order) {
+            return res.status(200).json({ status: 0, msg: "Order not found." });
+        }
+        
+        // Check if the assigned rider matches the logged-in rider
+        if (order.assigned_rider !== rider.id) {
+            return res.status(200).json({ status: 0, msg: "This order is not assigned to the logged-in rider." });
+        }
+
+        const viasCount = await this.rider.countViasBySourceCompleted(order.id);
+
+        const parcels = await this.rider.getParcelsByQuoteId(order.id); // Assuming order.quote_id is the relevant field
+        const vias = await this.rider.getViasByQuoteId(order.id);
+        const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
+        order={...order,formatted_start_date:helpers.formatDateToUK(order?.start_date),encodedId:encodedId,parcels:parcels,vias:vias, invoices:invoices, viasCount: viasCount}
+        // Fetch parcels and vias based on the quoteId from the order
+        // Assuming order.quote_id is the relevant field
+
+        // Return the order details along with parcels and vias
+        return res.status(200).json({
+            status: 1,
+            msg: "Order details fetched successfully.",
+            order,    // Add vias to the response
+        });
+    } catch (error) {
+        console.error("Error in getOrderDetailsByEncodedId:", error);
+        return res.status(200).json({
+            status: 0,
+            msg: "Internal server error.",
+            error: error.message,
+        });
+    }
+}
+updateRequestStatus = async (req, res) => {
+  const { token, memType, encodedId, type, via_id } = req.body;
+
+  try {
+    // Validate token and fetch rider details
+    const rider = await this.validateTokenAndGetMember(token, memType);
+    if (!rider) {
+      return res.status(200).json({ status: 0, msg: "Unauthorized access." });
+    }
+
+    // Decode the encoded ID
+    const requestId = helpers.doDecode(encodedId);
+    if (!requestId) {
+      return res.status(200).json({ status: 0, msg: "Invalid request ID." });
+    }
+
+    // Fetch the request by assigned rider and ID
+    const request = await this.rider.getRequestById(requestId, rider.user.id);
+    if (!request) {
+      return res.status(200).json({ status: 0, msg: "Request not found." });
+    }
+
+    // Handle request update based on type
+    if (type?.toLowerCase() === "source") {
+      // Update picked time for source
+      const pickedTime = helpers.getUtcTimeInSeconds();
+      const updatedRequest = await this.rider.updateSourceRequestStatus(requestId, {
+        is_picked: 1,
+        picked_time: pickedTime,
+      });
+
+      if (!updatedRequest) {
+        return res.status(500).json({ status: 0, msg: "Error updating request status." });
+      }
+
+    } else if (type?.toLowerCase() === "via") {
+      if (!via_id) {
+        return res.status(200).json({ status: 0, msg: "Via ID not provided." });
+      }
+
+      const pickedViaTime = helpers.getUtcTimeInSeconds();
+
+      // Fetch the via by request_id and via_id
+      const via = await this.rider.getViaByRequestAndId(requestId, via_id);
+      if (!via) {
+        return res.status(200).json({ status: 0, msg: "Via not found." });
+      }
+
+      // Update the via's is_picked and picked_time
+      const updatedVia = await this.rider.updateViaStatus(via_id, {
+        is_picked: 1,
+        picked_time: pickedViaTime,
+      });
+
+      if (!updatedVia) {
+        return res.status(500).json({ status: 0, msg: "Error updating via status." });
+      }
+
+    } else if (type?.toLowerCase() === "destination") {
+      // Replicating source logic for destination update
+      const deliveredTime = helpers.getUtcTimeInSeconds();
+      
+      // Update picked time for destination (you can adjust this logic depending on your database schema for destination)
+      const updatedDestinationRequest = await this.rider.updateDestinationRequestStatus(requestId, {
+          is_delivered: 1,
+          delivered_time: deliveredTime,
+      });
+      console.log("deliveredTime:",deliveredTime)
+
+      if (!updatedDestinationRequest) {
+        return res.status(200).json({ status: 0, msg: "Error updating destination status." });
+      }
+    } else {
+      return res.status(200).json({ status: 0, msg: "Invalid type specified." });
+    }
+
+    // Fetch updated order details
+    const riderId = rider.id || rider.user.id;
+    const order = await this.rider.getOrderDetailsById({
+      assignedRiderId: riderId,
+      requestId: requestId,
+    });
+
+    if (!order || order.assigned_rider !== riderId) {
+      return res.status(200).json({ status: 0, msg: "Order not assigned to this rider." });
+    }
+
+    const viasCount = await this.rider.countViasBySourceCompleted(order.id);
+      console.log("viasCount:",viasCount)
+
+    // Fetch parcels and vias
+    const parcels = await this.rider.getParcelsByQuoteId(order.id);
+    const vias = await this.rider.getViasByQuoteId(order.id);
+    const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
+
+    return res.status(200).json({
+      status: 1,
+      order: { ...order, encodedId, vias: vias, parcels: parcels, invoices:invoices,viasCount:viasCount },
+    });
+  } catch (error) {
+    console.error("Error in updateRequestStatus:", error);
+    return res.status(200).json({ status: 0, msg: "Server error." });
+  }
+};
+
+//   router.post('/mark-as-completed', async (req, res) => {
+  markAsCompleted = async (req, res) => {
+    const { type, token, encodedId, handball_charges, waiting_charges, via_id } = req.body;
+    console.log(req.body,"req.body");
+  
+    try {
+      // Step 1: Validate token and fetch rider
+      const rider = await this.validateTokenAndGetMember(token, 'rider');
+      if (!rider) {
+        return res.status(200).json({ status: 0, msg: "Unauthorized access." });
+      }
+  
+      // Decode the encoded ID
+      const decodedRequestId = helpers.doDecode(encodedId);
+      if (!decodedRequestId) {
+        return res.status(200).json({ status: 0, msg: "Invalid request ID." });
+      }
+  
+      // Fetch the request by assigned rider and ID
+      const request = await this.rider.getRequestById(decodedRequestId, rider.user.id);
+      if (!request) {
+        return res.status(200).json({ status: 0, msg: "Request not found." });
+      }
+  
+      // Handle source type logic
+      if (type === "source") {
+        // Step 2: Create invoice entries for source charges
+        if (handball_charges) {
+          const handballInvoice = await this.rider.createInvoiceEntry(decodedRequestId, handball_charges, 'handball', type);
+          if (!handballInvoice) {
+            return res.status(500).json({ status: 0, msg: "Error creating handball invoice" });
+          }
+        }
+  
+        if (waiting_charges) {
+          const waitingInvoice = await this.rider.createInvoiceEntry(decodedRequestId, waiting_charges, 'waiting', type);
+          if (!waitingInvoice) {
+            return res.status(500).json({ status: 0, msg: "Error creating waiting invoice" });
+          }
+        }
+  
+        // Step 3: Update the source_completed flag in the request_quote table
+        const updatedRequestQuote = await this.rider.updateRequestQuoteSourceCompleted(decodedRequestId, 1);
+        if (!updatedRequestQuote) {
+          return res.status(500).json({ status: 0, msg: "Error updating source completion status" });
+        }
+      } else if (type === "via") {
+        // Handle via type logic
+        if (!via_id) {
+          return res.status(400).json({ status: 0, msg: "Via ID is required for type 'via'." });
+        }
+        console.log("via_id:", via_id)
+        console.log("decodedRequestId:", decodedRequestId)
+  
+        // Fetch the via row for the provided via_id
+        const viaRow = await this.rider.getViaByIdAndRequestId(via_id, decodedRequestId);
+        if (!viaRow) {
+          return res.status(404).json({ status: 0, msg: "Via not found for the given ID." });
+        }
+        console.log("viaRow:", viaRow)
+  
+        // Create invoice entries for via charges
+        if (handball_charges) {
+          const handballInvoice = await this.rider.createInvoiceEntry(decodedRequestId, handball_charges, 'handball', type, via_id);
+          if (!handballInvoice) {
+            return res.status(500).json({ status: 0, msg: "Error creating handball invoice for via" });
+          }
+        }
+  
+        if (waiting_charges) {
+          const waitingInvoice = await this.rider.createInvoiceEntry(decodedRequestId, waiting_charges, 'waiting', type, via_id);
+          if (!waitingInvoice) {
+            return res.status(500).json({ status: 0, msg: "Error creating waiting invoice for via" });
+          }
+        }
+  
+        // Update the source_completed column in the via row
+        const updatedVia = await this.rider.updateViaSourceCompleted(via_id, 1);
+        if (!updatedVia) {
+          return res.status(200).json({ status: 0, msg: "Error updating via completion status" });
+        }
+        console.log("Creating invoice for destination charges");
+
+      } else if (type === "destination") {
+        // Handle destination type logic (similar to source)
+        // Step 2: Create invoice entries for destination charges
+        if (handball_charges) {
+          console.log("Handball Charges:", handball_charges);
+
+          const handballInvoice = await this.rider.createInvoiceEntry(decodedRequestId, handball_charges, 'handball', type);
+          if (!handballInvoice) {
+            return res.status(500).json({ status: 0, msg: "Error creating handball invoice for destination" });
+          }
+        }
+  
+        if (waiting_charges) {
+          console.log("Waiting Charges:", waiting_charges);
+
+          const waitingInvoice = await this.rider.createInvoiceEntry(decodedRequestId, waiting_charges, 'waiting', type);
+          if (!waitingInvoice) {
+            return res.status(500).json({ status: 0, msg: "Error creating waiting invoice for destination" });
+          }
+        }
+  
+        // Step 3: Update the destination_completed flag in the request_quote table
+        const updatedRequestQuote = await this.rider.updateRequestQuoteDestinationCompleted(decodedRequestId, 1);
+        if (!updatedRequestQuote) {
+          return res.status(200).json({ status: 0, msg: "Error updating destination completion status" });
+        }
+      } else {
+        return res.status(200).json({ status: 0, msg: "Invalid type provided." });
+      }
+  
+      // Step 4: Fetch the updated order details
+      const order = await this.rider.getOrderDetailsById({
+        assignedRiderId: rider.user.id,
+        requestId: decodedRequestId,
+      });
+  
+      if (!order) {
+        return res.status(404).json({ status: 0, msg: "Order not found." });
+      }
+
+      const viasCount = await this.rider.countViasBySourceCompleted(order.id);
+      console.log("viasCount:",viasCount)
+
+  
+      const parcels = await this.rider.getParcelsByQuoteId(order.id);
+      const vias = await this.rider.getViasByQuoteId(order.id);
+      const invoices = await this.rider.getInvoicesDetailsByRequestId(decodedRequestId);
+  
+      if (!invoices) {
+        return res.status(200).json({ status: 0, msg: "Error fetching invoices" });
+      }
+  
+      const formattedOrder = {
+        ...order,
+        encodedId,
+        vias,
+        invoices,
+        parcels,
+        invoices,
+        viasCount
+      };
+  
+      // Step 5: Respond with the updated order
+      res.status(200).json({ status: 1, order: formattedOrder, msg: "Request marked as completed" });
+    } catch (error) {
+      console.error("Error in markAsCompleted:", error);
+      res.status(500).json({ status: 0, msg: "Server error" });
+    }
+  };
+  
+  getInvoiceDetails = async (req, res) => {
+    const { requestId } = req.query;
+
+    if (!requestId) {
+        return res.status(200).json({ status: 0, msg: "Request ID is required." });
+    }
+
+    try {
+        // Fetch invoice details using the RiderModel method
+        const invoices = await this.rider.getInvoicesDetailsByRequestId(requestId);
+
+        if (!invoices || invoices.length === 0) {
+            return res.status(404).json({ status: 0, msg: "No invoices found for the provided request ID." });
+        }
+
+        return res.status(200).json({ status: 1, invoices });
+    } catch (error) {
+        console.error("Error in getInvoiceDetails:", error);
+        return res.status(500).json({ status: 0, msg: "Server error." });
+    }
+};
+
+      
+  
+  
+
+
+
+
 
 
                   

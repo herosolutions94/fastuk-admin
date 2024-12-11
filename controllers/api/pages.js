@@ -432,6 +432,10 @@ class PagesController extends BaseController {
     }
   }
 
+  
+
+  
+
 }
 
 module.exports = PagesController;
