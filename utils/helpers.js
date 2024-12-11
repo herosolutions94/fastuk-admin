@@ -181,6 +181,11 @@ module.exports = {
           .tz('Europe/London') // Set the timezone to UK (Europe/London)
           .format('D MMMM YYYY'); // Format the date in UK format
       },
+
+    getUtcTimeInSeconds:function() {
+        return moment.utc().unix();  // Returns the UTC time in seconds
+      },
+      
   
   
 

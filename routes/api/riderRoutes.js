@@ -15,6 +15,10 @@ router.post('/rider-jobs', upload,riderController.getRequestQuotesByCity.bind(ri
 router.post('/accept-request-quote-by-rider', upload,riderController.assignRiderToRequest.bind(riderController));
 router.post('/get-rider-orders', upload, riderController.getRiderOrders.bind(riderController));
 router.post('/get-order-details/:encodedId', upload,riderController.getOrderDetailsByEncodedId.bind(riderController));
+router.post('/update-request-status', upload,riderController.updateRequestStatus.bind(riderController));
+router.post('/mark-as-completed', upload,riderController.markAsCompleted.bind(riderController));
+router.get('/get-invoices-detail', upload,riderController.getInvoiceDetails.bind(riderController));
+
 
 
 const upload_file = multer({ 
