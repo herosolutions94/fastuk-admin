@@ -21,6 +21,12 @@ router.post('/create-payment-intent', upload, (req, res) => memberController.pay
 router.post('/save-request-quote', upload, (req, res) => memberController.createRequestQuote(req, res));
 router.post('/update-profile', upload, (req, res) => memberController.updateProfile(req, res));
 router.post('/update-password', upload, (req, res) => memberController.changePassword(req, res));
+router.post('/get-user-orders', upload, (req, res) => memberController.getUserOrders(req, res));
+router.post('/get-user-order-details/:encodedId', upload, (req, res) => memberController.getUserOrderDetailsByEncodedId(req, res));
+router.post('/user-payment-method', upload, (req, res) => memberController.userPaymentMethod(req, res));
+router.post('/add-payment-method', upload, (req, res) => memberController.addPaymentMethod(req, res));
+
+
 
 const upload_file = multer({ 
     dest: 'uploads/', 

@@ -32,7 +32,7 @@
     "nodemailer": "^6.9.16",
     "pg": "^8.13.0",
     "sanitize-html": "^2.13.1",
-    "stripe": "^17.3.1",
+    "stripe": "^17.4.0",
     "validator": "^13.12.0"
   }
 }

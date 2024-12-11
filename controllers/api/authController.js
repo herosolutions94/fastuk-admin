@@ -43,8 +43,9 @@ class MemberController extends BaseController {
           mem_verified,
           fingerprint, // Keep fingerprint as a parameter
         } = req.body;
-        // console.log(req.body);
-        const mem_type="user"
+    
+        const mem_type = "user";
+    
         // Clean and trim data
         const cleanedData = {
           full_name: typeof full_name === "string" ? full_name.trim() : "",
@@ -55,10 +56,9 @@ class MemberController extends BaseController {
           created_at: new Date(),
           mem_status: mem_status || 0,
           mem_verified: mem_verified || 0,
-          mem_type:mem_type
+          mem_type: mem_type,
         };
-        // console.log(cleanedData);
-  
+    
         // Validation for empty fields
         if (!validateRequiredFields(cleanedData)) {
           return res
@@ -66,89 +66,84 @@ class MemberController extends BaseController {
             .json({ status: 0, msg: "All fields are required." });
         }
         if (cleanedData.password !== cleanedData.confirm_password) {
-          return res
-            .status(200)
-            .json({ status: 0, msg: "Passwords do not match." });
+          return res.status(200).json({ status: 0, msg: "Passwords do not match." });
         }
+    
         // Password strength validation
-        // const passwordValidation = validatePassword(cleanedData.password);
         if (!validatePassword(cleanedData.password)) {
-          return res
-            .status(200)
-            .json({
-              status: 0,
-              msg: "Password must be at least 8 characters long, include one uppercase letter, one lowercase letter, one digit, and one special character.",
-            });
-        }
-  
-        // Email validation
-        if (!validateEmail(cleanedData.email)) {
-          return res
-            .status(200)
-            .json({ status: 0, msg: "Invalid email format." });
-        }
-  
-        // Check if email already exists
-        const existingUser = await this.member.findByEmail(
-          cleanedData.email
-        );
-        if (existingUser) {
           return res.status(200).json({
             status: 0,
-            msg: "Email already exists.",
+            msg: "Password must be at least 8 characters long, include one uppercase letter, one lowercase letter, one digit, and one special character.",
           });
         }
-  
+    
+        // Email validation
+        if (!validateEmail(cleanedData.email)) {
+          return res.status(200).json({ status: 0, msg: "Invalid email format." });
+        }
+    
+        // Check if email already exists
+        const existingUser = await this.member.findByEmail(cleanedData.email);
+        if (existingUser) {
+          return res.status(200).json({ status: 0, msg: "Email already exists." });
+        }
+    
         // Hash the password
         cleanedData.password = await bcrypt.hash(cleanedData.password, 10);
-  
+    
         // Remove `confirm_password` as it is not needed in the database
         delete cleanedData.confirm_password;
-  
+    
         // Generate OTP
         const otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
         cleanedData.otp = parseInt(otp, 10); // Add OTP to cleanedData
         cleanedData.expire_time = moment()
           .add(3, "minutes")
           .format("YYYY-MM-DD HH:mm:ss");
-  
-        // console.log('Generated OTP:', otp);
-        // console.log('cleanedData with OTP:', cleanedData);
-  
-        // Create the rider
+    
+        // Create a customer in Stripe
+        const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY); // Initialize Stripe with your secret key
+        const customer = await stripe.customers.create({
+          name: cleanedData.full_name,
+          email: cleanedData.email,
+        });
+    
+        if (!customer || !customer.id) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Failed to create customer in Stripe." });
+        }
+    
+        // Add Stripe customer ID to cleanedData
+        cleanedData.customer_id = customer.id;
+    
+        // Create the user
         const userId = await this.member.createMember(cleanedData);
-        // console.log("Created user ID:", userId); // Log the created rider ID
-  
-        // Verify OTP was stored properly
-        const createdUser = await this.member.findById(userId);
-        // console.log("Created User:", createdUser); // Log the created rider
-  
-        // console.log('Stored OTP after creation:', createdRider.otp);
-  
+    
         // If fingerprint is not provided, generate a pseudo-fingerprint
-        let actualFingerprint =
-          fingerprint || this.generatePseudoFingerprint(req); // Use let to allow reassignment
-  
-          const token=await this.storeAndReturnToken(
+        const actualFingerprint =
+          fingerprint || this.generatePseudoFingerprint(req);
+    
+        const token = await this.storeAndReturnToken(
           userId,
-            'user',
-            actualFingerprint
-          );
-  
+          "user",
+          actualFingerprint
+        );
+    
         this.sendSuccess(
           res,
-          { mem_type: mem_type, authToken: token },
+          { mem_type: mem_type, authToken: token, customer_id: customer.id },
           "User registered successfully."
         );
       } catch (error) {
-        return res.status(200).json({
-          // Changed to status 500 for server errors
+        return res.status(500).json({
           status: 0,
           msg: "An error occurred during registration.",
           error: error.message,
         });
       }
     }
+    
   
     
     async loginUser(req, res) {
