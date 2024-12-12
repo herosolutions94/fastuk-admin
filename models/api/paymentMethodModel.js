@@ -15,6 +15,13 @@ class PaymentMethodModel extends BaseModel {
         return rows;
     }
 
+    async getPaymentMethodsByIdAndUserId(id, userId) {
+        const query = `SELECT * FROM payment_methods WHERE id = ? AND user_id = ?`;
+        const [rows] = await pool.query(query, [id, userId]);  // The query now works with promises
+
+        return rows;
+    }
+
     // Add new payment method to the database
     async addPaymentMethod(paymentMethodData) {
         const { user_id, user_type, payment_method_id, card_number, exp_month, exp_year, brand, is_default } = paymentMethodData;
@@ -24,6 +31,35 @@ class PaymentMethodModel extends BaseModel {
         const values = [user_id, user_type, payment_method_id, card_number, exp_month, exp_year, brand, is_default];
         const [rows] = await pool.query(query, values);  // The query now works with promises
         return rows[0];  // Return the newly inserted payment method
+    }
+
+    async getDefaultPaymentMethodByUserId(userId) {
+        try {
+          const query = 'SELECT * FROM payment_methods WHERE user_id = ? AND is_default = 1';
+          const [rows] = await pool.query(query, [userId]);
+          return rows[0]; // Returns an array of matching rows
+        } catch (error) {
+          console.error('Error fetching default payment method:', error.message);
+          throw new Error('Database error');
+        }
+      }
+
+      // Set all payment methods' is_default to 0 for a specific user
+    async setAllPaymentMethodsAsNotDefault(userId) {
+        const query = `UPDATE payment_methods SET is_default = 0 WHERE user_id = ?`;
+        await pool.query(query, [userId]);
+    }
+    // Set a specific payment method's is_default to 1
+    async setPaymentMethodAsDefault(paymentMethodId) {
+        const query = `UPDATE payment_methods SET is_default = 1 WHERE id = ?`;
+        await pool.query(query, [paymentMethodId]);
+    }
+
+    // Delete payment method by ID
+    async deletePaymentMethodById(id) {
+        const query = `DELETE FROM payment_methods WHERE id = ?`;
+        const [result] = await pool.query(query, [id]);
+        return result;
     }
 }
 
