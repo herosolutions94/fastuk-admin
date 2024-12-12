@@ -396,7 +396,7 @@ async assignRiderToRequest(req, res) {
             return res.status(200).json(userResponse); // Return error from token validation
         }
 
-        const user = userResponse.user;
+        const loggedInUser = userResponse.user;
 
         // Step 2: Fetch the request quote by ID
         const requestQuote = await this.rider.getRequestQuoteById(request_id);
@@ -410,7 +410,7 @@ async assignRiderToRequest(req, res) {
         }
 
         // Step 4: Assign the user ID to the assigned_rider column
-        const updateStatus = await this.rider.assignRiderAndUpdateStatus(request_id, user.id);
+        const updateStatus = await this.rider.assignRiderAndUpdateStatus(request_id, loggedInUser.id);
         if (updateStatus.affectedRows === 0) {
             return res.status(200).json({ status: 0, msg: "Failed to assign rider to the request." });
         }
@@ -420,9 +420,17 @@ async assignRiderToRequest(req, res) {
             const vias = await this.rider.getViasByQuoteId(request_row.id);
             const parcels = await this.rider.getParcelsByQuoteId(request_row.id);
             if(user){
-                request_row={...request_row,user_name:user?.full_name,user_image:user?.mem_image,vias:vias,parcels:parcels,rider_name:user?.full_name}
+                request_row={...request_row,user_name:user?.full_name,user_image:user?.mem_image,vias:vias,parcels:parcels,rider_name:loggedInUser?.full_name}
             }
         }
+        // Step 6: Send notification to the user
+        const notificationText = `Your request #${request_id} has been accepted by a rider.`;
+        await this.helpers.storeNotification(
+            request_row.user_id,  // The user ID from request_quote
+            'user',              // The user's member type
+            notificationText,
+            loggedInUser.id       // Sender (logged-in user ID)
+        );
         return res.status(200).json({ status: 1, msg: "Rider assigned successfully.",request_row:request_row });
     } catch (error) {
         console.error("Error assigning rider:", error.message);

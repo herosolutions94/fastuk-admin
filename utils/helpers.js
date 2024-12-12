@@ -232,6 +232,33 @@ doDecode: function (string, key = 'preciousprotection') {
 
     const decodedString = Buffer.from(hash, 'base64').toString();
     return decodedString;
-}
+},
+
+storeNotification: async function (user_id, mem_type, sender, text) {
+    try {
+        // Prepare the query
+        const query = `
+            INSERT INTO notifications (user_id, mem_type, sender, text, status, created_date)
+            VALUES (?, ?, ?, ?, 0, ?)
+        `;
+
+        // Get the current UTC timestamp
+        const created_date = moment.utc().format('YYYY-MM-DD HH:mm:ss');
+
+        // Execute the query
+        const [result] = await pool.query(query, [user_id, mem_type, sender, text, created_date]);
+
+        // Check if the notification was inserted
+        if (result.affectedRows === 1) {
+            return true;
+        } else {
+            throw new Error('Failed to insert notification');
+        }
+    } catch (error) {
+        console.error('Error storing notification:', error.message);
+        throw error;
+    }
+},
+
     
 };
