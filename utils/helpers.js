@@ -190,25 +190,29 @@ module.exports = {
   
 
 
- doEncode:function (string, key = 'preciousprotection') {
-    let hash = '';
-    const base64String = Buffer.from(string).toString('base64');
-    const shaKey = crypto.createHash('sha1').update(key).digest('hex');
-    const strLen = base64String.length;
-    const keyLen = shaKey.length;
-    let j = 0;
-
-    for (let i = 0; i < strLen; i++) {
-        const ordStr = base64String.charCodeAt(i);
-        if (j === keyLen) j = 0;
-        const ordKey = shaKey.charCodeAt(j);
-        j++;
-        const encodedChar = Number(ordStr + ordKey).toString(16); // Convert to hex
-        hash += [...encodedChar].reverse().join(''); // Reverse and add to hash
-    }
-
-    return hash;
-},
+      doEncode: function (input, key = 'preciousprotection') {
+        // Ensure input is a string
+        const string = String(input); 
+    
+        let hash = '';
+        const base64String = Buffer.from(string).toString('base64');
+        const shaKey = crypto.createHash('sha1').update(key).digest('hex');
+        const strLen = base64String.length;
+        const keyLen = shaKey.length;
+        let j = 0;
+    
+        for (let i = 0; i < strLen; i++) {
+            const ordStr = base64String.charCodeAt(i);
+            if (j === keyLen) j = 0;
+            const ordKey = shaKey.charCodeAt(j);
+            j++;
+            const encodedChar = Number(ordStr + ordKey).toString(16); // Convert to hex
+            hash += [...encodedChar].reverse().join(''); // Reverse and add to hash
+        }
+    
+        return hash;
+    },
+    
 
 doDecode: function (string, key = 'preciousprotection') {
     let hash = '';

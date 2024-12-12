@@ -1170,7 +1170,7 @@ async getUserOrderDetailsByEncodedId(req, res) {
   }
 }
 
-async userPaymentMethod(req, res) {
+async userPaymentMethod(req, res) { 
   try {
       const { token, memType } = req.body;
 
@@ -1199,16 +1199,35 @@ async userPaymentMethod(req, res) {
           return res.status(404).json({ status: 0, msg: "Member not found." });
       }
 
+      // Fetch payment methods for the user
+      const paymentMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(member.id, memType);
+
+      // Decode payment methods
+      const decodedPaymentMethods = paymentMethods.map((method) => {
+          return {
+              id: method.id,
+              user_id: method.user_id,
+              user_type: method.user_type,
+              payment_method_id: helpers.doDecode(method.payment_method_id),
+              card_number: helpers.doDecode(method.card_number),
+              exp_month: helpers.doDecode(method.exp_month),
+              exp_year: helpers.doDecode(method.exp_year),
+              brand: helpers.doDecode(method.brand),
+              is_default: method.is_default, // Assuming is_default does not need decoding
+              created_date: method.created_date
+          };
+      });
+
       // Fetch site settings or other additional data
       const siteSettings = res.locals.adminData;
 
-      // Combine member data and site settings
+      // Combine member data, site settings, and payment methods
       const jsonResponse = {
           status: 1,
-          msg: "Member data fetched successfully.",
-              member,
-              siteSettings,
-          
+          msg: "Payment methods fetched successfully.",
+          member,
+          siteSettings,
+          paymentMethods: decodedPaymentMethods
       };
 
       // Return the combined JSON response
@@ -1221,10 +1240,10 @@ async userPaymentMethod(req, res) {
 
 async addPaymentMethod(req, res) {
   try {
-    const { payment_method_id, exp_month, exp_year, card_number, token, memType } = req.body;
+    const { payment_method_id, card_exp_month, card_exp_year, card_number, token, memType } = req.body;
 
     // Validate input fields
-    if (!payment_method_id || !exp_month || !exp_year || !card_number || !token || !memType) {
+    if (!payment_method_id || !card_exp_month || !card_exp_year || !card_number || !token || !memType) {
       return res.status(200).json({ status: 0, msg: "All fields are required." });
     }
 
@@ -1244,6 +1263,11 @@ async addPaymentMethod(req, res) {
       return res.status(200).json({ status: 0, msg: "Member not found." });
     }
 
+    // Ensure member has a customer_id in Stripe
+    if (!member.customer_id) {
+      return res.status(200).json({ status: 0, msg: "Customer ID not found for member." });
+    }
+
     // Retrieve the payment method from Stripe using the payment method ID
     const paymentMethod = await stripe.paymentMethods.retrieve(payment_method_id);
 
@@ -1252,7 +1276,7 @@ async addPaymentMethod(req, res) {
     }
 
     // Validate expiration month/year and card number
-    if (paymentMethod.card.exp_month !== parseInt(exp_month) || paymentMethod.card.exp_year !== parseInt(exp_year)) {
+    if (paymentMethod.card.exp_month !== parseInt(card_exp_month) || paymentMethod.card.exp_year !== parseInt(card_exp_year)) {
       return res.status(200).json({ status: 0, msg: "Invalid expiration date." });
     }
 
@@ -1260,36 +1284,156 @@ async addPaymentMethod(req, res) {
       return res.status(200).json({ status: 0, msg: "Card number does not match." });
     }
 
+    // Attach the payment method to the customer in Stripe
+    await stripe.paymentMethods.attach(payment_method_id, { customer: member.customer_id });
+
+    // Set the payment method as the default payment method for the customer
+    await stripe.customers.update(member.customer_id, {
+      invoice_settings: { default_payment_method: payment_method_id },
+    });
+
     // Check if the user already has a payment method
-    const existingMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(member.id);
+    const existingMethods = await this.paymentMethodModel.getDefaultPaymentMethodByUserId(member.id);
     const isDefault = existingMethods.length === 0 ? 1 : 0;
 
     // Insert the retrieved payment method into the database
     const newPaymentMethod = {
       user_id: member.id,
       user_type: memType,
-      payment_method_id: paymentMethod.id,
-      card_number: paymentMethod.card.last4,
-      exp_month: paymentMethod.card.exp_month,
-      exp_year: paymentMethod.card.exp_year,
-      brand: paymentMethod.card.brand,
+      customer_id:helpers.doEncode(member.customer_id), // Attach customer_id
+      payment_method_id: helpers.doEncode(paymentMethod.id),
+      card_number: helpers.doEncode(paymentMethod.card.last4),
+      exp_month: helpers.doEncode(paymentMethod.card.exp_month),
+      exp_year: helpers.doEncode(paymentMethod.card.exp_year),
+      brand: helpers.doEncode(paymentMethod.card.brand),
       is_default: isDefault,
     };
-
     const insertedPaymentMethod = await this.paymentMethodModel.addPaymentMethod(newPaymentMethod);
-    const paymentMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(member.id, memType);
 
     return res.status(200).json({
       status: 1,
       msg: "Payment method added successfully.",
       paymentMethod: insertedPaymentMethod,
-      paymentMethods
     });
   } catch (err) {
     console.error("Error adding payment method:", err.message);
     return res.status(200).json({ status: 0, msg: "Internal Server Error" });
   }
 }
+
+async deletePaymentMethod(req, res) {
+  try {
+    const { payment_method_id, token, memType } = req.body;
+
+    // Validate request fields
+    if (!payment_method_id || !token || !memType) {
+      return res.status(400).json({ status: 0, msg: "All fields are required." });
+    }
+
+    // Validate member type
+    if (memType !== "user") {
+      return res.status(400).json({ status: 0, msg: "Invalid member type." });
+    }
+
+    // Validate token and get member
+    const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+    if (userResponse.status === 0) {
+      return res.status(400).json(userResponse);
+    }
+
+    const member = userResponse.user;
+    if (!member) {
+      return res.status(404).json({ status: 0, msg: "User not found." });
+    }
+
+    // Fetch payment method from the database
+    const paymentMethod = await this.paymentMethodModel.getPaymentMethodsByIdAndUserId(payment_method_id, member.id);
+    if (!paymentMethod) {
+      return res.status(200).json({ status: 0, msg: "Payment method not found." });
+    }
+    const paymentMethodRow=paymentMethod[0];
+
+    // Ensure payment_method_id is a string before detaching
+    const paymentMethodId =helpers.doDecode(paymentMethodRow?.payment_method_id); // Convert to string
+console.log(paymentMethodId)
+    // Check if the payment method exists in Stripe before detaching
+    try {
+      const stripePaymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId);
+      if (!stripePaymentMethod) {
+        return res.status(404).json({ status: 0, msg: "Payment method not found in Stripe." });
+      }
+    } catch (stripeError) {
+      console.error("Stripe error:", stripeError.message);
+      return res.status(404).json({ status: 0, msg: "Payment method not found in Stripe." });
+    }
+
+    // Delete payment method from Stripe
+    await stripe.paymentMethods.detach(paymentMethodId);
+
+    // Delete payment method from database
+    await this.paymentMethodModel.deletePaymentMethodById(paymentMethodRow.id);
+
+    return res.status(200).json({ status: 1, msg: "Payment method deleted successfully." });
+  } catch (error) {
+    console.error("Error deleting payment method:", error.message);
+    return res.status(500).json({ status: 0, msg: "Internal Server Error" });
+  }
+}
+
+async markPaymentMethodAsDefault(req, res) {
+  try {
+    const { payment_method_id, token, memType } = req.body;
+
+    // Validate request fields
+    if (!payment_method_id || !token || !memType) {
+      return res.status(200).json({ status: 0, msg: "All fields are required." });
+    }
+
+    // Validate member type
+    if (memType !== "user") {
+      return res.status(200).json({ status: 0, msg: "Invalid member type." });
+    }
+
+    // Validate token and get member
+    const userResponse = await this.validateTokenAndGetMember(token, memType);
+    if (userResponse.status === 0) {
+      return res.status(200).json(userResponse);
+    }
+
+    const member = userResponse.user;
+    if (!member) {
+      return res.status(200).json({ status: 0, msg: "User not found." });
+    }
+
+    // Fetch payment method from the database
+    const paymentMethod = await this.paymentMethodModel.getPaymentMethodsByIdAndUserId(payment_method_id, member.id);
+    if (!paymentMethod || paymentMethod.length === 0) {
+      return res.status(200).json({ status: 0, msg: "Payment method not found." });
+    }
+    const paymentMethodRow = paymentMethod[0];
+
+    // Set all other payment methods' is_default to 0
+    await this.paymentMethodModel.setAllPaymentMethodsAsNotDefault(member.id);
+
+    // Update the selected payment method's is_default to 1 in the database
+    await this.paymentMethodModel.setPaymentMethodAsDefault(paymentMethodRow.id);
+
+    // Update the payment method in Stripe to be the default
+    const paymentMethodId = helpers.doDecode(paymentMethodRow?.payment_method_id); // Convert to string
+    await stripe.customers.update(member.customer_id, {
+      invoice_settings: { default_payment_method: paymentMethodId }
+    });
+
+    return res.status(200).json({ status: 1, msg: "Payment method marked as default successfully." });
+  } catch (error) {
+    console.error("Error marking payment method as default:", error.message);
+    return res.status(200).json({ status: 0, msg: "Internal Server Error" });
+  }
+}
+
+
+
 
 
 

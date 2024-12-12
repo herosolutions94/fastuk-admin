@@ -25,6 +25,9 @@ router.post('/get-user-orders', upload, (req, res) => memberController.getUserOr
 router.post('/get-user-order-details/:encodedId', upload, (req, res) => memberController.getUserOrderDetailsByEncodedId(req, res));
 router.post('/user-payment-method', upload, (req, res) => memberController.userPaymentMethod(req, res));
 router.post('/add-payment-method', upload, (req, res) => memberController.addPaymentMethod(req, res));
+router.post('/delete-payment-method', upload, (req, res) => memberController.deletePaymentMethod(req, res));
+router.post('/mark-payment-method-as-default', upload, (req, res) => memberController.markPaymentMethodAsDefault(req, res));
+
 
 
 
