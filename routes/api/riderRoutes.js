@@ -18,6 +18,7 @@ router.post('/get-order-details/:encodedId', upload,riderController.getOrderDeta
 router.post('/update-request-status', upload,riderController.updateRequestStatus.bind(riderController));
 router.post('/mark-as-completed', upload,riderController.markAsCompleted.bind(riderController));
 router.get('/get-invoices-detail', upload,riderController.getInvoiceDetails.bind(riderController));
+router.post('/test-notification', upload,riderController.testNotification.bind(riderController));
 
 
 

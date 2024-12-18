@@ -715,6 +715,15 @@ class MemberController extends BaseController {
         const member = userResponse.user;
         // Now you have the user (member) and their ID, use member.id instead of user.id
         const userId = member.id;
+
+        // Fetch payment methods for the user
+        const paymentMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(userId, memType);
+        const simplifiedPaymentMethods = paymentMethods.map((method) => ({
+            encoded_id: helpers.doEncode(method.payment_method_id),
+            last4: helpers.doDecode(method.card_number),
+        }));
+
+
         let parcelsArr = [];
         let viasArr = [];
         if (parcels) {
@@ -802,7 +811,8 @@ class MemberController extends BaseController {
           status: 1,
           msg: "Request Quote, Parcels and vias created successfully",
           data: {
-            requestId: requestQuoteId
+            requestId: requestQuoteId,
+            paymentMethods: simplifiedPaymentMethods,
             
         }
         });
@@ -822,32 +832,42 @@ class MemberController extends BaseController {
 
   async getMemberFromToken(req, res) {
     try {
-      const { token, memType } = req.body;
-      if (!token) {
-        return res.status(200).json({ status: 0, msg: "Token is required." });
-      }
+        const { token, memType } = req.body;
+        if (!token) {
+            return res.status(200).json({ status: 0, msg: "Token is required." });
+        }
 
-      // // Call the method from BaseController to get user data
-      const userResponse = await this.validateTokenAndGetMember(token, memType);
+        // Call the method from BaseController to get user data
+        const userResponse = await this.validateTokenAndGetMember(token, memType);
 
-      if (userResponse.status === 0) {
-        // If validation fails, return the error message
-        return res.status(200).json(userResponse);
-      }
-      return res.status(200).json({
-        status: 1,
-        member: userResponse?.user,
-        // siteSettings:res.locals
-      });
+        if (userResponse.status === 0) {
+            return res.status(200).json(userResponse);
+        }
+
+        const userId = userResponse?.user?.id; // Assuming user ID is in `userResponse.user.id`
+
+        if (!userId) {
+            return res.status(200).json({ status: 0, msg: "User ID not found." });
+        }
+
+        // Fetch unread notifications count using the model
+        const unreadCount = await this.member.getUnreadNotificationsCount(userId, memType);
+
+        return res.status(200).json({
+            status: 1,
+            member: userResponse?.user,
+            notifications_count: unreadCount,
+        });
     } catch (error) {
-      console.error("Error in getMemberFromToken:", error);
-      return res.status(200).json({
-        status: 0,
-        msg: "An error occurred while processing the request.",
-        error: error.message,
-      });
+        console.error("Error in getMemberFromToken:", error);
+        return res.status(200).json({
+            status: 0,
+            msg: "An error occurred while processing the request.",
+            error: error.message,
+        });
     }
   }
+
 
   uploadProfileImage = async (req, res) => {
     try {
@@ -1431,6 +1451,41 @@ async markPaymentMethodAsDefault(req, res) {
     return res.status(200).json({ status: 0, msg: "Internal Server Error" });
   }
 }
+
+async getNotifications(req, res) {
+  try {
+    const userId = req.user.id; // Assuming user ID is available in the request object
+
+    const notifications = await this.member.getUserNotifications(userId);
+    return res.status(200).json({ status: 1, msg: "Notifications fetched successfully." , notifications});
+
+  } catch (error) {
+    console.error("Failed to fetch notifications:", error.message);
+    return res.status(200).json({ status: 0, msg: "Internal Server Error" });
+  }
+}
+
+async deleteNotification(req, res) {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id; // Assuming user ID is available in the request object
+
+    // Verify if the notification exists and belongs to the user
+    const notification = await this.member.getNotificationById(id);
+    if (!notification || notification.user_id !== userId) {
+      return this.errorResponse(res, 'Notification not found or unauthorized.', null, 404);
+    }
+
+    // Delete the notification
+    await NotificationsModel.deleteNotification(id);
+
+    return this.successResponse(res, 'Notification deleted successfully.');
+  } catch (error) {
+    return this.errorResponse(res, 'Failed to delete notification.', error);
+  }
+}
+
+
 
 
 

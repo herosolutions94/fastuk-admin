@@ -397,24 +397,32 @@ async assignRiderToRequest(req, res) {
         }
 
         const loggedInUser = userResponse.user;
+        // console.log(loggedInUser)
 
         // Step 2: Fetch the request quote by ID
         const requestQuote = await this.rider.getRequestQuoteById(request_id);
         if (!requestQuote) {
             return res.status(200).json({ status: 0, msg: "Request quote not found." });
         }
+        // console.log(requestQuote)
+
 
         // Step 3: Check if a rider is already assigned
         if (requestQuote.assigned_rider) {
             return res.status(200).json({ status: 0, msg: "Rider is already assigned to this request." });
         }
+        // console.log(requestQuote.assigned_rider)
 
         // Step 4: Assign the user ID to the assigned_rider column
-        const updateStatus = await this.rider.assignRiderAndUpdateStatus(request_id, loggedInUser.id);
+        const updateStatus = await this.rider.assignRiderAndUpdateStatus(loggedInUser.id, request_id);
+        console.log("updateStatus:", updateStatus);
+
         if (updateStatus.affectedRows === 0) {
             return res.status(200).json({ status: 0, msg: "Failed to assign rider to the request." });
         }
         let request_row = await this.rider.getRequestQuoteById(request_id);
+        // console.log("request_row:",request_row)
+
         if(request_row){
             const user = await this.member.findById(request_row.user_id);
             const vias = await this.rider.getViasByQuoteId(request_row.id);
@@ -423,13 +431,14 @@ async assignRiderToRequest(req, res) {
                 request_row={...request_row,user_name:user?.full_name,user_image:user?.mem_image,vias:vias,parcels:parcels,rider_name:loggedInUser?.full_name}
             }
         }
+
         // Step 6: Send notification to the user
         const notificationText = `Your request #${request_id} has been accepted by a rider.`;
-        await this.helpers.storeNotification(
+        await helpers.storeNotification(
             request_row.user_id,  // The user ID from request_quote
             'user',              // The user's member type
-            notificationText,
-            loggedInUser.id       // Sender (logged-in user ID)
+            loggedInUser.id,
+            notificationText,       
         );
         return res.status(200).json({ status: 1, msg: "Rider assigned successfully.",request_row:request_row });
     } catch (error) {
@@ -465,7 +474,6 @@ async getRiderOrders(req, res) {
             status: "accepted",
         });
 
-        console.log("Rider Orders before encoding:", riderOrders);
 
         // Encode the `id` for each order
         const ordersWithEncodedIds = riderOrders.map((order) => {
@@ -649,6 +657,14 @@ updateRequestStatus = async (req, res) => {
     const vias = await this.rider.getViasByQuoteId(order.id);
     const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
 
+    const notificationText = `Your request #${order.id} has been accepted by a rider.`;
+        await helpers.storeNotification(
+            order.user_id,  // The user ID from request_quote
+            'user',              // The user's member type
+            rider.user.id,  // Use rider's ID as the sender
+            notificationText,       
+        );
+
     return res.status(200).json({
       status: 1,
       order: { ...order, encodedId, vias: vias, parcels: parcels, invoices:invoices,viasCount:viasCount },
@@ -803,6 +819,14 @@ updateRequestStatus = async (req, res) => {
         invoices,
         viasCount
       };
+
+      const notificationText = `Your request #${order.id} has been accepted by a rider.`;
+        await helpers.storeNotification(
+            order.user_id,  // The user ID from request_quote
+            'user',              // The user's member type
+            rider.user.id,
+            notificationText,       
+        );
   
       // Step 5: Respond with the updated order
       res.status(200).json({ status: 1, order: formattedOrder, msg: "Request marked as completed" });
@@ -833,6 +857,36 @@ updateRequestStatus = async (req, res) => {
         return res.status(500).json({ status: 0, msg: "Server error." });
     }
 };
+
+// Test API for storeNotification
+// router.post('/api/test-notification', async (req, res) => {
+  testNotification = async (req, res) => {
+  try {
+    // Static test data
+    const user_id = 1; // Replace with actual user ID for testing
+    const mem_type = 'user'; // Replace with actual member type
+    const sender = 1; // Replace with actual sender ID
+    const text = 'This is a test notification';
+
+    // Call the storeNotification function
+    const result = await helpers.storeNotification(null, user_id, mem_type, sender, text);
+
+    // Return a success response
+    res.status(200).json({
+      status: 1,
+      message: 'Test notification stored and emitted successfully',
+      result: result,
+    });
+  } catch (error) {
+    console.error('Error in test notification API:', error);
+    res.status(500).json({
+      status: 0,
+      message: 'Failed to store and emit test notification',
+      error: error.message,
+    });
+  }
+};
+
 
       
   

@@ -104,10 +104,12 @@ async getParcelsByQuoteId (quoteId) {
 async getRequestQuoteById(requestId) {
     const query = `SELECT * FROM request_quote WHERE id = ?`;
     const [rows] = await pool.query(query, [requestId]);
+    // console.log("Request:",rows)
     return rows[0]; // Return the first row if it exists
 }
 
-async assignRiderAndUpdateStatus(requestId, riderId) {
+async assignRiderAndUpdateStatus(riderId, requestId) {
+    console.log(requestId,riderId)
     // Get current date in YYYY-MM-DD format
     const assignedDate = new Date().toISOString().split('T')[0];
 
@@ -118,9 +120,10 @@ async assignRiderAndUpdateStatus(requestId, riderId) {
             assigned_date = ?, 
             status = 'accepted' 
         WHERE 
-            id = ? AND status = 'paid'`; // Ensure the current status is 'paid'
+            id = ?`; // Ensure the current status is 'paid'
 
     const [result] = await pool.query(query, [riderId, assignedDate, requestId]);
+    console.log("result:", result)
     return result; // Contains affectedRows and other info
 }
 

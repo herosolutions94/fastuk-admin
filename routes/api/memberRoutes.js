@@ -27,6 +27,7 @@ router.post('/user-payment-method', upload, (req, res) => memberController.userP
 router.post('/add-payment-method', upload, (req, res) => memberController.addPaymentMethod(req, res));
 router.post('/delete-payment-method', upload, (req, res) => memberController.deletePaymentMethod(req, res));
 router.post('/mark-payment-method-as-default', upload, (req, res) => memberController.markPaymentMethodAsDefault(req, res));
+router.post('/get-user-notifications', upload, (req, res) => memberController.getNotifications(req, res));
 
 
 

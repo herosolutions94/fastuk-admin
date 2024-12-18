@@ -182,6 +182,46 @@ GROUP BY
 
 }
 
+async getUnreadNotificationsCount ({userId, memType}) {
+    try {
+        const query = `
+            SELECT COUNT(*) AS unreadCount
+            FROM notifications
+            WHERE user_id = ? AND mem_type = ? AND status = 0
+        `;
+        const [result] = await pool.query(query, [userId, memType]);
+        return result[0]?.unreadCount || 0;
+    } catch (error) {
+        console.error("Error in getUnreadNotificationsCount:", error);
+        throw error; // Let the controller handle the error
+    }
+}
+static async getUserNotifications(userId) {
+    const query = `
+      SELECT 
+        n.id, n.text, n.created_date, n.sender, 
+        r.full_name AS sender_name, r.mem_image AS sender_image
+      FROM notifications n
+      LEFT JOIN riders r ON n.sender = r.id
+      WHERE n.user_id = ?
+      ORDER BY n.created_date DESC;
+    `;
+    const [rows] = await pool.query(query, [userId]);
+    return rows;
+  }
+
+  static async getNotificationById(id) {
+    const query = 'SELECT * FROM notifications WHERE id = ?;';
+    const [rows]   = await pool.query(query, [id]);
+    return rows;
+  }
+
+  static async deleteNotification(id) {
+    const query = 'DELETE FROM notifications WHERE id = ?;';
+    await pool.query(query, [id]);
+  }
+
+
 
 
 }

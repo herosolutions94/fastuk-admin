@@ -43,7 +43,7 @@ class BaseController {
           }
   
           const { type: tokenType, user_id: userId, expiry_date: expiryDate } = tokenRecord;
-  console.log(new Date(expiryDate) , new Date())
+//   console.log(new Date(expiryDate) , new Date())
           // Check if token has expired
           if (new Date(expiryDate) < new Date()) {
               return { status: 0, msg: "Token has expired." };
