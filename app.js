@@ -4,17 +4,83 @@ const cors = require('cors');
 
 
 const express = require('express');
+const http = require('http');
+const https = require('https');
+const fs = require('fs');
+const { Server } = require('socket.io');
 
 const app = express();
+const socketServer = http.createServer(app);
+const io = new Server(socketServer, {
+  cors: {
+    origin: 'http://localhost:3000', // Allow connection from this frontend
+    methods: ['GET', 'POST'],
+    allowedHeaders: ['Content-Type', 'Authorization','accept'],
+  }
+});
+
+  
+const users=[]
+// Handle socket connection
+io.on('connection', (socket) => {
+    console.log('A user connected:', users);
+
+    socket.on('connect_error', (err) => {
+    console.error('Connection error:', err);
+  });
+
+  socket.on("registerUser", async(data) => {
+    console.log(users)
+    token = data?.token;
+    memType = data?.memType;
+    try {
+      // Call the helper function to get user_id from token
+      const userId = await getUserIdFromToken(token, memType);
+      
+      if (userId) {
+        // If user_id is found, register the user and associate the socket with this user_id
+        const user = {
+          user_id: userId,
+          socket: socket.id,
+          mem_type: memType,
+        };
+  
+        // Store user socket in users array
+        users.push(user);
+        console.log(users)
+        
+        // Optionally, you can emit a confirmation event back to the client
+  
+      } else {
+        console.log('User registration failed: Invalid token or memType');
+      }
+    } catch (error) {
+      console.error('Decryption or registration failed:', error.message);
+    }
+    
+  });
+    // Emit data to the client
+    socket.emit('message', { text: 'Hello from Node.js server!' });
+  
+    // Listen for events from the client
+    socket.on('clientEvent', (data) => {
+      console.log('Data from client:', data);
+    });
+  
+    socket.on('disconnect', () => {
+      console.log('User disconnected:', socket.id);
+    });
+  });
+  module.exports = { io, users };
+
 app.use(express.json());
 
 
 const PORT = process.env.PORT || 4000;
 
-const server = app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+socketServer.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
-
 const helpers = require('./utils/helpers');
 app.use((req, res, next) => {
     res.locals.helpers = helpers;
@@ -81,6 +147,7 @@ const requestQuoteRoutes = require('./routes/admin/request-quote');
 const authMiddleware = require('./middleware/authMiddleware');
 const authenticationMiddleware = require('./middleware/authentication');
 const siteInfoMiddleware = require('./middleware/siteInfoMiddleware');
+const { getUserIdFromToken } = require('./utils/sockets');
 
 
 
