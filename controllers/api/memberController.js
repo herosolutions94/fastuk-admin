@@ -396,7 +396,7 @@ class MemberController extends BaseController {
 
       // Initialize member as null by default
       let member = null;
-
+      let paymentMethodsArr=[]
       // If a token is provided, decrypt it and fetch user details
       if (
         token !== undefined &&
@@ -425,13 +425,19 @@ class MemberController extends BaseController {
         if (!member) {
           return res.status(200).json({ status: 0, msg: "Member not found." });
         }
+        const paymentMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(member?.id, memType);
+        paymentMethodsArr = paymentMethods.map((method) => ({
+            encoded_id: helpers.doEncode(method.id),
+            card_number: helpers.doDecode(method.card_number),
+        }));
       }
-
+      
       // Combine the content and multi_text data
       const jsonResponse = {
         siteSettings,
         vehicles: vehiclesData,
         member, // This will be null if no token was provided
+        paymentMethods:paymentMethodsArr
       };
 
       // Return data in JSON format
