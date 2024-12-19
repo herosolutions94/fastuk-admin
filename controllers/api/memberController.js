@@ -398,7 +398,12 @@ class MemberController extends BaseController {
       let member = null;
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
       let paymentMethodsArr=[]
+=======
+      let paymentMethods = null;
+  
+>>>>>>> Stashed changes
 =======
       let paymentMethods = null;
   
@@ -430,6 +435,7 @@ class MemberController extends BaseController {
         if (!member) {
           return res.status(200).json({ status: 0, msg: "Member not found." });
         }
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
         const paymentMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(member?.id, memType);
@@ -479,6 +485,26 @@ class MemberController extends BaseController {
       }
   
 >>>>>>> Stashed changes
+=======
+  
+        // Fetch payment methods for the user
+        paymentMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(
+          member.id, // Assuming `user_id` is the correct field in `member`
+          memType
+        );
+        console.log(member.id,memType)
+        console.log(paymentMethods)
+  
+        // Simplify payment methods for the response
+        if (paymentMethods && paymentMethods.length > 0) {
+          paymentMethods = paymentMethods.map((method) => ({
+            encoded_id: helpers.doEncode(method.payment_method_id),
+            last4: helpers.doDecode(method.card_number),
+          }));
+        }
+      }
+  
+>>>>>>> Stashed changes
       // Combine the content and multi_text data
       const jsonResponse = {
         siteSettings,
@@ -486,7 +512,11 @@ class MemberController extends BaseController {
         member, // This will be null if no token was provided
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         paymentMethods:paymentMethodsArr
+=======
+        paymentMethods, // Include payment methods in the response
+>>>>>>> Stashed changes
 =======
         paymentMethods, // Include payment methods in the response
 >>>>>>> Stashed changes
@@ -781,10 +811,13 @@ class MemberController extends BaseController {
 
 <<<<<<< Updated upstream
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         // Fetch payment methods for the user
        
 
 
+=======
+>>>>>>> Stashed changes
 =======
 >>>>>>> Stashed changes
 =======
