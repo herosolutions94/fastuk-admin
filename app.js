@@ -19,7 +19,6 @@ const io = new Server(socketServer, {
   }
 });
 
-  
 const users=[]
 // Handle socket connection
 io.on('connection', (socket) => {
@@ -47,7 +46,6 @@ io.on('connection', (socket) => {
   
         // Store user socket in users array
         users.push(user);
-        console.log(users)
         
         // Optionally, you can emit a confirmation event back to the client
   
