@@ -696,7 +696,8 @@ class MemberController extends BaseController {
         vias,
         memType,
         date,
-        notes
+        notes,
+        saved_card_id
       } = req.body;
       console.log("create request:", req.body);
 
@@ -723,11 +724,7 @@ class MemberController extends BaseController {
         const userId = member.id;
 
         // Fetch payment methods for the user
-        const paymentMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(userId, memType);
-        const simplifiedPaymentMethods = paymentMethods.map((method) => ({
-            encoded_id: helpers.doEncode(method.payment_method_id),
-            last4: helpers.doDecode(method.card_number),
-        }));
+       
 
 
         let parcelsArr = [];
@@ -752,32 +749,137 @@ class MemberController extends BaseController {
             .status(200)
             .json({ status: 0, msg: "Invalid start_date format" });
         }
+        let requestQuoteId=''
+        if(payment_method==='credit-card'){
+          requestQuoteId  = await this.pageModel.createRequestQuote({
+            user_id: userId, // Save the userId in the request
+            selected_vehicle: selectedVehicle,
+            vehicle_price: vehiclePrice,
+            total_amount: totalAmount,
+            payment_intent: payment_intent_customer_id,
+            customer_id: payment_intent_customer_id,
+            source_postcode,
+            source_address: source_full_address,
+            source_name,
+            source_phone_number,
+            source_city,
+            dest_postcode,
+            dest_address: dest_full_address,
+            dest_name,
+            dest_phone_number,
+            dest_city,
+            payment_method,
+            payment_method_id,
+            created_date: new Date(), // Set current date as created_date
+            start_date: parsedStartDate,
+            notes: notes
+            // Pass start_date from the frontend
+          });
+        }
+        else if (payment_method === 'saved-card') {
+          if (!saved_card_id) {
+              return res.status(200).json({ status: 0, msg: "Card is required." });
+          }
+          console.log('Saved Card ID before decoding:', saved_card_id);
 
+      
+          // Decode the saved card ID
+          const decodedId = helpers.doDecode(saved_card_id);
+          console.log('Decoded ID:', decodedId); // Check decoded value
+
+          if (!decodedId) {
+              return res.status(200).json({ status: 0, msg: "Invalid Card." });
+          }
+      
+          // Fetch the payment method from the database
+          const paymentMethod = await this.paymentMethodModel.getPaymentMethodById(decodedId);
+          if (!paymentMethod) {
+              return res.status(200).json({ status: 0, msg: "Card not found." });
+          }
+          
+      
+          // Decode Stripe payment method ID stored in the database
+          const stripe_payment_method_id = helpers.doDecode(paymentMethod?.payment_method_id);
+          if (!stripe_payment_method_id) {
+              return res.status(200).json({ status: 0, msg: "Invalid Stripe Payment Method ID." });
+          }
+      
+          // Retrieve the payment method details from Stripe
+          let stripePaymentMethod;
+          try {
+              stripePaymentMethod = await stripe.paymentMethods.retrieve(stripe_payment_method_id);
+          } catch (error) {
+              return res.status(200).json({ status: 0, msg: "Error retrieving Stripe payment method.", error: error.message });
+          }
+      
+          // Ensure the payment method is attached to a customer
+          if (!stripePaymentMethod || !stripePaymentMethod.customer) {
+              return res.status(200).json({ status: 0, msg: "Payment method is not linked to a customer." });
+          }
+      
+          // Create a payment intent to charge the user
+          let paymentIntent;
+          try {
+            paymentIntent = await stripe.paymentIntents.create({
+              amount: Math.round(totalAmount * 100),
+              currency: "usd",
+              customer: stripePaymentMethod.customer,
+              payment_method: stripe_payment_method_id,
+              confirm: true,
+              use_stripe_sdk: true,
+              automatic_payment_methods: {
+                  enabled: true,
+                  allow_redirects: "never",
+              },
+              metadata: { user_id: userId },
+          });
+          
+        } catch (error) {
+            console.error("Stripe Error:", error);
+            return res.status(200).json({
+                status: 0,
+                msg: "Error creating payment intent.",
+                error: error.message,
+            });
+        }
+        
+      
+          // Check the payment status
+          if (paymentIntent.status !== "succeeded") {
+              return res.status(200).json({ status: 0, msg: "Payment failed.", paymentStatus: paymentIntent.status });
+          }
+      
+          // Prepare the object for requestQuoteId insertion
+          requestQuoteId = await this.pageModel.createRequestQuote({
+              user_id: userId,
+              selected_vehicle: selectedVehicle,
+              vehicle_price: vehiclePrice,
+              total_amount: totalAmount,
+              payment_intent: paymentIntent.id, // Store the Payment Intent ID
+              customer_id: stripePaymentMethod.customer, // Store the Customer ID
+              stripe_payment_method_id, // Store the Stripe Payment Method ID
+              source_postcode,
+              source_address: source_full_address,
+              source_name,
+              source_phone_number,
+              source_city,
+              dest_postcode,
+              dest_address: dest_full_address,
+              dest_name,
+              dest_phone_number,
+              dest_city,
+              payment_method,
+              saved_card_id, // Store the saved card ID
+              created_date: new Date(),
+              start_date: new Date(date),
+              notes: notes,
+          });
+      
+          
+      }
+      
         // Create Request Quote record
-        const requestQuoteId  = await this.pageModel.createRequestQuote({
-          user_id: userId, // Save the userId in the request
-          selected_vehicle: selectedVehicle,
-          vehicle_price: vehiclePrice,
-          total_amount: totalAmount,
-          payment_intent: payment_intent_customer_id,
-          customer_id: payment_intent_customer_id,
-          source_postcode,
-          source_address: source_full_address,
-          source_name,
-          source_phone_number,
-          source_city,
-          dest_postcode,
-          dest_address: dest_full_address,
-          dest_name,
-          dest_phone_number,
-          dest_city,
-          payment_method,
-          payment_method_id,
-          created_date: new Date(), // Set current date as created_date
-          start_date: parsedStartDate,
-          notes: notes
-          // Pass start_date from the frontend
-        });
+       
 
         // Create Parcels records for the request
         const parcelRecords = parcelsArr.map((parcel) => ({
@@ -810,6 +912,25 @@ class MemberController extends BaseController {
         // console.log(viaRecords)
         // return;
 
+        const ridersInCity = await this.rider.getRidersByCity(source_city);
+
+    if (ridersInCity && ridersInCity.length > 0) {
+      const notificationText = `A new request has been created in your city: ${source_city}`;
+
+      // Loop through each rider and send a notification
+      for (const rider of ridersInCity) {
+        const riderId = rider.id;
+        // console.log(riderId,member?.id);return;
+
+
+        await helpers.storeNotification(
+          riderId,
+          "rider", // mem_type
+          member?.id, // sender (the requester)
+          notificationText
+        );
+      }
+    }
 
 
         // Send success response
@@ -818,7 +939,6 @@ class MemberController extends BaseController {
           msg: "Request Quote, Parcels and vias created successfully",
           data: {
             requestId: requestQuoteId,
-            paymentMethods: simplifiedPaymentMethods,
             
         }
         });

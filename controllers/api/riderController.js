@@ -869,7 +869,7 @@ updateRequestStatus = async (req, res) => {
     const text = 'This is a test notification';
 
     // Call the storeNotification function
-    const result = await helpers.storeNotification(null, user_id, mem_type, sender, text);
+    const result = await helpers.storeNotification(user_id, mem_type, sender, text);
 
     // Return a success response
     res.status(200).json({

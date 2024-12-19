@@ -311,15 +311,17 @@ module.exports = {
 
       // Prepare the notification object
       const notificationObject = {
+        id:result.insertId,
         sender_name: senderInfo.sender_name,
         sender_dp: senderInfo.sender_dp,
-        notification_text: text,
-        created_time: created_date
+        text: text,
+        time: created_date
       };
+      console.log(notificationObject,mem_type)
 
       // Find all sockets associated with the user_id in the users array
-      const userSockets = users.filter((user) => user.user_id === user_id);
-
+      const userSockets = users.filter((user) => parseInt(user.user_id) === parseInt(user_id) && user?.mem_type===mem_type);
+      console.log(users,userSockets,'userSockets')
       // Loop through each socket entry and emit the notification
       userSockets.forEach((userSocket) => {
         io.to(userSocket.socket).emit(
@@ -327,7 +329,6 @@ module.exports = {
           notificationObject
         );
       });
-
       console.log(
         `Notification sent to ${userSockets.length} sockets for user_id ${user_id}`
       );

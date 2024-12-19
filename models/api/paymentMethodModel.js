@@ -14,6 +14,12 @@ class PaymentMethodModel extends BaseModel {
 
         return rows;
     }
+    async getPaymentMethodById(id) {
+        // Your database query here
+        const query = 'SELECT * FROM payment_methods WHERE id = ?';
+        const [rows] = await pool.query(query, [id]);
+        return rows?.length > 0 ? rows[0] : null;
+    }
 
     async getPaymentMethodsByIdAndUserId(id, userId) {
         const query = `SELECT * FROM payment_methods WHERE id = ? AND user_id = ?`;
