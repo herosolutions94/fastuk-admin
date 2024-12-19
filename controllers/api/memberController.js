@@ -387,44 +387,45 @@ class MemberController extends BaseController {
   async requestQuote(req, res) {
     const vehicleModel = new VehicleModel();
     const { token, memType } = req.body;
-
+  
     try {
       const siteSettings = res.locals.adminData;
-
+  
       // Get the main page content
       const vehiclesData = await vehicleModel.findFeatured();
-
-      // Initialize member as null by default
+  
+      // Initialize member and payment methods as null by default
       let member = null;
+<<<<<<< Updated upstream
       let paymentMethodsArr=[]
+=======
+      let paymentMethods = null;
+  
+>>>>>>> Stashed changes
       // If a token is provided, decrypt it and fetch user details
-      if (
-        token !== undefined &&
-        token !== null &&
-        token !== "" &&
-        token !== "null"
-      ) {
-        if (!token) {
-          return res.status(200).json({ status: 0, msg: "Token is required." });
-        }
+      if (token && token !== "null") {
+        // Token validation
         if (memType === "rider") {
           return res
             .status(200)
-            .json({ status: 0, msg: "Rider account can not create request!" });
+            .json({ status: 0, msg: "Rider account cannot create request!" });
         }
-        const userResponse = await this.validateTokenAndGetMember(
-          token,
-          memType
-        );
-
+  
+        // Validate token and get member details
+        const userResponse = await this.validateTokenAndGetMember(token, memType);
+  
         if (userResponse.status === 0) {
           // If validation fails, return the error message
           return res.status(200).json(userResponse);
         }
+  
         member = userResponse.user;
+        // console.log(member)
+  
         if (!member) {
           return res.status(200).json({ status: 0, msg: "Member not found." });
         }
+<<<<<<< Updated upstream
         const paymentMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(member?.id, memType);
         paymentMethodsArr = paymentMethods.map((method) => ({
             encoded_id: helpers.doEncode(method.id),
@@ -432,21 +433,46 @@ class MemberController extends BaseController {
         }));
       }
       
+=======
+  
+        // Fetch payment methods for the user
+        paymentMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(
+          member.id, // Assuming `user_id` is the correct field in `member`
+          memType
+        );
+        console.log(member.id,memType)
+        console.log(paymentMethods)
+  
+        // Simplify payment methods for the response
+        if (paymentMethods && paymentMethods.length > 0) {
+          paymentMethods = paymentMethods.map((method) => ({
+            encoded_id: helpers.doEncode(method.payment_method_id),
+            last4: helpers.doDecode(method.card_number),
+          }));
+        }
+      }
+  
+>>>>>>> Stashed changes
       // Combine the content and multi_text data
       const jsonResponse = {
         siteSettings,
         vehicles: vehiclesData,
         member, // This will be null if no token was provided
+<<<<<<< Updated upstream
         paymentMethods:paymentMethodsArr
+=======
+        paymentMethods, // Include payment methods in the response
+>>>>>>> Stashed changes
       };
-
+  
       // Return data in JSON format
       res.json(jsonResponse);
     } catch (err) {
       console.error("Error:", err);
-      res.status(200).json({ error: "Internal Server Error" });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   }
+  
   generatePseudoFingerprint(req) {
     const userAgent = req.headers["user-agent"] || "";
     const ipAddress = req.ip || "";
@@ -723,10 +749,13 @@ class MemberController extends BaseController {
         // Now you have the user (member) and their ID, use member.id instead of user.id
         const userId = member.id;
 
+<<<<<<< Updated upstream
         // Fetch payment methods for the user
        
 
 
+=======
+>>>>>>> Stashed changes
         let parcelsArr = [];
         let viasArr = [];
         if (parcels) {
