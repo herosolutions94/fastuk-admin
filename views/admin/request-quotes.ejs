@@ -37,16 +37,21 @@
             </td>
 
             <td>
-              <p><%= requestQuote.full_name %></p>
+              <p><%= requestQuote.member_name %></p>
             </td>
             <td>
               <p>
-                <% if (requestQuote.status === 1) { %>
-                <a href="#" class="status badge success">Active</a>
+                <% if (requestQuote && requestQuote.status === 'completed') { %>
+                    <a href="#" class="status badge success">Completed</a>
+                <% } else if (requestQuote && requestQuote.status === 'accepted') { %>
+                    <a href="#" class="status badge success">Accepted</a>
+                <% } else if (requestQuote && requestQuote.status === 'paid') { %>
+                    <a href="#" class="status badge success">Paid</a>
                 <% } else { %>
-                <a href="#" class="status badge warning">Inactive</a>
+                    <a href="#" class="status badge warning">Unknown Status</a>
                 <% } %>
-              </p>
+            </p>
+            
             </td>
             <td>
               <div class="btn-group">
@@ -57,6 +62,11 @@
                   <i class="fa fa-ellipsis-h"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-primary" role="menu">
+                  <li>
+                    <a href="/admin/order-detail/<%= requestQuote.id %>">
+                      <i class="fa fa-building" aria-hidden="true"></i>View
+                    </a>
+                  </li>
                   <li>
                     <a
                       href="#"

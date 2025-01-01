@@ -17,7 +17,9 @@ class PaymentMethodModel extends BaseModel {
     async getPaymentMethodById(id) {
         // Your database query here
         const query = 'SELECT * FROM payment_methods WHERE id = ?';
+        console.log(query,"query")
         const [rows] = await pool.query(query, [id]);
+        console.log(rows,"rows")
         return rows?.length > 0 ? rows[0] : null;
     }
 
@@ -43,7 +45,7 @@ class PaymentMethodModel extends BaseModel {
         try {
           const query = 'SELECT * FROM payment_methods WHERE user_id = ? AND is_default = 1';
           const [rows] = await pool.query(query, [userId]);
-          return rows[0]; // Returns an array of matching rows
+          return rows || [];  // Ensure it returns an array
         } catch (error) {
           console.error('Error fetching default payment method:', error.message);
           throw new Error('Database error');

@@ -120,7 +120,7 @@ async getOrdersByUserAndStatus({ userId, status }) {
             ON 
                 rq.id = rp.request_id
             WHERE 
-                rq.user_id = ? AND rq.status = ?
+                rq.user_id = ?
             GROUP BY 
                 rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
         `;
@@ -158,15 +158,15 @@ ON
 WHERE 
     rq.user_id = ? 
     AND rq.id = ? 
-    AND rq.status = 'accepted'  
+    AND rq.status != 'pending'  
 GROUP BY 
     rq.id, m.full_name, m.mem_image, m.email, m.mem_phone;
 `;
         
         // Execute the query using the connection pool
         const [rows, fields] = await pool.query(query, [userId, requestId]);
-        console.log("userId:",userId,"requestId:",requestId)
-        console.log("rows:",rows)
+        // console.log("userId:",userId,"requestId:",requestId)
+        // console.log("rows:",rows)
 
         // If no rows are returned, the order doesn't exist
         if (rows.length === 0) {

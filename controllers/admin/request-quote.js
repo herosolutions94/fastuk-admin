@@ -16,7 +16,13 @@ class RequestQuoteController extends BaseController {
     
     async getRequestQuotes(req, res) {
         try {
+            // const id = req.body; // Fetch ID from route params if available
+
             const requestQuotesWithMembers = await RequestQuote.getRequestQuotesWithMembers();
+            console.log('Request Quote Status:', requestQuotesWithMembers.status);
+            console.log('Request Quote name:', requestQuotesWithMembers.source_name);
+            console.log('Request Quotes:', requestQuotesWithMembers);
+
     
             if (requestQuotesWithMembers && requestQuotesWithMembers.length > 0) {
                 res.render('admin/request-quotes', { requestQuotes: requestQuotesWithMembers });
@@ -28,6 +34,25 @@ class RequestQuoteController extends BaseController {
             this.sendError(res, 'Failed to fetch request quotes');
         }
     }
+
+    async getOrderDetails(req, res) {
+        try {
+            const { id } = req.params; // Get the order ID from the route parameters
+    
+            const orderDetails = await RequestQuote.getOrderDetailsById(id);
+            console.log(orderDetails?.status)
+    
+            if (orderDetails) {
+                res.render('admin/order-details', { order: orderDetails });
+            } else {
+                this.sendError(res, 'Order not found');
+            }
+        } catch (error) {
+            console.error('Error fetching order details:', error);
+            this.sendError(res, 'Failed to fetch order details');
+        }
+    }
+    
     
 
     

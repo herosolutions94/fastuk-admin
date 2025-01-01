@@ -56,7 +56,7 @@ class PageModel extends BaseModel {
         // Update the booking_id in the database
         const updateQuery = `UPDATE request_quote SET booking_id = ? WHERE id = ?`;
         console.log( await pool.query(updateQuery, [bookingId, insertId]))
-        console.log(updateQuery)
+        // console.log(updateQuery)
     
         return insertId;
     }
@@ -105,6 +105,33 @@ class PageModel extends BaseModel {
             // console.log('Insert result:', result);
         }
     }
+
+    async insertOrderDetails(detailsArray) {
+        const query = `
+            INSERT INTO order_details 
+            (order_id, source_address, destination_address, distance, height, length, width, weight, parcel_number, parcel_type) 
+            VALUES ?
+        `;
+    
+        // Prepare data for bulk insert
+    const values = detailsArray.map((detail) => [
+        detail.order_id,
+        detail.source_address,
+        detail.destination_address,
+        detail.distance,
+        detail.height,
+        detail.length,
+        detail.width,
+        detail.weight,
+        detail.parcel_number,
+        detail.parcel_type
+    ]);
+    const [result] = await pool.query(query, [values]);
+    // console.log('Insert result:', result);
+
+
+    }
+    
 
 
 }
