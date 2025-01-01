@@ -1,0 +1,120 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Request Quote</h3>
+        <ul>
+          <li><a href="">Home</a></li>
+          <li class="active"><a href="">Message Detail</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dashTable">
+      <div class="card">
+        <div class="card-header">
+          <h5>Order Details:</h5>
+        </div>
+
+        <div class="card-body">
+          <div class="list-group details-group">
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Vehicle Price: </strong><%= order.vehicle_price %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Total Amount: </strong><%= order.total_amount %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Source Post Code: </strong><%= order.source_postcode %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Source Address: </strong><%= order.source_address %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Source Name: </strong><%= order.source_name %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Source Phone Number: </strong><%= order.source_phone_number %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Source City: </strong><%= order.source_city %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Destination Post Code: </strong><%= order.dest_postcode %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Destination Address: </strong><%= order.dest_address %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Destination Name: </strong><%= order.dest_name %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Destination Phone Number: </strong><%= order.dest_phone_number %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Destination City: </strong><%= order.dest_city %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Payment Method: </strong><%= order.payment_method %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Created Date: </strong><%= order.created_date %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Start Date: </strong><%= order.start_date %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Notes: </strong><%= order.notes %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Picked Time: </strong><%= helpers.convertUtcToUkFormat(order.picked_time) %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Delivered Time: </strong><%= helpers.convertUtcToUkFormat(order.delivered_time) %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Updated Time: </strong><%= helpers.convertUtcToUkFormat(order.updated_time) %></p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

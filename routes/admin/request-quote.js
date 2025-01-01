@@ -9,6 +9,7 @@ const requestQuoteController = new RequestQuoteController();
 
 
 router.get('/request-quotes-list', ensureAuthenticated, requestQuoteController.getRequestQuotes.bind(requestQuoteController));
+router.get('/order-detail/:id', ensureAuthenticated, requestQuoteController.getOrderDetails.bind(requestQuoteController));
 router.delete('/request-quotes/delete/:id', ensureAuthenticated, requestQuoteController.deleteRequestQuote.bind(requestQuoteController));
 
 

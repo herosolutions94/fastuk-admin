@@ -6,6 +6,8 @@ const crypto = require("crypto"); // Importing crypto for encryption and hashing
 const pool = require("../config/db-connection");
 const moment = require("moment-timezone");
 const { io, users } = require("../app"); // Import io from app.js
+const axios = require('axios');
+
 
 module.exports = {
   // A sample function that formats a status with secure HTML
@@ -217,6 +219,10 @@ module.exports = {
     return moment.utc().unix(); // Returns the UTC time in seconds
   },
 
+  convertUtcToUkFormat : function (utcTimeInSeconds) {
+    return moment.unix(utcTimeInSeconds).tz("Europe/London").format("DD/MM/YYYY HH:mm:ss"); // UK time format
+  },
+
   doEncode: function (input, key = "preciousprotection") {
     // Ensure input is a string
     const string = String(input);
@@ -260,13 +266,13 @@ module.exports = {
     return decodedString;
   },
 
-  storeNotification: async function (user_id, mem_type, sender, text) {
-    console.log("hi",users)
+  storeNotification: async function (user_id, mem_type, sender, text, link = null) {
+    // console.log("hi",users)
     try {
       // Prepare the query for inserting the notification
       const insertQuery = `
-            INSERT INTO notifications (user_id, mem_type, sender, text, status, created_date)
-            VALUES (?, ?, ?, ?, 0, ?)
+            INSERT INTO notifications (user_id, mem_type, sender, text, status, created_date, link)
+            VALUES (?, ?, ?, ?, 0, ?, ?)
         `;
 
       // Get the current UTC timestamp
@@ -278,7 +284,8 @@ module.exports = {
         mem_type,
         sender,
         text,
-        created_date
+        created_date,
+        link
       ]);
 
       // Check if the notification was successfully inserted
@@ -315,9 +322,10 @@ module.exports = {
         sender_name: senderInfo.sender_name,
         sender_dp: senderInfo.sender_dp,
         text: text,
-        time: created_date
+        time: created_date,
+        link: link
       };
-      console.log(notificationObject,mem_type)
+      // console.log(notificationObject,mem_type)
 
       // Find all sockets associated with the user_id in the users array
       const userSockets = users.filter((user) => parseInt(user.user_id) === parseInt(user_id) && user?.mem_type===mem_type);
@@ -337,5 +345,42 @@ module.exports = {
       console.error("Error storing notification:", error.message);
       throw error;
     }
+  },
+  // Helper function to get latitude and longitude from an address using Nominatim API
+getCoordinates : async function (address)  {
+  try {
+    const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
+    const response = await axios.get(url);
+    if (response.data && response.data.length > 0) {
+      const { lat, lon } = response.data[0];
+      return { lat, lon };
+    } else {
+      throw new Error("Address not found.");
+    }
+  } catch (error) {
+    console.error("Error getting coordinates:", error);
+    throw error;
   }
+},
+
+// Helper function to calculate distance using OSRM API
+getDistance : async function (source, destination)  {
+  try {
+    const sourceCoords = await getCoordinates(source);
+    const destinationCoords = await getCoordinates(destination);
+
+    const osrmUrl = `http://router.project-osrm.org/route/v1/driving/${sourceCoords.lon},${sourceCoords.lat};${destinationCoords.lon},${destinationCoords.lat}?overview=false&steps=false`;
+
+    const response = await axios.get(osrmUrl);
+    if (response.data.routes && response.data.routes.length > 0) {
+      const distance = response.data.routes[0].distance; // Distance in meters
+      return distance;
+    } else {
+      throw new Error("No route found.");
+    }
+  } catch (error) {
+    console.error("Error calculating distance:", error);
+    throw error;
+  }
+}
 };

@@ -1,5 +1,6 @@
 // models/RiderModel.js
 const pool = require('../config/db-connection');
+const helpers = require('../utils/helpers');
 const { getUtcTimeInSeconds } = require('../utils/helpers');
 const BaseModel = require('./baseModel');
 const moment = require('moment');
@@ -109,21 +110,24 @@ async getRequestQuoteById(requestId) {
 }
 
 async assignRiderAndUpdateStatus(riderId, requestId) {
-    console.log(requestId,riderId)
+    // console.log(requestId,riderId)
     // Get current date in YYYY-MM-DD format
     const assignedDate = new Date().toISOString().split('T')[0];
+    const updatedTime = helpers.getUtcTimeInSeconds();
+
 
     const query = `
         UPDATE request_quote 
         SET 
             assigned_rider = ?, 
             assigned_date = ?, 
-            status = 'accepted' 
+            status = 'accepted',
+            updated_time = ?  
         WHERE 
             id = ?`; // Ensure the current status is 'paid'
 
-    const [result] = await pool.query(query, [riderId, assignedDate, requestId]);
-    console.log("result:", result)
+    const [result] = await pool.query(query, [riderId, assignedDate,updatedTime, requestId]);
+    // console.log("result:", result)
     return result; // Contains affectedRows and other info
 }
 
@@ -185,8 +189,7 @@ ON
     rq.id = rp.request_id
 WHERE 
     rq.assigned_rider = ? 
-    AND rq.id = ? 
-    AND rq.status = 'accepted'  
+    AND rq.id = ?  
 GROUP BY 
     rq.id, m.full_name, m.mem_image, m.email, m.mem_phone;
 `;
@@ -195,6 +198,7 @@ GROUP BY
         const [rows, fields] = await pool.query(query, [assignedRiderId, requestId]);
         // console.log("assignedRiderId:",assignedRiderId,"requestId:",requestId)
         // console.log("rows:",rows)
+        // console.log("query:",query)
 
         // If no rows are returned, the order doesn't exist
         if (rows.length === 0) {
@@ -230,42 +234,49 @@ getRequestById = async (id, riderId) => {
   
  updateSourceRequestStatus = async (id, updates) => {
     const { is_picked, picked_time } = updates;
+    const updatedTime = helpers.getUtcTimeInSeconds();
+
     const query = `
     UPDATE request_quote 
-    SET is_picked = ?, picked_time = ? 
+    SET is_picked = ?, picked_time = ? ,
+    updated_time = ? 
     WHERE id = ? 
   `;
-    const values = [is_picked, picked_time, id];
+    const values = [is_picked, picked_time, updatedTime, id];
     const [rows] = await pool.query(query, values);
     return rows;
   };
   updateDestinationRequestStatus = async (id, updates) => {
     const { is_delivered, delivered_time } = updates;
+    const updatedTime = helpers.getUtcTimeInSeconds();
+
     const query = `
     UPDATE request_quote 
-    SET is_delivered = ?, delivered_time = ? 
+    SET is_delivered = ?, delivered_time = ? ,
+    updated_time = ?
     WHERE id = ? 
   `;
-    const values = [is_delivered, delivered_time, id];
+    const values = [is_delivered, delivered_time, updatedTime, id];
     const [rows] = await pool.query(query, values);
     return rows;
   };
 
-  createInvoiceEntry = async (requestId, charges, amountType,loc_type, via_id) => {
+  createInvoiceEntry = async (requestId, charges, amountType, status,type, via_id, paymentType,payment_intent_id, payment_method_id, payment_method) => {
     try {
 
         const ukDate = getUtcTimeInSeconds();
 
       const query = `
-        INSERT INTO invoices (request_id, type, amount, amount_type, status, created_date, via_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO invoices (request_id, type, amount, amount_type, status, created_date, via_id, payment_type, payment_intent_id, payment_method_id, payment_method)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
       
-      const values = [requestId, loc_type, charges, amountType, 'pending', ukDate, via_id];
+      const values = [requestId, type, charges, amountType, status, ukDate, via_id, paymentType, payment_intent_id,payment_method_id, payment_method];
+    //   console.log("values:",values)
       
       // Execute the query to insert the data into the invoices table
       const [result] = await pool.query(query, values);
-  
+    //   console.log(result,"Result")
       // Return the result, typically the inserted record ID
       return result;
     } catch (error) {
@@ -301,26 +312,55 @@ getRequestById = async (id, riderId) => {
 
   
   updateRequestQuoteSourceCompleted = async (id) => {
+    const updatedTime = helpers.getUtcTimeInSeconds();
+
     const query = `
       UPDATE request_quote 
-      SET source_completed = 1 
+      SET source_completed = 1 ,
+       updated_time = ?
       WHERE id = ? 
     `;
     
-    const values = [id];
+    const values = [updatedTime, id];
     
     const [rows] = await pool.query(query, values);
     
     return rows; // This returns the number of affected rows
   };
+
+  async updateRequestQuoteTime(requestId) {
+    try {
+        const query = `
+            UPDATE request_quote
+            SET updated_time = ?
+            WHERE id = ?;
+        `;
+
+        // Get the current UTC time in seconds
+        const updatedTime = helpers.getUtcTimeInSeconds();
+
+        // Execute the query
+        const [result] = await pool.query(query, [updatedTime, requestId]);
+
+        return result.affectedRows > 0; // Return true if the row was updated
+    } catch (error) {
+        console.error("Error updating updated_time in request_quote:", error);
+        throw error; // Re-throw the error for higher-level handling
+    }
+}
+
   updateRequestQuoteDestinationCompleted = async (id) => {
+
+    const updatedTime = helpers.getUtcTimeInSeconds();
+
     const query = `
       UPDATE request_quote 
-      SET finished = 1 
+      SET finished = 1 ,
+      updated_time = ?
       WHERE id = ? 
     `;
     
-    const values = [id];
+    const values = [updatedTime, id];
     
     const [rows] = await pool.query(query, values);
     
@@ -354,7 +394,9 @@ async getViaByRequestAndId(requestId, viaId) {
 }
 
 async updateViaStatus(viaId, updateData) {
+
     try {
+
         const query = `
             UPDATE vias 
             SET is_picked = ?, picked_time = ? 
@@ -375,6 +417,7 @@ async updateViaStatus(viaId, updateData) {
 
 
 updateViaSourceCompleted = async (id) => {
+
     const query = `
       UPDATE vias 
       SET source_completed = 1 
@@ -405,7 +448,8 @@ updateViaSourceCompleted = async (id) => {
         JOIN request_quote r ON i.request_id = r.id
         LEFT JOIN vias v ON i.via_id = v.id
         WHERE r.id = ?
-        GROUP BY r.id, i.type, i.via_id, r.source_address, r.dest_address, v.address;
+        GROUP BY r.id, i.type, i.via_id, r.source_address, r.dest_address, v.address
+        ORDER BY i.id ASC;
     `;
     try {
         const [rows] = await pool.query(query, [requestId]);
@@ -428,6 +472,26 @@ updateViaSourceCompleted = async (id) => {
     }
 }
 
+async  getDueAmountByRequestId(requestId) {
+    try {
+      // Query to sum the amount where status = 0
+      const query = 'SELECT SUM(amount) AS dueAmount FROM invoices WHERE request_id = ? AND status = 0';
+      
+      // Execute the query using the connection pool
+      const [rows] = await pool.query(query, [requestId]);
+  
+      // If rows contain results, return the sum of the amount
+      if (rows && rows.length > 0) {
+        return rows[0].dueAmount || 0; // Return the sum or 0 if no amounts are found
+      }
+  
+      return 0; // Default value if no due amount is found
+    } catch (error) {
+      console.error("Error fetching due amount:", error);
+      throw new Error("Failed to fetch due amount.");
+    }
+}
+
  async countViasBySourceCompleted(requestId) {
     try {
       const [rows] = await pool.query(
@@ -437,7 +501,7 @@ updateViaSourceCompleted = async (id) => {
         [requestId] // Provide the requestId as an array
       );
       
-      console.log("Raw rows result:", rows);
+    //   console.log("Raw rows result:", rows);
       return rows[0].viasCount; // Extract the count value
     } catch (error) {
       console.error("Error fetching vias count:", error);

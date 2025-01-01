@@ -19,6 +19,8 @@ router.post('/update-request-status', upload,riderController.updateRequestStatus
 router.post('/mark-as-completed', upload,riderController.markAsCompleted.bind(riderController));
 router.get('/get-invoices-detail', upload,riderController.getInvoiceDetails.bind(riderController));
 router.post('/test-notification', upload,riderController.testNotification.bind(riderController));
+router.post('/update-order-completed', upload,riderController.updateRequestStatusToCompleted.bind(riderController));
+
 
 
 
