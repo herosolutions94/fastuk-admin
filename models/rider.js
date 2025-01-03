@@ -19,10 +19,10 @@ class Rider {
 
     // Add a method to update rider info
     static async updateRider(id, riderData) {
-        const { full_name, email, phone_number, dob, address, city, vehicle_owner, vehicle_type, vehicle_registration_num, driving_license_num, status, driving_license } = riderData;
+        const { full_name, email, mem_phone, dob, mem_address1, city, vehicle_owner, vehicle_type, vehicle_registration_num, driving_license_num, status, driving_license } = riderData;
         await pool.query(
-            'UPDATE riders SET full_name = ?, email = ?, phone_number = ?, dob = ?, address = ?, city = ?, vehicle_owner = ?, vehicle_type = ?, vehicle_registration_num = ?, driving_license_num = ?, status = ?, driving_license = ? WHERE id = ?',
-            [full_name, email, phone_number, dob, address, city, vehicle_owner, vehicle_type, vehicle_registration_num, driving_license_num, status, driving_license, id]
+            'UPDATE riders SET full_name = ?, email = ?, mem_phone = ?, dob = ?, mem_address1 = ?, city = ?, vehicle_owner = ?, vehicle_type = ?, vehicle_registration_num = ?, driving_license_num = ?, status = ?, driving_license = ? WHERE id = ?',
+            [full_name, email, mem_phone, dob, mem_address1, city, vehicle_owner, vehicle_type, vehicle_registration_num, driving_license_num, status, driving_license, id]
         );
     }
     // models/rider.js
