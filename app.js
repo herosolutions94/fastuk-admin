@@ -9,11 +9,18 @@ const https = require('https');
 const fs = require('fs');
 const { Server } = require('socket.io');
 
+
+const sslOptions = {
+  key: fs.readFileSync('/var/www/html/fastuk-admin/ssl/private.key'), // Replace with the path to your private key
+  cert: fs.readFileSync('/var/www/html/fastuk-admin/ssl/certificate.crt'), // Replace with the path to your certificate
+  ca: fs.readFileSync('/var/www/html/fastuk-admin/ssl/ca_bundle.crt') // Optional: Add this if you have a CA bundle
+};
+
 const app = express();
-const socketServer = http.createServer(app);
+const socketServer = https.createServer(sslOptions, app);
 const io = new Server(socketServer, {
   cors: {
-    origin: 'http://localhost:3000', // Allow connection from this frontend
+    origin: 'https://18.133.79.26:4000', // Allow connection from this frontend
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization','accept'],
   }
@@ -88,7 +95,7 @@ app.use((req, res, next) => {
 });
 
 // Configure CORS to allow requests from http://localhost:3000
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:4000'];
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:4000','https://18.133.79.26:4000'];
 
 app.use(cors({
     origin: (origin, callback) => {
