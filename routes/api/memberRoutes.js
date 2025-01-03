@@ -30,6 +30,9 @@ router.post('/mark-payment-method-as-default', upload, (req, res) => memberContr
 router.post('/get-user-notifications', upload, (req, res) => memberController.getNotifications(req, res));
 router.post('/payment-intent', upload, (req, res) => memberController.createPaymentIntent(req, res));
 router.post('/create-invoice', upload, (req, res) => memberController.createInvoice(req, res));
+router.post('/find-best-route', upload, (req, res) => memberController.findBestRoute(req, res));
+// app.post('/find-best-route', async (req, res) => {
+
 
 
 
