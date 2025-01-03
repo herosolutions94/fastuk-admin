@@ -1903,6 +1903,39 @@ class MemberController extends BaseController {
       return res.status(200).json({ error: "An error occurred." });
     }
   }
+  // Route to find the best route based on order details
+// app.post('/find-best-route', async (req, res) => {
+  async findBestRoute(req,res) {
+  const orderDetails = req.body.order_details; // Array of order details with source and destination
+  
+  // Ensure order_details is an array
+  if (!Array.isArray(orderDetails)) {
+    return res.status(200).json({ status: 0, msg: "Invalid order_details format" });
+  }
+
+  // Calculate distances between each source and destination pair
+  const distanceResults = [];
+  
+  for (let i = 0; i < orderDetails.length; i++) {
+    const detail = orderDetails[i];
+    const distance = await helpers.getDistance(detail.source, detail.destination);
+    distanceResults.push({
+      ...detail,
+      distance: distance
+    });
+  }
+
+  // Sort the distances from shortest to longest
+  distanceResults.sort((a, b) => a.distance - b.distance);
+
+  // Return the sorted order details
+  return res.status(200).json({
+    status: 1,
+    msg: "Sorted order details based on shortest to longest path",
+    data: distanceResults
+  });
+};
+
 }
 
 module.exports = MemberController;

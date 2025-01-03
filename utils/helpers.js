@@ -349,6 +349,8 @@ module.exports = {
   // Helper function to get latitude and longitude from an address using Nominatim API
 getCoordinates : async function (address)  {
   try {
+    console.log("Querying address:", address); // Log the address
+
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
     const response = await axios.get(url);
     if (response.data && response.data.length > 0) {
@@ -366,8 +368,8 @@ getCoordinates : async function (address)  {
 // Helper function to calculate distance using OSRM API
 getDistance : async function (source, destination)  {
   try {
-    const sourceCoords = await getCoordinates(source);
-    const destinationCoords = await getCoordinates(destination);
+    const sourceCoords = await this.getCoordinates(source);
+    const destinationCoords = await this.getCoordinates(destination);
 
     const osrmUrl = `http://router.project-osrm.org/route/v1/driving/${sourceCoords.lon},${sourceCoords.lat};${destinationCoords.lon},${destinationCoords.lat}?overview=false&steps=false`;
 
