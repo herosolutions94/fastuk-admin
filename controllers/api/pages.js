@@ -273,7 +273,7 @@ class PagesController extends BaseController {
       console.error("Error:", err);
       res.status(200).json({ error: "Internal Server Error" });
     }
-  }
+  }z
   async getSignUpData(req, res) {
     try {
       const siteSettings = res.locals.adminData;
