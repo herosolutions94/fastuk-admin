@@ -121,7 +121,9 @@
               <button type="button" class="uploadImg">
                 <i class="fa-regular fa-image"></i>choose another image
               </button>
-              <input type="file" class="uploadFile" name="mem_image" />
+              <input type="file" class="uploadFile" name="mem_image"                         
+              value="<%= editMemberId ? member.mem_image : '' %>"
+              />
             </div>
           </div>
           <hr />
