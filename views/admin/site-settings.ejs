@@ -291,8 +291,8 @@
                         name="site_sandbox"
                         value="<%= settings.site_sandbox || '' %>"
                         class="input">
-                        <option value="1">Testing</option>
-                        <option value="0">Live</option>
+                        <option value="1" <%= settings.site_sandbox === '1' ? 'selected' : '' %>>Testing</option>
+                        <option value="0" <%= settings.site_sandbox === '0' ? 'selected' : '' %>>Live</option>
                       </select>
                     </div>
                   </div>

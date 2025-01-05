@@ -84,12 +84,12 @@
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Created Date: </strong><%= order.created_date %></p>
+                <p><strong>Created Date: </strong><%= helpers.toUKDateFormat(order.created_date) %></p>
               </div>
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Start Date: </strong><%= order.start_date %></p>
+                <p><strong>Start Date: </strong><%= helpers.toUKDateFormat(order.start_date) %></p>
               </div>
             </div>
             <div class="list-group-item">

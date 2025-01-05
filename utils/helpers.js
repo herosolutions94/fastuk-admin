@@ -222,6 +222,23 @@ module.exports = {
   convertUtcToUkFormat : function (utcTimeInSeconds) {
     return moment.unix(utcTimeInSeconds).tz("Europe/London").format("DD/MM/YYYY HH:mm:ss"); // UK time format
   },
+  toUKDateFormat: function (dateInput) {
+    // Ensure the input is a Date object
+    const date = new Date(dateInput);
+  
+    // Check if the date is valid
+    if (isNaN(date)) {
+      throw new Error("Invalid date provided.");
+    }
+  
+    // Extract day, month, and year
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-indexed
+    const year = date.getFullYear();
+  
+    // Return in DD/MM/YYYY format
+    return `${day}/${month}/${year}`;
+  },
 
   doEncode: function (input, key = "preciousprotection") {
     // Ensure input is a string
