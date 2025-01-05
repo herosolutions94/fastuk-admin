@@ -220,7 +220,28 @@ $(document).ready(function () {
 
 
 
+  // Select all preview blocks
+  document.querySelectorAll('.card-body.preview').forEach((previewBlock) => {
+    const fileInput = previewBlock.querySelector('.uploadFile'); // Get the file input in this block
+    const previewImg = previewBlock.querySelector('.previewImg'); // Get the image in this block
 
+    // Add an event listener for file selection
+    fileInput.addEventListener('change', (event) => {
+      const file = event.target.files[0]; // Get the selected file
+
+      if (file) {
+        const reader = new FileReader(); // Create a FileReader to read the file
+
+        // Set the image source when the file is read
+        reader.onload = (e) => {
+          previewImg.src = e.target.result; // Update image src with file data
+          previewImg.style.display = 'block'; // Make sure the image is visible
+        };
+
+        reader.readAsDataURL(file); // Read the file as a data URL
+      }
+    });
+  });
 
 
 
