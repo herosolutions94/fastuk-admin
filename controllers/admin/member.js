@@ -86,7 +86,6 @@ class MemberController extends BaseController {
                 // If no new image is uploaded, retain the old image
                 memberData.mem_image = currentMember.mem_image;
             }
-
             // Update the rider in the database
             await Member.updateMember(memberId, memberData);
 
