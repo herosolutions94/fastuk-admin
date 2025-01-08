@@ -43,11 +43,11 @@ class RiderController extends BaseController {
         mem_verified,
         vehicle_registration_num,
         driving_license_num,
+        driving_license,
 
         fingerprint // Keep fingerprint as a parameter
       } = req.body;
 
-      // Clean and trim data
       const cleanedData = {
         full_name: typeof full_name === "string" ? full_name.trim() : "",
         email: typeof email === "string" ? email.trim().toLowerCase() : "",
@@ -69,6 +69,10 @@ class RiderController extends BaseController {
         driving_license_num:
           typeof driving_license_num === "string"
             ? driving_license_num.trim()
+            : "",
+        driving_license:
+          typeof driving_license === "string"
+            ? driving_license.trim()
             : "",
         created_date: new Date(),
         status: 1,
