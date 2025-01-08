@@ -309,11 +309,13 @@ class PagesController extends BaseController {
         : {};
         const cities = await helpers.getCities();  // Use await to get the cities array
 
-
+      const vehicleModel = new VehicleModel();
+      const vehicles = await vehicleModel.getActiveVehicles();
       // Combine the content and multi_text data
       const jsonResponse = {
         siteSettings,
         content: formData,
+        vehicles: vehicles,
         cities
       };
 
