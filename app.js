@@ -10,14 +10,14 @@ const fs = require('fs');
 const { Server } = require('socket.io');
 
 
-// const sslOptions = {
-//   key: fs.readFileSync('/var/www/html/fastuk-admin/ssl/private.key'), // Replace with the path to your private key
-//   cert: fs.readFileSync('/var/www/html/fastuk-admin/ssl/certificate.crt'), // Replace with the path to your certificate
-//   ca: fs.readFileSync('/var/www/html/fastuk-admin/ssl/ca_bundle.crt') // Optional: Add this if you have a CA bundle
-// };
+ const sslOptions = {
+   key: fs.readFileSync('/var/www/html/fastuk-admin/ssl/private.key'), // Replace with the path to your private key
+   cert: fs.readFileSync('/var/www/html/fastuk-admin/ssl/certificate.crt'), // Replace with the path to your certificate
+   ca: fs.readFileSync('/var/www/html/fastuk-admin/ssl/ca_bundle.crt') // Optional: Add this if you have a CA bundle
+ };
 
 const app = express();
-const socketServer = http.createServer(app);
+const socketServer = https.createServer(sslOptions,app);
 const io = new Server(socketServer, {
   cors: {
     origin: 'https://18.133.79.26:4000', // Allow connection from this frontend
