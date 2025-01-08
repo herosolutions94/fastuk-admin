@@ -48,7 +48,6 @@ class RiderController extends BaseController {
         fingerprint // Keep fingerprint as a parameter
       } = req.body;
 
-      // Clean and trim data
       const cleanedData = {
         full_name: typeof full_name === "string" ? full_name.trim() : "",
         email: typeof email === "string" ? email.trim().toLowerCase() : "",
