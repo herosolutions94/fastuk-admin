@@ -6,10 +6,12 @@ const baseController = new BaseController(); // Instantiate the BaseController
 
 const PageModel = require("../../models/api/pages"); // Assuming you have this model
 const MemberModel = require("../../models/memberModel");
+const MessageModel = require("../../models/messageModel");
 const Token = require("../../models/tokenModel");
 const helpers = require('../../utils/helpers')
 
 const TestimonialModel = require("../../models/api/testimonialModel");
+const SubscribersModel = require("../../models/api/subscribersModel");
 const TeamModel = require("../../models/api/teamModel");
 const FaqModel = require("../../models/api/faqModel");
 const VehicleModel = require("../../models/api/vehicleModel");
@@ -39,8 +41,10 @@ class PagesController extends BaseController {
   constructor() {
     super();
     this.pageModel = new PageModel();
+    this.subscribers = new SubscribersModel();
     this.tokenModel = new Token();
-    this.memberModel = new MemberModel(); // Create an instance of MemberModel
+    this.memberModel = new MemberModel(); 
+    this.contact_messages = new MessageModel(); 
   }
   async getHomeData(req, res) {
     const testimonialModel = new TestimonialModel();
@@ -434,7 +438,75 @@ class PagesController extends BaseController {
     }
   }
 
-  
+  async save_subscriber(req, res) {
+      try {
+        const {
+          email
+        } = req.body;
+    
+        if (!email || email=='' || email==null || email==undefined) {
+          return res.status(200).json({ status: 0, msg: "Email is required!" });
+        }
+    
+        // Email validation
+        if (!validateEmail(email)) {
+          return res.status(200).json({ status: 0, msg: "Invalid email format." });
+        }
+    
+        // Check if email already exists
+        const existingUser = await this.subscribers.findByEmail(email);
+        if (existingUser) {
+          return res.status(200).json({ status: 0, msg: "Email already exists." });
+        }
+    
+    
+        // Create the user
+        await this.subscribers.createSubscriber({email:email,created_at:new Date(),status:0});
+    
+        return res.status(200).json({
+          status: 1,
+          msg: "Subscribed successfully!",
+        });
+      } catch (error) {
+        return res.status(200).json({
+          status: 0,
+          msg: "An error occurred during registration.",
+          error: error.message,
+        });
+      }
+    }
+    async save_contact_message(req, res) {
+      try {
+        const {
+          name,
+          email,
+          phone_number,
+          subject,
+          message,
+        } = req.body;
+    
+        if (!email || email=='' || email==null || email==undefined) {
+          return res.status(200).json({ status: 0, msg: "Email is required!" });
+        }
+    
+        // Email validation
+        if (!validateEmail(email)) {
+          return res.status(200).json({ status: 0, msg: "Invalid email format." });
+        }
+        await this.contact_messages.createMessage({name:name,email:email,phone_number:phone_number,subject:subject,message:message,created_date:new Date(),status:0});
+    
+        return res.status(200).json({
+          status: 1,
+          msg: "Message sent successfully!",
+        });
+      } catch (error) {
+        return res.status(200).json({
+          status: 0,
+          msg: "An error occurred during registration.",
+          error: error.message,
+        });
+      }
+    }
 
   
 
