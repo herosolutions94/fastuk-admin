@@ -24,6 +24,8 @@ router.get('/business', (req, res) => pagesController.getBusinessData(req, res))
 router.get('/rider', (req, res) => pagesController.getRiderData(req, res));
 
 router.post('/get-addresses', upload, (req, res) => pagesController.getAddress(req, res));
+router.post('/save-subscriber', upload, (req, res) => pagesController.save_subscriber(req, res));
+router.post('/save-contact-message', upload, (req, res) => pagesController.save_contact_message(req, res));
 
 
 
