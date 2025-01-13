@@ -336,48 +336,83 @@ class MemberController extends BaseController {
     // API to verify OTP, generate a reset token, and store it
     async verifyOtpAndGenerateToken(req, res) {
         try {
-            const { otp,fingerprint } = req.body;
-    
+            const { otp,fingerprint,token,mem_type } = req.body;
             // Validate input
             if (!otp) {
                 return res.status(200).json({ status: 0, msg: 'OTP is required.' });
             }
-    
-            // Clean the OTP data
-            const cleanedOtp = parseInt(otp, 10);
-    
-            // Check if the OTP exists in the database and get the member
-            const existingMember = await this.member.findByOtp(cleanedOtp);  // Assuming you have a method findByOtp
-    
-            if (!existingMember) {
-                return res.status(200).json({
-                    status: 0,
-                    msg: 'OTP does not exist in the system.',
-                });
+            if (!token) {
+                return res.status(200).json({ status: 0, msg: 'Session is expired.',expired:1 });
             }
     
+            // Clean the OTP data
+            const cleanedOtp = parseInt(otp);
+            const userResponse = await this.validateTokenAndGetMember(token, mem_type);
+        
+            if (userResponse.status === 0) {
+              // If validation fails, return the error message
+              return res.status(200).json(userResponse);
+            }
+            const memberData=userResponse.user;
+            // Check if the OTP exists in the database and get the member
+            // const existingMember = await this.member.findByOtp(cleanedOtp);  // Assuming you have a method findByOtp
+    
+            // if (!existingMember) {
+            //     return res.status(200).json({
+            //         status: 0,
+            //         msg: 'OTP does not exist in the system.',
+            //     });
+            // }
+    
             // Validate OTP from the database
-            if (existingMember.otp !== cleanedOtp) {
+            if (parseInt(memberData.otp) !== cleanedOtp) {
                 return res.status(200).json({
                     status: 0,
                     msg: 'Invalid OTP.',
                 });
             }
-    
+            const currentTime = new Date();
+            const expireTime = new Date(memberData.expire_time);
+      
+            if (currentTime > expireTime) {
+              return res.status(200).json({
+                status: 0,
+                msg: "OTP has expired. Please request to reset password again.",
+                isOtpExpired:1
+              });
+            }
+            if(mem_type=='rider'){
+              await this.rider.updateRiderData(memberData.id, {
+                  otp: null,
+                  expire_time: null
+              });
+            }
+            else{
+              await this.member.updateMemberData(memberData.id, {
+                  otp: null,
+                  expire_time: null
+              });
+            }
+            
             // OTP is correct, now generate a reset token
-            let userId = existingMember?.id;
+            let userId = memberData?.id;
             let actualFingerprint =
             fingerprint || this.generatePseudoFingerprint(req);
-        const token=await this.storeAndReturnToken(
-         userId,
-         existingMember?.mem_type,
-          actualFingerprint
-        );
+            let token_mem_type=memberData?.token_mem_type
+            if(mem_type=='rider'){
+              token_mem_type='rider'
+            }
+            const resetToken=await this.storeAndReturnToken(
+             userId,
+             token_mem_type,
+              actualFingerprint
+            );
             return res.status(200).json({
                 status: 1,
-                resetToken:token,
-                mem_type:existingMember?.mem_type, // Return the reset token to the frontend
+                resetToken:resetToken,
+                mem_type:token_mem_type, // Return the reset token to the frontend
                 msg: 'OTP verified successfully and reset token generated.',
+                expire_time:null
             });
         } catch (error) {
             // Handle any errors
@@ -439,7 +474,7 @@ class MemberController extends BaseController {
   }
       async forgetPassword(req, res) {
         try {
-            const { email } = req.body;
+            const { email,fingerprint,user_type } = req.body;
 
             // Validate if email is provided
             if (!email) {
@@ -450,7 +485,10 @@ class MemberController extends BaseController {
             const cleanedEmail = typeof email === 'string' ? email.trim() : '';
 
             // Check if the email exists in the database
-            const existingMember = await this.member.findByEmail(cleanedEmail);
+            let existingMember = await this.member.findByEmail(cleanedEmail);
+            if(user_type==='rider'){
+              existingMember=await this.rider.findByEmail(cleanedEmail)
+            }
             if (!existingMember) {
                 return res.status(200).json({
                     status: 0,
@@ -460,15 +498,42 @@ class MemberController extends BaseController {
 
             // Generate a random OTP
             const otp = Math.floor(100000 + Math.random() * 900000); // OTP between 100000 and 999999
-
+            const newExpireTime = new Date();
+            newExpireTime.setMinutes(newExpireTime.getMinutes() + 3); 
             // Store the OTP in the member record
             existingMember.otp = otp;
-            await this.member.updateOtp(existingMember.id, otp);
-
+            let memType=''
+            if(user_type==='rider'){
+              await this.rider.updateRiderData(existingMember.id, {
+                  otp: otp,
+                  expire_time: newExpireTime
+              });
+              memType='rider'
+            }
+            else{
+              await this.member.updateMemberData(existingMember.id, {
+                  otp: otp,
+                  expire_time: newExpireTime
+              });
+              
+              memType=existingMember?.mem_type
+            }
+            console.log(memType,'memType')
+            const userId=existingMember.id;
+            let actualFingerprint =
+            fingerprint || this.generatePseudoFingerprint(req); // Use let to allow reassignment
+            const authToken=await this.storeAndReturnToken(
+             userId,
+              memType,
+              actualFingerprint
+            );
             // Send success response
             return res.status(200).json({
                 status: 1, // OTP generated successfully
                 msg: 'An otp is sent to your email.',
+                expire_time:newExpireTime,
+                authToken:authToken,
+                mem_type:memType
             });
         } catch (error) {
             // console.log(error)
@@ -483,8 +548,8 @@ class MemberController extends BaseController {
 
     resetPassword = async (req, res) => {
         try {
-            // console.log(req.body)
-            const { token, new_password, confirm_password,fingerprint,memType } = req.body;
+            console.log(req.body)
+            const { token, new_password, confirm_password,fingerprint,memType,user_type } = req.body;
     
             // Check if all fields are provided
             if (!token || !new_password || !confirm_password) {
@@ -505,7 +570,19 @@ class MemberController extends BaseController {
             if (!token) {
               return res.status(200).json({ status: 0, msg: "Token is required." });
             }
-            const userResponse = await this.validateTokenAndGetMember(token, memType);
+            let mem_type=memType;
+            if(!memType){
+              mem_type='user'
+              if(user_type=='rider'){
+                mem_type='rider'
+              }
+              
+            }
+            else if(user_type){
+              mem_type=user_type
+            }
+            console.log(mem_type,'mem_type')
+            const userResponse = await this.validateTokenAndGetMember(token, mem_type);
         
             if (userResponse.status === 0) {
               // If validation fails, return the error message
@@ -521,14 +598,20 @@ class MemberController extends BaseController {
             const updatedMemberData = {
                 password: hashedPassword,
             };
-            await this.member.updateMemberData(userId, updatedMemberData); // Assuming `updateMemberData` is a function that updates the user's data in the DB
+            if(mem_type=='rider'){
+              await this.rider.updateRiderData(userId, updatedMemberData);
+            }
+            else{
+              await this.member.updateMemberData(userId, updatedMemberData);
+             // Assuming `updateMemberData` is a function that updates the user's data in the DB
+            }
     
             // Optionally, you can regenerate a new token if needed
             let actualFingerprint =
             fingerprint || this.generatePseudoFingerprint(req); // Use let to allow reassignment
       const authToken=await this.storeAndReturnToken(
        userId,
-        memType,
+        mem_type,
         actualFingerprint
       );
     
@@ -537,7 +620,7 @@ class MemberController extends BaseController {
                 status: 1,
                 msg: "Password updated successfully.",
                 authToken: authToken,
-                mem_type:memType
+                mem_type:mem_type
                 // Send the reset token (or use the existing token)
             });
         } catch (error) {
