@@ -15,16 +15,17 @@ class PageModel extends BaseModel {
 
     async createRequestQuote(data) {
         const query = `
-            INSERT INTO request_quote(user_id, selected_vehicle, vehicle_price, total_amount, payment_intent, customer_id, source_postcode, source_address,
+            INSERT INTO request_quote(user_id, selected_vehicle, vehicle_price, total_amount,tax, payment_intent, customer_id, source_postcode, source_address,
             source_name, source_phone_number, source_city, dest_postcode, dest_address, dest_name, dest_phone_number, dest_city,
             payment_method, payment_method_id, status, start_date, created_date, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const values = [
             data.user_id,
             data.selected_vehicle,
             data.vehicle_price,
             data.total_amount,
+            data.tax,
             data.payment_intent,
             data.customer_id,
             data.source_postcode,
@@ -109,7 +110,7 @@ class PageModel extends BaseModel {
     async insertOrderDetails(detailsArray) {
         const query = `
             INSERT INTO order_details 
-            (order_id, source_address, destination_address, distance, height, length, width, weight, parcel_number, parcel_type) 
+            (order_id, source_address, destination_address, distance, height, length, width, weight, parcel_number, parcel_type, price) 
             VALUES ?
         `;
     
@@ -124,7 +125,8 @@ class PageModel extends BaseModel {
         detail.width,
         detail.weight,
         detail.parcel_number,
-        detail.parcel_type
+        detail.parcel_type,
+        detail.price
     ]);
     const [result] = await pool.query(query, [values]);
     // console.log('Insert result:', result);

@@ -223,10 +223,15 @@ async getRidersByCity(city) {
   }
 
 getRequestById = async (id, riderId) => {
+    // console.log(id,riderId);return;
     const query = `
       SELECT * FROM request_quote 
       WHERE id = ? AND assigned_rider = ?
     `;
+    console.log(`
+      SELECT * FROM request_quote 
+      WHERE id = ${id} AND assigned_rider = ${riderId}
+    `)
     const values = [id, riderId];
     const [rows] = await pool.query(query, values);
     return rows;
@@ -262,9 +267,11 @@ getRequestById = async (id, riderId) => {
   };
 
   createInvoiceEntry = async (requestId, charges, amountType, status,type, via_id, paymentType,payment_intent_id, payment_method_id, payment_method) => {
+    const ukDate = getUtcTimeInSeconds();
+    // console.log([requestId, type, charges, amountType, status, ukDate, via_id, paymentType, payment_intent_id,payment_method_id, payment_method]);return;
     try {
 
-        const ukDate = getUtcTimeInSeconds();
+        
 
       const query = `
         INSERT INTO invoices (request_id, type, amount, amount_type, status, created_date, via_id, payment_type, payment_intent_id, payment_method_id, payment_method)
