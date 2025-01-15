@@ -198,20 +198,24 @@ async getUnreadNotificationsCount ({userId, memType}) {
         throw error; // Let the controller handle the error
     }
 }
-static async getUserNotifications(userId) {
+async getNotifications(userId, memType) {
     const query = `
-      SELECT 
-        n.id, n.text, n.created_date, n.sender, 
-        r.full_name AS sender_name, r.mem_image AS sender_image
-      FROM notifications n
-      LEFT JOIN riders r ON n.sender = r.id
-      WHERE n.user_id = ?
-      ORDER BY n.created_date DESC;
+      SELECT * 
+      FROM notifications 
+      WHERE user_id = ? AND mem_type = ?
+      ORDER BY created_date DESC
     `;
-    const [rows] = await pool.query(query, [userId]);
-    return rows;
+    const values = [userId, memType];
+  
+    try {
+      const [rows] = await pool.query(query, values); // Using MySQL `db.execute()` for parameterized queries
+      return rows;
+    } catch (error) {
+      console.error("Error fetching notifications:", error.message);
+      throw new Error("Database query failed.");
+    }
   }
-
+  
   static async getNotificationById(id) {
     const query = 'SELECT * FROM notifications WHERE id = ?;';
     const [rows]   = await pool.query(query, [id]);
@@ -222,6 +226,23 @@ static async getUserNotifications(userId) {
     const query = 'DELETE FROM notifications WHERE id = ?;';
     await pool.query(query, [id]);
   }
+
+  static async updateTempEmail(id, temp_email) {
+    const query = `
+        UPDATE members
+        SET temp_email = ?
+        WHERE id = ?;
+    `;
+    const values = [temp_email, id];
+    const [result] = await pool.query(query, values);
+
+    if (result.affectedRows === 0) {
+        throw new Error("Member not found or update failed.");
+    }
+
+    return result.affectedRows;
+}
+
 
 
 

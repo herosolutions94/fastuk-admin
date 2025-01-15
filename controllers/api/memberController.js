@@ -1790,46 +1790,80 @@ class MemberController extends BaseController {
 
   async getNotifications(req, res) {
     try {
-      const userId = req.user.id; // Assuming user ID is available in the request object
-
-      const notifications = await this.member.getUserNotifications(userId);
-      return res
-        .status(200)
-        .json({
-          status: 1,
-          msg: "Notifications fetched successfully.",
-          notifications
-        });
+      // Extract the required details from the request
+      const { token, memType } = req.body;
+  
+      // Validate input
+      if (!token || !memType) {
+        return res.status(200).json({ status: 0, msg: "Token and memType are required." });
+      }
+  
+      // Validate the token and retrieve the user data
+      const validationResponse = await this.validateTokenAndGetMember(token, memType);
+  
+      if (validationResponse.status === 0) {
+        // Token validation failed
+        return res.status(200).json(validationResponse);
+      }
+  
+      // Extract the user object and ID from validation response
+      const user = validationResponse.user;
+      const userId = user.id;
+  
+      // Fetch notifications for the user and memType
+      const notifications = await this.member.getNotifications(userId, memType);
+  
+      // Return the fetched notifications
+      return res.status(200).json({
+        status: 1,
+        msg: "Notifications fetched successfully.",
+        notifications,
+      });
+  
     } catch (error) {
       console.error("Failed to fetch notifications:", error.message);
-      return res.status(200).json({ status: 0, msg: "Internal Server Error" });
+      return res.status(500).json({ status: 0, msg: "Internal Server Error" });
     }
   }
+  
 
   async deleteNotification(req, res) {
     try {
-      const { id } = req.params;
-      const userId = req.user.id; // Assuming user ID is available in the request object
+      const { id } = req.params; // Notification ID to be deleted
+      const { token, memType } = req.body; // Token and memType from the request body
+  
+      // Validate the token and memType
+      if (!token || !memType) {
+        return res.status(200).json({ status: 0, msg: "Token and memType are required." });
+      }
+  
+      // Validate token and get the user
+      const validationResponse = await this.validateTokenAndGetMember(token, memType);
+      if (validationResponse.status === 0) {
+        return res.status(200).json({ status: 0, msg: validationResponse.msg });
 
+      }
+  
+      const user = validationResponse.user;
+  
       // Verify if the notification exists and belongs to the user
       const notification = await this.member.getNotificationById(id);
-      if (!notification || notification.user_id !== userId) {
-        return this.errorResponse(
-          res,
-          "Notification not found or unauthorized.",
-          null,
-          404
-        );
+      if (!notification || notification.user_id !== user.id || notification.mem_type !== memType) {
+        return res.status(200).json({ status: 0, msg: "Notification not found or unauthorized." });
       }
-
+  
       // Delete the notification
-      await NotificationsModel.deleteNotification(id);
+      await this.member.deleteNotification(id);
+  
+      return res.status(200).json({ status: 1, msg: "Notification deleted successfully." });
 
-      return this.successResponse(res, "Notification deleted successfully.");
     } catch (error) {
-      return this.errorResponse(res, "Failed to delete notification.", error);
+      console.error("Failed to delete notification:", error.message);
+      return res.status(200).json({ status: 0, msg: "Failed to delete notification." });
+
     }
   }
+  
 
   // router.post('/create-payment-intent', async (req, res) => {
   async createPaymentIntent(req, res) {
