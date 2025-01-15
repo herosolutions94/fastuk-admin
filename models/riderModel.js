@@ -508,6 +508,23 @@ async  getDueAmountByRequestId(requestId) {
       throw error;
     }
   }
+
+  async updateTempEmail(id, temp_email) {
+    const query = `
+        UPDATE riders
+        SET temp_email = ?
+        WHERE id = ?;
+    `;
+    const values = [temp_email, id];
+    const [result] = await pool.query(query, values);
+
+    if (result.affectedRows === 0) {
+        throw new Error("Rider not found or update failed.");
+    }
+
+    return result.affectedRows;
+}
+
   
 
 
