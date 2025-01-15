@@ -683,6 +683,52 @@ class MemberController extends BaseController {
         }
     }
 
+    async UpdateEmailAddress(req, res) {
+      try {
+          const { email, token, memType } = req.body;
+          // console.log("Request body:", req.body);
+  
+          // Validate the token and memType
+          if (!email || !token || !memType) {
+              return res.status(200).json({ status: 0, msg: "Email, Token and memType are required." });
+          }
+  
+          // Validate token and get user
+          const validationResponse = await this.validateTokenAndGetMember(token, memType);
+  
+          if (validationResponse.status === 0) {
+              // If the token is invalid, return the validation error message
+              return res.status(200).json(validationResponse);
+          }
+  
+          const user = validationResponse.user;
+          // console.log("Generated OTP:", newOtp, "Expire Time:", newExpireTime);
+  
+          // Update the OTP and expiry time based on memType
+          if (memType === "user") {
+              await Member.updateTempEmail(user.id, email);
+          } else if (memType === "rider") {
+              await this.rider.updateTempEmail(user.id, email)
+          } else {
+              return res.status(200).json({ status: 0, msg: "Invalid memType provided." });
+          }
+  
+           // Respond with OTP expiry time
+          return res.status(200).json({
+           status: 1,
+            msg: "Email address updated successfully.",
+        });          
+      } catch (error) {
+          // Server error handling
+          console.error("Error in updating email address:", error.message);
+          return res.status(200).json({
+              status: 0,
+              msg: "An error occurred while updating email address.",
+              error: error.message
+          });
+      }
+  }
+
 
             
     
