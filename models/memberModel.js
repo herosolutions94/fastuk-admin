@@ -99,7 +99,7 @@ async updateMemberImage (userId, imageUrl) {
   return result.rows[0];
 };
 
-async getOrdersByUserAndStatus({ userId, status }) {
+async getOrdersByUserAndStatus({ userId, status='' }) {
     try {
         const query = `
             SELECT 
@@ -111,10 +111,10 @@ async getOrdersByUserAndStatus({ userId, status }) {
                 COALESCE(SUM(rp.distance), 0) AS total_distance
             FROM 
                 request_quote rq
-            INNER JOIN 
+            LEFT JOIN 
                 riders m 
             ON 
-                rq.assigned_rider = m.id
+                rq.assigned_rider = m.id AND rq.assigned_rider IS NOT NULL
             LEFT JOIN 
                 request_parcels rp 
             ON 
@@ -122,9 +122,11 @@ async getOrdersByUserAndStatus({ userId, status }) {
             WHERE 
                 rq.user_id = ?
             GROUP BY 
-                rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
+                rq.id, m.full_name, m.mem_image, m.email, m.mem_phone;
+
         `;
-        const values = [userId, status];
+        
+        const values = [userId];
         const [rows] = await pool.query(query, values);
         // console.log("orders rows:",rows)
 

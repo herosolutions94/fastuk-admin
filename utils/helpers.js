@@ -18,6 +18,56 @@ module.exports = {
       return '<span class="status badge danger">InActive</span>';
     }
   },
+  calculateParcelsPrice: function (order_details, site_processing_fee) {
+  let orderDetails;
+  // console.log(order_details,'order_details')
+  try {
+    // Parse the input as an array
+    const parsedArray = JSON.parse(order_details);
+    // console.log(parsedArray,'parsedArray')
+    // Parse each element inside the array
+    orderDetails = parsedArray;
+  } catch (error) {
+    console.error("Error parsing order_details JSON:", error.message);
+    return {
+      error: "Invalid JSON format for order_details",
+      tax: 0,
+      total: 0,
+    };
+  }
+
+  // Ensure the parsed data is an array
+  if (!Array.isArray(orderDetails) || orderDetails.length === 0) {
+    return {
+      tax: 0,
+      total: 0,
+    };
+  }
+
+  // console.log(orderDetails, site_processing_fee);
+
+  // Use reduce to accumulate the total sum
+  const totalSum = orderDetails.reduce((total, parcel) => {
+    // Parse `distance` to a float since it is stored as a string
+    const distance = parseFloat(parcel.distance) || 0;
+    const price = parseFloat(parcel.price) || 0;
+
+    // Add the product of price and distance to the total
+    return total + price * distance;
+  }, 0);
+
+  // Get the tax percentage from siteSettings
+  const taxPercentage = parseFloat(site_processing_fee || 0);
+
+  // Calculate tax and grand total
+  const taxAmount = (totalSum * taxPercentage) / 100;
+  const grandTotal = totalSum + taxAmount;
+
+  return {
+    tax: taxAmount,
+    total: grandTotal,
+  };
+},
 
   getVerifiedStatus: function (status) {
     if (status === 1) {
@@ -293,7 +343,7 @@ module.exports = {
         `;
 
       // Get the current UTC timestamp
-      const created_date = moment.utc().format("YYYY-MM-DD HH:mm:ss");
+      const created_date = this.getUtcTimeInSeconds();
 
       // Insert the notification into the database
       const [result] = await pool.query(insertQuery, [

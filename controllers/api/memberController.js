@@ -471,34 +471,9 @@ class MemberController extends BaseController {
     // Create a hash of the combined string for uniqueness
     return crypto.createHash("sha256").update(combined).digest("hex");
   }
-  calculatePArcelsPrice(orderDetails,site_processing_fee){
-    if (!Array.isArray(orderDetails) || orderDetails.length === 0) {
-      return 0;
-    }
   
-    // Use reduce to accumulate the total sum
-    const totalSum = orderDetails.reduce((total, parcel) => {
-      // Parse `distance` to a float since it is stored as a string
-      const distance = parseFloat(parcel.distance) || 0;
-      const price = parcel.price || 0;
-  
-      // Add the product of price and distance to the total
-      return total + price * distance;
-    }, 0);
-  
-    // Get the tax percentage from siteSettings
-    const taxPercentage = parseFloat(site_processing_fee || 0);
-  
-    // Calculate tax and grand total
-    const taxAmount = (totalSum * taxPercentage) / 100;
-    const grandTotal = totalSum + taxAmount;
-    return {
-      tax:taxAmount,
-      total:grandTotal
-    }
-  }
   async paymentIntent(req, res) {
-    const siteSettings = res.locals.adminData;
+    
     const {
       selectedVehicle,
       vehiclePrice,
@@ -534,7 +509,7 @@ class MemberController extends BaseController {
 
     const requiredFields = [
       "selectedVehicle",
-      "vehiclePrice",
+      // "price",
       "source_postcode",
       "source_address",
       "source_name",
@@ -570,8 +545,9 @@ class MemberController extends BaseController {
     }
     // console.log(memType)
     try {
-      let parcel_price_obj=calculatePArcelsPrice(order_details,siteSettings?.site_processing_fee);
-      console.log(parcel_price_obj);return;
+      const siteSettings = res.locals.adminData;
+      let parcel_price_obj=helpers.calculateParcelsPrice(order_details,siteSettings?.site_processing_fee);
+      // console.log(parcel_price_obj);return;
       let userId;
       let token_arr = {};
       // Handle user authentication/creation
@@ -646,7 +622,7 @@ class MemberController extends BaseController {
       const randomNum = crypto.randomBytes(16).toString("hex");
       const tokenType = "user";
       const expiryDate = new Date();
-      expiryDate.setHours(expiryDate.getHours() + 1); // Token expires in 1 hour
+      expiryDate.setMonth(expiryDate.getMonth() + 1); // Token expires in 1 hour
 
       // Create the token
       const authToken = helpers.generateToken(
@@ -664,9 +640,14 @@ class MemberController extends BaseController {
         // console.log("Token stored for user:", userId);
         token_arr = { authToken, type: "user" };
       }
-
+      if(parcel_price_obj?.total==undefined || parcel_price_obj?.total==null || parseFloat(parcel_price_obj?.total)<=5){
+        return res.status(200).json({
+          status: 0,
+          message: "Price should be greater than 5",
+        });
+      }
       // Handle payment logic
-      const parsedAmount = parseFloat(totalAmount);
+      const parsedAmount = parseFloat(parcel_price_obj?.total);
       if (isNaN(parsedAmount) || parsedAmount <= 0) {
         return res
           .status(200)
@@ -706,7 +687,7 @@ class MemberController extends BaseController {
       });
     } catch (error) {
       console.error("Error creating payment intent:", error);
-      return res.status(500).json({
+      return res.status(200).json({
         status: 0,
         message: "Failed to create payment intent",
         error: error.message
@@ -723,8 +704,8 @@ class MemberController extends BaseController {
         token,
         payment_intent_customer_id,
         selectedVehicle,
-        vehiclePrice,
-        totalAmount,
+        remote_price,
+        price,
         parcels,
         source_postcode,
         source_full_address,
@@ -793,13 +774,16 @@ class MemberController extends BaseController {
             .status(200)
             .json({ status: 0, msg: "Invalid start_date format" });
         }
+        const siteSettings = res.locals.adminData;
+        let parcel_price_obj=helpers.calculateParcelsPrice(order_details,siteSettings?.site_processing_fee);
         let requestQuoteId = "";
         if (payment_method === "credit-card") {
           requestQuoteId = await this.pageModel.createRequestQuote({
             user_id: userId, // Save the userId in the request
             selected_vehicle: selectedVehicle,
-            vehicle_price: vehiclePrice,
-            total_amount: totalAmount,
+            vehicle_price: remote_price ? remote_price : price,
+            total_amount: parcel_price_obj?.total,
+            tax: parcel_price_obj?.tax,
             payment_intent: payment_intent_customer_id,
             customer_id: payment_intent_customer_id,
             source_postcode,
@@ -920,8 +904,9 @@ class MemberController extends BaseController {
           requestQuoteId = await this.pageModel.createRequestQuote({
             user_id: userId,
             selected_vehicle: selectedVehicle,
-            vehicle_price: vehiclePrice,
-            total_amount: totalAmount,
+            vehicle_price: remote_price ? remote_price : price,
+            total_amount: parcel_price_obj?.total,
+            tax: parcel_price_obj?.tax,
             payment_intent: paymentIntent.id, // Store the Payment Intent ID
             customer_id: stripePaymentMethod.customer, // Store the Customer ID
             stripe_payment_method_id, // Store the Stripe Payment Method ID
@@ -1005,7 +990,8 @@ class MemberController extends BaseController {
           width: detail.width,
           weight: detail.weight,
           parcel_number: detail.parcelNumber,
-          parcel_type: detail.parcelType
+          parcel_type: detail.parcelType,
+          price: detail?.price
         }));
 
         // Insert order details into the database
@@ -1402,7 +1388,7 @@ class MemberController extends BaseController {
           .status(200)
           .json({ status: 0, msg: "This order does not belong to the user." });
       }
-
+      const viasCount = await this.rider.countViasBySourceCompleted(order.id);
       const parcels = await this.rider.getParcelsByQuoteId(order.id); // Assuming order.quote_id is the relevant field
       const vias = await this.rider.getViasByQuoteId(order.id);
       const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
@@ -1420,7 +1406,8 @@ class MemberController extends BaseController {
         vias: vias,
         invoices: invoices,
         dueAmount: dueAmount,
-        paidAmount: paidAmount
+        paidAmount: paidAmount,
+        viasCount:viasCount
       };
       // Fetch parcels and vias based on the quoteId from the order
       // Assuming order.quote_id is the relevant field
@@ -1899,10 +1886,10 @@ class MemberController extends BaseController {
       const amountType = ""; // Set this based on your application's logic
       const charges = amount;
       const status = 1; // Invoice status
-      const via_id = "";
+      const via_id = null;
       const paymentType = "payment"; // Payment type
       const createdDate = Math.floor(Date.now() / 1000); // Current timestamp in seconds
-
+      
       // Call the model function to create the invoice
       const result = await this.rider.createInvoiceEntry(
         requestId,

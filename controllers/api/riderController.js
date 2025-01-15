@@ -47,7 +47,7 @@ class RiderController extends BaseController {
 
         fingerprint // Keep fingerprint as a parameter
       } = req.body;
-
+      console.log(req.body)
       const cleanedData = {
         full_name: typeof full_name === "string" ? full_name.trim() : "",
         email: typeof email === "string" ? email.trim().toLowerCase() : "",
@@ -60,8 +60,8 @@ class RiderController extends BaseController {
           typeof mem_address1 === "string" ? mem_address1.trim() : "",
         city: typeof city === "string" ? city.trim() : "",
         vehicle_owner: vehicle_owner || 0,
-        vehicle_type:
-          typeof vehicle_type === "string" ? vehicle_type.trim() : "",
+        // vehicle_type:
+        //   typeof vehicle_type === "string" ? vehicle_type.trim() : "",
         vehicle_registration_num:
           typeof vehicle_registration_num === "string"
             ? vehicle_registration_num.trim()
@@ -78,7 +78,7 @@ class RiderController extends BaseController {
         status: 1,
         mem_verified: mem_verified || 0
       };
-
+      // console.log(validateRequiredFields(cleanedData))
       // Validation for empty fields
       if (!validateRequiredFields(cleanedData)) {
         return res
@@ -151,7 +151,7 @@ class RiderController extends BaseController {
       }
 
       cleanedData.customer_id = customer.id;
-
+      cleanedData.vehicle_type=vehicle_type
       // Create the rider
       const riderId = await this.rider.createRider(cleanedData);
       // console.log('Created Rider ID:', riderId); // Log the created rider ID
@@ -258,7 +258,8 @@ class RiderController extends BaseController {
         "rider",
         actualFingerprint
       );
-
+      const expiryDate = new Date();
+      expiryDate.setMonth(expiryDate.getMonth() + 1);
       // Store the token in the tokens table (optional, based on your implementation)
       await this.tokenModel.storeToken(
         existingRider.id,
@@ -453,7 +454,7 @@ class RiderController extends BaseController {
   async assignRiderToRequest(req, res) {
     try {
       const { token, memType, request_id } = req.body;
-      // console.log(req.body)
+      // console.log(req.body);return;
       // Validate input
       if (!token || !memType || !request_id) {
         return res
@@ -470,7 +471,7 @@ class RiderController extends BaseController {
       }
 
       const loggedInUser = userResponse.user;
-      // console.log(loggedInUser)
+      // console.log(loggedInUser);return;
 
       // Step 2: Fetch the request quote by ID
       const requestQuote = await this.rider.getRequestQuoteById(request_id);
@@ -528,7 +529,7 @@ class RiderController extends BaseController {
 
       const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
 
-
+      // console.log(orderDetailsLink);return;
       // Step 6: Send notification to the user
       const notificationText = `Your request #${request_id} has been assigned to a rider.`;
       await helpers.storeNotification(
@@ -700,13 +701,16 @@ class RiderController extends BaseController {
   }
   updateRequestStatus = async (req, res) => {
     const { token, memType, encodedId, type, via_id } = req.body;
-    // console.log(encodedId,"encodediddd")
-
+    // console.log(req.body,"encodediddd");return;
+    console.log(token)
     try {
       // Validate token and fetch rider details
       const rider = await this.validateTokenAndGetMember(token, memType);
       if (!rider) {
         return res.status(200).json({ status: 0, msg: "Unauthorized access." });
+      }
+      if (rider?.status===0) {
+        return res.status(200).json({ status: 0, msg: rider?.msg});
       }
 
       // Decode the encoded ID
@@ -714,7 +718,7 @@ class RiderController extends BaseController {
       if (!requestId) {
         return res.status(200).json({ status: 0, msg: "Invalid request ID." });
       }
-
+      // console.log(rider);return;
       // Fetch the request by assigned rider and ID
       const request = await this.rider.getRequestById(requestId, rider.user.id);
       if (!request) {
@@ -752,7 +756,7 @@ class RiderController extends BaseController {
         if (!via) {
           return res.status(200).json({ status: 0, msg: "Via not found." });
         }
-
+        // console.log(via);return;
         // Update the via's is_picked and picked_time
         const updatedVia = await this.rider.updateViaStatus(via_id, {
           is_picked: 1,

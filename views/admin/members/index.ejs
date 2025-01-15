@@ -31,6 +31,9 @@
               <p>Phone No</p>
             </th>
             <th width="14%">
+              <p>OTP</p>
+            </th>
+            <th width="14%">
               <p>Status</p>
             </th>
             <th width="12%">
@@ -60,6 +63,7 @@
             </td>
             <td><p><%= member.email %></p></td>
             <td><p><%= member.mem_phone %></p></td>
+            <td><p><%= member.otp %></p></td>
             <td><p><%- helpers.getStatus(member.mem_status) %></p></td>
             <td>
               <p><%- helpers.getVerifiedStatus(member.mem_verified) %></p>
