@@ -402,6 +402,10 @@ class MemberController extends BaseController {
             if(mem_type=='rider'){
               token_mem_type='rider'
             }
+            else if(mem_type=='user'){
+              token_mem_type='user'
+            }
+            console.log(token_mem_type,'token_mem_type',mem_type);
             const resetToken=await this.storeAndReturnToken(
              userId,
              token_mem_type,
@@ -548,7 +552,6 @@ class MemberController extends BaseController {
 
     resetPassword = async (req, res) => {
         try {
-            console.log(req.body)
             const { token, new_password, confirm_password,fingerprint,memType,user_type } = req.body;
     
             // Check if all fields are provided
@@ -583,7 +586,7 @@ class MemberController extends BaseController {
             }
             console.log(mem_type,'mem_type')
             const userResponse = await this.validateTokenAndGetMember(token, mem_type);
-        
+            // console.log(userResponse);return;
             if (userResponse.status === 0) {
               // If validation fails, return the error message
               return res.status(200).json(userResponse);

@@ -20,7 +20,7 @@ const app = express();
 const socketServer = https.createServer(sslOptions,app);
 const io = new Server(socketServer, {
   cors: {
-    origin: 'https://18.133.79.26:4000', // Allow connection from this frontend
+    origin: 'https://main.d2kaxncwefchi9.amplifyapp.com', // Allow connection from this frontend
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization','accept'],
   }
@@ -93,7 +93,7 @@ app.use((req, res, next) => {
 });
 
 // Configure CORS to allow requests from http://localhost:3000
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:4000','https://18.133.79.26:4000'];
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:4000','https://18.133.79.26:4000','https://main.d2kaxncwefchi9.amplifyapp.com'];
 
 app.use(cors({
     origin: (origin, callback) => {

@@ -471,7 +471,34 @@ class MemberController extends BaseController {
     // Create a hash of the combined string for uniqueness
     return crypto.createHash("sha256").update(combined).digest("hex");
   }
+  calculatePArcelsPrice(orderDetails,site_processing_fee){
+    if (!Array.isArray(orderDetails) || orderDetails.length === 0) {
+      return 0;
+    }
+  
+    // Use reduce to accumulate the total sum
+    const totalSum = orderDetails.reduce((total, parcel) => {
+      // Parse `distance` to a float since it is stored as a string
+      const distance = parseFloat(parcel.distance) || 0;
+      const price = parcel.price || 0;
+  
+      // Add the product of price and distance to the total
+      return total + price * distance;
+    }, 0);
+  
+    // Get the tax percentage from siteSettings
+    const taxPercentage = parseFloat(site_processing_fee || 0);
+  
+    // Calculate tax and grand total
+    const taxAmount = (totalSum * taxPercentage) / 100;
+    const grandTotal = totalSum + taxAmount;
+    return {
+      tax:taxAmount,
+      total:grandTotal
+    }
+  }
   async paymentIntent(req, res) {
+    const siteSettings = res.locals.adminData;
     const {
       selectedVehicle,
       vehiclePrice,
@@ -499,7 +526,8 @@ class MemberController extends BaseController {
       payment_method_id,
       fingerprint,
       token,
-      memType
+      memType,
+      order_details
     } = req.body;
 
     // console.log(req.body);
@@ -542,6 +570,8 @@ class MemberController extends BaseController {
     }
     // console.log(memType)
     try {
+      let parcel_price_obj=calculatePArcelsPrice(order_details,siteSettings?.site_processing_fee);
+      console.log(parcel_price_obj);return;
       let userId;
       let token_arr = {};
       // Handle user authentication/creation
