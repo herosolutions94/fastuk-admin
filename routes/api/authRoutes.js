@@ -28,6 +28,7 @@ router.post('/reset-password', authController.resetPassword.bind(authController)
 router.post('/forgot-password', upload,authController.forgetPassword.bind(authController));
 router.post('/verify-request-forget-otp', upload,authController.verifyOtpAndGenerateToken.bind(authController));
 router.post('/reset-password-request', upload,authController.resetPassword.bind(authController));
+router.post('/update-email-address', upload,authController.UpdateEmailAddress.bind(authController));
 
 
 

@@ -10,14 +10,14 @@ const fs = require('fs');
 const { Server } = require('socket.io');
 
 
- const sslOptions = {
-   key: fs.readFileSync('/var/www/html/fastuk-admin/ssl/private.key'), // Replace with the path to your private key
-   cert: fs.readFileSync('/var/www/html/fastuk-admin/ssl/certificate.crt'), // Replace with the path to your certificate
-   ca: fs.readFileSync('/var/www/html/fastuk-admin/ssl/ca_bundle.crt') // Optional: Add this if you have a CA bundle
- };
+//  const sslOptions = {
+//    key: fs.readFileSync('/var/www/html/fastuk-admin/ssl/private.key'), // Replace with the path to your private key
+//    cert: fs.readFileSync('/var/www/html/fastuk-admin/ssl/certificate.crt'), // Replace with the path to your certificate
+//    ca: fs.readFileSync('/var/www/html/fastuk-admin/ssl/ca_bundle.crt') // Optional: Add this if you have a CA bundle
+//  };
 
 const app = express();
-const socketServer = https.createServer(sslOptions,app);
+const socketServer = http.createServer(app);
 const io = new Server(socketServer, {
   cors: {
     origin: 'https://main.d2kaxncwefchi9.amplifyapp.com', // Allow connection from this frontend
