@@ -51,10 +51,18 @@ class TeamModel extends BaseModel {
     }
 
     static async updateTeamMember(id, teamMemberData) {
-        const { title, designation, status, team_mem_image } = teamMemberData;
+        const { title, designation, status, team_mem_image, linkedin_link,
+            Instagram_link,
+            facebook_link,
+            phone_number,
+            email_link } = teamMemberData;
         await pool.query(
-            `UPDATE ${this.tableName} SET title = ?, designation = ?, status = ?, team_mem_image = ? WHERE id = ?`,
-            [title, designation, status, team_mem_image, id]
+            `UPDATE ${this.tableName} SET title = ?, designation = ?, status = ?, team_mem_image = ?, linkedin_link = ?, Instagram_link = ?, facebook_link = ?, phone_number = ?, email_link = ? WHERE id = ?`,
+            [title, designation, status, team_mem_image, linkedin_link,
+                Instagram_link,
+                facebook_link,
+                phone_number,
+                email_link, id]
         );
     }
     static async deleteTeamMemberById(id) {
