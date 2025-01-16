@@ -29,6 +29,11 @@ class TeamController extends BaseController {
                 title,
                 designation,
                 status,
+                linkedin_link,
+                Instagram_link,
+                facebook_link,
+                phone_number,
+                email_link
             } = req.body;
             console.log("req.body",req.body);  // To check if name and description are being sent
 
@@ -40,13 +45,21 @@ class TeamController extends BaseController {
             const cleanedData = {
                 title: typeof title === 'string' ? title.trim() : '',
                 designation: typeof designation === 'string' ? designation.trim() : '',
-                team_mem_image: teamMemberImage,  // Change this to match your DB column name
+                team_mem_image: teamMemberImage, // Change this to match your DB column name
                 status: status || 0,
+                linkedin_link: linkedin_link ? linkedin_link.trim() : null,
+                Instagram_link: Instagram_link ? Instagram_link.trim() : null,
+                facebook_link: facebook_link ? facebook_link.trim() : null,
+                phone_number: phone_number ? phone_number.trim() : null,
+                email_link: email_link ? email_link.trim() : null,
             };
-
-            // Validation for empty fields
-            if (!validateRequiredFields(cleanedData)) {
-                return res.status(200).json({ success: false, message: 'All fields are required.' });
+    
+            // Validation for required fields (only title and designation are required)
+            if (!cleanedData.title || !cleanedData.designation) {
+                return res.status(200).json({
+                    status: 0,
+                    message: 'Title and designation are required fields.',
+                });
             }
 
             const existingTeamMember = await Team.findByTitle(title);
