@@ -581,10 +581,10 @@ class MemberController extends BaseController {
               }
               
             }
-            else if(user_type){
+            else if(user_type!==null && user_type!=='null' && user_type!==''){
               mem_type=user_type
             }
-            console.log(mem_type,'mem_type')
+            console.log(mem_type,'mem_type',memType)
             const userResponse = await this.validateTokenAndGetMember(token, mem_type);
             // console.log(userResponse);return;
             if (userResponse.status === 0) {
