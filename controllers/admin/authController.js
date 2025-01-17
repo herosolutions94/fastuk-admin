@@ -64,7 +64,7 @@ class AdminController extends BaseController {
             // Extract fields from the request body
             const {
                 site_domain, site_name, site_email, site_address, receiving_site_email, site_noreply_email,
-                site_phone, footer_copyright, site_facebook, site_twitter, site_instagram, site_youtube,
+                site_phone, footer_copyright, site_facebook, site_twitter, site_instagram, site_linkedin, site_youtube,
                 site_spotify, site_etsy,
                 site_sandbox,site_processing_fee
             } = req.body;
@@ -96,6 +96,7 @@ class AdminController extends BaseController {
                 site_facebook: Array.isArray(site_facebook) ? site_facebook.join(',') : site_facebook,
                 site_twitter: Array.isArray(site_twitter) ? site_twitter.join(',') : site_twitter,
                 site_instagram: Array.isArray(site_instagram) ? site_instagram.join(',') : site_instagram,
+                site_linkedin: Array.isArray(site_linkedin) ? site_linkedin.join(',') : site_linkedin,
                 site_youtube: Array.isArray(site_youtube) ? site_youtube.join(',') : site_youtube,
                 site_spotify: Array.isArray(site_spotify) ? site_spotify.join(',') : site_spotify,
                 site_etsy: Array.isArray(site_etsy) ? site_etsy.join(',') : site_etsy,
