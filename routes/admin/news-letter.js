@@ -7,7 +7,7 @@ const router = express.Router();
 
 
 router.get('/newsletter-list', upload, newsletterController.getSubscribers.bind(newsletterController));
-router.post('/delete-newsletter', upload, newsletterController.deleteSubscriber.bind(newsletterController));
+router.delete('/subscribers/delete/:id', upload, newsletterController.deleteSubscriber.bind(newsletterController));
 
 
 
