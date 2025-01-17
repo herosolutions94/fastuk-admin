@@ -1908,15 +1908,27 @@ class MemberController extends BaseController {
       }
   
       const user = validationResponse.user;
+      console.log(req.params.id, "Notification ID");
+console.log(req.body.token, "Token");
+console.log(req.body.memType, "Member Type");
   
       // Verify if the notification exists and belongs to the user
-      const notification = await this.member.getNotificationById(id);
+      const notificationResult = await Member.getNotificationById(id);
+      const notification = notificationResult[0]; // Access the first object in the array
+
+      console.log(notification, "Notification from DB");
       if (!notification || notification.user_id !== user.id || notification.mem_type !== memType) {
+        console.log(notification, "Notification from DB");
+  console.log(user.id, "Validated User ID");
+  console.log(notification.user_id, "Notification User ID");
+  console.log(memType, "Provided Member Type");
         return res.status(200).json({ status: 0, msg: "Notification not found or unauthorized." });
       }
+      console.log(user.id, "Validated User ID");
+console.log(notification.user_id, "Notification User ID");
   
       // Delete the notification
-      await this.member.deleteNotification(id);
+      await Member.deleteNotification(id); 
   
       return res.status(200).json({ status: 1, msg: "Notification deleted successfully." });
 

@@ -29,6 +29,7 @@ router.post('/add-payment-method', upload, (req, res) => memberController.addPay
 router.post('/delete-payment-method', upload, (req, res) => memberController.deletePaymentMethod(req, res));
 router.post('/mark-payment-method-as-default', upload, (req, res) => memberController.markPaymentMethodAsDefault(req, res));
 router.post('/get-user-notifications', upload, (req, res) => memberController.getNotifications(req, res));
+router.post('/delete-notification/:id', upload, (req, res) => memberController.deleteNotification(req, res));
 router.post('/payment-intent', upload, (req, res) => memberController.createPaymentIntent(req, res));
 router.post('/create-invoice', upload, (req, res) => memberController.createInvoice(req, res));
 router.post('/find-best-route', upload, (req, res) => memberController.findBestRoute(req, res));

@@ -69,15 +69,24 @@
               </div>
               <div class="col-md-6">
                 <div class="txtGrp">
-                  <label class="form-label" for="mem_state">State:</label>
-                  <input
-                    type="text"
-                    class="input"
-                    name="mem_state"
-                    value="<%= member.mem_state %>"
-                    required />
+                    <label class="form-label" for="mem_state">State:</label>
+                    <select class="input" name="mem_state" required>
+                        <option value="">Select State</option>
+                        <% if (states && states.length > 0) { %>
+                            <% states.forEach(state => { %>
+                                <option
+                                    value="<%= state.id %>"
+                                    <%= member.mem_state == state.id ? 'selected' : '' %>>
+                                    <%= state.name %>
+                                </option>
+                            <% }); %>
+                        <% } else { %>
+                            <option value="">No states available</option>
+                        <% } %>
+                    </select>
                 </div>
-              </div>
+            </div>
+            
               <div class="col-md-6">
                 <div class="txtGrp">
                   <label class="form-label" for="mem_address1">Address:</label>
