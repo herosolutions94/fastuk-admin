@@ -98,10 +98,25 @@ async updateMemberImage (userId, imageUrl) {
   const result = await pool.query(query, values);
   return result.rows[0];
 };
-
-async getOrdersByUserAndStatus({ userId, status='' }) {
+async getUserInvoices(userId) {
+    const query = `
+        SELECT i.*
+        FROM invoices i
+        JOIN request_quote r ON i.request_id = r.id
+        WHERE r.user_id = ?
+        GROUP BY r.id;
+    `;
     try {
-        const query = `
+        const [rows] = await pool.query(query, [userId]);
+
+        return rows;
+    } catch (error) {
+        throw new Error(`Error fetching grouped invoices: ${error.message}`);
+    }
+}
+async getOrdersByUserAndStatus({ userId, status = '', limit = null }) {
+    try {
+        let query = `
             SELECT 
                 rq.*, 
                 m.full_name AS user_name, 
@@ -121,14 +136,30 @@ async getOrdersByUserAndStatus({ userId, status='' }) {
                 rq.id = rp.request_id
             WHERE 
                 rq.user_id = ?
-            GROUP BY 
-                rq.id, m.full_name, m.mem_image, m.email, m.mem_phone;
-
         `;
-        
+
         const values = [userId];
+
+        // Add status condition if it's not empty
+        if (status) {
+            query += ` AND rq.status = ?`;
+            values.push(status);
+        }
+
+        query += `
+            GROUP BY 
+                rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
+            ORDER BY 
+                rq.id DESC
+        `;
+
+        // Add LIMIT clause if limit is not null
+        if (limit !== null) {
+            query += ` LIMIT ?`;
+            values.push(limit);
+        }
+
         const [rows] = await pool.query(query, values);
-        // console.log("orders rows:",rows)
 
         return rows; // Return the list of orders with user and parcel details
     } catch (err) {
@@ -136,6 +167,7 @@ async getOrdersByUserAndStatus({ userId, status='' }) {
         throw new Error("Failed to fetch orders.");
     }
 }
+
 
 async getUserOrderDetailsById( {userId, requestId}) {
     try {
