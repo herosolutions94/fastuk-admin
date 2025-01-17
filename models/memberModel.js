@@ -251,6 +251,9 @@ async getNotifications(userId, memType) {
   static async getNotificationById(id) {
     const query = 'SELECT * FROM notifications WHERE id = ?;';
     const [rows]   = await pool.query(query, [id]);
+    console.log(id, "Notification ID");
+
+    console.log(rows,"rows")
     return rows;
   }
 

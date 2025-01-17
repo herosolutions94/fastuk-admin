@@ -31,11 +31,13 @@ class MemberController extends BaseController {
 
             const members = await Member.getMemberById(memberId); // Expecting an array from the model
             const member = members[0]; // Get the first member if it exists
+            const states = await Member.getStatesByCountryId(230); // Fetch states for country_id = 230
+
             // console.log('Member:', member); // Log the rider data
 
             if (member) {
                 res.render('admin/members/edit-member', {
-                    member, editMemberId: memberId,
+                    member, editMemberId: memberId, states,
                     imageFilenames: [member.mem_image],
                     mem_status: member.mem_status // Pass the status to the view
 
@@ -143,6 +145,34 @@ class MemberController extends BaseController {
             this.sendError(res, 'Failed to delete member');
         }
     }
+
+    // Fetch states by country_id
+    // async getStates(req, res) {
+    //     const { country_id } = req.query; // Retrieve country_id from query parameters
+    //     try {
+    //         const states = await Member.getStatesByCountryId(230);
+    //         if (states && states.length > 0) {
+    //             this.sendSuccess(res, states, 'States fetched successfully!');
+    //         } else {
+    //             this.sendError(res, 'No states found for the selected country.');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error fetching states:', error);
+    //         this.sendError(res, 'Failed to fetch states.');
+    //     }
+    // }
+
+    // async getStates(req, res) {
+    //     try {
+    //         const memberId = req.params.id; // Get the member ID from the URL
+    //         const member = await Member.getMemberById(memberId); // Fetch member details
+    //         const states = await Member.getStatesByCountryId(230); // Fetch states for country_id = 230
+    //         res.render('admin/members/edit-member', { member, states }); // Pass data to EJS
+    //     } catch (error) {
+    //         console.error('Error rendering edit member form:', error);
+    //         this.sendError(res, 'Failed to render edit member form');
+    //     }
+    // }
 
 
 }
