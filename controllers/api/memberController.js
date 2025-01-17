@@ -1284,8 +1284,7 @@ class MemberController extends BaseController {
       });
     }
   };
-
-  getUserOrders = async (req, res) => {
+  getDashboardUserOrders = async (req, res) => {
     try {
       const { token, memType } = req.body;
       // console.log(req.body)
@@ -1310,7 +1309,71 @@ class MemberController extends BaseController {
       // Fetch requests for which the assigned rider is this user and status is 'accepted'
       const memberOrders = await this.member.getOrdersByUserAndStatus({
         userId: member.id,
-        status: "accepted"
+        status: "accepted",
+        limit:3
+      });
+      const memberTotalOrders = await this.member.getOrdersByUserAndStatus({
+        userId: member.id
+      });
+      const userInvoices = await this.member.getUserInvoices(member.id);
+      const memberTotalAcceptedOrders = await this.member.getOrdersByUserAndStatus({
+        userId: member.id,
+        status: "accepted",
+      });
+
+      // console.log("User Orders before encoding:", memberOrders);
+
+      // Encode the `id` for each order
+      const ordersWithEncodedIds = memberOrders.map((order) => {
+        const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string
+        return { ...order, encodedId }; // Add encodedId to each order
+      });
+
+      // console.log("Member Orders with Encoded IDs:", ordersWithEncodedIds);
+
+      // Return the fetched orders with encoded IDs
+      return res.status(200).json({
+        status: 1,
+        msg: "Orders fetched successfully.",
+        orders: ordersWithEncodedIds,
+        total_active_orders:memberTotalAcceptedOrders?.length,
+        total_orders:memberTotalOrders?.length,
+        total_invoices:userInvoices?.length
+      });
+    } catch (error) {
+      console.error("Error in getRiderOrders:", error);
+      return res.status(200).json({
+        status: 0,
+        msg: "Internal server error.",
+        error: error.message
+      });
+    }
+  };
+  getUserOrders = async (req, res) => {
+    try {
+      const { token, memType } = req.body;
+      // console.log(req.body)
+
+      if (!token) {
+        return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
+
+      if (memType !== "user") {
+        return res.status(200).json({ status: 0, msg: "Invalid member type." });
+      }
+
+      // Validate the token and get the rider details
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse); // Return validation error response
+      }
+
+      const member = userResponse.user;
+
+      // Fetch requests for which the assigned rider is this user and status is 'accepted'
+      const memberOrders = await this.member.getOrdersByUserAndStatus({
+        userId: member.id
       });
 
       // console.log("User Orders before encoding:", memberOrders);
