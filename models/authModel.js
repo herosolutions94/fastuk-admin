@@ -33,7 +33,7 @@ class AdminModel extends BaseModel {
             site_domain = ?,
             site_name = ?, site_email = ?, site_address = ?, receiving_site_email = ?, 
             site_noreply_email = ?, site_phone = ?, footer_copyright = ?, site_facebook = ?, site_twitter = ?, 
-            site_instagram = ?, site_youtube = ?, site_spotify = ?, site_etsy = ?, logo_image = ?, 
+            site_instagram = ?, site_linkedin = ?, site_youtube = ?, site_spotify = ?, site_etsy = ?, logo_image = ?, 
             favicon_image = ?, thumb_image = ?,
             site_sandbox = ?, site_processing_fee=?
         WHERE id = 1`;
@@ -41,7 +41,7 @@ class AdminModel extends BaseModel {
         const values = [
             data.site_domain || '', data.site_name || '', data.site_email || '', data.site_address || '', data.receiving_site_email || '',
             data.site_noreply_email || '', data.site_phone || '', data.footer_copyright || '', data.site_facebook || '', data.site_twitter || '',
-            data.site_instagram || '', data.site_youtube || '', data.site_spotify || '', data.site_etsy || '', data.logo_image || null,
+            data.site_instagram || '', data.site_linkedin || '', data.site_youtube || '', data.site_spotify || '', data.site_etsy || '', data.logo_image || null,
             data.favicon_image || null, data.thumb_image || null,
             data.site_sandbox ? parseInt(data.site_sandbox) : 0, data?.site_processing_fee ? data?.site_processing_fee : 0
         ];
