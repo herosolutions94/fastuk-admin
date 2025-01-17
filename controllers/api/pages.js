@@ -508,6 +508,23 @@ class PagesController extends BaseController {
       }
     }
 
+    async getSiteSettingsData(req, res) {
+      try {
+        const siteSettings = res.locals.adminData;
+  
+        // Combine the content and multi_text data
+        const jsonResponse = {
+          site_settings:siteSettings,
+        };
+  
+        // Return data in JSON format
+        res.json(jsonResponse);
+      } catch (err) {
+        console.error("Error:", err);
+        res.status(200).json({ error: "Internal Server Error" });
+      }
+    }    
+
   
 
 }
