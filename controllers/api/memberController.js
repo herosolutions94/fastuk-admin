@@ -705,6 +705,7 @@ class MemberController extends BaseController {
         payment_intent_customer_id,
         selectedVehicle,
         remote_price,
+        rider_price,
         price,
         parcels,
         source_postcode,
@@ -726,7 +727,7 @@ class MemberController extends BaseController {
         saved_card_id,
         order_details // Array from frontend
       } = req.body;
-      // console.log("create request:", req.body);
+      console.log("rider_price:", rider_price);
 
       if (token) {
         if (!token) {
@@ -781,6 +782,7 @@ class MemberController extends BaseController {
           requestQuoteId = await this.pageModel.createRequestQuote({
             user_id: userId, // Save the userId in the request
             selected_vehicle: selectedVehicle,
+            rider_price: rider_price,
             vehicle_price: remote_price ? remote_price : price,
             total_amount: parcel_price_obj?.total,
             tax: parcel_price_obj?.tax,
@@ -904,6 +906,7 @@ class MemberController extends BaseController {
           requestQuoteId = await this.pageModel.createRequestQuote({
             user_id: userId,
             selected_vehicle: selectedVehicle,
+            rider_price: rider_price,
             vehicle_price: remote_price ? remote_price : price,
             total_amount: parcel_price_obj?.total,
             tax: parcel_price_obj?.tax,
@@ -1018,6 +1021,21 @@ class MemberController extends BaseController {
             );
           }
         }
+
+        const created_time = helpers.getUtcTimeInSeconds();
+        
+
+        // Insert Transaction Record
+      await helpers.storeTransaction({
+        user_id: userId,
+        amount: parcel_price_obj?.total,
+        payment_method:payment_method,
+        transaction_id: requestQuoteId,
+        created_time:created_time
+
+      });
+      // console.log(userId,parcel_price_obj?.total,payment_method,requestQuoteId)
+      
 
         // Send success response
         res.status(200).json({
@@ -1509,6 +1527,8 @@ class MemberController extends BaseController {
       });
     }
   }
+  
+  
 
   async userPaymentMethod(req, res) {
     try {

@@ -17,8 +17,8 @@ class PageModel extends BaseModel {
         const query = `
             INSERT INTO request_quote(user_id, selected_vehicle, vehicle_price, total_amount,tax, payment_intent, customer_id, source_postcode, source_address,
             source_name, source_phone_number, source_city, dest_postcode, dest_address, dest_name, dest_phone_number, dest_city,
-            payment_method, payment_method_id, status, start_date, created_date, notes)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            payment_method, payment_method_id, status, start_date, created_date, notes, rider_price)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
         const values = [
             data.user_id,
@@ -43,7 +43,9 @@ class PageModel extends BaseModel {
             'paid',
             data.start_date,
             data.created_date,
-            data.notes
+            data.notes,
+            data.rider_price,
+
         ];
         console.log("values:",values)
     

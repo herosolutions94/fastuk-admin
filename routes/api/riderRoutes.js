@@ -20,6 +20,7 @@ router.post('/mark-as-completed', upload,riderController.markAsCompleted.bind(ri
 router.get('/get-invoices-detail', upload,riderController.getInvoiceDetails.bind(riderController));
 router.post('/test-notification', upload,riderController.testNotification.bind(riderController));
 router.post('/update-order-completed', upload,riderController.updateRequestStatusToCompleted.bind(riderController));
+router.post('/get-rider-dashboard-orders', upload,riderController.getRiderDashboardOrders.bind(riderController));
 
 
 

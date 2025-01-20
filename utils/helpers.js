@@ -451,5 +451,32 @@ getDistance : async function (source, destination)  {
     console.error("Error calculating distance:", error);
     throw error;
   }
+},
+
+ storeTransaction: async function(transactionData) {
+  const query = `
+    INSERT INTO transactions (
+      user_id, amount, payment_method, transaction_id, created_time
+    ) VALUES (?, ?, ?, ?, ?)
+  `;
+
+  const values = [
+    transactionData.user_id,
+    transactionData.amount,
+    transactionData.payment_method,
+    transactionData.transaction_id,
+    transactionData.created_time,
+  ];
+
+  try {
+    const [result] = await pool.query(query, values);
+    console.log('Transaction Data:', transactionData); // Debugging
+
+    console.log(`Transaction stored successfully. Insert ID: ${result.insertId}`);
+  } catch (error) {
+    console.error('Error storing transaction:', error.message);
+    throw new Error('Database query failed.');
+  }
 }
+
 };
