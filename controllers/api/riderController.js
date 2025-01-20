@@ -1286,6 +1286,63 @@ updateRequestStatusToCompleted = async (req, res) => {
         });
     }
 }
+
+async getRiderDashboardOrders(req, res) {
+  try {
+    const { token, memType } = req.body;
+
+    // Validate token and memType
+    if (!token) {
+      return res.status(200).json({ status: 0, msg: "Token is required." });
+    }
+
+    if (memType !== "rider") { // Ensure the memType is 'rider'
+      return res.status(200).json({ status: 0, msg: "Invalid member type." });
+    }
+
+    // Validate the token and get the rider details
+    const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+    if (userResponse.status === 0) {
+      return res.status(200).json(userResponse); // Return validation error response
+    }
+
+    // Extract the logged-in rider ID from the token validation response
+    const member = userResponse.user;
+    const riderId = member.id; // Assuming the `id` field contains the rider's unique ID
+
+    // Call the model function to get the completed orders
+    const completedOrders = await this.rider.getCompletedOrdersByRider(riderId);
+    console.log(completedOrders)
+    const ordersWithEncodedIds = completedOrders.map((order) => {
+            const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string
+            return { ...order, encodedId }; // Add encodedId to each order
+          });
+
+    // Call the model function to get the total orders with status 'completed' or 'accepted'
+    const totalOrders = await this.rider.getTotalOrdersByStatus(riderId);
+
+    // Call the model function to get the total number of completed orders
+    const totalCompletedOrders = await this.rider.getTotalCompletedOrders(riderId);
+    console.log(completedOrders,totalOrders,totalCompletedOrders)
+
+    // Return the response with the fetched orders and total order counts
+    return res.status(200).json({
+      status: 1,
+      msg: "Rider dashboard data fetched successfully.",
+      ordersWithEncodedIds,          // Last 3 completed orders
+      totalOrders,              // Total number of 'completed' or 'accepted' orders
+      totalCompletedOrders,     // Total number of 'completed' orders
+    });
+  } catch (error) {
+    console.error("Error fetching rider dashboard orders:", error.message);
+    return res.status(500).json({ status: 0, msg: "Internal Server Error" });
+  }
+}
+
+
+
+
 }
 
 module.exports = RiderController;

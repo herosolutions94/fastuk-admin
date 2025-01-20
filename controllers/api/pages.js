@@ -511,6 +511,7 @@ class PagesController extends BaseController {
     async getSiteSettingsData(req, res) {
       try {
         const siteSettings = res.locals.adminData;
+        // console.log(siteSettings,'siteSettings')
   
         // Combine the content and multi_text data
         const jsonResponse = {

@@ -232,31 +232,36 @@ async getUnreadNotificationsCount ({userId, memType}) {
 }
 async getNotifications(userId, memType) {
     const query = `
-      SELECT * 
-      FROM notifications 
-      WHERE user_id = ? AND mem_type = ?
-      ORDER BY created_date DESC
+      SELECT 
+        n.*, 
+        CASE 
+          WHEN n.mem_type = 'user' THEN r.mem_image
+          WHEN n.mem_type = 'rider' THEN m.mem_image
+          ELSE NULL 
+        END AS sender_dp,
+        CASE 
+          WHEN n.mem_type = 'user' THEN r.full_name
+          WHEN n.mem_type = 'rider' THEN m.full_name
+          ELSE NULL 
+        END AS sender_name
+      FROM notifications n
+      LEFT JOIN riders r ON n.sender = r.id AND n.mem_type = 'user'
+      LEFT JOIN members m ON n.sender = m.id AND n.mem_type = 'rider'      
+WHERE n.user_id = ? AND n.mem_type = ? 
+      ORDER BY n.created_date DESC
     `;
     const values = [userId, memType];
   
     try {
-      const [rows] = await pool.query(query, values); // Using MySQL `db.execute()` for parameterized queries
+      const [rows] = await pool.query(query, values);
       return rows;
     } catch (error) {
-      console.error("Error fetching notifications:", error.message);
-      throw new Error("Database query failed.");
+      console.error('Error fetching notifications:', error.message);
+      throw new Error('Database query failed.');
     }
   }
   
-  static async getNotificationById(id) {
-    const query = 'SELECT * FROM notifications WHERE id = ?;';
-    const [rows]   = await pool.query(query, [id]);
-    console.log(id, "Notification ID");
-
-    console.log(rows,"rows")
-    return rows;
-  }
-
+  
   static async deleteNotification(id) {
     const query = 'DELETE FROM notifications WHERE id = ?;';
     await pool.query(query, [id]);

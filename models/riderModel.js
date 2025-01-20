@@ -533,6 +533,86 @@ async  getDueAmountByRequestId(requestId) {
     return result.affectedRows;
 }
 
+// Get the last 3 completed orders for the rider
+async getCompletedOrdersByRider(riderId) {
+    const query = `
+      SELECT 
+        rq.*, 
+        m.full_name AS user_name, 
+        m.mem_image AS user_image,
+        m.email AS user_email,
+        m.mem_phone AS user_phone,
+        COALESCE(SUM(rp.distance), 0) AS total_distance
+      FROM 
+        request_quote rq
+      INNER JOIN 
+        members m 
+      ON 
+        rq.user_id = m.id
+      LEFT JOIN 
+        request_parcels rp 
+      ON 
+        rq.id = rp.request_id
+      WHERE 
+        rq.assigned_rider = ? AND rq.status = ?
+      GROUP BY 
+        rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
+      ORDER BY 
+        rq.id DESC 
+      LIMIT 3
+    `;
+    const values = [riderId, 'completed']; // Provide both values for placeholders
+  
+    try {
+      const [rows] = await pool.query(query, values);
+      return rows;
+    } catch (error) {
+      console.error("Error fetching completed orders:", error.message);
+      throw new Error("Database query failed.");
+    }
+  }
+  
+  
+  // Get the total count of all orders for a rider with status 'completed' or 'accepted'
+  async getTotalOrdersByStatus(riderId) {
+    const query = `
+      SELECT COUNT(*) AS total_orders
+      FROM request_quote
+      WHERE assigned_rider = ? AND (status = 'completed' OR status = 'accepted')
+    `;
+    const values = [riderId];
+  
+    try {
+      const [rows] = await pool.query(query, values);
+      return rows[0].total_orders; // Return the total count
+    } catch (error) {
+      console.error("Error fetching total orders:", error.message);
+      throw new Error("Database query failed.");
+    }
+  }
+  
+  // Get the total count of completed orders for a rider
+  async getTotalCompletedOrders(riderId) {
+    const query = `
+      SELECT COUNT(*) AS total_completed_orders
+      FROM request_quote
+      WHERE assigned_rider = ? AND status = 'completed'
+    `;
+    const values = [riderId];
+  
+    try {
+      const [rows] = await pool.query(query, values);
+      return rows[0].total_completed_orders; // Return the total count of completed orders
+    } catch (error) {
+      console.error("Error fetching total completed orders:", error.message);
+      throw new Error("Database query failed.");
+    }
+  }
+  
+  
+  
+  
+
   
 
 

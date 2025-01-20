@@ -122,6 +122,7 @@ class AdminController extends BaseController {
         try {
             // Fetch the current settings from the database
             const settings = await this.admin.getSettings();
+            console.log(settings,'settings')
 
             // Render the site settings page and pass the settings to the view
             return res.render('admin/site-settings', {
