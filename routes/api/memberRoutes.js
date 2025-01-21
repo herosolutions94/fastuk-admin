@@ -33,6 +33,7 @@ router.post('/delete-notification/:id', upload, (req, res) => memberController.d
 router.post('/payment-intent', upload, (req, res) => memberController.createPaymentIntent(req, res));
 router.post('/create-invoice', upload, (req, res) => memberController.createInvoice(req, res));
 router.post('/find-best-route', upload, (req, res) => memberController.findBestRoute(req, res));
+router.post('/user-transactions', upload, (req, res) => memberController.getUserTransactions(req, res));
 // app.post('/find-best-route', async (req, res) => {
 
 

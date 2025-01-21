@@ -181,10 +181,10 @@ async getUserOrderDetailsById( {userId, requestId}) {
     COALESCE(SUM(rp.distance), 0) AS total_distance
 FROM 
     request_quote rq
-INNER JOIN 
-    riders m 
-ON 
-    rq.assigned_rider = m.id
+LEFT JOIN 
+                riders m 
+            ON 
+                rq.assigned_rider = m.id AND rq.assigned_rider IS NOT NULL
 LEFT JOIN 
     request_parcels rp 
 ON 
@@ -196,6 +196,7 @@ WHERE
 GROUP BY 
     rq.id, m.full_name, m.mem_image, m.email, m.mem_phone;
 `;
+
         
         // Execute the query using the connection pool
         const [rows, fields] = await pool.query(query, [userId, requestId]);

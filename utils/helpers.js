@@ -477,6 +477,14 @@ getDistance : async function (source, destination)  {
     console.error('Error storing transaction:', error.message);
     throw new Error('Database query failed.');
   }
+},
+getTransaction: async function(user_id) {
+  try {
+      const [rows] = await pool.query(`SELECT * FROM transactions WHERE user_id = ?`, [user_id]);
+      return rows; // Returns true if email exists, false otherwise
+  } catch (error) {
+      throw new Error(`Error getting transactions!`);
+  }
 }
 
 };

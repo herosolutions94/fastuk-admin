@@ -101,6 +101,14 @@ async getParcelsByQuoteId (quoteId) {
     const [rows] = await pool.query(query, [quoteId]);
     return rows;
 };
+async getParcelDetailsByQuoteId (quoteId) {
+    const query = `
+        SELECT * FROM order_details
+        WHERE order_id = ?
+    `;
+    const [rows] = await pool.query(query, [quoteId]);
+    return rows;
+};
 
 async getRequestQuoteById(requestId) {
     const query = `SELECT * FROM request_quote WHERE id = ?`;
