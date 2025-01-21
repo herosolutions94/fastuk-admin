@@ -485,6 +485,27 @@ getTransaction: async function(user_id) {
   } catch (error) {
       throw new Error(`Error getting transactions!`);
   }
+},
+
+ insertEarnings: async function(data) {
+  try {
+    const query = `
+      INSERT INTO earnings (user_id, amount, type, status, created_time)
+      VALUES (?, ?, ?, ?, ?)
+      `;
+    const values = [
+      data.user_id,
+      data.amount,
+      data.type,
+      data.status,
+      data.created_time,
+    ];
+    const result = await pool.query(query, values);
+    return result; // Return the inserted row
+  } catch (error) {
+    console.error("Error inserting earnings:", error);
+    return null;
+  }
 }
 
 };
