@@ -1419,7 +1419,43 @@ class MemberController extends BaseController {
       });
     }
   };
+async getUserTransactions(req, res) {
+  try {
+    const { token, memType } = req.body;
 
+    // Validate token and memType
+    if (!token) {
+      return res.status(200).json({ status: 0, msg: "Token is required." });
+    }
+
+    if (memType === "rider") { // Ensure the memType is 'rider'
+      return res.status(200).json({ status: 0, msg: "Invalid member type." });
+    }
+
+    // Validate the token and get the rider details
+    const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+    if (userResponse.status === 0) {
+      return res.status(200).json(userResponse); // Return validation error response
+    }
+
+    // Extract the logged-in rider ID from the token validation response
+    const member = userResponse.user;
+    const userId = member.id; // Assuming the `id` field contains the rider's unique ID
+
+    // Call the model function to get the completed orders
+    const transactions=await helpers.getTransaction(userId);
+
+    // Return the response with the fetched orders and total order counts
+    return res.status(200).json({
+      status: 1,
+      transactions,     
+    });
+  } catch (error) {
+    console.error("Error fetching rider dashboard orders:", error.message);
+    return res.status(500).json({ status: 0, msg: "Internal Server Error" });
+  }
+}
   async getUserOrderDetailsByEncodedId(req, res) {
     try {
       const { token, memType } = req.body;
@@ -1470,7 +1506,7 @@ class MemberController extends BaseController {
           .json({ status: 0, msg: "This order does not belong to the user." });
       }
       const viasCount = await this.rider.countViasBySourceCompleted(order.id);
-      const parcels = await this.rider.getParcelsByQuoteId(order.id); // Assuming order.quote_id is the relevant field
+      const parcels = await this.rider.getParcelDetailsByQuoteId(order.id); // Assuming order.quote_id is the relevant field
       const vias = await this.rider.getViasByQuoteId(order.id);
       const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
       // Calculate the due amount by summing the amount where status is 0
@@ -1995,7 +2031,8 @@ console.log(notification.user_id, "Notification User ID");
         amount,
         card_holder_name,
         requestId,
-        payment_method
+        payment_method,
+        token, memType 
       } = req.body;
       // console.log(req.body,'req.body')
       // Validate the required fields
@@ -2009,7 +2046,18 @@ console.log(notification.user_id, "Notification User ID");
       ) {
         return res.status(200).json({ error: "All fields are required." });
       }
+      if (!token || !memType) {
+        return res.status(200).json({ status: 0, msg: "Token and memType are required." });
+      }
+  
+      // Validate token and get the user
+      const validationResponse = await this.validateTokenAndGetMember(token, memType);
+      if (validationResponse.status === 0) {
+        return res.status(200).json({ status: 0, msg: validationResponse.msg });
 
+      }
+  
+      const user = validationResponse.user;
       // Define necessary variables
       const locType = ""; // Set this based on your application's logic
       const amountType = ""; // Set this based on your application's logic
@@ -2032,6 +2080,16 @@ console.log(notification.user_id, "Notification User ID");
         payment_method_id,
         payment_method
       );
+      const userId=user?.id
+      const created_time = helpers.getUtcTimeInSeconds();
+      await helpers.storeTransaction({
+        user_id: userId,
+        amount: amount,
+        payment_method:payment_method,
+        transaction_id: requestId,
+        created_time:created_time
+
+      });
       // console.log(result,'result')
       // Handle response
       if (result) {
