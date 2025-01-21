@@ -21,6 +21,8 @@ router.get('/get-invoices-detail', upload,riderController.getInvoiceDetails.bind
 router.post('/test-notification', upload,riderController.testNotification.bind(riderController));
 router.post('/update-order-completed', upload,riderController.updateRequestStatusToCompleted.bind(riderController));
 router.post('/get-rider-dashboard-orders', upload,riderController.getRiderDashboardOrders.bind(riderController));
+router.post('/get-rider-earnings', upload, riderController.getRiderEarnings.bind(riderController));
+
 
 
 
