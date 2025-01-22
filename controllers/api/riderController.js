@@ -1721,57 +1721,90 @@ async getRiderEarnings(req, res) {
 }
 async saveWithDrawalRequest(req, res) {
   try {
-    const { token, memType,payment_method,account_details,paypal_details } = req.body;
-    console.log(req.body,"req.body")
+    const { token, memType, payment_method, account_details, paypal_details } = req.body;
+
+    console.log("Request Body:", req.body);
+
 
     // Validate token and memType
     if (!token) {
-      return res.status(200).json({ status: 0, msg: "Token is required." });
+      return res.status(400).json({ status: 0, msg: "Token is required." });
     }
 
-    if (memType !== "rider") { // Ensure the memType is 'rider'
-      return res.status(200).json({ status: 0, msg: "Invalid member type." });
+    if (memType !== "rider") {
+      return res.status(400).json({ status: 0, msg: "Invalid member type." });
     }
 
     // Validate the token and get the rider details
     const userResponse = await this.validateTokenAndGetMember(token, memType);
 
     if (userResponse.status === 0) {
-      return res.status(200).json(userResponse); // Return validation error response
+      return res.status(400).json(userResponse);
     }
 
-    // Extract the logged-in rider ID from the token validation response
     const riderId = userResponse.user.id;
-    if(payment_method==='bank-account'){
-      if (!validateRequiredFields({ payment_method, account_details })) {
-          return res
-            .status(200)
-            .json({ status: 0, msg: "Bank details required." });
-      }
+
+    // Validate payment method and required details
+    if (payment_method === "bank-account" && !account_details) {
+      return res.status(400).json({ status: 0, msg: "Bank details are required." });
     }
-    else if(payment_method==='paypal'){
-      if (!validateRequiredFields({ payment_method, paypal_details })) {
-          return res
-            .status(200)
-            .json({ status: 0, msg: "Papal email is required!" });
-      }
+
+    if (payment_method === "paypal" && !paypal_details) {
+      return res.status(400).json({ status: 0, msg: "PayPal email is required!" });
     }
-    
-   
-    return res.status(200).json({
-      status: 1,
-      msg:'Request sent to admin!'
+    // console.log("amount:",amount)
+
+    // Check the amount validity
+    // if (!amount || amount <= 0) {
+    //   return res.status(200).json({ status: 0, msg: "Invalid withdrawal amount." });
+    // }
+
+    // Get cleared earnings for the rider
+    const clearedEarnings = await this.rider.getClearedEarnings(riderId);
+    const availableBalance = clearedEarnings.reduce((sum, earning) => sum + parseFloat(earning.amount), 0);
+
+    // Validate available balance
+    if (availableBalance < 0) {
+      return res.status(200).json({ status: 0, msg: "Insufficient balance for withdrawal." });
+    }
+
+
+    // Create withdrawal request
+    const result = await this.rider.createWithdrawalRequest({
+      riderId,
+      payment_method,
+      account_details,
+      paypal_details,
+      availableBalance,
     });
+    const withdrawalId = result.insertId; // Extract the insertId
+    console.log("withdrawalId:", withdrawalId);
+    // Create debit entry in earnings
+    const created_time = helpers.getUtcTimeInSeconds()
+    const debitEntry = await helpers.insertEarnings({
+      user_id: riderId,
+      amount: -availableBalance, // Negative amount for debit
+      type: "debit",
+      status: "pending",
+      created_time: created_time,
+    });
+
+    if (!debitEntry) {
+      return res.status(200).json({ status: 0, msg: "Failed to create debit entry." });
+    }
+
+    const created_at = helpers.getUtcTimeInSeconds()
+    const updated_at = helpers.getUtcTimeInSeconds()
+
+    // Link the withdrawal request with the debit entry
+    await this.rider.createWithdrawDetail(withdrawalId, debitEntry.insertId, created_at, updated_at); // Assuming `insertId` returns the last inserted ID
+
+    return res.status(200).json({ status: 1, msg: "Withdrawal request submitted successfully." });
   } catch (error) {
-    console.error("Error fetching earnings:", error);
-    return res.status(200).json({ status: 0, msg: "An error occurred while fetching earnings" });
+    console.error("Error in saveWithDrawalRequest:", error);
+    return res.status(500).json({ status: 0, msg: "Internal server error." });
   }
 }
-
-
-
-
-
 }
 
 module.exports = RiderController;
