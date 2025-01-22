@@ -256,6 +256,15 @@ module.exports = {
       throw new Error("Could not fetch cities");
     }
   },
+  getStatesByCountryId:async function(country_id) {
+    try {
+        const [rows] = await pool.query('SELECT * FROM tbl_states WHERE country_id = ?', [country_id]);
+        return rows; // Return fetched states
+    } catch (error) {
+        console.error('Error fetching states:', error);
+        throw error;
+    }
+},
   // helpers.js or helpers.ts
 
   formatDateToUK: function (date) {

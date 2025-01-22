@@ -229,6 +229,16 @@ async getRidersByCity(city) {
     const [rows] = await pool.query(query, [city]);
     return rows; // Returns an array of riders
   }
+  async getWithdrawalPamentMethods(mem_id,type) {
+    const query = `SELECT * FROM mem_withdrawal_methods WHERE mem_id = ? and payment_method = ?`;
+    const [rows] = await pool.query(query, [mem_id,type]);
+    return rows; // Returns an array of riders
+  }
+  async getWithdrawalPamentMethodRow(mem_id,id) {
+    const query = `SELECT * FROM mem_withdrawal_methods WHERE mem_id = ? and id = ?`;
+    const [rows] = await pool.query(query, [mem_id,id]);
+    return rows; // Returns an array of riders
+  }
 
 getRequestById = async (id, riderId) => {
     // console.log(id,riderId);return;
@@ -305,6 +315,68 @@ getRequestById = async (id, riderId) => {
       return null;
     }
   };
+  createWithdrawanMethod = async (data) => {
+    const columns = Object.keys(data);
+    const values = Object.values(data);
+
+    // Generate the SQL query
+    const placeholders = columns.map(() => '?').join(', '); // Creates `?` placeholders
+    const query = `INSERT INTO mem_withdrawal_methods (${columns.join(', ')}) VALUES (${placeholders})`;
+
+
+    try {
+        const [result] = await pool.query(query, values);
+        return result;
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+      return null;
+    }
+  };
+  updateWithdrawalMethod = async (data, whereCondition) => {
+  // Extract columns and values from the data object
+  const columns = Object.keys(data);
+  const values = Object.values(data);
+
+  // Generate the SQL query dynamically
+  const setClause = columns.map((column) => `${column} = ?`).join(', ');
+
+  // Assuming `whereCondition` is an object with one key-value pair, e.g., { id: 123 }
+  const whereColumn = Object.keys(whereCondition)[0];
+  const whereValue = Object.values(whereCondition)[0];
+
+  const query = `UPDATE mem_withdrawal_methods SET ${setClause} WHERE ${whereColumn} = ?`;
+
+  try {
+    // Add the `whereValue` to the end of the values array
+    const [result] = await pool.query(query, [...values, whereValue]);
+    return result;
+  } catch (error) {
+    console.error('Error updating withdrawal method:', error);
+    return null;
+  }
+};
+
+deleteWithdrawalMethod = async (whereCondition) => {
+  // Extract columns and values from the whereCondition object
+  const whereColumns = Object.keys(whereCondition);
+  const whereValues = Object.values(whereCondition);
+
+  // Generate the WHERE clause dynamically
+  const whereClause = whereColumns.map((column) => `${column} = ?`).join(' AND ');
+
+  // Construct the SQL query
+  const query = `DELETE FROM mem_withdrawal_methods WHERE ${whereClause}`;
+console.log(query);return;
+  try {
+    const [result] = await pool.query(query, whereValues);
+    return result;
+  } catch (error) {
+    console.error('Error deleting withdrawal method:', error);
+    return null;
+  }
+};
+
+
 
   async getViaByIdAndRequestId(via_id, request_id) {
     try {

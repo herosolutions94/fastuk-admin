@@ -15,11 +15,11 @@ const { Server } = require('socket.io');
 let socketServer;
 
 // Check if SSL files exist for HTTPS setup
-if (
-  fs.existsSync('/var/www/html/fastuk-admin/ssl/private.key') &&
-  fs.existsSync('/var/www/html/fastuk-admin/ssl/certificate.crt') &&
-  fs.existsSync('/var/www/html/fastuk-admin/ssl/ca_bundle.crt')
-) {
+// if (
+//   fs.existsSync('/var/www/html/fastuk-admin/ssl/private.key') &&
+//   fs.existsSync('/var/www/html/fastuk-admin/ssl/certificate.crt') &&
+//   fs.existsSync('/var/www/html/fastuk-admin/ssl/ca_bundle.crt')
+// ) {
   const sslOptions = {
     key: fs.readFileSync('/var/www/html/fastuk-admin/ssl/private.key'), // Path to private key
     cert: fs.readFileSync('/var/www/html/fastuk-admin/ssl/certificate.crt'), // Path to certificate
@@ -27,10 +27,10 @@ if (
   };
   socketServer = https.createServer(sslOptions, app);
   console.log('Running HTTPS server.');
-} else {
-  socketServer = http.createServer(app);
-  console.log('SSL files not found. Running HTTP server.');
-}
+// } else {
+//   socketServer = http.createServer(app);
+//   console.log('SSL files not found. Running HTTP server.');
+// }
 
 const io = new Server(socketServer, {
   cors: {

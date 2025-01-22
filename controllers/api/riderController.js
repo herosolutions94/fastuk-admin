@@ -5,6 +5,7 @@ const Member = require("../../models/memberModel");
 const Rider = require("../../models/riderModel");
 const Token = require("../../models/tokenModel");
 const RequestQuoteModel = require("../../models/request-quote"); // Assuming you have this model
+const MemberModel = require('../../models/member');
 
 const {
   validateEmail,
@@ -25,6 +26,7 @@ class RiderController extends BaseController {
     this.tokenModel = new Token();
     this.requestQuoteModel = new RequestQuoteModel();
     this.member = new Member();
+    this.member_model = new MemberModel();
   }
 
   async registerRider(req, res) {
@@ -609,7 +611,289 @@ class RiderController extends BaseController {
       });
     }
   }
+  async getRiderPaymentMethods(req, res) {
+    try {
+      const { token, memType } = req.body;
 
+      if (!token) {
+        return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
+
+      if (memType !== "rider") {
+        return res
+          .status(200)
+          .json({
+            status: 0,
+            msg: "Invalid member type. Only riders can access this endpoint."
+          });
+      }
+
+      // Validate the token and get the rider details
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse); // Return validation error response
+      }
+
+      const rider = userResponse.user;
+
+      const states = await helpers.getStatesByCountryId(230);
+       const bank_payment_methods = await this.rider.getWithdrawalPamentMethods(rider?.id,'bank-account');
+       const paypal_payment_methods = await this.rider.getWithdrawalPamentMethods(rider?.id,'paypal');
+      // console.log("Rider Orders with Encoded IDs:", ordersWithEncodedIds);
+
+      // Return the fetched orders with encoded IDs
+      return res.status(200).json({
+        status: 1,
+        states:states,
+        bank_payment_methods:bank_payment_methods,
+        paypal_payment_methods:paypal_payment_methods,
+      });
+    } catch (error) {
+      console.error("Error in getRiderOrders:", error);
+      return res.status(200).json({
+        status: 0,
+        msg: "Internal server error.",
+        error: error.message
+      });
+    }
+  }
+  async AddWithdrawalMethod(req, res) {
+    try {
+      const { token, memType,bank_name,account_title,account_number,swift_routing_no,country,state,city,paypal_email,payment_method } = req.body;
+
+      if (!token) {
+        return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
+
+      if (memType !== "rider") {
+        return res
+          .status(200)
+          .json({
+            status: 0,
+            msg: "Invalid member type. Only riders can access this endpoint."
+          });
+      }
+
+      // Validate the token and get the rider details
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse); // Return validation error response
+      }
+
+      const rider = userResponse.user;
+      const created_at = helpers.getUtcTimeInSeconds();
+      let cleanedData = {};
+      if(payment_method=='bank-account'){
+        cleanedData = {
+          bank_name: typeof bank_name === "string" ? bank_name.trim() : "",
+          account_title: typeof account_title === "string" ? account_title.trim() : "",
+          account_number: account_number.trim(),
+          swift_routing_no: swift_routing_no.trim(),
+          country: country.trim(),
+          state: state.trim(),
+          city: city.trim(),
+          mem_id: rider?.id,
+          payment_method:payment_method,
+          created_at:created_at
+        };
+      }
+      else if(payment_method=='paypal'){
+        cleanedData = {
+          paypal_email: typeof paypal_email === "string" ? paypal_email.trim() : "",
+          mem_id: rider?.id,
+          payment_method:payment_method,
+          created_at:created_at
+        };
+      }
+      // console.log(validateRequiredFields(cleanedData))
+      // Validation for empty fields
+      if (!validateRequiredFields(cleanedData)) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "All fields are required." });
+      }
+      else{
+        const riderOrders = await this.rider.createWithdrawanMethod(cleanedData);
+        return res.status(200).json({
+          status: 1,
+          msg:'Added successfully!'
+        });
+      }
+
+      return res.status(200).json({
+        status: 1,
+        states:states
+      });
+    } catch (error) {
+      console.error("Error in getRiderOrders:", error);
+      return res.status(200).json({
+        status: 0,
+        msg: "Internal server error.",
+        error: error.message
+      });
+    }
+  }
+async UpdateWithdrawalMethod(req, res) {
+    try {
+      const { token, memType,bank_name,account_title,account_number,swift_routing_no,country,state,city,paypal_email,payment_method,payment_method_id } = req.body;
+
+      if (!token) {
+        return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
+
+      if (memType !== "rider") {
+        return res
+          .status(200)
+          .json({
+            status: 0,
+            msg: "Invalid member type. Only riders can access this endpoint."
+          });
+      }
+
+      // Validate the token and get the rider details
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+      const rider = userResponse.user;
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse); // Return validation error response
+      }
+      if(payment_method_id!==null && payment_method_id!=='' && payment_method_id!==undefined){
+          const payment_method_row = await this.rider.getWithdrawalPamentMethodRow(rider?.id,payment_method_id);
+          if(payment_method_row?.length===0){
+            return res
+            .status(200)
+            .json({
+              status: 0,
+              msg: "Invalid payment method to update!"
+            });
+          }
+      }
+      else{
+        return res
+            .status(200)
+            .json({
+              status: 0,
+              msg: "Invalid payment method to update!"
+            });
+      }
+
+      
+      const created_at = helpers.getUtcTimeInSeconds();
+      let cleanedData = {};
+      if(payment_method=='bank-account'){
+        cleanedData = {
+          bank_name: typeof bank_name === "string" ? bank_name.trim() : "",
+          account_title: typeof account_title === "string" ? account_title.trim() : "",
+          account_number: account_number.trim(),
+          swift_routing_no: swift_routing_no.trim(),
+          country: country.trim(),
+          state: state.trim(),
+          city: city.trim(),
+          mem_id: rider?.id,
+          payment_method:payment_method,
+          created_at:created_at
+        };
+      }
+      else if(payment_method=='paypal'){
+        cleanedData = {
+          paypal_email: typeof paypal_email === "string" ? paypal_email.trim() : "",
+          mem_id: rider?.id,
+          payment_method:payment_method,
+          created_at:created_at
+        };
+      }
+      // console.log(validateRequiredFields(cleanedData))
+      // Validation for empty fields
+      if (!validateRequiredFields(cleanedData)) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "All fields are required." });
+      }
+      else{
+        const riderOrders = await this.rider.updateWithdrawalMethod(cleanedData,{ id: payment_method_id });
+          return res.status(200).json({
+            status: 1,
+            msg:'Updated successfully!'
+          });
+      }
+
+      return res.status(200).json({
+        status: 1,
+        states:states
+      });
+    } catch (error) {
+      console.error("Error in getRiderOrders:", error);
+      return res.status(200).json({
+        status: 0,
+        msg: "Internal server error.",
+        error: error.message
+      });
+    }
+  }
+  async DeleteWithdrawalMethod(req, res) {
+    try {
+      const { token, memType,payment_method_id } = req.body;
+
+      if (!token) {
+        return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
+
+      if (memType !== "rider") {
+        return res
+          .status(200)
+          .json({
+            status: 0,
+            msg: "Invalid member type. Only riders can access this endpoint."
+          });
+      }
+
+      // Validate the token and get the rider details
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+      const rider = userResponse.user;
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse); // Return validation error response
+      }
+      if(payment_method_id!==null && payment_method_id!=='' && payment_method_id!==undefined){
+          const payment_method_row = await this.rider.getWithdrawalPamentMethodRow(rider?.id,payment_method_id);
+          if(payment_method_row?.length===0){
+            return res
+            .status(200)
+            .json({
+              status: 0,
+              msg: "Invalid payment method to update!"
+            });
+          }
+          const whereCondition = { id: payment_method_row?.id };
+
+          const result = await this.rider.deleteWithdrawalMethod(whereCondition);
+          return res.status(200).json({
+            status: 1,
+            msg:"Deleted successfully!"
+          });
+      }
+      else{
+        return res
+            .status(200)
+            .json({
+              status: 0,
+              msg: "Invalid payment method to update!"
+            });
+      }
+
+      
+      
+
+      
+    } catch (error) {
+      console.error("Error in getRiderOrders:", error);
+      return res.status(200).json({
+        status: 0,
+        msg: "Internal server error.",
+        error: error.message
+      });
+    }
+  }
   async getOrderDetailsByEncodedId(req, res) {
     try {
       const { token } = req.body;
