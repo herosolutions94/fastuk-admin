@@ -438,6 +438,7 @@ class RiderController extends BaseController {
           vias,
           parcels
         });
+        // console.log("enrichedQuotes:",enrichedQuotes)
       }
 
       return res.status(200).json({
