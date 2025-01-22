@@ -1546,6 +1546,35 @@ updateRequestStatusToCompleted = async (req, res) => {
             return res.status(200).json({ status: 0, msg: 'Request not found' });
         }
 
+        // Step 2: Calculate earnings and insert into the earnings table
+        const totalDistance = request[0].total_distance || 0;
+        const riderPrice = request[0].rider_price || 0; // Assuming `rider_price` is part of the request data
+        const amount = totalDistance * riderPrice;
+        const created_time = helpers.getUtcTimeInSeconds()
+        console.log("amount:",amount)
+        console.log("totalDistance:",totalDistance)
+        console.log("riderPrice:",riderPrice)
+
+    if (amount > 0) {
+      const earningsData = {
+        user_id: rider.user.id,
+        amount: amount,
+        type: "credit",
+        status: "pending",
+        created_time: created_time, // UTC time in seconds
+      };
+      // console.log(rider.user.id,amount,created_time);return;
+
+      const insertedEarnings = await helpers.insertEarnings(earningsData);
+      // console.log("insertedEarnings:",insertedEarnings);return;
+
+      if (!insertedEarnings) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Failed to insert earnings data." });
+      }
+    }
+
         const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
 
         const notificationText = `Your request #${id} has been completed.`;
@@ -1560,7 +1589,7 @@ updateRequestStatusToCompleted = async (req, res) => {
 
         return res.status(200).json({
             status: 1,
-            msg: 'Status updated to completed',
+            msg: "Status updated to completed and earnings added.",
             data: updatedRequest,
         });
     } catch (error) {
@@ -1623,6 +1652,52 @@ async getRiderDashboardOrders(req, res) {
     return res.status(500).json({ status: 0, msg: "Internal Server Error" });
   }
 }
+
+async getRiderEarnings(req, res) {
+  try {
+    const { token, memType } = req.body;
+    console.log(req.body,"req.body")
+
+    // Validate token and memType
+    if (!token) {
+      return res.status(200).json({ status: 0, msg: "Token is required." });
+    }
+
+    if (memType !== "rider") { // Ensure the memType is 'rider'
+      return res.status(200).json({ status: 0, msg: "Invalid member type." });
+    }
+
+    // Validate the token and get the rider details
+    const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+    if (userResponse.status === 0) {
+      return res.status(200).json(userResponse); // Return validation error response
+    }
+
+    // Extract the logged-in rider ID from the token validation response
+    const riderId = userResponse.user.id;
+
+    // Now, call the model's getRiderEarnings function to fetch the earnings
+    const earningsData = await this.rider.getRiderEarnings(riderId);
+    console.log("net income:",earningsData.netIncome,"available balance:",earningsData.availableBalance)
+
+    if (!earningsData) {
+      return res.status(200).json({ status: 0, msg: "No earnings found for this rider." });
+    }
+
+    // Return earnings data, net income, and available balance
+    return res.status(200).json({
+      status: 1,
+      netIncome: earningsData.netIncome,
+      availableBalance: earningsData.availableBalance,
+      earnings: earningsData.earnings,
+    });
+  } catch (error) {
+    console.error("Error fetching earnings:", error);
+    return res.status(200).json({ status: 0, msg: "An error occurred while fetching earnings" });
+  }
+}
+
 
 
 

@@ -243,13 +243,19 @@ async getRidersByCity(city) {
 getRequestById = async (id, riderId) => {
     // console.log(id,riderId);return;
     const query = `
-      SELECT * FROM request_quote 
-      WHERE id = ? AND assigned_rider = ?
+      SELECT 
+        rq.*, 
+        SUM(od.distance) AS total_distance 
+      FROM 
+        request_quote AS rq
+      LEFT JOIN 
+        order_details AS od 
+        ON rq.id = od.order_id
+      WHERE 
+        rq.id = ? AND rq.assigned_rider = ?
+      GROUP BY 
+        rq.id
     `;
-    console.log(`
-      SELECT * FROM request_quote 
-      WHERE id = ${id} AND assigned_rider = ${riderId}
-    `)
     const values = [id, riderId];
     const [rows] = await pool.query(query, values);
     return rows;
@@ -688,6 +694,36 @@ async getCompletedOrdersByRider(riderId) {
       throw new Error("Database query failed.");
     }
   }
+
+  async getRiderEarnings(riderId) {
+    try {
+      // Get earnings where the status is 'cleared' for Net Income
+      const [netIncomeResult] = await pool.query(
+        `SELECT SUM(amount) as net_income FROM earnings WHERE user_id = ? AND status = 'cleared'`,
+        [riderId]
+      );
+  
+      // Get available balance: sum of all 'credit' earnings - sum of all 'debit' earnings
+      const [availableBalanceResult] = await pool.query(
+        `SELECT SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) - SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) as available_balance FROM earnings WHERE user_id = ?`,
+        [riderId]
+      );
+  
+      // Get all earnings data for the rider
+      const [earnings] = await pool.query('SELECT * FROM earnings WHERE user_id = ?', [riderId]);
+  
+      // Return the calculated values along with the earnings data
+      return {
+        netIncome: netIncomeResult[0].net_income || 0, // Default to 0 if no result
+        availableBalance: availableBalanceResult[0].available_balance || 0, // Default to 0 if no result
+        earnings: earnings
+      };
+    } catch (error) {
+      console.error('Error fetching earnings:', error);
+      throw error;
+    }
+  }
+  
   
   
   

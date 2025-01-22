@@ -25,7 +25,7 @@ router.post('/rider-payment-methods', upload,riderController.getRiderPaymentMeth
 router.post('/add-withdrawal-method', upload,riderController.AddWithdrawalMethod.bind(riderController));
 router.post('/update-withdrawal-method', upload,riderController.UpdateWithdrawalMethod.bind(riderController));
 router.post('/delete-withdrawal-method', upload,riderController.DeleteWithdrawalMethod.bind(riderController));
-
+router.post('/get-rider-earnings', upload, riderController.getRiderEarnings.bind(riderController));
 
 
 
