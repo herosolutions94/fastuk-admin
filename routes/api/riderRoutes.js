@@ -21,9 +21,11 @@ router.get('/get-invoices-detail', upload,riderController.getInvoiceDetails.bind
 router.post('/test-notification', upload,riderController.testNotification.bind(riderController));
 router.post('/update-order-completed', upload,riderController.updateRequestStatusToCompleted.bind(riderController));
 router.post('/get-rider-dashboard-orders', upload,riderController.getRiderDashboardOrders.bind(riderController));
+router.post('/rider-payment-methods', upload,riderController.getRiderPaymentMethods.bind(riderController));
+router.post('/add-withdrawal-method', upload,riderController.AddWithdrawalMethod.bind(riderController));
+router.post('/update-withdrawal-method', upload,riderController.UpdateWithdrawalMethod.bind(riderController));
+router.post('/delete-withdrawal-method', upload,riderController.DeleteWithdrawalMethod.bind(riderController));
 router.post('/get-rider-earnings', upload, riderController.getRiderEarnings.bind(riderController));
-
-
 
 
 
