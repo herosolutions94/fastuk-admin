@@ -894,6 +894,24 @@ async UpdateWithdrawalMethod(req, res) {
       });
     }
   }
+  async getThreeDaysBeforeEarnings(req,res) {
+    try{
+      const rows=await this.rider.getEarningsBefore3Days();
+      console.log(rows)
+      for (const row of rows) {
+        await this.rider.updateEarningStatusToCleared(row.id);
+      }
+      console.log("Successfully updated the statuses to cleared.");
+    }
+    catch (error) {
+      console.error("Error in getOrderDetailsByEncodedId:", error);
+      return res.status(200).json({
+        status: 0,
+        msg: "Internal server error.",
+        error: error.message
+      });
+    }
+  }
   async getOrderDetailsByEncodedId(req, res) {
     try {
       const { token } = req.body;
@@ -1684,13 +1702,64 @@ async getRiderEarnings(req, res) {
     if (!earningsData) {
       return res.status(200).json({ status: 0, msg: "No earnings found for this rider." });
     }
-
+    const bank_payment_methods = await this.rider.getWithdrawalPamentMethods(riderId,'bank-account');
+    const paypal_payment_methods = await this.rider.getWithdrawalPamentMethods(riderId,'paypal');
     // Return earnings data, net income, and available balance
     return res.status(200).json({
       status: 1,
       netIncome: earningsData.netIncome,
       availableBalance: earningsData.availableBalance,
       earnings: earningsData.earnings,
+      bank_payment_methods:bank_payment_methods,
+      paypal_payment_methods:paypal_payment_methods
+    });
+  } catch (error) {
+    console.error("Error fetching earnings:", error);
+    return res.status(200).json({ status: 0, msg: "An error occurred while fetching earnings" });
+  }
+}
+async saveWithDrawalRequest(req, res) {
+  try {
+    const { token, memType,payment_method,account_details,paypal_details } = req.body;
+    console.log(req.body,"req.body")
+
+    // Validate token and memType
+    if (!token) {
+      return res.status(200).json({ status: 0, msg: "Token is required." });
+    }
+
+    if (memType !== "rider") { // Ensure the memType is 'rider'
+      return res.status(200).json({ status: 0, msg: "Invalid member type." });
+    }
+
+    // Validate the token and get the rider details
+    const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+    if (userResponse.status === 0) {
+      return res.status(200).json(userResponse); // Return validation error response
+    }
+
+    // Extract the logged-in rider ID from the token validation response
+    const riderId = userResponse.user.id;
+    if(payment_method==='bank-account'){
+      if (!validateRequiredFields({ payment_method, account_details })) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Bank details required." });
+      }
+    }
+    else if(payment_method==='paypal'){
+      if (!validateRequiredFields({ payment_method, paypal_details })) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Papal email is required!" });
+      }
+    }
+    
+   
+    return res.status(200).json({
+      status: 1,
+      msg:'Request sent to admin!'
     });
   } catch (error) {
     console.error("Error fetching earnings:", error);
