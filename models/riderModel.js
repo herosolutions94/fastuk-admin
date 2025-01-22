@@ -349,6 +349,7 @@ getRequestById = async (id, riderId) => {
     return null;
   }
 };
+
 deleteWithdrawalMethod = async (whereCondition) => {
   // Extract columns and values from the whereCondition object
   const whereColumns = Object.keys(whereCondition);
