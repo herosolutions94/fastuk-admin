@@ -375,8 +375,32 @@ deleteWithdrawalMethod = async (whereCondition) => {
     return null;
   }
 };
+getEarningsBefore3Days = async () => {
+  const query = `
+    SELECT *
+FROM earnings
+WHERE created_time <= UNIX_TIMESTAMP(UTC_TIMESTAMP()) - (3 * 24 * 60 * 60)
+  `;
 
+  try {
+    const [results] = await pool.query(query);
+    return results;
+  } catch (error) {
+    console.error('Error fetching earnings:', error);
+    return [];
+  }
+};
+async updateEarningStatusToCleared(earningId) {
+  const query = `UPDATE earnings SET status = 'cleared' WHERE id = ?`;
 
+  try {
+    const [result] = await pool.query(query, [earningId]);
+    return result;
+  } catch (error) {
+    console.error(`Error updating status for ID ${earningId}:`, error);
+    return null;
+  }
+}
 
   async getViaByIdAndRequestId(via_id, request_id) {
     try {
@@ -699,13 +723,13 @@ async getCompletedOrdersByRider(riderId) {
     try {
       // Get earnings where the status is 'cleared' for Net Income
       const [netIncomeResult] = await pool.query(
-        `SELECT SUM(amount) as net_income FROM earnings WHERE user_id = ? AND status = 'cleared'`,
+        `SELECT SUM(amount) as net_income FROM earnings WHERE user_id = ?`,
         [riderId]
       );
   
       // Get available balance: sum of all 'credit' earnings - sum of all 'debit' earnings
       const [availableBalanceResult] = await pool.query(
-        `SELECT SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) - SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) as available_balance FROM earnings WHERE user_id = ?`,
+        `SELECT SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) - SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) as available_balance FROM earnings WHERE user_id = ? AND status = 'cleared'`,
         [riderId]
       );
   
