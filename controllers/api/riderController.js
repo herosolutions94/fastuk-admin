@@ -864,7 +864,7 @@ async UpdateWithdrawalMethod(req, res) {
               msg: "Invalid payment method to update!"
             });
           }
-          const whereCondition = { id: payment_method_row?.id };
+          const whereCondition = { id: payment_method_id };
 
           const result = await this.rider.deleteWithdrawalMethod(whereCondition);
           return res.status(200).json({

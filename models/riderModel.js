@@ -366,7 +366,7 @@ deleteWithdrawalMethod = async (whereCondition) => {
 
   // Construct the SQL query
   const query = `DELETE FROM mem_withdrawal_methods WHERE ${whereClause}`;
-console.log(query);return;
+// console.log(query,whereValues,whereCondition);return;
   try {
     const [result] = await pool.query(query, whereValues);
     return result;
