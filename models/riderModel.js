@@ -747,6 +747,68 @@ async getCompletedOrdersByRider(riderId) {
       throw error;
     }
   }
+
+  async createWithdrawalRequest({ riderId, payment_method, account_details, paypal_details, amount }) {
+    try {
+      const query = `
+        INSERT INTO withdraw_requests 
+        (user_id, account_details, paypal_details, amount, status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `;
+      const values = [
+        riderId,
+        payment_method === 'bank-account' ? JSON.stringify(account_details) : null,
+        payment_method === 'paypal' ? paypal_details : null,
+        amount,
+        'pending', // Default status
+        helpers.getUtcTimeInSeconds(), // created_at
+        helpers.getUtcTimeInSeconds(), // updated_at
+      ];
+  
+      const [result] = await pool.query(query, values); // Assuming you're using a MySQL pool
+      return result; // Return the inserted row
+    } catch (error) {
+      console.error("Error inserting withdrawal request:", error);
+      return null;
+    }
+  }
+
+  async getClearedEarnings(userId) {
+    try {
+      const query = `
+        SELECT * 
+        FROM earnings 
+        WHERE user_id = ? 
+          AND type = 'credit' 
+          AND status = 'cleared'
+      `;
+      const [results] = await pool.query(query, [userId]); // Assuming you're using a MySQL pool
+      return results;
+    } catch (error) {
+      console.error("Error fetching cleared earnings:", error);
+      return null;
+    }
+  }
+
+  async createWithdrawDetail(withdrawalId, earningId, created_at, updated_at) {
+    const query = `
+      INSERT INTO withdraw_details (w_id, earning_id, created_at, updated_at)
+      VALUES (?, ?, ?, ?);
+    `;
+    const values = [withdrawalId, earningId, created_at, updated_at];
+    try {
+      const [result] = await pool.query(query, values); // Assuming you're using a MySQL pool
+      return result;
+    } catch (error) {
+      console.error("Error in createWithdrawDetail:", error);
+      throw new Error("Failed to create withdraw detail.");
+    }
+  }
+  
+  
+  
+
+
   
   
   
