@@ -22,6 +22,7 @@ const nodemailer = require("nodemailer");
 const helpers = require("../../utils/helpers");
 const { SMTP_MAIL, SMTP_PASSWORD } = process.env;
 const Stripe = require("stripe");
+const { pool } = require("../../config/db-connection");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 class MemberController extends BaseController {
   constructor() {
@@ -646,8 +647,12 @@ class MemberController extends BaseController {
           message: "Price should be greater than 5",
         });
       }
+
+      const formattedTotalPrice = helpers.formatAmount(parcel_price_obj?.total);
+
+
       // Handle payment logic
-      const parsedAmount = parseFloat(parcel_price_obj?.total);
+      const parsedAmount = parseFloat(formattedTotalPrice);
       if (isNaN(parsedAmount) || parsedAmount <= 0) {
         return res
           .status(200)
@@ -727,7 +732,7 @@ class MemberController extends BaseController {
         saved_card_id,
         order_details // Array from frontend
       } = req.body;
-      console.log("rider_price:", rider_price);
+      console.log("price:", price);
 
       if (token) {
         if (!token) {
@@ -777,15 +782,25 @@ class MemberController extends BaseController {
         }
         const siteSettings = res.locals.adminData;
         let parcel_price_obj=helpers.calculateParcelsPrice(order_details,siteSettings?.site_processing_fee);
+
+        const formattedRiderPrice = helpers.formatAmount(rider_price || 0);
+        const formattedVehiclePrice = helpers.formatAmount(price || 0);
+        const formattedTotalAmount = helpers.formatAmount(parcel_price_obj?.total || 0);
+        const formattedTax = helpers.formatAmount(parcel_price_obj?.tax || 0);
+
+        // console.log("Remote price",formattedRemotePrice)
+        // console.log("Remote price",remote_price)
+        
+
         let requestQuoteId = "";
         if (payment_method === "credit-card") {
           requestQuoteId = await this.pageModel.createRequestQuote({
             user_id: userId, // Save the userId in the request
             selected_vehicle: selectedVehicle,
-            rider_price: rider_price,
-            vehicle_price: remote_price ? remote_price : price,
-            total_amount: parcel_price_obj?.total,
-            tax: parcel_price_obj?.tax,
+            rider_price: formattedRiderPrice,
+            vehicle_price: formattedVehiclePrice,
+             total_amount: formattedTotalAmount,
+            tax: formattedTax,
             payment_intent: payment_intent_customer_id,
             customer_id: payment_intent_customer_id,
             source_postcode,
@@ -870,7 +885,7 @@ class MemberController extends BaseController {
           let paymentIntent;
           try {
             paymentIntent = await stripe.paymentIntents.create({
-              amount: Math.round(totalAmount * 100),
+              amount: Math.round(formattedTotalAmount * 100),
               currency: "usd",
               customer: stripePaymentMethod.customer,
               payment_method: stripe_payment_method_id,
@@ -906,10 +921,10 @@ class MemberController extends BaseController {
           requestQuoteId = await this.pageModel.createRequestQuote({
             user_id: userId,
             selected_vehicle: selectedVehicle,
-            rider_price: rider_price,
-            vehicle_price: remote_price ? remote_price : price,
-            total_amount: parcel_price_obj?.total,
-            tax: parcel_price_obj?.tax,
+            rider_price: formattedRiderPrice,
+            vehicle_price: formattedVehiclePrice,
+             total_amount: formattedTotalAmount,
+            tax: formattedTax,
             payment_intent: paymentIntent.id, // Store the Payment Intent ID
             customer_id: stripePaymentMethod.customer, // Store the Customer ID
             stripe_payment_method_id, // Store the Stripe Payment Method ID
@@ -980,7 +995,7 @@ class MemberController extends BaseController {
             .json({ status: 0, msg: "'order_details' must be an array" });
         }
 
-        console.log("Order Details:", parsedOrderDetails);
+        // console.log("Order Details:", parsedOrderDetails);
 
         // Prepare order_details records
         const orderDetailsRecords = parsedOrderDetails.map((detail) => ({
@@ -994,7 +1009,7 @@ class MemberController extends BaseController {
           weight: detail.weight,
           parcel_number: detail.parcelNumber,
           parcel_type: detail.parcelType,
-          price: detail?.price
+          price: helpers.formatAmount(detail?.price)
         }));
 
         // Insert order details into the database
@@ -1028,7 +1043,7 @@ class MemberController extends BaseController {
         // Insert Transaction Record
       await helpers.storeTransaction({
         user_id: userId,
-        amount: parcel_price_obj?.total,
+        amount: formattedTotalAmount,
         payment_method:payment_method,
         transaction_id: requestQuoteId,
         created_time:created_time
@@ -1515,6 +1530,9 @@ async getUserTransactions(req, res) {
       const paidAmount = await RequestQuoteModel.totalPaidAmount(order.id);
       const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
 
+      const formattedPaidAmount = helpers.formatAmount(paidAmount);
+      const formattedDueAmount = helpers.formatAmount(dueAmount);
+
       order = {
         ...order,
         formatted_start_date: helpers.formatDateToUK(order?.start_date),
@@ -1522,8 +1540,8 @@ async getUserTransactions(req, res) {
         parcels: parcels,
         vias: vias,
         invoices: invoices,
-        dueAmount: dueAmount,
-        paidAmount: paidAmount,
+        dueAmount: formattedDueAmount,
+        paidAmount: formattedPaidAmount,
         viasCount:viasCount
       };
       // Fetch parcels and vias based on the quoteId from the order
@@ -1812,7 +1830,7 @@ async getUserTransactions(req, res) {
         );
         if (!stripePaymentMethod) {
           return res
-            .status(404)
+            .status(200)
             .json({ status: 0, msg: "Payment method not found in Stripe." });
         }
       } catch (stripeError) {
@@ -2058,14 +2076,18 @@ console.log(notification.user_id, "Notification User ID");
       }
   
       const user = validationResponse.user;
+      
       // Define necessary variables
       const locType = ""; // Set this based on your application's logic
       const amountType = ""; // Set this based on your application's logic
-      const charges = amount;
       const status = 1; // Invoice status
       const via_id = null;
       const paymentType = "payment"; // Payment type
       const createdDate = Math.floor(Date.now() / 1000); // Current timestamp in seconds
+
+      // Format the amounts before processing them
+    const formattedAmount = helpers.formatAmount(amount);
+    const charges = formattedAmount; // Amount to be charged, formatted
       
       // Call the model function to create the invoice
       const result = await this.rider.createInvoiceEntry(
@@ -2084,7 +2106,7 @@ console.log(notification.user_id, "Notification User ID");
       const created_time = helpers.getUtcTimeInSeconds();
       await helpers.storeTransaction({
         user_id: userId,
-        amount: amount,
+        amount: formattedAmount,
         payment_method:payment_method,
         transaction_id: requestId,
         created_time:created_time
@@ -2139,6 +2161,27 @@ console.log(notification.user_id, "Notification User ID");
     data: distanceResults
   });
 };
+
+
+async submitReview(req, res) {
+  const { orderId, userId, rating, review } = req.body;
+
+  if (!orderId || !userId || !rating || !review) {
+    return res.status(200).json({ message: 'All fields are required' });
+  }
+
+  try {
+    // Create a new review
+    const newReview = await this.member.createReview(orderId, userId, rating, review);
+
+    return res.status(200).json({
+      message: 'Review submitted successfully',
+      review: newReview,
+    });
+  } catch (error) {
+    return res.status(500).json({ message: 'Failed to submit review' });
+  }
+}
 
 }
 

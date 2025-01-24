@@ -163,6 +163,7 @@ const remotePostCodeRoutes = require('./routes/admin/remote-post-code');
 const pagesRoutes = require('./routes/admin/pages');
 const requestQuoteRoutes = require('./routes/admin/request-quote');
 const newsLetterRoutes = require('./routes/admin/news-letter');
+const WithdrawalRequestsRoutes = require('./routes/admin/withdraw-requests');
 
 const authMiddleware = require('./middleware/authMiddleware');
 const authenticationMiddleware = require('./middleware/authentication');
@@ -211,6 +212,7 @@ app.use('/admin', remotePostCodeRoutes);
 app.use('/admin', pagesRoutes);
 app.use('/admin', requestQuoteRoutes);
 app.use('/admin', newsLetterRoutes);
+app.use('/admin', WithdrawalRequestsRoutes);
 
 
 
