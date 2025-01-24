@@ -1,0 +1,76 @@
+<section id="dashbaord">
+    <div class="contain-fluid">
+      <div class="heading">
+        <div class="text">
+          <h3>View Withdrawl Requests</h3>
+          <ul>
+            <li><a href="">Home</a></li>
+            <li class="active"><a href="">Withdrawl Detail</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="dashTable">
+        <div class="card">
+          <div class="card-header">
+            <h5>Withdrawl Details:</h5>
+          </div>
+  
+          <div class="card-body">
+            <div class="list-group details-group">
+              <div class="list-group-item">
+                <div class="d-flex w-100">
+                  <p><strong>Name: </strong><%= withdrawalRequest.rider_name %></p>
+                </div>
+              </div>
+              <% if (withdrawalRequest.rider_dp) { %>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p><strong>Image: </strong></p>
+                    <img src="<%= helpers.getImage(withdrawalRequest.rider_dp) %>" alt="Rider Image" style="max-width: 100px; max-height: 100px; object-fit: cover;">
+                  </div>
+                </div>
+              <% } %>
+              
+              <% if (withdrawalRequest.account_details) { %>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p><strong>Account Details: </strong><%= withdrawalRequest.account_details %></p>
+                  </div>
+                </div>
+              <% } %>
+              
+              <% if (withdrawalRequest.paypal_details) { %>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p><strong>Paypal Details: </strong><%= withdrawalRequest.paypal_details %></p>
+                  </div>
+                </div>
+              <% } %>
+              
+              <div class="list-group-item">
+                <div class="d-flex w-100">
+                  <p><strong>Amount: </strong><%= withdrawalRequest.amount %></p>
+                </div>
+              </div>
+              <div class="list-group-item">
+                <div class="d-flex w-100">
+                  <p><strong>Status: </strong><%= withdrawalRequest.status %></p>
+                </div>
+              </div>
+              <div class="list-group-item">
+                <div class="d-flex w-100">
+                  <p><strong>Created Date: </strong><%= helpers.convertUtcToUkFormat(withdrawalRequest.created_at) %></p>
+                </div>
+              </div>
+              <div class="list-group-item">
+                <div class="d-flex w-100">
+                  <p><strong>Updated Date: </strong><%= helpers.convertUtcToUkFormat(withdrawalRequest.updated_at) %></p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+  

@@ -56,10 +56,10 @@ class RemotePostCodeModel extends BaseModel {
     
 
     static async updateRemotePostCode(id, remotePostCodeData) {
-        const { title, status } = remotePostCodeData;
+        const { title, status, remote_price } = remotePostCodeData;
         await pool.query(
-            `UPDATE ${this.tableName} SET title = ?, status = ? WHERE id = ?`,
-            [title, status, id]
+            `UPDATE ${this.tableName} SET title = ?, status = ?, remote_price = ? WHERE id = ?`,
+            [title, status, remote_price, id]
         );
     }
     static async deleteRemotePostCodeById(id) {

@@ -49,7 +49,7 @@ class RiderController extends BaseController {
 
         fingerprint // Keep fingerprint as a parameter
       } = req.body;
-      console.log(req.body)
+      // console.log(req.body)
       const cleanedData = {
         full_name: typeof full_name === "string" ? full_name.trim() : "",
         email: typeof email === "string" ? email.trim().toLowerCase() : "",
@@ -973,6 +973,12 @@ async UpdateWithdrawalMethod(req, res) {
       const paidAmount = await RequestQuoteModel.totalPaidAmount(order.id);
       const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
       // console.log(paidAmount,dueAmount)
+
+      const formattedPaidAmount = helpers.formatAmount(paidAmount);
+      const formattedDueAmount = helpers.formatAmount(dueAmount);
+
+
+
       order = {
         ...order,
         formatted_start_date: helpers.formatDateToUK(order?.start_date),
@@ -981,8 +987,8 @@ async UpdateWithdrawalMethod(req, res) {
         vias: vias,
         invoices: invoices,
         viasCount: viasCount,
-        paidAmount,
-        dueAmount
+        formattedPaidAmount,
+        formattedDueAmount
       };
       // Fetch parcels and vias based on the quoteId from the order
       // Assuming order.quote_id is the relevant field
@@ -1120,6 +1126,9 @@ async UpdateWithdrawalMethod(req, res) {
       const paidAmount = await RequestQuoteModel.totalPaidAmount(order.id);
       const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
 
+      const formattedPaidAmount = helpers.formatAmount(paidAmount);
+      const formattedDueAmount = helpers.formatAmount(dueAmount);
+
       const completeOrder = {
         ...order,
         encodedId,
@@ -1127,8 +1136,8 @@ async UpdateWithdrawalMethod(req, res) {
         parcels,
         invoices,
         viasCount,
-        paidAmount,
-        dueAmount
+        formattedPaidAmount,
+        formattedDueAmount
       };
 
       const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
@@ -1187,13 +1196,16 @@ async UpdateWithdrawalMethod(req, res) {
         return res.status(200).json({ status: 0, msg: "Request not found." });
       }
 
+      const formattedHandballCharges = helpers.formatAmount(handball_charges);
+    const formattedWaitingCharges = helpers.formatAmount(waiting_charges);
+
       // Handle source type logic
       if (type === "source") {
         // Step 2: Create invoice entries for source charges
-        if (handball_charges) {
+        if (formattedHandballCharges) {
           const handballInvoice = await this.rider.createInvoiceEntry(
             decodedRequestId,
-            handball_charges,
+            formattedHandballCharges,
             "handball",
             1,
             type,
@@ -1208,10 +1220,10 @@ async UpdateWithdrawalMethod(req, res) {
           }
         }
 
-        if (waiting_charges) {
+        if (formattedWaitingCharges) {
           const waitingInvoice = await this.rider.createInvoiceEntry(
             decodedRequestId,
-            waiting_charges,
+            formattedWaitingCharges,
             "waiting",
             1,
             type,
@@ -1256,16 +1268,16 @@ async UpdateWithdrawalMethod(req, res) {
         );
         if (!viaRow) {
           return res
-            .status(404)
+            .status(200)
             .json({ status: 0, msg: "Via not found for the given ID." });
         }
         // console.log("viaRow:", viaRow);return;
 
         // Create invoice entries for via charges
-        if (handball_charges) {
+        if (formattedHandballCharges) {
           const handballInvoice = await this.rider.createInvoiceEntry(
             decodedRequestId,
-            handball_charges,
+            formattedHandballCharges,
             "handball",
             1,
             type,
@@ -1282,10 +1294,10 @@ async UpdateWithdrawalMethod(req, res) {
           }
         }
 
-        if (waiting_charges) {
+        if (formattedWaitingCharges) {
           const waitingInvoice = await this.rider.createInvoiceEntry(
             decodedRequestId,
-            waiting_charges,
+            formattedWaitingCharges,
             "waiting",
             1,
             type,
@@ -1325,12 +1337,12 @@ async UpdateWithdrawalMethod(req, res) {
       } else if (type === "destination") {
         // Handle destination type logic (similar to source)
         // Step 2: Create invoice entries for destination charges
-        if (handball_charges) {
+        if (formattedHandballCharges) {
           // console.log("Handball Charges:", handball_charges);
 
           const handballInvoice = await this.rider.createInvoiceEntry(
             decodedRequestId,
-            handball_charges,
+            formattedHandballCharges,
             "handball",
             1,
             type,
@@ -1347,12 +1359,12 @@ async UpdateWithdrawalMethod(req, res) {
           }
         }
 
-        if (waiting_charges) {
+        if (formattedWaitingCharges) {
           // console.log("Waiting Charges:", waiting_charges);
 
           const waitingInvoice = await this.rider.createInvoiceEntry(
             decodedRequestId,
-            waiting_charges,
+            formattedWaitingCharges,
             "waiting",
             1,
             type,
@@ -1417,6 +1429,9 @@ async UpdateWithdrawalMethod(req, res) {
       const paidAmount = await RequestQuoteModel.totalPaidAmount(order.id);
       const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
 
+      const formattedPaidAmount = helpers.formatAmount(paidAmount);
+      const formattedDueAmount = helpers.formatAmount(dueAmount);
+
       const formattedOrder = {
         ...order,
         encodedId,
@@ -1425,8 +1440,8 @@ async UpdateWithdrawalMethod(req, res) {
         parcels,
         invoices,
         viasCount,
-        paidAmount,
-        dueAmount
+        formattedPaidAmount,
+        formattedDueAmount
       };
       // console.log(formattedOrder)
 
@@ -1568,16 +1583,21 @@ updateRequestStatusToCompleted = async (req, res) => {
         // Step 2: Calculate earnings and insert into the earnings table
         const totalDistance = request[0].total_distance || 0;
         const riderPrice = request[0].rider_price || 0; // Assuming `rider_price` is part of the request data
-        const amount = totalDistance * riderPrice;
+        const formattedRiderPrice = helpers.formatAmount(riderPrice);
+
+        const amount = totalDistance * formattedRiderPrice;
         const created_time = helpers.getUtcTimeInSeconds()
         console.log("amount:",amount)
         console.log("totalDistance:",totalDistance)
         console.log("riderPrice:",riderPrice)
 
-    if (amount > 0) {
+        const formattedAmount = helpers.formatAmount(amount);
+
+
+    if (formattedAmount > 0) {
       const earningsData = {
         user_id: rider.user.id,
-        amount: amount,
+        amount: formattedAmount,
         type: "credit",
         status: "pending",
         created_time: created_time, // UTC time in seconds
@@ -1668,14 +1688,14 @@ async getRiderDashboardOrders(req, res) {
     });
   } catch (error) {
     console.error("Error fetching rider dashboard orders:", error.message);
-    return res.status(500).json({ status: 0, msg: "Internal Server Error" });
+    return res.status(200).json({ status: 0, msg: "Internal Server Error" });
   }
 }
 
 async getRiderEarnings(req, res) {
   try {
     const { token, memType } = req.body;
-    console.log(req.body,"req.body")
+    // console.log(req.body,"req.body")
 
     // Validate token and memType
     if (!token) {
@@ -1703,14 +1723,28 @@ async getRiderEarnings(req, res) {
     if (!earningsData) {
       return res.status(200).json({ status: 0, msg: "No earnings found for this rider." });
     }
+
+    const formattedNetIncome = helpers.formatAmount(earningsData.netIncome);
+    const formattedAvailableBalance = helpers.formatAmount(earningsData.availableBalance);
+    // const formattedEarnings = helpers.formatAmount(earningsData.earnings);
+
+
     const bank_payment_methods = await this.rider.getWithdrawalPamentMethods(riderId,'bank-account');
     const paypal_payment_methods = await this.rider.getWithdrawalPamentMethods(riderId,'paypal');
+
+    const formattedEarnings = earningsData.earnings.map(earning => ({
+      ...earning,
+      amount: helpers.formatAmount(earning.amount), // Assuming each earning has an `amount` field
+    }));
+
+
+
     // Return earnings data, net income, and available balance
     return res.status(200).json({
       status: 1,
-      netIncome: earningsData.netIncome,
-      availableBalance: earningsData.availableBalance,
-      earnings: earningsData.earnings,
+      netIncome: formattedNetIncome,
+      availableBalance: formattedAvailableBalance,
+      earnings: formattedEarnings,
       bank_payment_methods:bank_payment_methods,
       paypal_payment_methods:paypal_payment_methods
     });
@@ -1723,69 +1757,51 @@ async saveWithDrawalRequest(req, res) {
   try {
     const { token, memType, payment_method, account_details, paypal_details } = req.body;
 
-    console.log("Request Body:", req.body);
-
-
     // Validate token and memType
     if (!token) {
-      return res.status(400).json({ status: 0, msg: "Token is required." });
+      return res.status(200).json({ status: 0, msg: "Token is required." });
     }
 
     if (memType !== "rider") {
-      return res.status(400).json({ status: 0, msg: "Invalid member type." });
+      return res.status(200).json({ status: 0, msg: "Invalid member type." });
     }
 
     // Validate the token and get the rider details
     const userResponse = await this.validateTokenAndGetMember(token, memType);
 
     if (userResponse.status === 0) {
-      return res.status(400).json(userResponse);
+      return res.status(200).json(userResponse);
     }
 
     const riderId = userResponse.user.id;
 
     // Validate payment method and required details
     if (payment_method === "bank-account" && !account_details) {
-      return res.status(400).json({ status: 0, msg: "Bank details are required." });
+      return res.status(200).json({ status: 0, msg: "Bank details are required." });
     }
 
     if (payment_method === "paypal" && !paypal_details) {
-      return res.status(400).json({ status: 0, msg: "PayPal email is required!" });
+      return res.status(200).json({ status: 0, msg: "PayPal email is required!" });
     }
-    // console.log("amount:",amount)
-
-    // Check the amount validity
-    // if (!amount || amount <= 0) {
-    //   return res.status(200).json({ status: 0, msg: "Invalid withdrawal amount." });
-    // }
 
     // Get cleared earnings for the rider
     const clearedEarnings = await this.rider.getClearedEarnings(riderId);
     const availableBalance = clearedEarnings.reduce((sum, earning) => sum + parseFloat(earning.amount), 0);
 
     // Validate available balance
-    if (availableBalance < 0) {
+    if (availableBalance <= 0) {
       return res.status(200).json({ status: 0, msg: "Insufficient balance for withdrawal." });
     }
 
+    const formattedBalance = helpers.formatAmount(availableBalance);
 
-    // Create withdrawal request
-    const result = await this.rider.createWithdrawalRequest({
-      riderId,
-      payment_method,
-      account_details,
-      paypal_details,
-      availableBalance,
-    });
-    const withdrawalId = result.insertId; // Extract the insertId
-    console.log("withdrawalId:", withdrawalId);
-    // Create debit entry in earnings
-    const created_time = helpers.getUtcTimeInSeconds()
+    // Create debit entry in the earnings table
+    const created_time = helpers.getUtcTimeInSeconds();
     const debitEntry = await helpers.insertEarnings({
       user_id: riderId,
-      amount: -availableBalance, // Negative amount for debit
-      type: "debit",
-      status: "pending",
+      amount: formattedBalance, // Store available balance
+      type: "debit", // Debit entry
+      status: "cleared", // Cleared status
       created_time: created_time,
     });
 
@@ -1793,11 +1809,26 @@ async saveWithDrawalRequest(req, res) {
       return res.status(200).json({ status: 0, msg: "Failed to create debit entry." });
     }
 
-    const created_at = helpers.getUtcTimeInSeconds()
-    const updated_at = helpers.getUtcTimeInSeconds()
+    const earningId = debitEntry[0].insertId; // Assuming this is how `insertId` is accessed
 
-    // Link the withdrawal request with the debit entry
-    await this.rider.createWithdrawDetail(withdrawalId, debitEntry.insertId, created_at, updated_at); // Assuming `insertId` returns the last inserted ID
+    // Create an entry in the withdraw_requests table
+    const created_at = helpers.getUtcTimeInSeconds();
+    const updated_at = helpers.getUtcTimeInSeconds();
+    const result = await this.rider.createWithdrawalRequest({
+      riderId,
+      earning_id: earningId, // Link to the debit entry
+      amount: formattedBalance, // Withdrawal amount
+      status: "pending", // Withdrawal request is pending
+      payment_method,
+      account_details,
+      paypal_details,
+      created_at,
+      updated_at,
+    });
+
+    if (!result.insertId) {
+      return res.status(200).json({ status: 0, msg: "Failed to create withdrawal request." });
+    }
 
     return res.status(200).json({ status: 1, msg: "Withdrawal request submitted successfully." });
   } catch (error) {
@@ -1805,6 +1836,7 @@ async saveWithDrawalRequest(req, res) {
     return res.status(500).json({ status: 0, msg: "Internal server error." });
   }
 }
+
 }
 
 module.exports = RiderController;

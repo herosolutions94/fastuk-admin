@@ -342,6 +342,20 @@ module.exports = {
     return decodedString;
   },
 
+   formatAmount: function(amount) {
+    // Ensure the input is a number
+    const numericAmount = parseFloat(amount);
+  
+    // If the amount is an integer, return it as is
+    if (numericAmount % 1 === 0) {
+      return numericAmount; // e.g., 10 → 10
+    }
+  
+    // If the amount has decimal points, format it to two decimal places
+    return parseFloat(numericAmount.toFixed(2)); // e.g., 10.123 → 10.12
+  },
+  
+
   storeNotification: async function (user_id, mem_type, sender, text, link = null) {
     // console.log("hi",users)
     try {
@@ -510,6 +524,8 @@ getTransaction: async function(user_id) {
       data.created_time,
     ];
     const result = await pool.query(query, values);
+    // console.log("Full Query Result:", result);
+
     return result; // Return the inserted row
   } catch (error) {
     console.error("Error inserting earnings:", error);
