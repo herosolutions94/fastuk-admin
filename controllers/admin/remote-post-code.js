@@ -28,12 +28,14 @@ class RemotePostCodeController extends BaseController {
             const {
                 title,
                 status,
+                remote_price
             } = req.body;
             console.log("req.body",req.body);  // To check if name and description are being sent
 
             // Clean and trim data
             const cleanedData = {
                 title: typeof title === 'string' ? title.trim() : '',
+                remote_price: typeof remote_price === 'string' ? remote_price.trim() : '',
                 status: status || 0,
             };
 

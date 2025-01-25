@@ -1,0 +1,115 @@
+<section id="dashbaord">
+    <div class="contain-fluid">
+      <div class="heading">
+        <div class="text">
+          <h3>Withdrawl Requests</h3>
+          <ul>
+            <li><a href="">Home</a></li>
+            <li class="active"><a href="">Withdrawl Requests</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="dashTable">
+        <table class="dataTable display" id="basic-1">
+          <thead>
+            <tr class="table-scnd-row blog-table">
+              <th width="10%">
+                <p>Sr#</p>
+              </th>
+              <th width="15%">
+                <p>Image</p>
+              </th>
+              <th width="20%">
+                <p>Name</p>
+              </th>
+              <th width="20%">
+                <p>Amount</p>
+              </th>
+              <th width="20%">
+                <p>Date</p>
+              </th>
+              <th width="15%">
+                <p>Status</p>
+              </th>
+              <th width="10%">
+                <p>Action</p>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (withdrawalRequests && withdrawalRequests.length > 0) { %> <%
+                withdrawalRequests.forEach((request, index) => { %>
+            <tr class="bottom-cntnt" id="request-<%= request.id %>">
+              <td>
+                <p><%= index + 1 %></p>
+              </td>
+              <td>
+                <div class="image-blog">
+                  <img src="<%= helpers.getImage(request.rider_dp) %>" />
+                </div>
+              </td>
+              <td>
+                <p><%= request.rider_name %></p>
+              </td>
+              <td>
+                <p><%= request.amount %></p>
+              </td>
+              <td>
+                <p><%= helpers.convertUtcToUkFormat(request.created_at) %></p>
+              </td>
+              <td>
+                <p>
+                  <% if (request.status === 'cleared') { %>
+                    <a href="#" class="status badge success">Cleared</a>
+                  <% } else if (request.status === 'pending') { %>
+                    <a href="#" class="status badge warning">Pending</a>
+                  <% } %>
+                </p>
+              </td>
+              
+              <td>
+                <div class="btn-group">
+                  <button
+                    type="button"
+                    class="dropdown-toggle"
+                    data-toggle="dropdown">
+                    <i class="fa fa-ellipsis-h"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-primary" role="menu">
+                    <li>
+                      <a href="/admin/withdraw-request-detail/<%= request.withdrawal_id %>"
+                        ><i class="fa fa-pencil" aria-hidden="true"></i>View</a
+                      >
+                    </li>
+                    
+                    <li>
+                      <a
+                        href="#"
+                        class="delete-item"
+                        data-id="<%= request.id %>"
+                        data-url="/admin/withdraw-request-delete/<%= request.withdrawal_id %>">
+                        <i class="fa fa-trash" aria-hidden="true"></i> Delete
+                      </a>
+                    </li>
+                    <% if (request.status === 'pending') { %>
+                      <li>
+                        <a href="/admin/approve-withdrawal/<%= request.withdrawal_id %>" class="btn btn-success">Approve</a>
+                      </li>
+                    <% } %>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+            <% }) %> <% } else { %>
+            <tr>
+              <td colspan="8"><p>No requests found.</p></td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  
+  
+  
