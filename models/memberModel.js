@@ -284,6 +284,30 @@ WHERE n.user_id = ? AND n.mem_type = ?
     return result.affectedRows;
 }
 
+static async createReview(orderId, userId, rating, message) {
+    try {
+      // Insert the review into the reviews table
+      const query = `
+        INSERT INTO reviews (order_id, user_id, rating, message, created_at)
+        VALUES (?, ?, ?, ?, NOW());
+      `;
+      const [result] = await pool.query(query, [orderId, userId, rating, message]);
+  
+      // Optionally, retrieve the inserted review if needed (based on the auto-increment ID)
+      const reviewId = result.insertId;
+  
+      // Fetch the inserted review (optional)
+      const selectQuery = 'SELECT * FROM reviews WHERE id = ?';
+      const [review] = await db.execute(selectQuery, [reviewId]);
+  
+      return review[0]; // Return the first (and only) row
+  
+    } catch (error) {
+      console.error('Error creating review:', error);
+      throw new Error('Failed to post review');
+    }
+  }
+
 
 
 

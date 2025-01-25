@@ -748,15 +748,23 @@ async getCompletedOrdersByRider(riderId) {
     }
   }
 
-  async createWithdrawalRequest({ riderId, payment_method, account_details, paypal_details, amount }) {
+  async createWithdrawalRequest({ riderId, earning_id, payment_method, account_details, paypal_details, amount }) {
     try {
+      // console.log("Model Params:", {
+      //   riderId,
+      //   payment_method,
+      //   account_details,
+      //   paypal_details,
+      //   amount,
+      // });
       const query = `
         INSERT INTO withdraw_requests 
-        (user_id, account_details, paypal_details, amount, status, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        (user_id, earning_id, account_details, paypal_details, amount, status, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const values = [
         riderId,
+        earning_id,
         payment_method === 'bank-account' ? JSON.stringify(account_details) : null,
         payment_method === 'paypal' ? paypal_details : null,
         amount,
@@ -764,8 +772,11 @@ async getCompletedOrdersByRider(riderId) {
         helpers.getUtcTimeInSeconds(), // created_at
         helpers.getUtcTimeInSeconds(), // updated_at
       ];
+
+      
   
       const [result] = await pool.query(query, values); // Assuming you're using a MySQL pool
+      // console.log("result:",result,"values:",values)
       return result; // Return the inserted row
     } catch (error) {
       console.error("Error inserting withdrawal request:", error);
