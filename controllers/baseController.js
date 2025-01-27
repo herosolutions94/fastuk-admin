@@ -25,7 +25,7 @@ class BaseController {
             memType,
             expiryDate,
             actualFingerprint,
-            "user"
+            memType
           );
           return authToken;
     }
@@ -52,14 +52,15 @@ class BaseController {
           // Step 2: Validate token type matches expected type (e.g., memType)
           if (memType === "user" && tokenType !== "user") {
               return { status: 0, msg: "Invalid token type for user.",not_logged_in:1 };
-          } else if (memType === "rider" && tokenType !== "rider") {
+          } 
+          else if (memType === "rider" && tokenType !== "rider") {
               return { status: 0, msg: "Invalid token type for rider.",not_logged_in:1 };
           }
   
           // Step 3: Fetch user details from the appropriate table
           let user;
         //   console.log("memType:",memType)
-          if (memType === "user") {
+          if (memType === "user" || memType === "business") {
               
               user = await memberModel.findById(userId);
           } else if (memType === "rider") {

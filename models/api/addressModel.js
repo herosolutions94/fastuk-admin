@@ -10,14 +10,22 @@ class AddressModel extends BaseModel {
     // Fetch addresses by user ID
     async getAddressesByUserId(userId) {
         try {
-            const query = `SELECT * FROM ${this.tableName} WHERE mem_id = ?`;
+            const query = `
+                SELECT * 
+                FROM ${this.tableName} 
+                WHERE mem_id = ? 
+                ORDER BY 
+                    \`default\` DESC,  -- Place rows with default = 1 at the top
+                    id DESC            -- Then order remaining rows by id in descending order
+            `;
             const values = [userId];
-            const [rows] = await pool.query(query, values); // Use pool.query for PostgreSQL
+            const [rows] = await pool.query(query, values);
             return rows; // Returns an array of address rows
         } catch (error) {
             throw new Error(`Error fetching addresses from ${this.tableName}: ${error.message}`);
         }
     }
+
     // Insert a new address
     async insertAddress(data) {
         const query = `

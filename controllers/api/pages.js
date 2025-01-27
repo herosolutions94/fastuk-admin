@@ -287,11 +287,12 @@ class PagesController extends BaseController {
       const formData = pageContent
         ? JSON.parse(pageContent.content || "{}")
         : {};
-
+        const cities = await helpers.getCities();
       // Combine the content and multi_text data
       const jsonResponse = {
         siteSettings,
         content: formData,
+        cities:cities
       };
 
       // Return data in JSON format
