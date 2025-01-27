@@ -9,7 +9,7 @@ const riderController = new RiderController();
 
 // Route to register a rider
 router.post('/register-riders', upload, riderController.registerRider.bind(riderController));
-router.post('/login', riderController.loginRider.bind(riderController));
+router.post('/rider-login', upload,riderController.loginRider.bind(riderController));
 router.post('/verify-email', upload,riderController.verifyEmail.bind(riderController));
 router.post('/rider-jobs', upload,riderController.getRequestQuotesByCity.bind(riderController));
 router.post('/accept-request-quote-by-rider', upload,riderController.assignRiderToRequest.bind(riderController));
