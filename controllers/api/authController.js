@@ -31,7 +31,132 @@ class MemberController extends BaseController {
       // Create a hash of the combined string for uniqueness
       return crypto.createHash("sha256").update(combined).digest("hex");
     } 
+    async businessSignUp(req, res) {
+      try {
+        const {
+          business_name,
+          business_type,
+          business_address,
+          city,
+          password,
+          confirm_password,
+          full_name,
+          designation,
+          email,
+          phone,
+          fingerprint,
+          parcel_type,
+          parcel_weight,
+          shipment_volume,
+          delivery_speed,
+        } = req.body;
+
+        const mem_type = "business";
+
+        // Clean and trim data
+        const cleanedData = {
+          business_name: typeof business_name === "string" ? business_name.trim() : "",
+          full_name: typeof full_name === "string" ? full_name.trim() : "",
+          designation: typeof designation === "string" ? designation.trim() : "",
+          email: typeof email === "string" ? email.trim().toLowerCase() : "",
+          password: typeof password === "string" ? password.trim() : "",
+          confirm_password: typeof confirm_password === "string" ? confirm_password.trim() : "",
+          business_type: typeof business_type === "string" ? business_type.trim() : "",
+          mem_address1: typeof business_address === "string" ? business_address.trim() : "",
+          mem_phone: typeof phone === "string" ? phone.trim() : "",
+          parcel_type: typeof parcel_type === "string" ? parcel_type.trim() : "",
+          parcel_weight: typeof parcel_weight === "string" ? parcel_weight.trim() : "",
+          shipment_volume: typeof shipment_volume === "string" ? shipment_volume.trim() : "",
+          delivery_speed: typeof delivery_speed === "string" ? delivery_speed.trim() : "",
+          created_at: new Date(),
+          mem_status: 1,
+          mem_verified: 0,
+          mem_type: mem_type,
+        };
+
+        // Validation for empty fields
+        if (!validateRequiredFields(cleanedData)) {
+          return res.status(200).json({ status: 0, msg: "All fields are required." });
+        }
+
+        if (cleanedData.password !== cleanedData.confirm_password) {
+          return res.status(200).json({ status: 0, msg: "Passwords do not match." });
+        }
+
+        // Password strength validation
+        if (!validatePassword(cleanedData.password)) {
+          return res.status(200).json({
+            status: 0,
+            msg: "Password must be at least 8 characters long, include one uppercase letter, one lowercase letter, one digit, and one special character.",
+          });
+        }
+
+        // Email validation
+        if (!validateEmail(cleanedData.email)) {
+          return res.status(200).json({ status: 0, msg: "Invalid business email format." });
+        }
+
+        // Check if email already exists
+        const existingUser = await this.member.findByEmail(cleanedData.email);
+        if (existingUser) {
+          return res.status(200).json({ status: 0, msg: "Business email already exists." });
+        }
+
+        // Hash the password
+        cleanedData.password = await bcrypt.hash(cleanedData.password, 10);
+
+        // Remove `confirm_password` as it is not needed in the database
+        delete cleanedData.confirm_password;
+
+        // Generate OTP
+        const otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
+        cleanedData.otp = parseInt(otp, 10); // Add OTP to cleanedData
+        cleanedData.expire_time = moment()
+          .add(3, "minutes")
+          .format("YYYY-MM-DD HH:mm:ss");
+          const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY); // Initialize Stripe with your secret key
+        const customer = await stripe.customers.create({
+          name: cleanedData.full_name,
+          email: cleanedData.email,
+        });
     
+        if (!customer || !customer.id) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Failed to create customer in Stripe." });
+        }
+    
+        // Add Stripe customer ID to cleanedData
+        cleanedData.customer_id = customer.id;
+        // Create the business account
+        const businessId = await this.member.createMember(cleanedData);
+
+        // If fingerprint is not provided, generate a pseudo-fingerprint
+        const actualFingerprint = fingerprint || this.generatePseudoFingerprint(req);
+
+        const token = await this.storeAndReturnToken(
+          businessId,
+          "business",
+          actualFingerprint
+        );
+
+        this.sendSuccess(
+          res,
+          {
+            mem_type: mem_type,
+            authToken: token,
+          },
+          "Business account registered successfully."
+        );
+      } catch (error) {
+        return res.status(500).json({
+          status: 0,
+          msg: "An error occurred during registration.",
+          error: error.message,
+        });
+      }
+    }
+
     async signUp(req, res) {
       try {
         const {
@@ -167,32 +292,14 @@ class MemberController extends BaseController {
             .status(200)
             .json({ status: 0, msg: "Invalid email format." });
         }
-        let existingUser=''
-        if(memType==='user'){
-          existingUser = await this.member.findByEmail(email)
-;
-          if (!existingUser) {
-            return res
-              .status(200)
-              .json({ status: 0, msg: "Email or password is incorrect." });
-          }
-        }
-        else if(memType==='rider'){
-          existingUser = await this.rider.findByEmail(email)
-;
-          if (!existingUser) {
-            return res
-              .status(200)
-              .json({ status: 0, msg: "Email or password is incorrect." });
-          }
-        }
+        let existingUser = await this.member.findByEmail(email)
+        
         // Check if the rider exists by email
         if (!existingUser) {
           return res
             .status(200)
             .json({ status: 0, msg: "Email or password is incorrect." });
         }
-  // console.log(existingUser)
         // Compare the provided password with the hashed password
         const passwordMatch = await bcrypt.compare(
           password,
@@ -207,14 +314,14 @@ class MemberController extends BaseController {
             fingerprint || this.generatePseudoFingerprint(req);
         const token=await this.storeAndReturnToken(
           existingUser.id,
-          memType,
+          existingUser?.mem_type,
           actualFingerprint
         );
   
         // Send success response
         this.sendSuccess(
           res,
-          { mem_type: memType, authToken: token },
+          { mem_type: existingUser?.mem_type, authToken: token },
           "Successfully logged in."
         );
       } catch (error) {
@@ -256,7 +363,7 @@ class MemberController extends BaseController {
           // console.log("Generated OTP:", newOtp, "Expire Time:", newExpireTime);
   
           // Update the OTP and expiry time based on memType
-          if (memType === "user") {
+          if (memType === "user" || memType==='business') {
               await this.member.updateMemberData(user.id, {
                   otp: newOtp,
                   expire_time: newExpireTime
@@ -668,7 +775,7 @@ class MemberController extends BaseController {
             if(memType==='rider'){
               await this.rider.updateRiderVerification(user.id);
             }
-            else if(memType==='user'){
+            else if(memType==='user' || memType==='business'){
               await this.member.updateMemberVerification(user.id);
             }
             
@@ -705,7 +812,7 @@ class MemberController extends BaseController {
           // console.log("Generated OTP:", newOtp, "Expire Time:", newExpireTime);
   
           // Update the OTP and expiry time based on memType
-          if (memType === "user") {
+          if (memType === "user" || memType==='business') {
               await Member.updateTempEmail(user.id, email);
           } else if (memType === "rider") {
               await this.rider.updateTempEmail(user.id, email)

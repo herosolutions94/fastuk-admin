@@ -69,7 +69,85 @@ class MemberController extends BaseController {
       });
     }
   }
+ async createReviewForRequest(req, res) {
+    try {
+      const { token, memType,review,rating,request_id } = req.body;
 
+      if (!token) {
+        return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
+
+      if (memType === "rider") {
+        return res
+          .status(200)
+          .json({
+            status: 0,
+            msg: "Invalid member type. Only users can access this endpoint."
+          });
+      }
+
+      // Validate the token and get the rider details
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse); // Return validation error response
+      }
+
+      const user = userResponse.user;
+      const created_at = helpers.getUtcTimeInSeconds();
+      let cleanedData = {
+          review: typeof review === "string" ? review.trim() : "",
+          rating: rating.trim(),
+          created_at:created_at,
+          user_id:user?.id,
+          request_id:request_id,
+        };
+      
+      // console.log(validateRequiredFields(cleanedData))
+      // Validation for empty fields
+      if (!validateRequiredFields(cleanedData)) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "All fields are required." });
+      }
+      else{
+        const requestQuote = await this.rider.getRequestQuoteById(request_id);
+        if (!requestQuote) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Request quote not found." });
+        }
+        const requestReview = await this.rider.createRequestReview(cleanedData);
+        const orderDetailsLink = `/rider-dashboard/order-details/${helpers.doEncode(request_id)}`;
+
+
+        const notificationText = `You've received a review from user.`;
+        await helpers.storeNotification(
+          requestQuote.assigned_rider, // The user ID from request_quote
+          "rider", // The user's member type
+          user.id, // Use rider's ID as the sender
+          notificationText,
+          orderDetailsLink
+        );
+        return res.status(200).json({
+          status: 1,
+          msg:'Review Posted Successfully!'
+        });
+      }
+
+      return res.status(200).json({
+        status: 1,
+        states:states
+      });
+    } catch (error) {
+      console.error("Error in posting review:", error);
+      return res.status(200).json({
+        status: 0,
+        msg: "Internal server error.",
+        error: error.message
+      });
+    }
+  }
   async getAndInsertAddress(req, res) {
     try {
       const {
@@ -316,6 +394,12 @@ class MemberController extends BaseController {
         return res.status(200).json({
           status: 0,
           msg: "Token is required."
+        });
+      }
+      if (!memType) {
+        return res.status(200).json({
+          status: 0,
+          msg: "memType is required."
         });
       }
       if (!address_id) {
@@ -791,7 +875,8 @@ class MemberController extends BaseController {
         // console.log("Remote price",formattedRemotePrice)
         // console.log("Remote price",remote_price)
         
-
+        let payment_intent_id=payment_intent_customer_id
+        let payment_methodid=payment_method_id
         let requestQuoteId = "";
         if (payment_method === "credit-card") {
           requestQuoteId = await this.pageModel.createRequestQuote({
@@ -814,13 +899,14 @@ class MemberController extends BaseController {
             dest_phone_number,
             dest_city,
             payment_method,
-            payment_method_id,
+            payment_method_id:payment_methodid,
             created_date: new Date(), // Set current date as created_date
             start_date: parsedStartDate,
             notes: notes
             // Pass start_date from the frontend
           });
-        } else if (payment_method === "saved-card") {
+        } 
+        else if (payment_method === "saved-card") {
           if (!saved_card_id) {
             return res
               .status(200)
@@ -916,7 +1002,8 @@ class MemberController extends BaseController {
                 paymentStatus: paymentIntent.status
               });
           }
-
+          payment_intent_id=paymentIntent.id
+          payment_methodid=stripe_payment_method_id
           // Prepare the object for requestQuoteId insertion
           requestQuoteId = await this.pageModel.createRequestQuote({
             user_id: userId,
@@ -927,7 +1014,7 @@ class MemberController extends BaseController {
             tax: formattedTax,
             payment_intent: paymentIntent.id, // Store the Payment Intent ID
             customer_id: stripePaymentMethod.customer, // Store the Customer ID
-            stripe_payment_method_id, // Store the Stripe Payment Method ID
+            payment_method_id:stripe_payment_method_id, // Store the Stripe Payment Method ID
             source_postcode,
             source_address: source_full_address,
             source_name,
@@ -940,6 +1027,48 @@ class MemberController extends BaseController {
             dest_city,
             payment_method,
             saved_card_id, // Store the saved card ID
+            created_date: new Date(),
+            start_date: new Date(date),
+            notes: notes
+          });
+        }
+        
+        else if (payment_method === "credits") {
+          if (member?.total_credits<=0) {
+            return res
+              .status(200)
+              .json({ status: 0, msg: "Insufficient balance!" });
+          }
+          if (member?.total_credits<=parseFloat(formattedTotalAmount)) {
+            return res
+              .status(200)
+              .json({ status: 0, msg: "Insufficient balance!" });
+          }
+         
+          payment_intent_id=''
+          payment_methodid=''
+          // Prepare the object for requestQuoteId insertion
+          requestQuoteId = await this.pageModel.createRequestQuote({
+            user_id: userId,
+            selected_vehicle: selectedVehicle,
+            rider_price: formattedRiderPrice,
+            vehicle_price: formattedVehiclePrice,
+            total_amount: formattedTotalAmount,
+            tax: formattedTax,
+            payment_intent: '', // Store the Payment Intent ID
+            customer_id: '', // Store the Customer ID
+            payment_method_id:'', // Store the Stripe Payment Method ID
+            source_postcode,
+            source_address: source_full_address,
+            source_name,
+            source_phone_number,
+            source_city,
+            dest_postcode,
+            dest_address: dest_full_address,
+            dest_name,
+            dest_phone_number,
+            dest_city,
+            payment_method,
             created_date: new Date(),
             start_date: new Date(date),
             notes: notes
@@ -1046,11 +1175,18 @@ class MemberController extends BaseController {
         amount: formattedTotalAmount,
         payment_method:payment_method,
         transaction_id: requestQuoteId,
-        created_time:created_time
+        created_time:created_time,
+        payment_intent_id:payment_intent_id,
+        payment_method_id:payment_methodid,
+        type:'Request Quote'
 
       });
       // console.log(userId,parcel_price_obj?.total,payment_method,requestQuoteId)
-      
+      if (payment_method === "credits") {
+          await this.member.updateMemberData(member?.id, {
+            total_credits: parseFloat(member?.total_credits) - parseFloat(charges)
+          });
+        }
 
         // Send success response
         res.status(200).json({
@@ -1144,7 +1280,7 @@ class MemberController extends BaseController {
       const imageUrl = `${memImage}`; // Customize the path based on your application structure if needed
 
       // Update the profile image in the database based on memType
-      if (memType === "user") {
+      if (memType === "user" || memType==='business') {
         await this.member.updateMemberData(member.id, {
           mem_image: imageUrl
         });
@@ -1208,7 +1344,7 @@ class MemberController extends BaseController {
       };
 
       // Check memType and update accordingly
-      if (memType === "user") {
+      if (memType === "user" || memType==='business') {
         await this.member.updateMemberData(userId, updatedData); // Update member data
       } else if (memType === "rider") {
         await this.rider.updateRiderData(userId, updatedData); // Update rider data
@@ -1291,7 +1427,7 @@ class MemberController extends BaseController {
         password: hashedPassword
       };
 
-      if (memType === "user") {
+      if (memType === "user" || memType==='business') {
         // Update password for member
         await this.member.updateMemberData(userId, updatedData);
       } else if (memType === "rider") {
@@ -1326,7 +1462,7 @@ class MemberController extends BaseController {
         return res.status(200).json({ status: 0, msg: "Token is required." });
       }
 
-      if (memType !== "user") {
+      if (memType === "rider") {
         return res.status(200).json({ status: 0, msg: "Invalid member type." });
       }
 
@@ -1391,7 +1527,7 @@ class MemberController extends BaseController {
         return res.status(200).json({ status: 0, msg: "Token is required." });
       }
 
-      if (memType !== "user") {
+      if (memType === "rider") {
         return res.status(200).json({ status: 0, msg: "Invalid member type." });
       }
 
@@ -1490,7 +1626,7 @@ async getUserTransactions(req, res) {
       }
 
       // Validate the token and get the rider details
-      const userResponse = await this.validateTokenAndGetMember(token, "user");
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
 
       if (userResponse.status === 0) {
         return res.status(200).json(userResponse); // Return validation error response
@@ -1524,6 +1660,7 @@ async getUserTransactions(req, res) {
       const parcels = await this.rider.getParcelDetailsByQuoteId(order.id); // Assuming order.quote_id is the relevant field
       const vias = await this.rider.getViasByQuoteId(order.id);
       const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
+      const reviews = await this.rider.getOrderReviews(order.id);
       // Calculate the due amount by summing the amount where status is 0
       // const dueAmount = await this.requestQuote.calculateDueAmount(order.id);
       // Calculate the paid amount and due amount
@@ -1542,7 +1679,8 @@ async getUserTransactions(req, res) {
         invoices: invoices,
         dueAmount: formattedDueAmount,
         paidAmount: formattedPaidAmount,
-        viasCount:viasCount
+        viasCount:viasCount,
+        reviews:reviews
       };
       // Fetch parcels and vias based on the quoteId from the order
       // Assuming order.quote_id is the relevant field
@@ -1596,7 +1734,7 @@ async getUserTransactions(req, res) {
       }
 
       // Validate the member type
-      if (memType !== "user") {
+      if (memType === "rider") {
         return res.status(200).json({ status: 0, msg: "Invalid member type." });
       }
 
@@ -1632,7 +1770,8 @@ async getUserTransactions(req, res) {
           exp_year: helpers.doDecode(method.exp_year),
           brand: helpers.doDecode(method.brand),
           is_default: method.is_default, // Assuming is_default does not need decoding
-          created_date: method.created_date
+          created_date: method.created_date,
+          encoded_id:helpers.doEncode(method.id)
         };
       });
 
@@ -1682,7 +1821,7 @@ async getUserTransactions(req, res) {
       }
 
       // Validate member type (user or rider)
-      if (memType !== "user" && memType !== "rider") {
+      if (memType === "rider" && memType !== "rider") {
         return res.status(200).json({ status: 0, msg: "Invalid member type." });
       }
 
@@ -1789,7 +1928,7 @@ async getUserTransactions(req, res) {
       }
 
       // Validate member type
-      if (memType !== "user") {
+      if (memType === "rider") {
         return res.status(400).json({ status: 0, msg: "Invalid member type." });
       }
 
@@ -1869,7 +2008,7 @@ async getUserTransactions(req, res) {
       }
 
       // Validate member type
-      if (memType !== "user") {
+      if (memType === "rider") {
         return res.status(200).json({ status: 0, msg: "Invalid member type." });
       }
 
@@ -2050,20 +2189,33 @@ console.log(notification.user_id, "Notification User ID");
         card_holder_name,
         requestId,
         payment_method,
-        token, memType 
+        token, memType ,saved_card_id
       } = req.body;
       // console.log(req.body,'req.body')
       // Validate the required fields
-      if (
-        !payment_method_id ||
-        !payment_intent_id ||
-        !amount ||
-        !card_holder_name ||
-        !requestId ||
-        !payment_method
-      ) {
-        return res.status(200).json({ error: "All fields are required." });
+      if(payment_method=='credit-card'){
+        if (
+          !payment_method_id ||
+          !payment_intent_id ||
+          !amount ||
+          !card_holder_name ||
+          !requestId ||
+          !payment_method
+        ) {
+          return res.status(200).json({ error: "All fields are required." });
+        }
       }
+      else if(payment_method=='saved-card'){
+        if (
+          !amount ||
+          !requestId ||
+          !payment_method ||
+          !saved_card_id
+        ) {
+          return res.status(200).json({ error: "All fields are required." });
+        }
+      }
+      
       if (!token || !memType) {
         return res.status(200).json({ status: 0, msg: "Token and memType are required." });
       }
@@ -2076,7 +2228,7 @@ console.log(notification.user_id, "Notification User ID");
       }
   
       const user = validationResponse.user;
-      
+      const userId=user.id
       // Define necessary variables
       const locType = ""; // Set this based on your application's logic
       const amountType = ""; // Set this based on your application's logic
@@ -2090,26 +2242,359 @@ console.log(notification.user_id, "Notification User ID");
     const charges = formattedAmount; // Amount to be charged, formatted
       
       // Call the model function to create the invoice
-      const result = await this.rider.createInvoiceEntry(
-        requestId,
-        charges,
-        amountType,
-        status,
-        locType,
-        via_id, // via_id is mapped to paymentId
-        paymentType,
-        payment_intent_id,
-        payment_method_id,
-        payment_method
-      );
-      const userId=user?.id
+      let result={}
+      if(payment_method==='credit-card'){
+          result = await this.rider.createInvoiceEntry(
+            requestId,
+            charges,
+            amountType,
+            status,
+            locType,
+            via_id, // via_id is mapped to paymentId
+            paymentType,
+            payment_intent_id,
+            payment_method_id,
+            payment_method
+          );
+      }
+      else if (payment_method === "credits") {
+          if (user?.total_credits<=0) {
+            return res
+              .status(200)
+              .json({ status: 0, msg: "Insufficient balance!" });
+          }
+          if (user?.total_credits<=parseFloat(charges)) {
+            return res
+              .status(200)
+              .json({ status: 0, msg: "Insufficient balance!" });
+          }
+          let payment_intent_id='';
+          let payment_method_id='';
+           result = await this.rider.createInvoiceEntry(
+              requestId,
+              charges,
+              amountType,
+              status,
+              locType,
+              via_id, // via_id is mapped to paymentId
+              paymentType,
+              payment_method
+            );
+          await this.member.updateMemberData(userId, {
+            total_credits: parseFloat(user?.total_credits) - parseFloat(charges)
+          });
+        }
+      else if(payment_method==='saved-card'){
+        if (!saved_card_id) {
+            return res
+              .status(200)
+              .json({ status: 0, msg: "Card is required." });
+        }
+        const decodedId = helpers.doDecode(saved_card_id);
+          // console.log('Decoded ID:', decodedId); // Check decoded value
+
+          if (!decodedId) {
+            return res.status(200).json({ status: 0, msg: "Invalid Card." });
+          }
+
+          // Fetch the payment method from the database
+          const paymentMethod =
+            await this.paymentMethodModel.getPaymentMethodById(decodedId);
+          // console.log(paymentMethod,"payment method");
+
+          if (!paymentMethod) {
+            return res.status(200).json({ status: 0, msg: "Card not found." });
+          }
+
+          // Decode Stripe payment method ID stored in the database
+          const stripe_payment_method_id = helpers.doDecode(
+            paymentMethod?.payment_method_id
+          );
+          if (!stripe_payment_method_id) {
+            return res
+              .status(200)
+              .json({ status: 0, msg: "Invalid Stripe Payment Method ID." });
+          }
+
+          // Retrieve the payment method details from Stripe
+          let stripePaymentMethod;
+          try {
+            stripePaymentMethod = await stripe.paymentMethods.retrieve(
+              stripe_payment_method_id
+            );
+          } catch (error) {
+            return res
+              .status(200)
+              .json({
+                status: 0,
+                msg: "Error retrieving Stripe payment method.",
+                error: error.message
+              });
+          }
+
+          // Ensure the payment method is attached to a customer
+          if (!stripePaymentMethod || !stripePaymentMethod.customer) {
+            return res
+              .status(200)
+              .json({
+                status: 0,
+                msg: "Payment method is not linked to a customer."
+              });
+          }
+
+          // Create a payment intent to charge the user
+          let paymentIntent;
+          try {
+            paymentIntent = await stripe.paymentIntents.create({
+              amount: Math.round(formattedAmount * 100),
+              currency: "usd",
+              customer: stripePaymentMethod.customer,
+              payment_method: stripe_payment_method_id,
+              confirm: true,
+              use_stripe_sdk: true,
+              automatic_payment_methods: {
+                enabled: true,
+                allow_redirects: "never"
+              },
+              metadata: { user_id: userId }
+            });
+          } catch (error) {
+            console.error("Stripe Error:", error);
+            return res.status(200).json({
+              status: 0,
+              msg: "Error creating payment intent.",
+              error: error.message
+            });
+          }
+
+          // Check the payment status
+          if (paymentIntent.status !== "succeeded") {
+            return res
+              .status(200)
+              .json({
+                status: 0,
+                msg: "Payment failed.",
+                paymentStatus: paymentIntent.status
+              });
+          }
+          let payment_intent_id=paymentIntent.id;
+          let payment_method_id=stripe_payment_method_id;
+          result = await this.rider.createInvoiceEntry(
+            requestId,
+            charges,
+            amountType,
+            status,
+            locType,
+            via_id, // via_id is mapped to paymentId
+            paymentType,
+            payment_intent_id,
+            payment_method_id,
+            payment_method
+          );
+      }
       const created_time = helpers.getUtcTimeInSeconds();
       await helpers.storeTransaction({
         user_id: userId,
         amount: formattedAmount,
         payment_method:payment_method,
         transaction_id: requestId,
-        created_time:created_time
+        created_time:created_time,
+        payment_intent_id:payment_intent_id,
+        payment_method_id:payment_method_id,
+        type:'Invoice'
+
+      });
+
+      // console.log(result,'result')
+      // Handle response
+      if (result) {
+        return res
+          .status(200)
+          .json({
+            message: "Invoice created successfully.",
+            invoiceId: result.insertId
+          });
+      } else {
+        return res.status(200).json({ error: "Failed to create invoice." });
+      }
+    } catch (error) {
+      console.error("Error in createInvoice:", error);
+      return res.status(200).json({ error: "An error occurred." });
+    }
+  }
+  async saveBusinessUserCredits(req, res) {
+    try {
+      const {
+        payment_method_id,
+        payment_intent_id,
+        amount,
+        card_holder_name,
+        payment_method,
+        token, memType ,saved_card_id
+      } = req.body;
+      // console.log(req.body,'req.body')
+      // Validate the required fields
+      if(payment_method=='credit-card'){
+        if (
+          !payment_method_id ||
+          !payment_intent_id ||
+          !amount ||
+          !card_holder_name ||
+          !payment_method
+        ) {
+          return res.status(200).json({ error: "All fields are required." });
+        }
+      }
+      else if(payment_method=='saved-card'){
+        if (
+          !amount ||
+          !payment_method ||
+          !saved_card_id
+        ) {
+          return res.status(200).json({ error: "All fields are required." });
+        }
+      }
+      
+      if (!token || !memType) {
+        return res.status(200).json({ status: 0, msg: "Token and memType are required." });
+      }
+  
+      // Validate token and get the user
+      const validationResponse = await this.validateTokenAndGetMember(token, memType);
+      if (validationResponse.status === 0) {
+        return res.status(200).json({ status: 0, msg: validationResponse.msg });
+
+      }
+  
+      const user = validationResponse.user;
+      const userId=user.id
+      
+      const status = 1; // Invoice status
+      
+      const paymentType = "payment"; // Payment type
+
+      // Format the amounts before processing them
+    const formattedAmount = helpers.formatAmount(amount);
+    const charges = formattedAmount; // Amount to be charged, formatted
+      
+      // Call the model function to create the invoice
+      let result={}
+      let payment_intent=payment_intent_id;
+      let payment_methodid=payment_method_id;
+      if(payment_method==='credit-card'){
+          
+      }
+      else if(payment_method==='saved-card'){
+        if (!saved_card_id) {
+            return res
+              .status(200)
+              .json({ status: 0, msg: "Card is required." });
+        }
+        const decodedId = helpers.doDecode(saved_card_id);
+          // console.log('Decoded ID:', decodedId); // Check decoded value
+
+          if (!decodedId) {
+            return res.status(200).json({ status: 0, msg: "Invalid Card." });
+          }
+
+          // Fetch the payment method from the database
+          const paymentMethod =
+            await this.paymentMethodModel.getPaymentMethodById(decodedId);
+          // console.log(paymentMethod,"payment method");
+
+          if (!paymentMethod) {
+            return res.status(200).json({ status: 0, msg: "Card not found." });
+          }
+
+          // Decode Stripe payment method ID stored in the database
+          const stripe_payment_method_id = helpers.doDecode(
+            paymentMethod?.payment_method_id
+          );
+          if (!stripe_payment_method_id) {
+            return res
+              .status(200)
+              .json({ status: 0, msg: "Invalid Stripe Payment Method ID." });
+          }
+
+          // Retrieve the payment method details from Stripe
+          let stripePaymentMethod;
+          try {
+            stripePaymentMethod = await stripe.paymentMethods.retrieve(
+              stripe_payment_method_id
+            );
+          } catch (error) {
+            return res
+              .status(200)
+              .json({
+                status: 0,
+                msg: "Error retrieving Stripe payment method.",
+                error: error.message
+              });
+          }
+
+          // Ensure the payment method is attached to a customer
+          if (!stripePaymentMethod || !stripePaymentMethod.customer) {
+            return res
+              .status(200)
+              .json({
+                status: 0,
+                msg: "Payment method is not linked to a customer."
+              });
+          }
+
+          // Create a payment intent to charge the user
+          let paymentIntent;
+          try {
+            paymentIntent = await stripe.paymentIntents.create({
+              amount: Math.round(formattedAmount * 100),
+              currency: "usd",
+              customer: stripePaymentMethod.customer,
+              payment_method: stripe_payment_method_id,
+              confirm: true,
+              use_stripe_sdk: true,
+              automatic_payment_methods: {
+                enabled: true,
+                allow_redirects: "never"
+              },
+              metadata: { user_id: userId }
+            });
+          } catch (error) {
+            console.error("Stripe Error:", error);
+            return res.status(200).json({
+              status: 0,
+              msg: "Error creating payment intent.",
+              error: error.message
+            });
+          }
+
+          // Check the payment status
+          if (paymentIntent.status !== "succeeded") {
+            return res
+              .status(200)
+              .json({
+                status: 0,
+                msg: "Payment failed.",
+                paymentStatus: paymentIntent.status
+              });
+          }
+          let payment_intent_id=paymentIntent.id;
+          let payment_method_id=stripe_payment_method_id;
+          payment_intent=payment_intent_id;
+          payment_methodid=payment_method_id;
+      }
+      await this.member.updateMemberData(userId, {
+          total_credits: parseFloat(user?.total_credits) + parseFloat(formattedAmount)
+        });
+      const created_time = helpers.getUtcTimeInSeconds();
+      await helpers.storeTransaction({
+        user_id: userId,
+        amount: formattedAmount,
+        payment_method:payment_method,
+        transaction_id: 0,
+        created_time:created_time,
+        payment_intent_id:payment_intent,
+        payment_method_id:payment_methodid,
+        type:'credits'
 
       });
       // console.log(result,'result')
@@ -2118,7 +2603,8 @@ console.log(notification.user_id, "Notification User ID");
         return res
           .status(200)
           .json({
-            message: "Invoice created successfully.",
+            msg: "Credits added successfully.",
+            status:1,
             invoiceId: result.insertId
           });
       } else {

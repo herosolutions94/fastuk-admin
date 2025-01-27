@@ -211,8 +211,8 @@ class RiderController extends BaseController {
   }
   async loginRider(req, res) {
     try {
-      let { email, password } = req.body;
-
+      let { email, password,fingerprint } = req.body;
+      console.log(req.body);
       // Clean and trim data
       email = typeof email === "string" ? email.trim().toLowerCase() : "";
       password = typeof password === "string" ? password.trim() : "";
@@ -260,22 +260,14 @@ class RiderController extends BaseController {
         "rider",
         actualFingerprint
       );
-      const expiryDate = new Date();
-      expiryDate.setMonth(expiryDate.getMonth() + 1);
-      // Store the token in the tokens table (optional, based on your implementation)
-      await this.tokenModel.storeToken(
-        existingRider.id,
-        token,
-        tokenType,
-        expiryDate
-      );
+
 
       // Send success response
       this.sendSuccess(
-        res,
-        { riderId: existingRider.id, token },
-        "Successfully logged in."
-      );
+          res,
+          { mem_type: 'rider', authToken: token },
+          "Successfully logged in."
+        );
     } catch (error) {
       return res.status(200).json({
         success: false,
@@ -972,6 +964,7 @@ async UpdateWithdrawalMethod(req, res) {
       const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
       const paidAmount = await RequestQuoteModel.totalPaidAmount(order.id);
       const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
+      const reviews = await this.rider.getOrderReviews(order.id);
       // console.log(paidAmount,dueAmount)
 
       const formattedPaidAmount = helpers.formatAmount(paidAmount);
@@ -988,7 +981,9 @@ async UpdateWithdrawalMethod(req, res) {
         invoices: invoices,
         viasCount: viasCount,
         formattedPaidAmount,
-        formattedDueAmount
+        formattedDueAmount,
+        reviews:reviews,
+        dueAmount:dueAmount
       };
       // Fetch parcels and vias based on the quoteId from the order
       // Assuming order.quote_id is the relevant field
@@ -1441,7 +1436,8 @@ async UpdateWithdrawalMethod(req, res) {
         invoices,
         viasCount,
         formattedPaidAmount,
-        formattedDueAmount
+        formattedDueAmount,
+        dueAmount:dueAmount
       };
       // console.log(formattedOrder)
 

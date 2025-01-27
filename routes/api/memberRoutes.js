@@ -34,6 +34,8 @@ router.post('/payment-intent', upload, (req, res) => memberController.createPaym
 router.post('/create-invoice', upload, (req, res) => memberController.createInvoice(req, res));
 router.post('/find-best-route', upload, (req, res) => memberController.findBestRoute(req, res));
 router.post('/user-transactions', upload, (req, res) => memberController.getUserTransactions(req, res));
+router.post('/save-request-review', upload, (req, res) => memberController.createReviewForRequest(req, res));
+router.post('/save-business-user-credits', upload, (req, res) => memberController.saveBusinessUserCredits(req, res));
 // app.post('/find-best-route', async (req, res) => {
 
 
