@@ -1184,7 +1184,7 @@ class MemberController extends BaseController {
       // console.log(userId,parcel_price_obj?.total,payment_method,requestQuoteId)
       if (payment_method === "credits") {
           await this.member.updateMemberData(member?.id, {
-            total_credits: parseFloat(member?.total_credits) - parseFloat(charges)
+            total_credits: parseFloat(member?.total_credits) - parseFloat(formattedTotalAmount)
           });
         }
 
