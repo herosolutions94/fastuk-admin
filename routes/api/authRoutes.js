@@ -15,6 +15,7 @@ const riderController = new RiderController();
 const authController = new AuthController();
 
 router.post('/sign-up', upload, (req, res) => authController.signUp(req, res));
+router.post('/business-sign-up', upload, (req, res) => authController.businessSignUp(req, res));
 router.post('/log-in', upload, (req, res) => authController.loginUser(req, res));
 router.post('/email-verification', (req, res) => authController.verifyEmail(req, res));
 

@@ -234,6 +234,25 @@ async getRidersByCity(city) {
     const [rows] = await pool.query(query, [mem_id,type]);
     return rows; // Returns an array of riders
   }
+  async getOrderReviews(request_id) {
+    const query = `
+        SELECT 
+            rr.*, 
+            m.full_name, 
+            m.mem_image 
+        FROM 
+            request_reviews rr
+        INNER JOIN 
+            members m 
+        ON 
+            rr.user_id = m.id
+        WHERE 
+            rr.request_id = ?
+    `;
+    const [rows] = await pool.query(query, [request_id]);
+    return rows; // Returns an array of reviews with member details
+}
+
   async getWithdrawalPamentMethodRow(mem_id,id) {
     const query = `SELECT * FROM mem_withdrawal_methods WHERE mem_id = ? and id = ?`;
     const [rows] = await pool.query(query, [mem_id,id]);
@@ -322,6 +341,23 @@ getRequestById = async (id, riderId) => {
     // Generate the SQL query
     const placeholders = columns.map(() => '?').join(', '); // Creates `?` placeholders
     const query = `INSERT INTO mem_withdrawal_methods (${columns.join(', ')}) VALUES (${placeholders})`;
+
+
+    try {
+        const [result] = await pool.query(query, values);
+        return result;
+    } catch (error) {
+      console.error('Error creating invoice:', error);
+      return null;
+    }
+  };
+createRequestReview = async (data) => {
+    const columns = Object.keys(data);
+    const values = Object.values(data);
+
+    // Generate the SQL query
+    const placeholders = columns.map(() => '?').join(', '); // Creates `?` placeholders
+    const query = `INSERT INTO request_reviews (${columns.join(', ')}) VALUES (${placeholders})`;
 
 
     try {

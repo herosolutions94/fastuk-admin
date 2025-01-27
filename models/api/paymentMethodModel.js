@@ -9,7 +9,9 @@ class PaymentMethodModel extends BaseModel {
 
     // Get all payment methods for a user by user_id and user_type
     async getPaymentMethodsByUserId(userId, userType) {
-        const query = `SELECT * FROM payment_methods WHERE user_id = ? AND user_type = ?`;
+        const query = `SELECT * FROM payment_methods WHERE user_id = ? AND user_type = ? ORDER BY 
+                    \`is_default\` DESC,  -- Place rows with default = 1 at the top
+                    id DESC `;
         const [rows] = await pool.query(query, [userId, userType]);  // The query now works with promises
 
         return rows;
