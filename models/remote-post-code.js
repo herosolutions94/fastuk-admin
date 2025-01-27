@@ -39,22 +39,24 @@ class RemotePostCodeModel extends BaseModel {
     }
     static async getRemotePostCodesInArray() {
         try {
-            // Query to fetch only the post_code where status is 1
-            const [rows] = await pool.query(`SELECT title FROM ${this.tableName} WHERE status = 1`);
-            // console.log("rows:",rows)
+            // Query to fetch post_code and remote_price where status is 1
+            const [rows] = await pool.query(`SELECT title, remote_price FROM ${this.tableName} WHERE status = 1`);
+    
+            // Map rows to get an array of objects containing title and remote_price
+            const postCodes = rows.map(row => ({
+                title: row.title,
+                remote_price: row.remote_price
+            }));
+    
+            console.log("postCodes:", postCodes); // Optional: For debugging
             
-            // Map rows to get an array of post codes
-            const postCodes = rows.map(row => row.title);
-            // console.log("postCodes:",postCodes)
-            
-            return postCodes; // Return the array of post codes
+            return postCodes; // Return the array of post codes and their prices
         } catch (error) {
             console.error('Error fetching remote post codes:', error);
             throw error;
         }
     }
     
-
     static async updateRemotePostCode(id, remotePostCodeData) {
         const { title, status, remote_price } = remotePostCodeData;
         await pool.query(
