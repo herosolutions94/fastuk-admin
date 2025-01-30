@@ -153,6 +153,111 @@ class RiderController extends BaseController {
             this.sendError(res, 'Failed to delete rider');
         }
     }
+
+    renderCreateDocumentForm(req, res) {
+        const { rider_id } = req.params;
+        res.render('admin/add-document-request', { rider_id }); // Render your form view
+    }
+
+    async createDocumentRequest(req, res) {
+        try {
+            const { rider_id } = req.params; // Get rider ID from params
+            const { title, description } = req.body; // Get form data
+
+            if (!title || !description) {
+                return res.status(200).json({ error: 'Title and Description are required' });
+            }
+
+            // Insert document request into the database
+            await Rider.create({
+                rider_id,
+                title,
+                description,
+            });
+
+            // Redirect to the documents page after successful submission
+            this.sendSuccess(res, {}, 'Document Request created successfully!', 200, `/admin/riders/documents/${rider_id}`)
+
+        } catch (error) {
+            console.error('Error creating document request:', error);
+            res.status(200).json({ error: 'Failed to create document request' });
+        }
+    }
+
+
+    async getRiderDocuments(req, res) {
+        try {
+            console.log("Request Params:", req.params); 
+
+            const { rider_id } = req.params; 
+            if (!rider_id) {
+                return res.status(200).send("Rider ID is required.");
+            }
+    
+            const documents = await Rider.getDocuments(rider_id);
+            res.render('admin/documents', { documents, rider_id }); 
+        } catch (error) {
+            console.error('Error fetching rider documents:', error);
+            res.status(200).json({ error: 'Failed to fetch documents' });
+        }
+    }
+
+    async renderEditDocumentForm(req, res) {
+        try {
+            const { rider_id, document_id } = req.params;
+            console.log("rider_id:",rider_id,"document_id:",document_id)
+    
+            // Fetch document details
+            const document = await Rider.getDocumentById(document_id);
+    
+            if (!document) {
+                return res.status(200).send('Document not found');
+            }
+    
+            res.render('admin/edit-document', { rider_id, document });
+        } catch (error) {
+            console.error('Error fetching document for edit:', error);
+            res.status(200).json({ error: 'Failed to load document for editing' });
+        }
+    }
+
+    async updateDocument(req, res) {
+        try {
+            const { rider_id, document_id } = req.params;
+            const { title, description } = req.body;
+    
+            if (!title || !description) {
+                return res.status(200).json({ error: 'Title and Description are required' });
+            }
+    
+            await Rider.updateDocument(document_id, title, description);
+    
+            this.sendSuccess(res, {}, 'Document updated successfully!', 200, `/admin/riders/documents/${rider_id}`);
+        } catch (error) {
+            console.error('Error updating document:', error);
+            res.status(200).json({ error: 'Failed to update document' });
+        }
+    }
+
+    async deleteDocument(req, res) {
+        try {
+            const { rider_id, document_id } = req.params;
+    
+            await Rider.deleteDocument(document_id);
+    
+            this.sendSuccess(res, {}, 'Document deleted successfully!', 200, `/admin/riders/documents/${rider_id}`);
+        } catch (error) {
+            console.error('Error deleting document:', error);
+            res.status(200).json({ error: 'Failed to delete document' });
+        }
+    }
+    
+    
+    
+    
+    
+    
+    
     
 
 }

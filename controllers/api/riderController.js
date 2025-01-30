@@ -3,6 +3,7 @@ const BaseController = require("../baseController");
 const Member = require("../../models/memberModel");
 
 const Rider = require("../../models/riderModel");
+const RiderModel = require("../../models/rider");
 const Token = require("../../models/tokenModel");
 const RequestQuoteModel = require("../../models/request-quote"); // Assuming you have this model
 const MemberModel = require('../../models/member');
@@ -23,6 +24,7 @@ class RiderController extends BaseController {
   constructor() {
     super();
     this.rider = new Rider();
+    this.riderModel = new RiderModel();
     this.tokenModel = new Token();
     this.requestQuoteModel = new RequestQuoteModel();
     this.member = new Member();
@@ -1714,7 +1716,7 @@ async getRiderEarnings(req, res) {
 
     // Now, call the model's getRiderEarnings function to fetch the earnings
     const earningsData = await this.rider.getRiderEarnings(riderId);
-    console.log("net income:",earningsData.netIncome,"available balance:",earningsData.availableBalance)
+    console.log("net income:",earningsData.netIncome,"available balance:",earningsData.availableBalance,earningsData.totalWithdrawn)
 
     if (!earningsData) {
       return res.status(200).json({ status: 0, msg: "No earnings found for this rider." });
@@ -1722,6 +1724,7 @@ async getRiderEarnings(req, res) {
 
     const formattedNetIncome = helpers.formatAmount(earningsData.netIncome);
     const formattedAvailableBalance = helpers.formatAmount(earningsData.availableBalance);
+    const totalWithdrawn = helpers.formatAmount(earningsData.totalWithdrawn);
     // const formattedEarnings = helpers.formatAmount(earningsData.earnings);
 
 
@@ -1741,6 +1744,7 @@ async getRiderEarnings(req, res) {
       netIncome: formattedNetIncome,
       availableBalance: formattedAvailableBalance,
       earnings: formattedEarnings,
+      totalWithdrawn:totalWithdrawn,
       bank_payment_methods:bank_payment_methods,
       paypal_payment_methods:paypal_payment_methods
     });
@@ -1832,6 +1836,45 @@ async saveWithDrawalRequest(req, res) {
     return res.status(500).json({ status: 0, msg: "Internal server error." });
   }
 }
+
+async getRiderDocumentsApi(req, res) {
+  try {
+    const { token, memType } = req.body;
+
+    // Validate token and memType
+    if (!token) {
+      return res.status(200).json({ status: 0, msg: "Token is required." });
+    }
+
+    if (memType !== "rider") {
+      return res.status(200).json({ status: 0, msg: "Invalid member type." });
+    }
+
+    // Validate the token and get the rider details
+    const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+    if (userResponse.status === 0) {
+      return res.status(200).json(userResponse);
+    }
+
+    const riderId = userResponse.user.id;
+      // Fetch the documents for the given rider_id
+      const documents = await this.riderModel.getDocuments(riderId);
+
+      // If no documents are found
+      if (documents.length === 0) {
+          return res.status(200).json({ message: 'No documents found for this rider.' });
+      }
+
+      // Return the list of documents as JSON
+      res.status(200).json({ documents });
+
+  } catch (error) {
+      console.error('Error fetching documents:', error);
+      res.status(200).json({ error: 'Failed to fetch documents' });
+  }
+}
+
 
 }
 

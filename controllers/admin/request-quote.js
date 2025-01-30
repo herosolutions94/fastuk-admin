@@ -4,13 +4,22 @@ const path = require('path'); // For handling file paths
 
 const BaseController = require('../baseController');
 const RequestQuote = require('../../models/request-quote');
+const Member = require("../../models/memberModel");
+const Rider = require("../../models/riderModel");
+const PaymentMethodModel = require("../../models/api/paymentMethodModel"); // Assuming you have this model
+
 const { validateRequiredFields } = require('../../utils/validators');
+const helpers = require('../../utils/helpers');
 
 
 class RequestQuoteController extends BaseController {
     constructor() {
         super();
+        this.member = new Member();
+        this.rider = new Rider();
         this.requestQuote = new RequestQuote();
+        this.paymentMethodModel = new PaymentMethodModel();
+
     }
 
     
@@ -19,9 +28,8 @@ class RequestQuoteController extends BaseController {
             // const id = req.body; // Fetch ID from route params if available
 
             const requestQuotesWithMembers = await RequestQuote.getRequestQuotesWithMembers();
-            console.log('Request Quote Status:', requestQuotesWithMembers.status);
-            console.log('Request Quote name:', requestQuotesWithMembers.source_name);
-            console.log('Request Quotes:', requestQuotesWithMembers);
+            
+            // console.log('Request Quotes:', requestQuotesWithMembers);
 
     
             if (requestQuotesWithMembers && requestQuotesWithMembers.length > 0) {
@@ -40,18 +48,45 @@ class RequestQuoteController extends BaseController {
             const { id } = req.params; // Get the order ID from the route parameters
     
             const orderDetails = await RequestQuote.getOrderDetailsById(id);
-            console.log(orderDetails?.status)
-    
-            if (orderDetails) {
-                res.render('admin/order-details', { order: orderDetails });
-            } else {
-                this.sendError(res, 'Order not found');
+            if (!orderDetails) {
+                return this.sendError(res, 'Order not found');
             }
+            console.log("orderDetails:",orderDetails)
+    
+            const parcels = await this.rider.getParcelDetailsByQuoteId(orderDetails.id);
+            // const invoices = await this.rider.getInvoicesDetailsByRequestId(orderDetails.id);
+            const reviews = await this.rider.getOrderReviews(orderDetails.id);
+    
+            
+            // console.log("invoices:",invoices)
+            console.log("invoices date:",orderDetails?.invoices?.created_date)
+            console.log("reviews:",reviews)
+    
+            const encodedId = helpers.doEncode(orderDetails.id); // Encode ID properly
+    
+            const order = {
+                ...orderDetails,
+                formatted_start_date: helpers.formatDateToUK(orderDetails.start_date),
+                encodedId: encodedId,
+                parcels: parcels,
+                // invoices: invoices,
+                reviews: reviews
+            };
+    
+            
+    
+            res.render('admin/order-details', { 
+                order,
+            });
+    
         } catch (error) {
             console.error('Error fetching order details:', error);
             this.sendError(res, 'Failed to fetch order details');
         }
     }
+    
+    
+    
     
     
 

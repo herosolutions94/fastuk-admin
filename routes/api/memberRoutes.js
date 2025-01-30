@@ -38,25 +38,31 @@ router.post('/save-request-review', upload, (req, res) => memberController.creat
 router.post('/save-business-user-credits', upload, (req, res) => memberController.saveBusinessUserCredits(req, res));
 // app.post('/find-best-route', async (req, res) => {
 
-
-
-
-
-const upload_file = multer({ 
-    dest: 'uploads/', 
-    limits: { fileSize: 5 * 1024 * 1024 }  // Set file size limit to 5MB
-  }).single('mem_image');
-  
-  router.post('/upload-profile-pic', (req, res, next) => {
-    upload_file(req, res, (err) => {
-      if (err instanceof multer.MulterError) {
-        return res.status(400).json({ status: 0, msg: 'File upload error', error: err.message });
-      } else if (err) {
-        return res.status(500).json({ status: 0, msg: 'Server error', error: err.message });
-      }
-      // Continue with your logic if no error
-      memberController.uploadProfileImage(req, res);
-    });
+  router.post('/upload-profile-pic', upload, (req, res) => {
+    console.log("Multer processed request. req.files:", req.files);
+    memberController.uploadProfileImage(req, res);
   });
+  
+
+
+
+
+
+// const upload_file = multer({ 
+//     dest: 'uploads/', 
+//     limits: { fileSize: 5 * 1024 * 1024 }  // Set file size limit to 5MB
+//   }).single('mem_image');
+  
+//   router.post('/upload-profile-pic', (req, res, next) => {
+//     upload_file(req, res, (err) => {
+//       if (err instanceof multer.MulterError) {
+//         return res.status(400).json({ status: 0, msg: 'File upload error', error: err.message });
+//       } else if (err) {
+//         return res.status(500).json({ status: 0, msg: 'Server error', error: err.message });
+//       }
+//       // Continue with your logic if no error
+//       memberController.uploadProfileImage(req, res);
+//     });
+//   });
 
 module.exports = router;

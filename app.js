@@ -13,15 +13,31 @@ const { Server } = require('socket.io');
 
 
 let socketServer;
+const PORT = process.env.PORT || 4000;
 
-// Check if SSL files exist for HTTPS setup
 
-  const sslOptions = {
-    key: fs.readFileSync('/var/www/html/fastuk-admin/ssl/private.key'), // Path to private key
-    cert: fs.readFileSync('/var/www/html/fastuk-admin/ssl/certificate.crt'), // Path to certificate
-    ca: fs.readFileSync('/var/www/html/fastuk-admin/ssl/ca_bundle.crt'), // Optional: CA bundle
-  };
-  socketServer = https.createServer(sslOptions, app);
+try {
+  // Check if SSL files exist
+  const keyPath = '/var/www/html/fastuk-admin/ssl/private.key';
+  const certPath = '/var/www/html/fastuk-admin/ssl/certificate.crt';
+  const caPath = '/var/www/html/fastuk-admin/ssl/ca_bundle.crt';
+
+  if (fs.existsSync(keyPath) && fs.existsSync(certPath) && fs.existsSync(caPath)) {
+    const sslOptions = {
+      key: fs.readFileSync(keyPath),
+      cert: fs.readFileSync(certPath),
+      ca: fs.readFileSync(caPath),
+    };
+    socketServer = https.createServer(sslOptions, app);
+    console.log('HTTPS server setup complete');
+  } else {
+    throw new Error('SSL files are missing, falling back to HTTP');
+  }
+} catch (error) {
+  console.error(error.message);
+  socketServer = http.createServer(app);
+  console.log('HTTP server setup complete');
+}
   
 
 const io = new Server(socketServer, {
@@ -30,6 +46,11 @@ const io = new Server(socketServer, {
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization', 'accept'],
   },
+});
+
+
+socketServer.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
 });
 
 const users=[]
@@ -87,11 +108,6 @@ io.on('connection', (socket) => {
 app.use(express.json());
 
 
-const PORT = process.env.PORT || 4000;
-
-socketServer.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
 const helpers = require('./utils/helpers');
 app.use((req, res, next) => {
     res.locals.helpers = helpers;
@@ -154,6 +170,7 @@ const vehicleRoutes = require('./routes/admin/vehicle');
 const remotePostCodeRoutes = require('./routes/admin/remote-post-code');
 const pagesRoutes = require('./routes/admin/pages');
 const requestQuoteRoutes = require('./routes/admin/request-quote');
+const reviewRoutes = require('./routes/admin/reviews');
 const newsLetterRoutes = require('./routes/admin/news-letter');
 const WithdrawalRequestsRoutes = require('./routes/admin/withdraw-requests');
 
@@ -205,6 +222,7 @@ app.use('/admin', pagesRoutes);
 app.use('/admin', requestQuoteRoutes);
 app.use('/admin', newsLetterRoutes);
 app.use('/admin', WithdrawalRequestsRoutes);
+app.use('/admin', reviewRoutes);
 
 
 
