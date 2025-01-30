@@ -28,6 +28,7 @@ router.post('/delete-withdrawal-method', upload,riderController.DeleteWithdrawal
 router.post('/get-rider-earnings', upload, riderController.getRiderEarnings.bind(riderController));
 router.post('/save-withdrawal-request', upload, riderController.saveWithDrawalRequest.bind(riderController));
 router.get('/update-rider-earnings-status', riderController.getThreeDaysBeforeEarnings.bind(riderController));
+router.get('/get-rider-document-requests', upload, riderController.getRiderDocumentsApi.bind(riderController));
 
 
 

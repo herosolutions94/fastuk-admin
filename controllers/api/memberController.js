@@ -1236,10 +1236,22 @@ class MemberController extends BaseController {
         memType
       );
 
+      const latestNotifications = await this.member.getLatestNotifications(
+      );
+      // console.log("latestNotifications:",latestNotifications)
+
+      const memberData = {
+        ...userResponse?.user, // Spread existing user data
+        latest_notifications: latestNotifications
+    };
+    console.log("latestNotifications:",memberData?.latest_notifications)
+
+
       return res.status(200).json({
         status: 1,
-        member: userResponse?.user,
-        notifications_count: unreadCount
+        member: memberData,
+        notifications_count: unreadCount,
+
       });
     } catch (error) {
       console.error("Error in getMemberFromToken:", error);
@@ -1271,13 +1283,21 @@ class MemberController extends BaseController {
       const member = userResponse.user;
 
       // Check if file was uploaded
-      if (!req.file) {
+      if (!req.files || !req.files["mem_image"] || req.files["mem_image"].length === 0) {
         return res.status(200).json({ status: 0, msg: "No file uploaded." });
       }
 
       // Get the uploaded file and construct the file path
-      const memImage = req.file.filename;
-      const imageUrl = `${memImage}`; // Customize the path based on your application structure if needed
+      const memImage = req.files["mem_image"][0].filename;
+      console.log("Extracted Filename:", memImage);
+
+      const imageUrl = `${memImage}`; // Adjust the path based on your frontend setup
+      console.log("imageUrl:",imageUrl);
+
+
+
+
+      // const imageUrl = `${memImage}`; // Customize the path based on your application structure if needed
 
       // Update the profile image in the database based on memType
       if (memType === "user" || memType==='business') {

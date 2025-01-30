@@ -170,6 +170,7 @@ const vehicleRoutes = require('./routes/admin/vehicle');
 const remotePostCodeRoutes = require('./routes/admin/remote-post-code');
 const pagesRoutes = require('./routes/admin/pages');
 const requestQuoteRoutes = require('./routes/admin/request-quote');
+const reviewRoutes = require('./routes/admin/reviews');
 const newsLetterRoutes = require('./routes/admin/news-letter');
 const WithdrawalRequestsRoutes = require('./routes/admin/withdraw-requests');
 
@@ -221,6 +222,7 @@ app.use('/admin', pagesRoutes);
 app.use('/admin', requestQuoteRoutes);
 app.use('/admin', newsLetterRoutes);
 app.use('/admin', WithdrawalRequestsRoutes);
+app.use('/admin', reviewRoutes);
 
 
 
