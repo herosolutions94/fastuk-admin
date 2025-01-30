@@ -19,7 +19,9 @@
           <div class="list-group details-group">
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Vehicle Price: </strong><%= order.vehicle_price %></p>
+                <p>
+                  <strong>Vehicle Price: </strong><%= order.vehicle_price %>
+                </p>
               </div>
             </div>
             <div class="list-group-item">
@@ -29,12 +31,17 @@
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Source Post Code: </strong><%= order.source_postcode %></p>
+                <p>
+                  <strong>Source Post Code: </strong><%= order.source_postcode
+                  %>
+                </p>
               </div>
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Source Address: </strong><%= order.source_address %></p>
+                <p>
+                  <strong>Source Address: </strong><%= order.source_address %>
+                </p>
               </div>
             </div>
             <div class="list-group-item">
@@ -44,7 +51,10 @@
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Source Phone Number: </strong><%= order.source_phone_number %></p>
+                <p>
+                  <strong>Source Phone Number: </strong><%=
+                  order.source_phone_number %>
+                </p>
               </div>
             </div>
             <div class="list-group-item">
@@ -54,12 +64,18 @@
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Destination Post Code: </strong><%= order.dest_postcode %></p>
+                <p>
+                  <strong>Destination Post Code: </strong><%=
+                  order.dest_postcode %>
+                </p>
               </div>
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Destination Address: </strong><%= order.dest_address %></p>
+                <p>
+                  <strong>Destination Address: </strong><%= order.dest_address
+                  %>
+                </p>
               </div>
             </div>
             <div class="list-group-item">
@@ -69,7 +85,10 @@
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Destination Phone Number: </strong><%= order.dest_phone_number %></p>
+                <p>
+                  <strong>Destination Phone Number: </strong><%=
+                  order.dest_phone_number %>
+                </p>
               </div>
             </div>
             <div class="list-group-item">
@@ -79,17 +98,48 @@
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Payment Method: </strong><%= order.payment_method %></p>
+                <p>
+                  <strong>Payment Method: </strong><%= order.payment_method %>
+                </p>
               </div>
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Created Date: </strong><%= helpers.toUKDateFormat(order.created_date) %></p>
+                <p>
+                  <strong>Payment Method Id: </strong><%=
+                  order.payment_method_id %>
+                </p>
               </div>
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Start Date: </strong><%= helpers.toUKDateFormat(order.start_date) %></p>
+                <p>
+                  <strong>Assigned Rider Id: </strong><%= order.assigned_rider
+                  %>
+                </p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p>
+                  <strong>Assigned Date: </strong><%= order.assigned_date %>
+                </p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p>
+                  <strong>Created Date: </strong><%=
+                  helpers.toUKDateFormat(order.created_date) %>
+                </p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p>
+                  <strong>Start Date: </strong><%=
+                  helpers.toUKDateFormat(order.start_date) %>
+                </p>
               </div>
             </div>
             <div class="list-group-item">
@@ -99,19 +149,168 @@
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Picked Time: </strong><%= helpers.convertUtcToUkFormat(order.picked_time) %></p>
+                <p><strong>Booking Id: </strong><%= order.booking_id %></p>
               </div>
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Delivered Time: </strong><%= helpers.convertUtcToUkFormat(order.delivered_time) %></p>
+                <p><strong>User: </strong><%= order?.member_name %></p>
+              </div>
+            </div>
+              <div class="list-group-item">
+                <div class="d-flex w-100">
+                  <p><strong>User Image: </strong></p>
+                  <img src="<%= helpers.getImage(order.member_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;">
+                </div>
+              </div>
+              <div class="list-group-item">
+                <div class="d-flex w-100">
+                  <p><strong>Rider: </strong><%= order?.rider_name %></p>
+                </div>
+              </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p><strong>Rider Image: </strong></p>
+                    <img src="<%= helpers.getImage(order.rider_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;">
+                  </div>
+                </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p>
+                  <strong>Picked Time: </strong><%=
+                  helpers.convertUtcToUkFormat(order.picked_time) %>
+                </p>
               </div>
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Updated Time: </strong><%= helpers.convertUtcToUkFormat(order.updated_time) %></p>
+                <p>
+                  <strong>Delivered Time: </strong><%=
+                  helpers.convertUtcToUkFormat(order.delivered_time) %>
+                </p>
               </div>
             </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p>
+                  <strong>Updated Time: </strong><%=
+                  helpers.convertUtcToUkFormat(order.updated_time) %>
+                </p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Tax: </strong><%= order.tax %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Rider Price: </strong><%= order.rider_price %></p>
+              </div>
+            </div>
+            <h3>Parcels</h3>
+            <% if (order?.parcels?.length > 0) { %>
+            <table>
+              <thead>
+                <tr>
+                  <th>Parcel Number</th>
+                  <th>Parcel Type</th>
+                  <th>Dimensions (L × W × H)</th>
+                  <th>Weight (kg)</th>
+                  <th>Price</th>
+                  <th>Source</th>
+                  <th>Destination</th>
+                  <th>Distance (km)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% order?.parcels.forEach(parcel => { %>
+                <tr>
+                  <td><%= parcel.parcel_number %></td>
+                  <td><%= parcel.parcel_type %></td>
+                  <td>
+                    <%= parcel.length %> × <%= parcel.width %> × <%=
+                    parcel.height %>
+                  </td>
+                  <td><%= parcel.weight %></td>
+                  <td><%= parcel.price %></td>
+                  <td><%= parcel.source_address %></td>
+                  <td><%= parcel.destination_address %></td>
+                  <td><%= parcel.distance %></td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+            <% } else { %>
+            <p>No parcels found for this order.</p>
+            <% } %>
+            <h3>Invoices</h3>
+            <% if (order?.invoices.length > 0) { %>
+            <table>
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th>Amount</th>
+                  <th>Amount Type</th>
+                  <th>Status</th>
+                  <th>Created Date</th>
+                  <th>Via ID</th>
+                  <th>Payment Type</th>
+                  <th>Payment Intent ID</th>
+                  <th>Payment Method ID</th>
+                  <th>Payment Method</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% order?.invoices.forEach(invoice => { %>
+                <tr>
+                  <td><%= invoice.type %></td>
+                  <td><%= invoice.amount %></td>
+                  <td><%= invoice.amount_type %></td>
+                  <td><%= invoice.status %></td>
+                  <td>
+                    <%= helpers.convertUtcToUkFormat(invoice.created_date)
+                    %>
+                  </td>
+                  <td><%= invoice.via_id %></td>
+                  <td><%= invoice.payment_type %></td>
+                  <td><%= invoice.payment_intent_id %></td>
+                  <td><%= invoice.payment_method_id %></td>
+                  <td><%= invoice.payment_method %></td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+            <% } else { %>
+            <p>No invoices found for this order.</p>
+            <% } %>
+            <h3>Reviews</h3>
+            <% if (order?.reviews.length > 0) { %>
+            <table>
+              <thead>
+                <tr>
+                  <th>Review</th>
+                  <th>Rating</th>
+                  <th>Created Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% order?.reviews.forEach(review => { %>
+                <tr>
+                  <td><%= review.review %></td>
+                  <td>
+                    <p class="rateYo"></p>
+                  </td>
+                  <td>
+                    <%= helpers.convertUtcToUkFormat(review.created_at) %>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+            <% } else { %>
+            <p>No reviews found for this order.</p>
+            <% } %>
           </div>
         </div>
       </div>

@@ -36,6 +36,48 @@ static async deleteRiderById(id) {
     }
 }
 
+static async create({ rider_id, title, description }) {
+    const query = `
+        INSERT INTO rider_documents (rider_id, title, description) 
+        VALUES (?, ?, ?)
+    `;
+    await pool.query(query, [rider_id, title, description]);
+}
+
+static async getDocuments(rider_id = null) {
+    let query = `SELECT * FROM rider_documents`;
+    let params = [];
+
+    if (rider_id) {
+        query += ` WHERE rider_id = ? ORDER BY created_at DESC`;
+        params.push(rider_id);
+    } else {
+        query += ` ORDER BY created_at DESC`;
+    }
+
+    const [rows] = await pool.query(query, params);
+    return rows;
+}
+
+static async getDocumentById(document_id) {
+    const query = `SELECT * FROM rider_documents WHERE id = ?`;
+    const [rows] = await pool.query(query, [document_id]);
+    return rows.length ? rows[0] : null;
+}
+
+static async updateDocument(document_id, title, description) {
+    const query = `UPDATE rider_documents SET title = ?, description = ? WHERE id = ?`;
+    await pool.query(query, [title, description, document_id]);
+}
+
+static async deleteDocument(document_id) {
+    const query = `DELETE FROM rider_documents WHERE id = ?`;
+    await pool.query(query, [document_id]);
+}
+
+
+
+
 
 }
 
