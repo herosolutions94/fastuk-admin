@@ -62,24 +62,52 @@ class RequestQuoteModel extends BaseModel {
 
     static async getOrderDetailsById(orderId) {
         try {
-            const query = `
+            const orderQuery = `
                 SELECT 
-                    rq.*, 
-                    m.id AS user_id, 
-                    m.full_name AS member_name, 
-                    m.email AS member_email 
-                FROM ${this.tableName} rq
-                LEFT JOIN members m ON rq.user_id = m.id
-                WHERE rq.id = ?;
+                rq.*, 
+                m.id AS user_id, 
+                m.full_name AS member_name, 
+                m.mem_image AS member_dp, 
+                r.id AS rider_id, 
+                r.full_name AS rider_name, 
+                r.mem_image AS rider_dp
+            FROM ${this.tableName} rq
+            LEFT JOIN members m ON rq.user_id = m.id
+            LEFT JOIN riders r ON rq.assigned_rider = r.id
+            WHERE rq.id = ?;
             `;
     
-            const [rows] = await pool.query(query, [orderId]);
-            return rows[0]; // Return the first result since it's for a single order ID
+            const parcelsQuery = `
+                SELECT request_id, parcel_number, parcel_type, length, width, height, weight, source, destination, distance
+                FROM request_parcels
+                WHERE request_id = ?;
+            `;
+    
+            const invoicesQuery = `
+                SELECT request_id, type, amount, amount_type, status, created_date, via_id, payment_type, payment_intent_id, payment_method_id, payment_method
+                FROM invoices
+                WHERE request_id = ?;
+            `;
+    
+            // Execute queries
+            const [orderRows] = await pool.query(orderQuery, [orderId]);
+            const [parcelsRows] = await pool.query(parcelsQuery, [orderId]);
+            const [invoicesRows] = await pool.query(invoicesQuery, [orderId]);
+    
+            if (!orderRows.length) return null; // No order found
+    
+            return { 
+                ...orderRows[0], // Order details
+                parcels: parcelsRows, // Array of parcels
+                invoices: invoicesRows // Array of invoices
+            };
         } catch (error) {
             console.error('Error fetching order details:', error);
             throw error;
         }
     }
+    
+    
     
     
     

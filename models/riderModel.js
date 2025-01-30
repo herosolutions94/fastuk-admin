@@ -82,6 +82,7 @@ class RiderModel extends BaseModel {
         WHERE request_id = ?
     `;
     const [rows] = await pool.query(query, [quoteId]);
+    console.log("vias rows:", rows)
     return rows;
 };
 
@@ -768,6 +769,15 @@ async getCompletedOrdersByRider(riderId) {
         `SELECT SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) - SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) as available_balance FROM earnings WHERE user_id = ? AND status = 'cleared'`,
         [riderId]
       );
+
+      // Get total withdrawn amount from withdraw_requests table
+      const [withdrawnAmountResult] = await pool.query(
+        `SELECT SUM(amount) AS total_withdrawn 
+         FROM withdraw_requests 
+         WHERE user_id = ? AND status = 'cleared'`,
+        [riderId]
+      );
+      
   
       // Get all earnings data for the rider
       const [earnings] = await pool.query('SELECT * FROM earnings WHERE user_id = ?', [riderId]);
@@ -776,6 +786,7 @@ async getCompletedOrdersByRider(riderId) {
       return {
         netIncome: netIncomeResult[0].net_income || 0, // Default to 0 if no result
         availableBalance: availableBalanceResult[0].available_balance || 0, // Default to 0 if no result
+        totalWithdrawn: withdrawnAmountResult[0].total_withdrawn || 0, // Default to 0 if no result
         earnings: earnings
       };
     } catch (error) {

@@ -267,6 +267,17 @@ WHERE n.user_id = ? AND n.mem_type = ?
     const query = 'DELETE FROM notifications WHERE id = ?;';
     await pool.query(query, [id]);
   }
+  async getLatestNotifications() {
+    try {
+        const query = 'SELECT * FROM notifications ORDER BY id DESC LIMIT 3';
+        const [rows] = await pool.query(query); // Use correct query execution
+        return rows; // Return the result
+    } catch (error) {
+        console.error("Error fetching latest notifications:", error);
+        return []; // Return an empty array on error
+    }
+}
+
 
   static async updateTempEmail(id, temp_email) {
     const query = `
