@@ -783,6 +783,69 @@ class MemberController extends BaseController {
       });
     }
   }
+  async updateApplePaymentStatus(req, res) {
+    const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
+    const sig = req.headers["stripe-signature"];
+    let event;
+console.log("req body",req.body)
+    try {
+      
+        // Convert the raw Buffer to a string
+        const rawBody = req.body.toString();
+        
+        // Verify the webhook signature
+        event = stripe.webhooks.constructEvent(rawBody, sig, endpointSecret);
+
+        await helpers.storeWebHookData({
+            type: "event created",
+            response: JSON.stringify(event)
+        });
+    } catch (err) {
+        await helpers.storeWebHookData({
+            type: "⚠️ Webhook signature verification failed:",
+            response: JSON.stringify(err)
+        });
+        console.error("⚠️ Webhook signature verification failed:", err.message);
+        return res.status(400).send(`Webhook Error: ${err.message}`);
+    }
+
+    // Process only successful payments
+    if (event.type === "payment_intent.succeeded") {
+        const paymentIntent = event.data.object;
+        const orderId = paymentIntent.metadata.order_id;
+        const paymentIntentId = paymentIntent.id;
+
+        console.log(`✅ Apple Pay Payment Successful for Order: ${orderId}`);
+        console.log(`💳 Payment Intent ID: ${paymentIntentId}`);
+
+        if (orderId) {
+            try {
+                let order = await this.member.getUserOrderDetailsById({ requestId: orderId });
+                if (!order) {
+                    return res.status(200).json({ status: 0, msg: "Order not found." });
+                }
+                await this.member.updateRequestData(order.id, {
+                    status: 'paid',
+                    payment_intent: paymentIntentId
+                });
+                await helpers.storeWebHookData({
+                    type: `💳 Payment Intent ID: ${paymentIntentId}`,
+                    response: `✅ Apple Pay Payment Successful for Order: ${orderId}`
+                });
+
+                // console.log(`📦 Order ${orderId} updated to PAID`);
+            } catch (error) {
+                console.error(`❌ Error updating order ${orderId}:`, error);
+                return res.status(500).json({ error: "Failed to update order status" });
+            }
+        } else {
+            console.error("❌ Order ID missing in metadata.");
+            return res.status(400).json({ error: "Order ID is required in metadata" });
+        }
+    }
+
+    res.json({ received: true });
+}
 
   async createRequestQuote(req, res) {
     this.tokenModel = new Token();
@@ -814,7 +877,7 @@ class MemberController extends BaseController {
         date,
         notes,
         saved_card_id,
-        order_details // Array from frontend
+        order_details
       } = req.body;
       console.log("price:", price);
 
@@ -859,11 +922,11 @@ class MemberController extends BaseController {
         }
 
         const parsedStartDate = date ? new Date(date) : null;
-        if (!parsedStartDate || isNaN(parsedStartDate)) {
-          return res
-            .status(200)
-            .json({ status: 0, msg: "Invalid start_date format" });
-        }
+        // if (!parsedStartDate || isNaN(parsedStartDate)) {
+        //   return res
+        //     .status(200)
+        //     .json({ status: 0, msg: "Invalid start_date format" });
+        // }
         const siteSettings = res.locals.adminData;
         let parcel_price_obj=helpers.calculateParcelsPrice(order_details,siteSettings?.site_processing_fee);
 
@@ -874,7 +937,7 @@ class MemberController extends BaseController {
 
         // console.log("Remote price",formattedRemotePrice)
         // console.log("Remote price",remote_price)
-        
+        let clientSecret='';
         let payment_intent_id=payment_intent_customer_id
         let payment_methodid=payment_method_id
         let requestQuoteId = "";
@@ -1074,6 +1137,47 @@ class MemberController extends BaseController {
             notes: notes
           });
         }
+        else if (payment_method === "apple-pay") {
+          try {
+             
+              payment_intent_id=''
+              payment_methodid=''
+              // Prepare the object for requestQuoteId insertion
+              requestQuoteId = await this.pageModel.createRequestQuote({
+                user_id: userId,
+                selected_vehicle: selectedVehicle,
+                rider_price: formattedRiderPrice,
+                vehicle_price: formattedVehiclePrice,
+                total_amount: formattedTotalAmount,
+                tax: formattedTax,
+                payment_intent: '', // Store the Payment Intent ID
+                customer_id: '', // Store the Customer ID
+                payment_method_id:'', // Store the Stripe Payment Method ID
+                source_postcode,
+                source_address: source_full_address,
+                source_name,
+                source_phone_number,
+                source_city,
+                dest_postcode,
+                dest_address: dest_full_address,
+                dest_name,
+                dest_phone_number,
+                dest_city,
+                payment_method,
+                created_date: new Date(),
+                start_date: new Date(date),
+                notes: notes
+              });
+            }
+            catch (error) {
+              console.error("Stripe Error:", error);
+              return res.status(200).json({
+                status: 0,
+                msg: "Error creating payment intent.",
+                error: error.message
+              });
+            }
+        }
 
         // Create Request Quote record
 
@@ -1105,10 +1209,7 @@ class MemberController extends BaseController {
 
         // Insert parcels into the database
         await this.pageModel.insertVias(viaRecords);
-        // console.log(viaRecords)
-        // return;
-
-        // Validate order_details array
+        
         let parsedOrderDetails = [];
         try {
           parsedOrderDetails = JSON.parse(order_details);
@@ -1138,60 +1239,85 @@ class MemberController extends BaseController {
           weight: detail.weight,
           parcel_number: detail.parcelNumber,
           parcel_type: detail.parcelType,
-          price: helpers.formatAmount(detail?.price)
+          price: helpers.formatAmount(detail?.price),
+          source_lat:detail?.source_lat,
+          source_lng:detail?.source_lng,
+          destination_lat:detail?.destination_lat,
+          destination_lng:detail?.destination_lng,
         }));
 
         // Insert order details into the database
         await this.pageModel.insertOrderDetails(orderDetailsRecords);
 
-        const orderDetailsLink = `/rider-dashboard/jobs`;
-
-        const ridersInCity = await this.rider.getRidersByCity(source_city);
-
-        if (ridersInCity && ridersInCity.length > 0) {
-          const notificationText = `A new request has been created in your city: ${source_city}`;
-
-          // Loop through each rider and send a notification
-          for (const rider of ridersInCity) {
-            const riderId = rider.id;
-            // console.log(riderId,member?.id);return;
-
-            await helpers.storeNotification(
-              riderId,
-              "rider", // mem_type
-              member?.id, // sender (the requester)
-              notificationText,
-              orderDetailsLink
-            );
-          }
-        }
-
-        const created_time = helpers.getUtcTimeInSeconds();
         
-
-        // Insert Transaction Record
-      await helpers.storeTransaction({
-        user_id: userId,
-        amount: formattedTotalAmount,
-        payment_method:payment_method,
-        transaction_id: requestQuoteId,
-        created_time:created_time,
-        payment_intent_id:payment_intent_id,
-        payment_method_id:payment_methodid,
-        type:'Request Quote'
-
-      });
       // console.log(userId,parcel_price_obj?.total,payment_method,requestQuoteId)
       if (payment_method === "credits") {
           await this.member.updateMemberData(member?.id, {
             total_credits: parseFloat(member?.total_credits) - parseFloat(formattedTotalAmount)
           });
         }
+        let apple_obj={}
+        if (payment_method === "apple-pay"){
+          const paymentIntent = await stripe.paymentIntents.create({
+                amount: Math.round(formattedTotalAmount * 100), // Convert amount to cents (for Stripe)
+                currency: "gbp",
+                metadata: {
+                  order_id: requestQuoteId, // Pass the order_id from your database
+                },
+                payment_method_types: ["card"]
+              });
+              clientSecret=paymentIntent?.client_secret
+          apple_obj={
+            clientSecret:clientSecret,
+            order_id:requestQuoteId,
+            amount:parseFloat(formattedTotalAmount)
+          }
+        }
+        else{
+            const orderDetailsLink = `/rider-dashboard/jobs`;
 
+            const ridersInCity = await this.rider.getRidersByCity(source_city);
+
+            if (ridersInCity && ridersInCity.length > 0) {
+              const notificationText = `A new request has been created in your city: ${source_city}`;
+
+              // Loop through each rider and send a notification
+              for (const rider of ridersInCity) {
+                const riderId = rider.id;
+                // console.log(riderId,member?.id);return;
+
+                await helpers.storeNotification(
+                  riderId,
+                  "rider", // mem_type
+                  member?.id, // sender (the requester)
+                  notificationText,
+                  orderDetailsLink
+                );
+              }
+            }
+
+            const created_time = helpers.getUtcTimeInSeconds();
+            
+
+            // Insert Transaction Record
+          await helpers.storeTransaction({
+            user_id: userId,
+            amount: formattedTotalAmount,
+            payment_method:payment_method,
+            transaction_id: requestQuoteId,
+            created_time:created_time,
+            payment_intent_id:payment_intent_id,
+            payment_method_id:payment_methodid,
+            type:'Request Quote'
+
+          });
+        }
+        console.log("Successfully CREATED REQUEST",apple_obj)
         // Send success response
         res.status(200).json({
           status: 1,
-          msg: "Request Quote, Parcels and vias created successfully",
+          apple_obj:apple_obj,
+          msg: payment_method === "apple-pay" ? "Request Quote created, now you'll be redirected to apple pay for transaction!" : "Request Quote, Parcels and vias created successfully",
           data: {
             requestId: requestQuoteId
           }
@@ -2194,6 +2320,31 @@ console.log(notification.user_id, "Notification User ID");
       });
 
       res.status(200).json({ paymentIntentId: paymentIntent.id, status: 1 });
+    } catch (error) {
+      console.error(error);
+      res.status(200).json({ error: error.message });
+    }
+  }
+  async createSimplePaymentIntent(req, res) {
+    try {
+      const { amount } =
+        req.body;
+      // console.log(req.body);
+
+      if (!amount) {
+        return res
+          .status(200)
+          .json({ error: "Amount required" });
+      }
+
+      // Create a PaymentIntent with the specified amount and currency
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: Math.round(amount * 100), // Convert amount to cents (for Stripe)
+        currency: "gbp",
+        payment_method_types: ["card"]
+      });
+
+      res.status(200).json({ clientSecret: paymentIntent.client_secret, status: 1 });
     } catch (error) {
       console.error(error);
       res.status(200).json({ error: error.message });

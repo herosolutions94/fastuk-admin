@@ -501,6 +501,28 @@ getDistance : async function (source, destination)  {
     throw new Error('Database query failed.');
   }
 },
+ storeWebHookData: async function(transactionData) {
+  const query = `
+    INSERT INTO webhooks (
+      type, response
+    ) VALUES (?, ?)
+  `;
+
+  const values = [
+    transactionData.type,
+    transactionData.response,
+  ];
+
+  try {
+    const [result] = await pool.query(query, values);
+    // console.log('Transaction Data:', transactionData); // Debugging
+
+    // console.log(`Transaction stored successfully. Insert ID: ${result.insertId}`);
+  } catch (error) {
+    console.error('Error storing transaction:', error.message);
+    throw new Error('Database query failed.');
+  }
+},
 getTransaction: async function(user_id) {
   try {
       const [rows] = await pool.query(`SELECT * FROM transactions WHERE user_id = ?`, [user_id]);
