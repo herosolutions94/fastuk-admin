@@ -15,7 +15,6 @@ const { Server } = require('socket.io');
 let socketServer;
 const PORT = process.env.PORT || 4000;
 
-
 try {
   // Check if SSL files exist
   const keyPath = '/var/www/html/fastuk-admin/ssl/private.key';
