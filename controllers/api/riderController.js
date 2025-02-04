@@ -415,7 +415,8 @@ class RiderController extends BaseController {
       for (let quote of requestQuotes) {
         const user = await this.member.findById(quote.user_id);
         const vias = await this.rider.getViasByQuoteId(quote.id);
-        const parcels = await this.rider.getParcelsByQuoteId(quote.id);
+        // const parcels = await this.rider.getParcelsByQuoteId(quote.id);
+        const parcels = await this.rider.getParcelDetailsByQuoteId(quote.id);
 
         if (user) {
           quote = {
@@ -508,7 +509,8 @@ class RiderController extends BaseController {
       if (request_row) {
         const user = await this.member.findById(request_row.user_id);
         const vias = await this.rider.getViasByQuoteId(request_row.id);
-        const parcels = await this.rider.getParcelsByQuoteId(request_row.id);
+        // const parcels = await this.rider.getParcelsByQuoteId(request_row.id);
+        const parcels = await this.rider.getParcelDetailsByQuoteId(request_row.id);
         if (user) {
           request_row = {
             ...request_row,
@@ -961,7 +963,8 @@ async UpdateWithdrawalMethod(req, res) {
 
       const viasCount = await this.rider.countViasBySourceCompleted(order.id);
 
-      const parcels = await this.rider.getParcelsByQuoteId(order.id); // Assuming order.quote_id is the relevant field
+      // const parcels = await this.rider.getParcelsByQuoteId(order.id); // Assuming order.quote_id is the relevant field
+      const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
       const vias = await this.rider.getViasByQuoteId(order.id);
       const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
       const paidAmount = await RequestQuoteModel.totalPaidAmount(order.id);
@@ -1116,7 +1119,8 @@ async UpdateWithdrawalMethod(req, res) {
       // console.log("viasCount:", viasCount);
 
       // Fetch parcels and vias
-      const parcels = await this.rider.getParcelsByQuoteId(order.id);
+      // const parcels = await this.rider.getParcelsByQuoteId(order.id);
+      const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
       const vias = await this.rider.getViasByQuoteId(order.id);
       const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
 
@@ -1411,7 +1415,8 @@ async UpdateWithdrawalMethod(req, res) {
       const viasCount = await this.rider.countViasBySourceCompleted(order.id);
       // console.log("viasCount:", viasCount);
 
-      const parcels = await this.rider.getParcelsByQuoteId(order.id);
+      // const parcels = await this.rider.getParcelsByQuoteId(order.id);
+      const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
       const vias = await this.rider.getViasByQuoteId(order.id);
       const invoices = await this.rider.getInvoicesDetailsByRequestId(
         decodedRequestId

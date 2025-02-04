@@ -112,7 +112,7 @@ class PageModel extends BaseModel {
     async insertOrderDetails(detailsArray) {
         const query = `
             INSERT INTO order_details 
-            (order_id, source_address, destination_address, distance, height, length, width, weight, parcel_number, parcel_type, price) 
+            (order_id, source_address, destination_address, distance, height, length, width, weight, parcel_number, parcel_type, price,source_lat,source_lng,destination_lat,destination_lng) 
             VALUES ?
         `;
     
@@ -128,7 +128,11 @@ class PageModel extends BaseModel {
         detail.weight,
         detail.parcel_number,
         detail.parcel_type,
-        detail.price
+        detail.price,
+        detail.source_lat,
+        detail.source_lng,
+        detail.destination_lat,
+        detail.destination_lng,
     ]);
     const [result] = await pool.query(query, [values]);
     // console.log('Insert result:', result);
