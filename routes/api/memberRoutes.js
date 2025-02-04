@@ -17,7 +17,13 @@ router.post('/set-as-default-addresses', upload,memberController.setAsDefaultAdd
 router.post('/request-quote', upload,(req, res) => memberController.requestQuote(req, res));
 router.post('/member-settings', upload, (req, res) => memberController.getMemberFromToken(req, res));
 
+// router.post('/update-request-apple-pay-status', upload, (req, res) => memberController.updateApplePaymentStatus(req, res));
+router.post('/update-request-apple-pay-status', upload,express.raw({ type: 'application/json' }), (req, res) => {
+  memberController.updateApplePaymentStatus(req, res);
+});
+
 router.post('/create-payment-intent', upload, (req, res) => memberController.paymentIntent(req, res));
+router.post('/create-simple-payment-intent', upload, (req, res) => memberController.createSimplePaymentIntent(req, res));
 router.post('/save-request-quote', upload, (req, res) => memberController.createRequestQuote(req, res));
 router.post('/update-profile', upload, (req, res) => memberController.updateProfile(req, res));
 router.post('/update-password', upload, (req, res) => memberController.changePassword(req, res));
