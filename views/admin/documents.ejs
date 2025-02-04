@@ -24,6 +24,9 @@
             <th width="20%">
               <p>Name</p>
             </th>
+            <th width="20%">
+              <p>Status</p>
+            </th>
             <th width="15%">
               <p>Description</p>
             </th>
@@ -44,6 +47,9 @@
               <p><%= document.title %></p>
             </td>
             <td>
+              <p><%= document.status %></p>
+            </td>
+            <td>
               <p><%= document.description %></p>
             </td>
             <td>
@@ -55,17 +61,29 @@
                   <i class="fa fa-ellipsis-h"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-primary" role="menu">
+                  <% if (document.status === 'pending') { %>
+                    
+                    <li>
+                      <a href="/admin/riders/documents/update-status/<%= document.id %>?status=approved" class="btn btn-success">
+                        Approve
+                      </a>
+                    </li>
+                    <li>
+                      <a href="/admin/riders/documents/update-status/<%= document.id %>?status=rejected" class="btn btn-danger">
+                        Reject
+                      </a>
+                    </li>
+                    
+                  <% } else { %>
+                    <li>
+                      <a href="/admin/riders/documents/edit/<%= document.rider_id %>/<%= document.id %>">
+                        <i class="fa fa-pencil" aria-hidden="true"></i> Edit
+                      </a>
+                    </li>
+                  <% } %>
                   <li>
-                    <a href="/admin/riders/documents/edit/<%= document.rider_id %>/<%= document.id %>"
-                      ><i class="fa fa-pencil" aria-hidden="true"></i>Edit</a
-                    >
-                  </li>
-                  <li>
-                    <a
-                      href="#"
-                      class="delete-item"
-                      data-id="<%= document.id %>"
-                      data-url="/admin/riders/documents/delete/<%= document.rider_id %>/<%= document.id %>">
+                    <a href="#" class="delete-item" data-id="<%= document.id %>" 
+                       data-url="/admin/riders/documents/delete/<%= document.rider_id %>/<%= document.id %>">
                       <i class="fa fa-trash" aria-hidden="true"></i> Delete
                     </a>
                   </li>

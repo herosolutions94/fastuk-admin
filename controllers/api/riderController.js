@@ -1840,6 +1840,9 @@ async saveWithDrawalRequest(req, res) {
 async getRiderDocumentsApi(req, res) {
   try {
     const { token, memType } = req.body;
+    console.log("Received Token:", token);
+    console.log("Received Member Type:", memType);
+
 
     // Validate token and memType
     if (!token) {
@@ -1852,14 +1855,20 @@ async getRiderDocumentsApi(req, res) {
 
     // Validate the token and get the rider details
     const userResponse = await this.validateTokenAndGetMember(token, memType);
+    console.log("User Response:", userResponse);
+
 
     if (userResponse.status === 0) {
       return res.status(200).json(userResponse);
     }
 
     const riderId = userResponse.user.id;
+    console.log("Fetching documents for Rider ID:", riderId);
+
       // Fetch the documents for the given rider_id
-      const documents = await this.riderModel.getDocuments(riderId);
+      const documents = await RiderModel.getDocuments(riderId);
+      console.log("Fetched Documents:", documents);
+
 
       // If no documents are found
       if (documents.length === 0) {
@@ -1874,6 +1883,94 @@ async getRiderDocumentsApi(req, res) {
       res.status(200).json({ error: 'Failed to fetch documents' });
   }
 }
+
+async uploadRiderDocument  (req, res)  {
+  try {
+    const { req_id, memType, token } = req.body;
+    const riderDocument = req.files && req.files["rider_document"] ? req.files["rider_document"][0].filename : '';
+    console.log("req.body", req.body);  // Log body data
+console.log(token,req_id,riderDocument,'all data')
+
+
+    // Validate request
+    if (!token || !req_id || !riderDocument) {
+      return res.status(200).json({ status: 0, msg: "Missing required fields." });
+    }
+
+    // Validate token and get user
+    const userResponse = await this.validateTokenAndGetMember(token, memType);
+    if (userResponse.status === 0) {
+      return res.status(200).json(userResponse);
+    }
+
+    const riderId = userResponse.user.id;
+
+    // Check if the document belongs to the logged-in user
+
+    const existingDoc = await RiderModel.getDocumentByIdAndRiderId(req_id,riderId);
+    console.log("existingDoc:",existingDoc)
+
+    if (!existingDoc.length) {
+      return res.status(200).json({ status: 0, msg: "Unauthorized access." });
+    }
+
+    // Encrypt filename and move file
+
+    const encryptedFileName = riderDocument
+
+    // Update document record
+    await RiderModel.updateDocumentNameAndStatus(encryptedFileName, req_id)
+    console.log(    await RiderModel.updateDocumentNameAndStatus(encryptedFileName, req_id)
+  )
+    
+
+    res.status(200).json({ status: 1, msg: "File uploaded successfully.", encryptedFileName });
+  } catch (error) {
+    console.error("Upload error:", error);
+    res.status(200).json({ status: 0, msg: "Internal server error." });
+  }
+};
+
+// router.post("/delete-rider-document", async (req, res) => {
+  async deleteRiderDocument(req, res) {
+    try {
+      const { req_id, token, memType } = req.body;
+  
+      if (!req_id || !token || !memType) {
+        return res.status(200).json({ status: 0, msg: "Invalid request data" });
+      }
+  
+      // Validate user
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse);
+      }
+  
+      const riderId = userResponse.user.id;
+  
+      // Fetch the document based on req_id AND riderId
+      const documentExists = await RiderModel.getDocumentByIdAndRiderId(req_id, riderId);
+  
+      if (!documentExists) {
+        return res.status(200).json({ status: 0, msg: "Document not found or does not belong to the rider" });
+      }
+  
+      // Delete the document
+      await RiderModel.deleteDocument(req_id, riderId);
+  
+      return res.json({ status: 1, msg: "Document deleted successfully" });
+    } catch (error) {
+      console.error("Delete error:", error);
+      return res.status(200).json({ status: 0, msg: "Server error" });
+    }
+  }
+  
+  
+
+
+
+
+
 
 
 }
