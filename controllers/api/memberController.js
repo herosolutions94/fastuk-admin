@@ -1244,7 +1244,7 @@ class MemberController extends BaseController {
         ...userResponse?.user, // Spread existing user data
         latest_notifications: latestNotifications
     };
-    console.log("latestNotifications:",memberData?.latest_notifications)
+    // console.log("latestNotifications:",memberData?.latest_notifications)
 
 
       return res.status(200).json({

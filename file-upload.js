@@ -110,6 +110,7 @@ const upload = multer({
   { name: 'sec4_rider_image_2', maxCount: 1 },
   { name: 'sec4_rider_image_3', maxCount: 1 },
   { name: 'vehicle_image', maxCount: 1 },
+  { name: 'rider_document', maxCount: 1 },
 
 
 

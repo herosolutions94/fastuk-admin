@@ -392,7 +392,12 @@ module.exports = {
 
       // Fetch sender details based on mem_type
       let senderInfo = null;
-      if (mem_type === "user") {
+      if (sender === 0) {
+        // Fetch sender info from site settings if sender is 0
+        const siteSettingsQuery = `SELECT site_name as sender_name, logo_image as sender_dp FROM tbl_admin LIMIT 1`;
+        const [siteSettingsRows] = await pool.query(siteSettingsQuery, [sender]);
+        senderInfo = siteSettingsRows[0];
+      }else if (mem_type === "user") {
         const userQuery = `SELECT id, full_name as sender_name, mem_image as sender_dp FROM riders WHERE id = ?`;
         const [userRows] = await pool.query(userQuery, [sender]);
         senderInfo = userRows[0];
@@ -415,7 +420,7 @@ module.exports = {
         time: created_date,
         link: link
       };
-      // console.log(notificationObject,mem_type)
+      console.log(notificationObject,mem_type)
 
       // Find all sockets associated with the user_id in the users array
       const userSockets = users.filter((user) => parseInt(user.user_id) === parseInt(user_id) && user?.mem_type===mem_type);
@@ -531,6 +536,9 @@ getTransaction: async function(user_id) {
     console.error("Error inserting earnings:", error);
     return null;
   }
-}
+},
+
+
+
 
 };

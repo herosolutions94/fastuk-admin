@@ -28,6 +28,9 @@ router.delete('/riders/documents/delete/:rider_id/:document_id',ensureAuthentica
     RiderController.deleteDocument.bind(RiderController)
 );
 
+router.get('/riders/documents/update-status/:id', ensureAuthenticated, upload, RiderController.updateDocumentStatus.bind(RiderController));
+
+
 
 
 
