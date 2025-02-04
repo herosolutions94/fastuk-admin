@@ -32,6 +32,7 @@
     "mysql2": "^3.11.3",
     "nodemailer": "^6.9.16",
     "nodemon": "^3.1.7",
+    "paypal-rest-sdk": "^1.8.1",
     "pg": "^8.13.0",
     "sanitize-html": "^2.13.1",
     "socket.io": "^4.8.1",

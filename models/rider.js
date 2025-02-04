@@ -36,12 +36,12 @@ static async deleteRiderById(id) {
     }
 }
 
-static async create({ rider_id, title, description }) {
+static async create({ rider_id, title, status, description }) {
     const query = `
-        INSERT INTO rider_documents (rider_id, title, description) 
-        VALUES (?, ?, ?)
+        INSERT INTO rider_documents (rider_id, title, status, description) 
+        VALUES (?, ?, ?, ?)
     `;
-    await pool.query(query, [rider_id, title, description]);
+    await pool.query(query, [rider_id, title, 'requested', description]);
 }
 
 static async getDocuments(rider_id = null) {
@@ -56,6 +56,7 @@ static async getDocuments(rider_id = null) {
     }
 
     const [rows] = await pool.query(query, params);
+    // console.log("rows:",rows)
     return rows;
 }
 
@@ -64,15 +65,29 @@ static async getDocumentById(document_id) {
     const [rows] = await pool.query(query, [document_id]);
     return rows.length ? rows[0] : null;
 }
+static async getDocumentByIdAndRiderId(id, riderId) {
+    const query = `SELECT * FROM rider_documents WHERE id = ? AND rider_id = ?`;
+    const [rows] = await pool.query(query, [id, riderId]);
+    return rows; // Return full array instead of first object
+}
 
 static async updateDocument(document_id, title, description) {
     const query = `UPDATE rider_documents SET title = ?, description = ? WHERE id = ?`;
     await pool.query(query, [title, description, document_id]);
 }
+static async updateDocumentNameAndStatus(encryptedFileName, id) {
+    const query = `UPDATE rider_documents SET document_name = ?, status = 'pending' WHERE id = ?`;
+    await pool.query(query, [encryptedFileName, id]);
+}
+static async updateDocumentStatus(id, status) {
+    const query = `UPDATE rider_documents SET status = ? WHERE id = ?`;
+    await pool.query(query, [status, id]);
+}
 
-static async deleteDocument(document_id) {
-    const query = `DELETE FROM rider_documents WHERE id = ?`;
-    await pool.query(query, [document_id]);
+
+static async deleteDocument(document_id, rider_id) {
+    const query = `DELETE FROM rider_documents WHERE id = ? AND rider_id = ?`;
+    await pool.query(query, [document_id, rider_id]);
 }
 
 

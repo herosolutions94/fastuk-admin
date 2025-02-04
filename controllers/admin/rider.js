@@ -3,6 +3,7 @@ const path = require('path'); // For handling file paths
 
 const Rider = require('../../models/rider');
 const BaseController = require('../baseController');
+const helpers = require('../../utils/helpers');
 
 class RiderController extends BaseController {
     // Method to get the riders and render them in the view
@@ -175,6 +176,14 @@ class RiderController extends BaseController {
                 description,
             });
 
+            // Prepare notification for the rider
+        const notificationText = `You have a new document request: ${title}`;
+        const link = `/admin/riders/documents/${rider_id}`; // Link to the documents page
+
+        // Send notification to the rider
+        await helpers.storeNotification(rider_id, 'rider', 0, notificationText, link);
+
+
             // Redirect to the documents page after successful submission
             this.sendSuccess(res, {}, 'Document Request created successfully!', 200, `/admin/riders/documents/${rider_id}`)
 
@@ -187,7 +196,7 @@ class RiderController extends BaseController {
 
     async getRiderDocuments(req, res) {
         try {
-            console.log("Request Params:", req.params); 
+            // console.log("Request Params:", req.params); 
 
             const { rider_id } = req.params; 
             if (!rider_id) {
@@ -251,6 +260,32 @@ class RiderController extends BaseController {
             res.status(200).json({ error: 'Failed to delete document' });
         }
     }
+
+    async updateDocumentStatus(req, res) {
+        try {
+            const { id } = req.params;
+            const { status } = req.query;  // ✅ Read from query parameters
+    
+            if (!id || !status) {
+                return res.status(400).json({ status: 0, msg: "Missing parameters." });
+            }
+    
+            await Rider.updateDocumentStatus(id, status);
+    
+            // Fetch updated document details
+            const updatedDoc = await Rider.getDocumentById(id);
+    
+            if (updatedDoc) {
+                return res.redirect(`/admin/riders/documents/${updatedDoc.rider_id}`);
+            } else {
+                return this.sendError(res, "Failed to update document status");
+            }
+        } catch (error) {
+            console.error("Error updating document status:", error);
+            return res.status(500).json({ status: 0, msg: "Internal server error." });
+        }
+    }
+    
     
     
     
