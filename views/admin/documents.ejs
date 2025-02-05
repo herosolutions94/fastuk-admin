@@ -27,9 +27,6 @@
             <th width="20%">
               <p>Status</p>
             </th>
-            <th width="15%">
-              <p>Description</p>
-            </th>
             <th width="10%">
               <p>Action</p>
             </th>
@@ -47,10 +44,7 @@
               <p><%= document.title %></p>
             </td>
             <td>
-              <p><%= document.status %></p>
-            </td>
-            <td>
-              <p><%= document.description %></p>
+              <p><%- helpers.getDocumentStatus(document.status) %></p>
             </td>
             <td>
               <div class="btn-group">

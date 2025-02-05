@@ -11,12 +11,12 @@ class MemberController extends BaseController {
             const members = await Member.getAllMembers();
             // console.log('Fetched Riders:', riders); // Log the fetched riders
 
-            if (members && members.length > 0) {
+            // if (members && members.length > 0) {
                 // Corrected res.render with only two arguments
                 res.render('admin/members/index', { members: members || [] });
-            } else {
-                this.sendError(res, 'No members found');
-            }
+            // } else {
+            //     this.sendError(res, 'No members found');
+            // }
         } catch (error) {
             console.error('Error fetching members:', error); // Log the error for debugging
             this.sendError(res, 'Failed to fetch members');

@@ -18,6 +18,18 @@ module.exports = {
       return '<span class="status badge danger">InActive</span>';
     }
   },
+  getDocumentStatus: function (status) {
+    if (status == 'rejected') {
+      return '<span class="status badge danger">Rejected</span>';
+    }  else if (status == 'pending') {
+      return '<span class="status badge warning">Pending</span>';
+
+    } else if (status == 'approved') {
+      return '<span class="status badge success">Approved</span>';
+    } else {
+      return '<span class="status badge warning">Requested</span>';
+    }
+  },
   calculateParcelsPrice: function (order_details, site_processing_fee) {
   let orderDetails;
   // console.log(order_details,'order_details')
@@ -397,6 +409,7 @@ module.exports = {
         const siteSettingsQuery = `SELECT site_name as sender_name, logo_image as sender_dp FROM tbl_admin LIMIT 1`;
         const [siteSettingsRows] = await pool.query(siteSettingsQuery, [sender]);
         senderInfo = siteSettingsRows[0];
+        senderInfo.is_admin=1;
       }else if (mem_type === "user") {
         const userQuery = `SELECT id, full_name as sender_name, mem_image as sender_dp FROM riders WHERE id = ?`;
         const [userRows] = await pool.query(userQuery, [sender]);
@@ -416,6 +429,7 @@ module.exports = {
         id:result.insertId,
         sender_name: senderInfo.sender_name,
         sender_dp: senderInfo.sender_dp,
+        is_admin: senderInfo.is_admin,
         text: text,
         time: created_date,
         link: link

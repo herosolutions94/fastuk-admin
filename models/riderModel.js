@@ -760,7 +760,7 @@ async getCompletedOrdersByRider(riderId) {
     try {
       // Get earnings where the status is 'cleared' for Net Income
       const [netIncomeResult] = await pool.query(
-        `SELECT SUM(amount) as net_income FROM earnings WHERE user_id = ?`,
+        `SELECT SUM(amount) as net_income FROM earnings WHERE user_id = ? and type='credit'`,
         [riderId]
       );
   
