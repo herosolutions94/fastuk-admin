@@ -20,7 +20,7 @@
             <div class="list-group-item">
               <div class="d-flex w-100">
                 <p>
-                  <strong>Vehicle Price: </strong><%= order.vehicle_price %>
+                  <strong>Vehicle Price: </strong>£<%= order.vehicle_price %>
                 </p>
               </div>
             </div>
@@ -154,26 +154,14 @@
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>User: </strong><%= order?.member_name %></p>
+                <p><strong>User: </strong><img src="<%= helpers.getImage(order.member_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;"><%= order?.member_name %></p>
               </div>
             </div>
               <div class="list-group-item">
                 <div class="d-flex w-100">
-                  <p><strong>User Image: </strong></p>
-                  <img src="<%= helpers.getImage(order.member_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;">
+                  <p><strong>Rider: </strong><img src="<%= helpers.getImage(order.rider_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;"><%= order?.rider_name %></p>
                 </div>
               </div>
-              <div class="list-group-item">
-                <div class="d-flex w-100">
-                  <p><strong>Rider: </strong><%= order?.rider_name %></p>
-                </div>
-              </div>
-                <div class="list-group-item">
-                  <div class="d-flex w-100">
-                    <p><strong>Rider Image: </strong></p>
-                    <img src="<%= helpers.getImage(order.rider_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;">
-                  </div>
-                </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
                 <p>
@@ -200,17 +188,19 @@
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Tax: </strong><%= order.tax %></p>
+                <p><strong>Tax: </strong>£<%= order.tax %></p>
               </div>
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Rider Price: </strong><%= order.rider_price %></p>
+                <p><strong>Rider Price: </strong>£<%= order.rider_price %></p>
               </div>
             </div>
-            <h3>Parcels</h3>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+               <h3>Parcels</h3>
             <% if (order?.parcels?.length > 0) { %>
-            <table>
+            <table class="table">
               <thead>
                 <tr>
                   <th>Parcel Number</th>
@@ -233,7 +223,7 @@
                     parcel.height %>
                   </td>
                   <td><%= parcel.weight %></td>
-                  <td><%= parcel.price %></td>
+                  <td>£<%= parcel.price %></td>
                   <td><%= parcel.source_address %></td>
                   <td><%= parcel.destination_address %></td>
                   <td><%= parcel.distance %></td>
@@ -246,37 +236,25 @@
             <% } %>
             <h3>Invoices</h3>
             <% if (order?.invoices.length > 0) { %>
-            <table>
+            <table class="table">
               <thead>
                 <tr>
                   <th>Type</th>
                   <th>Amount</th>
-                  <th>Amount Type</th>
                   <th>Status</th>
                   <th>Created Date</th>
-                  <th>Via ID</th>
-                  <th>Payment Type</th>
-                  <th>Payment Intent ID</th>
-                  <th>Payment Method ID</th>
-                  <th>Payment Method</th>
                 </tr>
               </thead>
               <tbody>
                 <% order?.invoices.forEach(invoice => { %>
                 <tr>
                   <td><%= invoice.type %></td>
-                  <td><%= invoice.amount %></td>
-                  <td><%= invoice.amount_type %></td>
+                  <td>£<%= invoice.amount %></td>
                   <td><%= invoice.status %></td>
                   <td>
                     <%= helpers.convertUtcToUkFormat(invoice.created_date)
                     %>
                   </td>
-                  <td><%= invoice.via_id %></td>
-                  <td><%= invoice.payment_type %></td>
-                  <td><%= invoice.payment_intent_id %></td>
-                  <td><%= invoice.payment_method_id %></td>
-                  <td><%= invoice.payment_method %></td>
                 </tr>
                 <% }); %>
               </tbody>
@@ -286,7 +264,7 @@
             <% } %>
             <h3>Reviews</h3>
             <% if (order?.reviews.length > 0) { %>
-            <table>
+            <table class="table">
               <thead>
                 <tr>
                   <th>Review</th>
@@ -311,6 +289,9 @@
             <% } else { %>
             <p>No reviews found for this order.</p>
             <% } %>
+              </div>
+            </div>
+            
           </div>
         </div>
       </div>

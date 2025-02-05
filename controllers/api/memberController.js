@@ -2234,12 +2234,25 @@ async getUserTransactions(req, res) {
   
       // Fetch notifications for the user and memType
       const notifications = await this.member.getNotifications(userId, memType);
+      const notificationsArr = [];
+
+      notifications.forEach((notificationObj) => {
+        if (notificationObj?.sender === 0) {
+          // Fetch sender info from site settings if sender is 0
+          const siteSettings = res.locals?.adminData;
+          if (siteSettings) {
+            notificationObj.sender_name = siteSettings.site_name;
+            notificationObj.sender_dp = siteSettings.logo_image;
+          }
+          notificationsArr.push(notificationObj);
+        }
+      });
   
       // Return the fetched notifications
       return res.status(200).json({
         status: 1,
         msg: "Notifications fetched successfully.",
-        notifications,
+        notifications:notificationsArr,
       });
   
     } catch (error) {
