@@ -219,6 +219,51 @@ GROUP BY
     }
 
 }
+async getUserOrderDetailsByTrackingId( {tracking_id}) {
+    try {
+        // Query to fetch the order by ID
+        const query = `SELECT 
+    rq.*, 
+    m.full_name AS user_name, 
+    m.mem_image AS user_image,
+    m.email AS user_email,
+    m.mem_phone AS user_phone,
+    COALESCE(SUM(rp.distance), 0) AS total_distance
+FROM 
+    request_quote rq
+LEFT JOIN 
+                riders m 
+            ON 
+                rq.assigned_rider = m.id AND rq.assigned_rider IS NOT NULL
+LEFT JOIN 
+    request_parcels rp 
+ON 
+    rq.id = rp.request_id
+WHERE 
+    rq.tracking_id = ?   
+GROUP BY 
+    rq.id, m.full_name, m.mem_image, m.email, m.mem_phone;
+`;
+
+        
+        // Execute the query using the connection pool
+        const [rows, fields] = await pool.query(query, [tracking_id]);
+        // console.log("userId:",userId,"requestId:",requestId)
+        // console.log("rows:",rows)
+
+        // If no rows are returned, the order doesn't exist
+        if (rows.length === 0) {
+            return null;
+        }
+
+        // Return the order details (first row since we expect a single result)
+        return rows[0];
+    } catch (error) {
+        console.error("Error in getOrderDetailsById:", error);
+        throw new Error("Database query failed.");
+    }
+
+}
 async getOrderDetailsById( {requestId}) {
     try {
         // Query to fetch the order by ID
@@ -396,6 +441,18 @@ static async createReview(orderId, userId, rating, message) {
 
     return rows[0].count > 0; // Returns true if at least one invoice exists
 }
+async checkExistingMonthCredits(userId) {
+    const currentMonth = moment().format("YYYY-MM"); // Current Year-Month
+
+    const [rows] = await pool.query(
+        `SELECT COUNT(*) AS count FROM credits 
+         WHERE user_id = ? AND type='admin' and e_type='credit'
+         AND DATE_FORMAT(FROM_UNIXTIME(created_date), '%Y-%m') = ?`, 
+        [userId, currentMonth]
+    );
+
+    return rows[0].count > 0; // Returns true if at least one invoice exists
+}
 
 
 async getTotalDebitCredits(userId) {
@@ -414,7 +471,7 @@ async getTotalDebitCredits(userId) {
 
   async insertInvoice(userId, amount = 100) {
         const createdDate = helpers.getUtcTimeInSeconds();
-    
+        amount=amount.toFixed(2)
     const newInvoice = {
       amount,
       created_date: createdDate,

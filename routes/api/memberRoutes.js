@@ -30,6 +30,7 @@ router.post('/update-password', upload, (req, res) => memberController.changePas
 router.post('/get-user-orders', upload, (req, res) => memberController.getUserOrders(req, res));
 router.post('/get-user-dashboard-orders', upload, (req, res) => memberController.getDashboardUserOrders(req, res));
 router.post('/get-user-order-details/:encodedId', upload, (req, res) => memberController.getUserOrderDetailsByEncodedId(req, res));
+router.get('/get-order-details-by-tracking-id/:tracking_id', upload, (req, res) => memberController.getUserOrderDetailsByTrackingId(req, res));
 router.post('/user-payment-method', upload, (req, res) => memberController.userPaymentMethod(req, res));
 router.post('/add-payment-method', upload, (req, res) => memberController.addPaymentMethod(req, res));
 router.post('/delete-payment-method', upload, (req, res) => memberController.deletePaymentMethod(req, res));
