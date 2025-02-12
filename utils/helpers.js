@@ -30,6 +30,26 @@ module.exports = {
       return '<span class="status badge warning">Requested</span>';
     }
   },
+  getRiderApprovalStatus: function (status) {
+    if (status == 'rejected') {
+        return '<span class="status badge danger">Rejected</span>';
+    } else if (status == 'approved') {
+        return '<span class="status badge success">Approved</span>';
+    } else {
+        return '<span class="status badge warning">Pending</span>'; // Default case
+    }
+},
+
+getBusinessUserApprovalStatus: function (status) {
+  if (status == 'rejected') {
+      return '<span class="status badge danger">Rejected</span>';
+  } else if (status == 'approved') {
+      return '<span class="status badge success">Approved</span>';
+  } else {
+      return '<span class="status badge warning">Pending</span>'; // Default case
+  }
+},
+
   calculateParcelsPrice: function (order_details, site_processing_fee) {
   let orderDetails;
   // console.log(order_details,'order_details')
@@ -289,9 +309,29 @@ module.exports = {
   getUtcTimeInSeconds: function () {
     return moment.utc().unix(); // Returns the UTC time in seconds
   },
+  convertUtcToUkFormat : function (utcSeconds) {
+    const date = new Date(utcSeconds * 1000); // Convert seconds to milliseconds
 
-  convertUtcToUkFormat : function (utcTimeInSeconds) {
-    return moment.unix(utcTimeInSeconds).tz("Europe/London").format("DD/MM/YYYY HH:mm:ss"); // UK time format
+    // UK date-time format: DD/MM/YYYY HH:mm:ss
+    const ukFormattedDate = date.toLocaleString('en-GB', { 
+        timeZone: 'Europe/London', 
+        day: '2-digit', 
+        month: '2-digit', 
+        year: 'numeric', 
+        hour: '2-digit', 
+        minute: '2-digit', 
+        second: '2-digit',
+        hour12: false // Use 24-hour format
+    });
+
+    return ukFormattedDate;
+},
+
+
+
+
+convertUtcToUKTime : function (utcTimeInSeconds) {
+    return moment.unix(utcTimeInSeconds).tz("Europe/London").format("DD/MM/YYYY"); // UK time format
   },
   toUKDateFormat: function (dateInput) {
     // Ensure the input is a Date object

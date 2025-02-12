@@ -1,0 +1,66 @@
+<section id="dashboard">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Transactions</h3>
+        <ul>
+          <li><a href="">Home</a></li>
+          <li class="active"><a href="">Transactions</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dashTable">
+      <table class="dataTable display" id="basic-1">
+        <thead>
+          <tr class="table-scnd-row blog-table">
+            <th width="5%">Sr#</th>
+            <th width="10%">User Image</th>
+            <th width="15%">User Name</th>
+            <th width="10%">Amount</th>
+            <th width="15%">Payment Method</th>
+            <th width="10%">Type</th>
+            <th width="15%">Created Time</th>
+            <th width="10%">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (transactions && transactions.length > 0) { %> 
+          <% transactions.forEach((transaction, index) => { %>
+          <tr class="bottom-cntnt" id="transaction-<%= transaction.id %>">
+            <td><p><%= index + 1 %></p></td>
+            <td>
+              <div class="image-blog">
+                <img src="<%= helpers.getImage(transaction.mem_image) %>" alt="User Image" class="img-responsive"/>
+              </div>
+            </td>
+            <td><p><%= transaction.member_name %></p></td>
+            <td><p>£<%= transaction.amount %></p></td>
+            <td><p><%= transaction.payment_method %></p></td>
+            <td><p><%= transaction.transaction_type %></p></td>
+            <td><p><%= helpers.convertUtcToUkFormat(transaction.created_time) %></p></td>
+            <td>
+              <div class="btn-group">
+                <button type="button" class="dropdown-toggle" data-toggle="dropdown">
+                  <i class="fa fa-ellipsis-h"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-primary" role="menu">
+                  <li>
+                    <a href="#" class="delete-item" data-id="<%= transaction.id %>" data-url="/admin/transactions/delete/<%= transaction.id %>">
+                      <i class="fa fa-trash" aria-hidden="true"></i> Delete
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+          <% }) %> 
+          <% } else { %>
+          <tr>
+            <td colspan="8"><p>No transactions found.</p></td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
