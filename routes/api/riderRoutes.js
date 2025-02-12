@@ -36,6 +36,7 @@ router.post('/delete-rider-document', upload, riderController.deleteRiderDocumen
 
 
 
+
 const upload_file = multer({ 
     dest: 'uploads/', 
     limits: { fileSize: 5 * 1024 * 1024 }  // Set file size limit to 5MB

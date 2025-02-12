@@ -49,9 +49,11 @@ class MemberController extends BaseController {
           parcel_weight,
           shipment_volume,
           delivery_speed,
+          
         } = req.body;
 
         const mem_type = "business";
+        const is_approved = "pending";
 
         // Clean and trim data
         const cleanedData = {
@@ -72,6 +74,7 @@ class MemberController extends BaseController {
           mem_status: 1,
           mem_verified: 0,
           mem_type: mem_type,
+          is_approved: is_approved
         };
 
         // Validation for empty fields

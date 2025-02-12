@@ -1,6 +1,9 @@
 // models/RiderModel.js
 const pool = require('../config/db-connection');
+const helpers = require('../utils/helpers');
 const BaseModel = require('./baseModel');
+const moment = require('moment');
+
 
 class MemberModel extends BaseModel {
     constructor() {
@@ -374,6 +377,67 @@ static async createReview(orderId, userId, rating, message) {
       throw new Error('Failed to post review');
     }
   }
+
+  async getApprovedBusinessUsers() {
+    return pool.query(
+      "SELECT id FROM members WHERE is_approved = 'approved' AND mem_type = 'business'"
+    );
+  }
+
+  async checkExistingInvoice(userId) {
+    const currentMonth = moment().format("YYYY-MM"); // Current Year-Month
+
+    const [rows] = await pool.query(
+        `SELECT COUNT(*) AS count FROM credit_invoices 
+         WHERE user_id = ? 
+         AND DATE_FORMAT(FROM_UNIXTIME(created_date), '%Y-%m') = ?`, 
+        [userId, currentMonth]
+    );
+
+    return rows[0].count > 0; // Returns true if at least one invoice exists
+}
+
+
+async getTotalDebitCredits(userId) {
+    const [rows] = await pool.query(
+        `SELECT SUM(credits) AS totalDebit FROM credits 
+         WHERE user_id = ? AND e_type = 'debit'`,
+        [userId]
+    );
+    console.log("rows:",rows,userId)
+
+
+    return rows[0].totalDebit || 0; // Return 0 if no debits found
+}
+
+
+
+  async insertInvoice(userId, amount = 100) {
+        const createdDate = helpers.getUtcTimeInSeconds();
+    
+    const newInvoice = {
+      amount,
+      created_date: createdDate,
+      user_id: userId,
+      status:0
+    };
+    return pool.query("INSERT INTO credit_invoices SET ?", newInvoice);
+  }
+
+ async getInvoicesByUserId(userId) {
+    try {
+        const [invoices] = await pool.query(
+            "SELECT * FROM credit_invoices WHERE user_id = ? ORDER BY created_date DESC",
+            [userId]
+        );
+        console.log("invoices:",invoices)
+
+        return invoices;
+    } catch (error) {
+        console.error("Error fetching invoices:", error);
+        throw error;
+    }
+}
 
 
 

@@ -46,6 +46,7 @@ class RiderModel extends BaseModel {
     return rows.length ? rows[0] : null; // Return the first result or null
     }
 
+
     // Function to update rider's verified status and set OTP to null
     async updateRiderVerification(riderId) {
         const query = `UPDATE riders SET mem_verified = 1, otp = NULL WHERE id = ?`;

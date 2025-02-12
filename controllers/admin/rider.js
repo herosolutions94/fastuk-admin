@@ -2,27 +2,42 @@ const fs = require('fs'); // Import the file system module
 const path = require('path'); // For handling file paths
 
 const Rider = require('../../models/rider');
+const RiderModel = require('../../models/riderModel');
 const BaseController = require('../baseController');
 const helpers = require('../../utils/helpers');
 
 class RiderController extends BaseController {
     // Method to get the riders and render them in the view
+
+    constructor() {
+        super();
+        this.riderModel = new RiderModel();
+    }
+
     async getRiders(req, res) {
         try {
             const riders = await Rider.getAllRiders();
-            // console.log('Fetched Riders:', riders); // Log the fetched riders
-
-            if (riders && riders.length > 0) {
-                // Corrected res.render with only two arguments
-                res.render('admin/riders/dashboard', { riders: riders || [] });
-            } else {
-                this.sendError(res, 'No riders found');
+    
+            if (!riders || riders.length === 0) {
+                return this.sendError(res, 'No riders found');
             }
+    
+            // Fetch earnings sequentially for each rider
+            for (let rider of riders) {
+                const earningsData = await this.riderModel.getRiderEarnings(rider.id);
+                rider.available_balance = earningsData.availableBalance; // Add balance field to each rider
+            }
+    
+            // Render with updated riders' data
+            res.render('admin/riders/dashboard', { riders });
+    
         } catch (error) {
-            console.error('Error fetching riders:', error); // Log the error for debugging
+            console.error('Error fetching riders:', error);
             this.sendError(res, 'Failed to fetch riders');
         }
     }
+    
+    
     // Method to fetch a single rider by id and render the edit form
     async editRider(req, res) {
         try {
@@ -283,6 +298,44 @@ class RiderController extends BaseController {
         } catch (error) {
             console.error("Error updating document status:", error);
             return res.status(500).json({ status: 0, msg: "Internal server error." });
+        }
+    }
+
+    async handleRiderApprove(req, res) {
+        try {
+            console.log("req.params:", req.params);
+            console.log("req.query:", req.query);
+    
+            const { id } = req.params;
+            const { is_approved } = req.query;  
+    
+            // Ensure ID and is_approved are present
+            if (!id || !is_approved) {
+                return res.status(400).json({ status: 0, msg: "Missing parameters." });
+            }
+    
+            // Check if is_approved is a valid enum value
+            const validStatuses = ["pending", "approved", "rejected"];
+            if (!validStatuses.includes(is_approved)) {
+                return res.status(200).json({ status: 0, msg: "Invalid approval status." });
+            }
+    
+            // Update business user status in the database
+            await Rider.updateRiderApprove(id, is_approved);
+    
+            // Fetch the updated user
+            const updatedRider = await Rider.findById(id);
+            console.log("Updated Rider:", updatedRider);
+
+    
+            if (updatedRider) {
+                return res.redirect('/admin/riders');
+            } else {
+                return res.status(200).json({ status: 0, msg: "Failed to approve rider." });
+            }
+        } catch (error) {
+            console.error("Error approving rider:", error);
+            return res.status(200).json({ status: 0, msg: "Internal server error." });
         }
     }
     

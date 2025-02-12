@@ -5,58 +5,6 @@ const cors = require('cors');
 
 const express = require('express');
 const app = express();
-const paypal = require("paypal-rest-sdk");
-paypal.configure({
-  mode: "sandbox", // Set to "live" for production
-  client_id: "AQJysCUy_hy7ukHpvZeDCiB3yMq-1MRlEd8zG87Tzt8TGGcrw6O2SygYsxtNE1fVFDpn9iKoO-ClGtlw",
-  client_secret: "EBuNzLL28Gn3u3Fz92Od4COap8a-AUOlsDk4HknSeWod5B3kK4_xnI0U5I3ujyJwvZTq6nlg_nMK5mnG",
-});
-
-app.post("/api/create-paypal-order", (req, res) => {
-  console.log("Received body:", req.body);  // Debugging line
-
-  const { amount } = req.body;
-
-  if (!amount) {
-    return res.status(400).send({ error: "Amount is required" });
-  }
-
-  const create_payment_json = {
-    intent: "sale",
-    payer: {
-      payment_method: "paypal",
-    },
-    transactions: [
-      {
-        amount: {
-          total: amount,
-          currency: "USD",
-        },
-        description: "Payment for service",
-      },
-    ],
-    redirect_urls: {
-      return_url: "http://localhost:3000/payment-success", // Replace with your success URL
-      cancel_url: "http://localhost:3000/payment-cancel", // Replace with your cancel URL
-    },
-  };
-
-  // Create PayPal payment
-  paypal.payment.create(create_payment_json, (error, payment) => {
-    if (error) {
-      console.error(error);
-      res.status(500).send({ error: "Error creating PayPal payment" });
-    } else {
-      // Find the approval URL
-      const approval_url = payment.links.find(
-        (link) => link.rel === "approval_url"
-      ).href;
-      const orderId = payment.id; // PayPal Order ID
-      res.json({ orderId }); // Send the order ID back to the frontend
-    }
-  });
-});
-
 
 const http = require('http');
 const https = require('https');
@@ -214,6 +162,7 @@ const authRoutes = require('./routes/admin/authRoutes');
 const authApiRoutes = require('./routes/api/authRoutes');
 const adminRiderRoutes = require('./routes/admin/rider');
 const adminMemberRoutes = require('./routes/admin/member');
+const businessUserRoutes = require('./routes/admin/business-user');
 const adminMessageRoutes = require('./routes/admin/message');
 const testimonialRoutes = require('./routes/admin/testimonial');
 const teamMemberRoutes = require('./routes/admin/team');
@@ -226,6 +175,7 @@ const requestQuoteRoutes = require('./routes/admin/request-quote');
 const reviewRoutes = require('./routes/admin/reviews');
 const newsLetterRoutes = require('./routes/admin/news-letter');
 const WithdrawalRequestsRoutes = require('./routes/admin/withdraw-requests');
+const transactionsRoutes = require('./routes/admin/transactions');
 
 const authMiddleware = require('./middleware/authMiddleware');
 const authenticationMiddleware = require('./middleware/authentication');
@@ -277,6 +227,8 @@ app.use('/admin', requestQuoteRoutes);
 app.use('/admin', newsLetterRoutes);
 app.use('/admin', WithdrawalRequestsRoutes);
 app.use('/admin', reviewRoutes);
+app.use('/admin', businessUserRoutes);
+app.use('/admin', transactionsRoutes);
 
 
 
