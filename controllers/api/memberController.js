@@ -1883,6 +1883,64 @@ class MemberController extends BaseController {
       });
     }
   }
+  async getUserOrderDetailsByTrackingId(req, res) {
+    try {
+      const { token, memType } = req.body;
+      // console.log(token)
+      const { tracking_id } = req.params;
+
+      let paymentMethods = [];
+      if (!tracking_id) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Tracking ID is required." });
+      }
+
+      // console.log("Decoded ID:", decodedId); // Add this line to log the decoded ID
+
+      // Fetch the order using the decoded ID and check if the rider_id matches the logged-in rider's ID
+      let order = await this.member.getUserOrderDetailsByTrackingId({tracking_id: tracking_id});
+
+      // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
+
+      if (!order) {
+        return res.status(200).json({ status: 0, msg: "Order not found." });
+      }
+      const viasCount = await this.rider.countViasBySourceCompleted(order.id);
+      const parcels = await this.rider.getParcelDetailsByQuoteId(order.id); // Assuming order.quote_id is the relevant field
+      const vias = await this.rider.getViasByQuoteId(order.id);
+      const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
+      const reviews = await this.rider.getOrderReviews(order.id);
+
+      order = {
+        ...order,
+        formatted_start_date: helpers.formatDateToUK(order?.start_date),
+        parcels: parcels,
+        vias: vias,
+        invoices: invoices,
+        viasCount: viasCount,
+        reviews: reviews
+      };
+
+      const siteSettings = res.locals.adminData;
+
+      // Return the order details along with parcels and vias
+      return res.status(200).json({
+        status: 1,
+        msg: "Order details fetched successfully.",
+        order, // Add vias to the response
+        siteSettings,
+        paymentMethods
+      });
+    } catch (error) {
+      console.error("Error in getOrderDetailsByEncodedId:", error);
+      return res.status(200).json({
+        status: 0,
+        msg: "Internal server error.",
+        error: error.message
+      });
+    }
+  }
 
   async userPaymentMethod(req, res) {
     try {
@@ -2805,6 +2863,16 @@ class MemberController extends BaseController {
               payment_method_id: payment_methodid,
               type: "credits"
           });
+          const createdDate = helpers.getUtcTimeInSeconds();
+          const creditEntry = {
+            user_id: userId,
+            type: "admin", // Change type to 'user' as per requirement
+            credits: formattedAmount, // Credits used by the user
+            created_date: createdDate,
+            e_type: "credit" // Debit type entry
+          };
+
+          await this.pageModel.insertInCredits(creditEntry);
 
           return res.status(200).json({ status: 1, msg: "Credits added successfully.", invoiceId: result.insertId });
       } else {
@@ -2893,8 +2961,9 @@ class MemberController extends BaseController {
       for (const user of businessUsers) {
         const userId = user.id;
         const hasInvoice = await this.member.checkExistingInvoice(userId);
+        const hasCreditsMonth = await this.member.checkExistingMonthCredits(userId);
 
-        if (!hasInvoice) {
+        if (!hasInvoice && !hasCreditsMonth) {
           const totalDebitAmount = await this.member.getTotalDebitCredits(userId);
           console.log("totalDebitAmount:",totalDebitAmount)
 
@@ -2902,18 +2971,21 @@ class MemberController extends BaseController {
           insertedUsers.push(userId);
         }
       }
-
+      console.log(insertedUsers,'insertedUsers')
       if (insertedUsers.length === 0) {
         return res.json({
           message: "All users already have an entry for this month."
         });
       }
+      else{
+          res.json({
+          message:
+            "Entries added successfully for users without an entry this month.",
+          users: insertedUsers
+        });
+      }
 
-      res.json({
-        message:
-          "Entries added successfully for users without an entry this month.",
-        users: insertedUsers
-      });
+      
     } catch (error) {
       console.error("Error checking and inserting credit invoices:", error);
       res.status(200).json({ error: "Internal server error." });

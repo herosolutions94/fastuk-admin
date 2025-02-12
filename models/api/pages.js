@@ -55,10 +55,11 @@ class PageModel extends BaseModel {
     
         // Generate unique booking_id
         const bookingId = `RQ-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${insertId}`;
+        const tracking_id = `FU-${Date.now()}-${insertId}`;
     
         // Update the booking_id in the database
-        const updateQuery = `UPDATE request_quote SET booking_id = ? WHERE id = ?`;
-        console.log( await pool.query(updateQuery, [bookingId, insertId]))
+        const updateQuery = `UPDATE request_quote SET booking_id = ?, tracking_id = ? WHERE id = ?`;
+        await pool.query(updateQuery, [bookingId, tracking_id, insertId])
         // console.log(updateQuery)
     
         return insertId;
