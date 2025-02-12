@@ -71,6 +71,26 @@ class PaymentMethodModel extends BaseModel {
         const [result] = await pool.query(query, [id]);
         return result;
     }
+
+    async getInvoiceById(id) {
+        const query = "SELECT * FROM credit_invoices WHERE id = ?";
+        const [rows] = await pool.query(query, [id]);
+        return rows.length > 0 ? rows[0] : null;
+    }
+
+
+    async updateInvoicePaymentDetails(id, { payment_method_id, payment_intent_id, payment_method, payment_intent }) {
+        const query = `
+            UPDATE credit_invoices 
+            SET payment_method_id = ?, payment_intent_id = ?, payment_method = ?, payment_intent = ? , status = ?
+            WHERE id = ?
+        `;
+        const [result] = await pool.query(query, [payment_method_id, payment_intent_id, payment_method, payment_intent, 1, id]);
+        console.log("result:",payment_method_id, payment_intent_id, payment_method, payment_intent)
+        return result;
+    }
+    
+    
 }
 
 module.exports = PaymentMethodModel;

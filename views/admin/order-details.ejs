@@ -4,8 +4,8 @@
       <div class="text">
         <h3>Request Quote</h3>
         <ul>
-          <li><a href="">Home</a></li>
-          <li class="active"><a href="">Message Detail</a></li>
+          <li><a href="/admin/dashbaord">Home</a></li>
+          <li class="active"><a href="">Quote Detail</a></li>
         </ul>
       </div>
     </div>
@@ -26,7 +26,7 @@
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Total Amount: </strong><%= order.total_amount %></p>
+                <p><strong>Total Amount: </strong>£<%= order.total_amount %></p>
               </div>
             </div>
             <div class="list-group-item">
@@ -106,23 +106,7 @@
             <div class="list-group-item">
               <div class="d-flex w-100">
                 <p>
-                  <strong>Payment Method Id: </strong><%=
-                  order.payment_method_id %>
-                </p>
-              </div>
-            </div>
-            <div class="list-group-item">
-              <div class="d-flex w-100">
-                <p>
-                  <strong>Assigned Rider Id: </strong><%= order.assigned_rider
-                  %>
-                </p>
-              </div>
-            </div>
-            <div class="list-group-item">
-              <div class="d-flex w-100">
-                <p>
-                  <strong>Assigned Date: </strong><%= order.assigned_date %>
+                  <strong>Assigned Date: </strong><%= helpers.toUKDateFormat(order.assigned_date) %>
                 </p>
               </div>
             </div>
@@ -149,11 +133,6 @@
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Booking Id: </strong><%= order.booking_id %></p>
-              </div>
-            </div>
-            <div class="list-group-item">
-              <div class="d-flex w-100">
                 <p><strong>User: </strong><img src="<%= helpers.getImage(order.member_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;"><%= order?.member_name %></p>
               </div>
             </div>
@@ -162,30 +141,6 @@
                   <p><strong>Rider: </strong><img src="<%= helpers.getImage(order.rider_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;"><%= order?.rider_name %></p>
                 </div>
               </div>
-            <div class="list-group-item">
-              <div class="d-flex w-100">
-                <p>
-                  <strong>Picked Time: </strong><%=
-                  helpers.convertUtcToUkFormat(order.picked_time) %>
-                </p>
-              </div>
-            </div>
-            <div class="list-group-item">
-              <div class="d-flex w-100">
-                <p>
-                  <strong>Delivered Time: </strong><%=
-                  helpers.convertUtcToUkFormat(order.delivered_time) %>
-                </p>
-              </div>
-            </div>
-            <div class="list-group-item">
-              <div class="d-flex w-100">
-                <p>
-                  <strong>Updated Time: </strong><%=
-                  helpers.convertUtcToUkFormat(order.updated_time) %>
-                </p>
-              </div>
-            </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
                 <p><strong>Tax: </strong>£<%= order.tax %></p>
@@ -210,7 +165,7 @@
                   <th>Price</th>
                   <th>Source</th>
                   <th>Destination</th>
-                  <th>Distance (km)</th>
+                  <th>Distance (miles)</th>
                 </tr>
               </thead>
               <tbody>
@@ -250,7 +205,14 @@
                 <tr>
                   <td><%= invoice.type %></td>
                   <td>£<%= invoice.amount %></td>
-                  <td><%= invoice.status %></td>
+                  <td><p>
+                    <% if (invoice.status === 1) { %>
+                    <a href="#" class="status badge success">Active</a>
+                    <% } else { %>
+                    <a href="#" class="status badge warning">Inactive</a>
+                    <% } %>
+                  </p></td>
+                  
                   <td>
                     <%= helpers.convertUtcToUkFormat(invoice.created_date)
                     %>

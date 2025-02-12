@@ -9,12 +9,12 @@ class WithdrawaRequestController extends BaseController {
         try {
             const withdrawalRequests = await WithdrawaRequestModel.getAllWithdrawalRequests();
 
-            if (!withdrawalRequests || withdrawalRequests.length === 0) {
-              return res.status(200).json({
-                status: 0,
-                msg: "No withdrawal requests found.",
-              });
-            }     
+            // if (!withdrawalRequests || withdrawalRequests.length === 0) {
+            //   return res.status(200).json({
+            //     status: 0,
+            //     msg: "No withdrawal requests found.",
+            //   });
+            // }     
 
                 // Corrected res.render with only two arguments
                 res.render('admin/withdraw-request', { withdrawalRequests: withdrawalRequests || [] });

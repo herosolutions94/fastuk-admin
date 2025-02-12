@@ -7,6 +7,7 @@ const RiderModel = require("../../models/rider");
 const Token = require("../../models/tokenModel");
 const RequestQuoteModel = require("../../models/request-quote"); // Assuming you have this model
 const MemberModel = require('../../models/member');
+const VehicleModel = require('../../models/vehicle');
 
 const {
   validateEmail,
@@ -29,6 +30,7 @@ class RiderController extends BaseController {
     this.requestQuoteModel = new RequestQuoteModel();
     this.member = new Member();
     this.member_model = new MemberModel();
+    this.vehicleModel = new VehicleModel();
   }
 
   async registerRider(req, res) {
@@ -52,6 +54,10 @@ class RiderController extends BaseController {
         fingerprint // Keep fingerprint as a parameter
       } = req.body;
       // console.log(req.body)
+
+      const is_approved = "pending";
+
+
       const cleanedData = {
         full_name: typeof full_name === "string" ? full_name.trim() : "",
         email: typeof email === "string" ? email.trim().toLowerCase() : "",
@@ -80,7 +86,8 @@ class RiderController extends BaseController {
             : "",
         created_date: new Date(),
         status: 1,
-        mem_verified: mem_verified || 0
+        mem_verified: mem_verified || 0,
+        is_approved: is_approved
       };
       // console.log(validateRequiredFields(cleanedData))
       // Validation for empty fields
@@ -201,6 +208,8 @@ class RiderController extends BaseController {
       });
     }
   }
+
+
 
   generatePseudoFingerprint(req) {
     const userAgent = req.headers["user-agent"] || "";
@@ -946,6 +955,8 @@ async UpdateWithdrawalMethod(req, res) {
       // console.log(rider.id, decodedId)
       // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
 
+
+
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Order not found." });
       }
@@ -960,6 +971,9 @@ async UpdateWithdrawalMethod(req, res) {
           });
       }
       // console.log(order,"order")
+
+      let vehicle = order.selected_vehicle ? await VehicleModel.getVehicleById(order.selected_vehicle) : null;
+
 
       const viasCount = await this.rider.countViasBySourceCompleted(order.id);
 
@@ -988,7 +1002,8 @@ async UpdateWithdrawalMethod(req, res) {
         formattedPaidAmount,
         formattedDueAmount,
         reviews:reviews,
-        dueAmount:dueAmount
+        dueAmount:dueAmount,
+        vehicle
       };
       // Fetch parcels and vias based on the quoteId from the order
       // Assuming order.quote_id is the relevant field

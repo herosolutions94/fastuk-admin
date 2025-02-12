@@ -331,6 +331,36 @@ class PagesController extends BaseController {
       res.status(200).json({ error: "Internal Server Error" });
     }
   }
+
+  async getRiderProfileData(req, res) {
+    try {
+      const siteSettings = res.locals.adminData;
+
+      const pageContent = await this.pageModel.findByKey("rider-signup");
+      const formData = pageContent
+        ? JSON.parse(pageContent.content || "{}")
+        : {};
+
+      
+        const cities = await helpers.getCities();  // Use await to get the cities array
+
+      const vehicleModel = new VehicleModel();
+      const vehicles = await vehicleModel.getActiveVehicles();
+      // Combine the content and multi_text data
+      const jsonResponse = {
+        siteSettings,
+        vehicles: vehicles,
+        content: formData,
+        cities
+      };
+
+      // Return data in JSON format
+      res.json(jsonResponse);
+    } catch (err) {
+      console.error("Error:", err);
+      res.status(200).json({ error: "Internal Server Error" });
+    }
+  }
   async getResetPasswordData(req, res) {
     try {
       const siteSettings = res.locals.adminData;

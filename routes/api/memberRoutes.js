@@ -42,7 +42,11 @@ router.post('/find-best-route', upload, (req, res) => memberController.findBestR
 router.post('/user-transactions', upload, (req, res) => memberController.getUserTransactions(req, res));
 router.post('/save-request-review', upload, (req, res) => memberController.createReviewForRequest(req, res));
 router.post('/save-business-user-credits', upload, (req, res) => memberController.saveBusinessUserCredits(req, res));
-// app.post('/find-best-route', async (req, res) => {
+router.post('/save-business-user-credits', upload, (req, res) => memberController.saveBusinessUserCredits(req, res));
+router.get("/check-credit-invoices", upload, (req, res) => memberController.checkAndInsertInvoices(req, res));
+router.post("/check-credit-invoices", upload, (req, res) => memberController.checkAndInsertInvoices(req, res));
+router.post("/get-invoices", upload, (req, res) => memberController.getInvoices(req, res));
+
 
   router.post('/upload-profile-pic', upload, (req, res) => {
     console.log("Multer processed request. req.files:", req.files);
