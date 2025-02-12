@@ -90,6 +90,19 @@ static async deleteDocument(document_id, rider_id) {
     await pool.query(query, [document_id, rider_id]);
 }
 
+static async findById(riderId) {
+    const query = `SELECT * FROM riders WHERE id = ?`;
+    const [rows] = await pool.query(query, [riderId]);
+    // console.log(rows)
+return rows.length ? rows[0] : null; // Return the first result or null
+}
+
+static async updateRiderApprove(id, is_approved) {
+  const query = `UPDATE riders SET is_approved = ? WHERE id = ?`;
+  console.log(query)
+  await pool.query(query, [is_approved, id]);
+}
+
 
 
 

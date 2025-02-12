@@ -139,6 +139,25 @@ class PageModel extends BaseModel {
 
 
     }
+
+    async insertInCredits(credit) {
+        const query = `
+            INSERT INTO credits (user_id, type, credits, created_date, e_type)
+            VALUES (?, ?, ?, ?, ?)
+        `;
+    
+        const values = [
+            credit.user_id,
+            credit.type,
+            credit.credits,
+            credit.created_date,
+            credit.e_type
+        ];
+    
+        const [result] = await pool.query(query, values);
+        return result; // Returning result for debugging
+    }
+    
     
 
 

@@ -19,6 +19,7 @@ router.get('/login-page', (req, res) => pagesController.getLoginData(req, res));
 router.get('/forget-password', (req, res) => pagesController.getForgotPasswordData(req, res));
 router.get('/signup', (req, res) => pagesController.getSignUpData(req, res));
 router.get('/rider-signup', (req, res) => pagesController.getRiderSignUpData(req, res));
+router.get('/rider-profile', (req, res) => pagesController.getRiderProfileData(req, res));
 router.get('/reset-password', (req, res) => pagesController.getResetPasswordData(req, res));
 router.get('/business', (req, res) => pagesController.getBusinessData(req, res));
 router.get('/rider', (req, res) => pagesController.getRiderData(req, res));
