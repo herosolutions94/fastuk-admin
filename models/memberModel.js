@@ -219,51 +219,55 @@ GROUP BY
     }
 
 }
-async getUserOrderDetailsByTrackingId( {tracking_id}) {
+async getUserOrderDetailsByTrackingId({ tracking_id }) {
     try {
-        // Query to fetch the order by ID
-        const query = `SELECT 
-    rq.*, 
-    m.full_name AS user_name, 
-    m.mem_image AS user_image,
-    m.email AS user_email,
-    m.mem_phone AS user_phone,
-    COALESCE(SUM(rp.distance), 0) AS total_distance
-FROM 
-    request_quote rq
-LEFT JOIN 
-                riders m 
-            ON 
-                rq.assigned_rider = m.id AND rq.assigned_rider IS NOT NULL
-LEFT JOIN 
-    request_parcels rp 
-ON 
-    rq.id = rp.request_id
-WHERE 
-    rq.tracking_id = ?   
-GROUP BY 
-    rq.id, m.full_name, m.mem_image, m.email, m.mem_phone;
-`;
+        // Query to fetch order, rider, and user details
+        const query = `
+            SELECT 
+                rq.*, 
+                r.full_name AS rider_name,  
+                r.mem_image AS rider_image, 
+                r.email AS rider_email,
+                r.mem_phone AS rider_phone,
+                m.full_name AS user_name,
+                m.mem_image AS user_image,
+                m.email AS user_email,
+                m.mem_phone AS user_phone,
+                COALESCE(SUM(rp.distance), 0) AS total_distance
+            FROM 
+                request_quote rq
+            LEFT JOIN 
+                riders r 
+                ON rq.assigned_rider = r.id AND rq.assigned_rider IS NOT NULL
+            LEFT JOIN 
+                members m 
+                ON rq.user_id = m.id  
+            LEFT JOIN 
+                request_parcels rp 
+                ON rq.id = rp.request_id
+            WHERE 
+                rq.tracking_id = ?   
+            GROUP BY 
+                rq.id, r.full_name, r.mem_image, r.email, r.mem_phone, 
+                m.full_name, m.mem_image, m.email, m.mem_phone;
+        `;
 
-        
-        // Execute the query using the connection pool
+        // Execute the query
         const [rows, fields] = await pool.query(query, [tracking_id]);
-        // console.log("userId:",userId,"requestId:",requestId)
-        // console.log("rows:",rows)
 
         // If no rows are returned, the order doesn't exist
         if (rows.length === 0) {
             return null;
         }
 
-        // Return the order details (first row since we expect a single result)
+        // Return the order details (first row)
         return rows[0];
     } catch (error) {
-        console.error("Error in getOrderDetailsById:", error);
+        console.error("Error in getUserOrderDetailsByTrackingId:", error);
         throw new Error("Database query failed.");
     }
-
 }
+
 async getOrderDetailsById( {requestId}) {
     try {
         // Query to fetch the order by ID

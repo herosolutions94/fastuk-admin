@@ -473,7 +473,7 @@ class MemberController extends BaseController {
 
   async requestQuote(req, res) {
     const vehicleModel = new VehicleModel();
-    const { token, memType } = req.body;
+    const { token, memType, address_id } = req.body;
 
     try {
       const siteSettings = res.locals.adminData;
@@ -483,6 +483,8 @@ class MemberController extends BaseController {
 
       let member = null;
       let paymentMethods = [];
+      let addressesData = []; // Initialize an empty array
+
 
       const remotePostCodes =
         await RemotePostCodeModel.getRemotePostCodesInArray();
@@ -510,7 +512,14 @@ class MemberController extends BaseController {
 
         if (!member) {
           return res.status(200).json({ status: 0, msg: "Member not found." });
+          
         }
+
+        // if (address_id) {
+          addressesData = await this.addressModel.getAddressesByUserId(member.id);
+      // }
+      console.log("result:",address_id,member.id)
+
 
         // Fetch payment methods for the user
         const fetchedPaymentMethods =
@@ -530,6 +539,7 @@ class MemberController extends BaseController {
 
       // Combine the content and multi_text data
       const jsonResponse = {
+        addressesData,
         siteSettings,
         vehicles: vehiclesData,
         member, // Null if no token was provided
@@ -1901,7 +1911,7 @@ class MemberController extends BaseController {
       // Fetch the order using the decoded ID and check if the rider_id matches the logged-in rider's ID
       let order = await this.member.getUserOrderDetailsByTrackingId({tracking_id: tracking_id});
 
-      // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
+      console.log("Order from DB:", order); // Add this line to log the order fetched from the database
 
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Order not found." });
@@ -1928,7 +1938,7 @@ class MemberController extends BaseController {
       return res.status(200).json({
         status: 1,
         msg: "Order details fetched successfully.",
-        order, // Add vias to the response
+        orders:order, // Add vias to the response
         siteSettings,
         paymentMethods
       });
