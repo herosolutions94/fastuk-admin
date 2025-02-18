@@ -90,11 +90,13 @@
                   <i class="fa fa-ellipsis-h"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-primary" role="menu">
+                <% if (businessUser.is_approved!='approved') { %>
                   <li>
                     <a href="/admin/business-users/update-status/<%= businessUser.id %>?is_approved=approved" class="btn btn-success">
                       Approve
                     </a>
                   </li>
+                <% } %>
                   <li>
                     <a href="/admin/business-users/update-status/<%= businessUser.id %>?is_approved=rejected" class="btn btn-danger">
                       Reject

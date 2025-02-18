@@ -14,34 +14,35 @@ const { Server } = require('socket.io');
 
 let socketServer;
 const PORT = process.env.PORT || 4000;
+socketServer = http.createServer(app);
+// try {
+//   // Check if SSL files exist
+//   const keyPath = '/var/www/html/fastuk-admin/ssl/private.key';
+//   const certPath = '/var/www/html/fastuk-admin/ssl/certificate.crt';
+//   const caPath = '/var/www/html/fastuk-admin/ssl/ca_bundle.crt';
 
-try {
-  // Check if SSL files exist
-  const keyPath = '/var/www/html/fastuk-admin/ssl/private.key';
-  const certPath = '/var/www/html/fastuk-admin/ssl/certificate.crt';
-  const caPath = '/var/www/html/fastuk-admin/ssl/ca_bundle.crt';
-
-  if (fs.existsSync(keyPath) && fs.existsSync(certPath) && fs.existsSync(caPath)) {
-    const sslOptions = {
-      key: fs.readFileSync(keyPath),
-      cert: fs.readFileSync(certPath),
-      ca: fs.readFileSync(caPath),
-    };
-    socketServer = https.createServer(sslOptions, app);
-    console.log('HTTPS server setup complete');
-  } else {
-    throw new Error('SSL files are missing, falling back to HTTP');
-  }
-} catch (error) {
-  console.error(error.message);
-  socketServer = http.createServer(app);
-  console.log('HTTP server setup complete');
-}
+//   if (fs.existsSync(keyPath) && fs.existsSync(certPath) && fs.existsSync(caPath)) {
+//     const sslOptions = {
+//       key: fs.readFileSync(keyPath),
+//       cert: fs.readFileSync(certPath),
+//       ca: fs.readFileSync(caPath),
+//     };
+//     // socketServer = https.createServer(sslOptions, app);
+//     socketServer = http.createServer(app);
+//     console.log('HTTPS server setup complete');
+//   } else {
+//     throw new Error('SSL files are missing, falling back to HTTP');
+//   }
+// } catch (error) {
+//   console.error(error.message);
+//   socketServer = http.createServer(app);
+//   console.log('HTTP server setup complete');
+// }
   
 
 const io = new Server(socketServer, {
   cors: {
-    origin: 'https://main.d2kaxncwefchi9.amplifyapp.com', // Allow connection from this frontend
+    origin: '*', // Allow connection from this frontend
     methods: ['GET', 'POST'],
     allowedHeaders: ['Content-Type', 'Authorization', 'accept'],
   },
@@ -116,7 +117,7 @@ app.use((req, res, next) => {
 });
 
 // Configure CORS to allow requests from http://localhost:3000
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:4000','https://18.133.79.26:4000','https://main.d2kaxncwefchi9.amplifyapp.com'];
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:4000','https://18.133.79.26:4000','https://main.d2kaxncwefchi9.amplifyapp.com','https://admin.fastukcouriers.com','https://fastukcouriers.com'];
 
 app.use(cors({
     origin: (origin, callback) => {
@@ -127,7 +128,7 @@ app.use(cors({
         }
     },
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization','accept'],
     credentials: true // Allows cookies and other credentials
 }));
 const bodyParser = require('body-parser');

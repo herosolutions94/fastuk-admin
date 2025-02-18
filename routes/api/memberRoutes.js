@@ -25,6 +25,7 @@ router.post('/update-request-apple-pay-status', upload,express.raw({ type: 'appl
 router.post('/create-payment-intent', upload, (req, res) => memberController.paymentIntent(req, res));
 router.post('/create-simple-payment-intent', upload, (req, res) => memberController.createSimplePaymentIntent(req, res));
 router.post('/save-request-quote', upload, (req, res) => memberController.createRequestQuote(req, res));
+
 router.post('/update-profile', upload, (req, res) => memberController.updateProfile(req, res));
 router.post('/update-password', upload, (req, res) => memberController.changePassword(req, res));
 router.post('/get-user-orders', upload, (req, res) => memberController.getUserOrders(req, res));
@@ -55,7 +56,7 @@ router.post("/get-invoices", upload, (req, res) => memberController.getInvoices(
   });
   
 
-
+router.post('/webhook_paypal', upload, (req, res) => memberController.webhookPaypalRequest(req, res));
 
 
 

@@ -532,6 +532,30 @@ async updateEarningStatusToCleared(earningId) {
         throw new Error("Failed to fetch invoices");
     }
 };
+ getInvoicesById = async (invoice_id) => {
+    try {
+        const query = 'SELECT * FROM invoices WHERE id = ?';
+        const [rows] = await pool.query(query, [invoice_id]);
+        return rows.length > 0 ? rows[0] : null; // Returns the list of invoices
+    } catch (error) {
+        console.error("Error fetching invoices:", error);
+        throw new Error("Failed to fetch invoices");
+    }
+};
+async updateRequestInvoice(invoice_id, data) {
+        // Extract keys and values from the data object
+        const keys = Object.keys(data); // ['otp', 'expire_time']
+        const values = Object.values(data); // [newOtp, newExpireTime]
+
+        // Construct the SET clause dynamically
+        const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
+
+        // Build the query dynamically
+        const query = `UPDATE invoices SET ${setClause} WHERE id = ?`;
+
+        // Execute the query, adding the memberId to the values array
+        await pool.query(query, [...values, invoice_id]);
+    }
 
 async getViaByRequestAndId(requestId, viaId) {
     try {
