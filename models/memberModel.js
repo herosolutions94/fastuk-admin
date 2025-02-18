@@ -83,6 +83,20 @@ class MemberModel extends BaseModel {
         // Execute the query, adding the memberId to the values array
         await pool.query(query, [...values, memberId]);
     }
+    async updateRequestQuoteData(requestId, data) {
+        // Extract keys and values from the data object
+        const keys = Object.keys(data); // ['otp', 'expire_time']
+        const values = Object.values(data); // [newOtp, newExpireTime]
+
+        // Construct the SET clause dynamically
+        const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
+
+        // Build the query dynamically
+        const query = `UPDATE request_quote SET ${setClause} WHERE id = ?`;
+
+        // Execute the query, adding the memberId to the values array
+        await pool.query(query, [...values, requestId]);
+    }
 
     async updateOtp(memberId, otp) {
         const query = 'UPDATE members SET otp = ? WHERE id = ?';
@@ -494,6 +508,21 @@ async getTotalDebitCredits(userId) {
         console.log("invoices:",invoices)
 
         return invoices;
+    } catch (error) {
+        console.error("Error fetching invoices:", error);
+        throw error;
+    }
+}
+async getCreditInvoicesById(invoice_id) {
+    try {
+        const [invoices] = await pool.query(
+            "SELECT * FROM credit_invoices WHERE id = ?",
+            [invoice_id]
+        );
+        if (invoices.length === 0) {
+            return null;
+        }
+        return invoices[0];
     } catch (error) {
         console.error("Error fetching invoices:", error);
         throw error;

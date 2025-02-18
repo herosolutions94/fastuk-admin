@@ -865,6 +865,176 @@ class MemberController extends BaseController {
     res.json({ received: true });
   }
 
+  async webhookPaypalRequest(req, res) {
+    try {
+      const webhookEvent = req.body;
+      console.log("Received PayPal Webhook:", webhookEvent);
+
+      const eventType = webhookEvent.event_type;
+      const orderID = webhookEvent.resource.id; // PayPal Order ID
+      const resource = webhookEvent.resource; // Your custom order_id
+      const custom_id = webhookEvent.resource.purchase_units?.[0]?.custom_id; // Your custom order_id
+      const reference_id = webhookEvent.resource.purchase_units?.[0]?.reference_id; // Your custom order_id
+      const payerID = webhookEvent.resource.payer?.payer_id; // ✅ Extract payer_id
+
+      if (eventType === "CHECKOUT.ORDER.APPROVED") {
+        if(reference_id==='order'){
+          const orderDetails = await RequestQuoteModel.getOrderDetailsById(custom_id);
+          if (!orderDetails) {
+            return this.sendError(res, 'Order not found');
+          }
+          await this.member.updateRequestQuoteData(orderDetails.id, {
+            status: "paid",
+            payment_intent: payerID
+          });
+          const source_city=orderDetails?.source_city
+          const orderDetailsLink = `/rider-dashboard/jobs`;
+
+            const ridersInCity = await this.rider.getRidersByCity(source_city);
+
+            if (ridersInCity && ridersInCity.length > 0) {
+              const notificationText = `A new request has been created in your city: ${source_city}`;
+
+              // Loop through each rider and send a notification
+              for (const rider of ridersInCity) {
+                const riderId = rider.id;
+                // console.log(riderId,member?.id);return;
+
+                await helpers.storeNotification(
+                  riderId,
+                  "rider", // mem_type
+                  orderDetails?.user_id, // sender (the requester)
+                  notificationText,
+                  orderDetailsLink
+                );
+              }
+            }
+
+            const created_time = helpers.getUtcTimeInSeconds();
+            const formattedTotalAmount=helpers.formatAmount(
+              orderDetails?.total_amount || 0
+            )
+            // Insert Transaction Record
+            await helpers.storeTransaction({
+              user_id: orderDetails?.user_id,
+              amount: formattedTotalAmount,
+              payment_method: 'paypal',
+              transaction_id: orderDetails?.id,
+              created_time: created_time,
+              payment_intent_id: payerID,
+              payment_method_id: '',
+              type: "Request Quote"
+            });
+          await helpers.storeWebHookData({
+            type: `Paypal Payer ID: ${payerID}`,
+            response: `Paypal Payment Successful for Order: ${custom_id}`
+          });
+        }
+        else if(reference_id==='credit_invoice'){
+          let credit_invoice_row=await this.member.getCreditInvoicesById(custom_id);
+          if(credit_invoice_row===null){
+            return res.status(200).json({ status: 0, msg: "Invoice not found." });
+          }
+          let userId=credit_invoice_row?.user_id
+          let user=await this.member.findById(userId)
+          if(user===null){
+            return res.status(200).json({ status: 0, msg: "User not found." });
+          }
+          console.log("user",user)
+          const formattedAmount = helpers.formatAmount(parseFloat(credit_invoice_row?.amount));
+          console.log("formattedAmount",formattedAmount)
+          await this.member.updateMemberData(userId, {
+          total_credits:
+            parseFloat(user?.total_credits) + parseFloat(formattedAmount)
+        });
+
+        const invoice = await this.paymentMethodModel.getInvoiceById(custom_id);
+          if (!invoice) {
+              return res.status(200).json({ status: 0, msg: "Invoice not found." });
+          }
+
+          // console.log("ids:",payment_intent,payment_methodid);return;
+
+
+          const updateResult = await this.paymentMethodModel.updateInvoicePaymentDetails(custom_id, {
+            payment_intent_id: payerID,
+            payment_method_id: '',
+            payment_intent : payerID,
+            payment_method:'paypal'
+        });
+        if (updateResult.affectedRows > 0) {
+            await helpers.storeTransaction({
+                user_id: userId,
+                amount: formattedAmount,
+                payment_method:'paypal',
+                transaction_id: 0,
+                created_time: helpers.getUtcTimeInSeconds(),
+                payment_intent_id: payerID,
+                payment_method_id: '',
+                type: "credits"
+            });
+            const createdDate = helpers.getUtcTimeInSeconds();
+            const creditEntry = {
+              user_id: userId,
+              type: "admin", // Change type to 'user' as per requirement
+              credits: formattedAmount, // Credits used by the user
+              created_date: createdDate,
+              e_type: "credit" // Debit type entry
+            };
+
+            await this.pageModel.insertInCredits(creditEntry);
+
+            return res.status(200).json({ status: 1, msg: "Credits added successfully." });
+          }
+          else{
+            return res.status(500).json({ status: 0, msg: "Failed to update invoice." });
+          }
+        }
+        else if(reference_id==='invoice'){
+          const invoiceDetails = await this.rider.getInvoicesById(custom_id);
+          if (!invoiceDetails) {
+            return this.sendError(res, 'Invoice not found');
+          }
+          console.log('invoiceDetails',invoiceDetails)
+           const orderDetails = await RequestQuoteModel.getOrderDetailsById(invoiceDetails?.request_id);
+          if (!orderDetails) {
+            return this.sendError(res, 'Order not found');
+          }
+          await this.rider.updateRequestInvoice(invoiceDetails.id, {
+            status: 1,
+            payment_intent_id: payerID
+          });
+
+            const formattedTotalAmount=helpers.formatAmount(
+              invoiceDetails?.amount || 0
+            )
+            const created_time = helpers.getUtcTimeInSeconds();
+            await helpers.storeTransaction({
+              user_id: orderDetails?.user_id,
+              amount: formattedTotalAmount,
+              payment_method: 'paypal',
+              transaction_id: orderDetails?.id,
+              created_time: created_time,
+              payment_intent_id: payerID,
+              payment_method_id: '',
+              type: "Invoice"
+            });
+          await helpers.storeWebHookData({
+            type: `Paypal Payer ID for Invoice: ${payerID}`,
+            response: `Paypal Payment Successful for Invoice: ${custom_id}`
+          });
+        }
+        
+        return res.status(200).json({ message: "Webhook received successfully" });
+      }
+
+      return res.status(400).json({ error: "Unhandled event type" });
+
+    } catch (error) {
+      console.error("Webhook Error:", error);
+      return res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
   async createRequestQuote(req, res) {
     this.tokenModel = new Token();
 
@@ -1150,7 +1320,39 @@ class MemberController extends BaseController {
             start_date: new Date(date),
             notes: notes
           });
-        } else if (payment_method === "apple-pay") {
+        } else if (payment_method === "paypal") {
+
+          payment_intent_id = "";
+          payment_methodid = "";
+          // Prepare the object for requestQuoteId insertion
+          requestQuoteId = await this.pageModel.createRequestQuote({
+            user_id: userId,
+            selected_vehicle: selectedVehicle,
+            rider_price: formattedRiderPrice,
+            vehicle_price: formattedVehiclePrice,
+            total_amount: formattedTotalAmount,
+            tax: formattedTax,
+            payment_intent: "", // Store the Payment Intent ID
+            customer_id: "", // Store the Customer ID
+            payment_method_id: "", // Store the Stripe Payment Method ID
+            source_postcode,
+            source_address: source_full_address,
+            source_name,
+            source_phone_number,
+            source_city,
+            dest_postcode,
+            dest_address: dest_full_address,
+            dest_name,
+            dest_phone_number,
+            dest_city,
+            payment_method,
+            created_date: new Date(),
+            start_date: new Date(date),
+            notes: notes,
+            status:'pending'
+          });
+        } 
+        else if (payment_method === "apple-pay") {
           try {
             payment_intent_id = "";
             payment_methodid = "";
@@ -1300,7 +1502,7 @@ class MemberController extends BaseController {
             order_id: requestQuoteId,
             amount: parseFloat(formattedTotalAmount)
           };
-        } else {
+        } else if (payment_method != "paypal") {
           const orderDetailsLink = `/rider-dashboard/jobs`;
 
           const ridersInCity = await this.rider.getRidersByCity(source_city);
@@ -1342,12 +1544,13 @@ class MemberController extends BaseController {
         res.status(200).json({
           status: 1,
           apple_obj: apple_obj,
+          order_id:requestQuoteId,
           msg:
             payment_method === "apple-pay"
               ? "Request Quote created, now you'll be redirected to apple pay for transaction!"
               : "Request Quote, Parcels and vias created successfully",
           data: {
-            requestId: requestQuoteId
+            requestId: helpers.doEncode(requestQuoteId)
           }
         });
       } else {
@@ -2490,6 +2693,11 @@ class MemberController extends BaseController {
           return res.status(200).json({ error: "All fields are required." });
         }
       }
+      else{
+        if (!amount || !requestId || !payment_method) {
+          return res.status(200).json({ error: "All fields are required." });
+        }
+      }
 
       if (!token || !memType) {
         return res
@@ -2522,6 +2730,7 @@ class MemberController extends BaseController {
 
       // Call the model function to create the invoice
       let result = {};
+      let invoice_id=null;
       if (payment_method === "credit-card") {
         result = await this.rider.createInvoiceEntry(
           requestId,
@@ -2535,7 +2744,9 @@ class MemberController extends BaseController {
           payment_method_id,
           payment_method
         );
-      } else if (payment_method === "credits") {
+        invoice_id=result.insertId
+      } 
+      else if (payment_method === "credits") {
         if (user?.total_credits <= 0) {
           return res
             .status(200)
@@ -2558,10 +2769,27 @@ class MemberController extends BaseController {
           paymentType,
           payment_method
         );
+        invoice_id=result.insertId
         await this.member.updateMemberData(userId, {
           total_credits: parseFloat(user?.total_credits) - parseFloat(charges)
         });
-      } else if (payment_method === "saved-card") {
+      } 
+      else if (payment_method === "paypal") {
+        let payment_intent_id = "";
+        let payment_method_id = "";
+        result = await this.rider.createInvoiceEntry(
+          requestId,
+          charges,
+          amountType,
+          0,
+          locType,
+          via_id, // via_id is mapped to paymentId
+          paymentType,
+          payment_method
+        );
+        invoice_id=result.insertId
+      } 
+      else if (payment_method === "saved-card") {
         if (!saved_card_id) {
           return res.status(200).json({ status: 0, msg: "Card is required." });
         }
@@ -2660,6 +2888,7 @@ class MemberController extends BaseController {
           payment_method_id,
           payment_method
         );
+        invoice_id=result.insertId
       }
       const created_time = helpers.getUtcTimeInSeconds();
       await helpers.storeTransaction({
@@ -2678,7 +2907,7 @@ class MemberController extends BaseController {
       if (result) {
         return res.status(200).json({
           message: "Invoice created successfully.",
-          invoiceId: result.insertId
+          invoiceId: invoice_id
         });
       } else {
         return res.status(200).json({ error: "Failed to create invoice." });
@@ -2701,8 +2930,6 @@ class MemberController extends BaseController {
         memType,
         saved_card_id
       } = req.body;
-      console.log(req.body,'req.body')
-      console.log(amount,'amount')
       // Validate the required fields
       if (payment_method == "credit-card") {
         if (
@@ -2717,6 +2944,11 @@ class MemberController extends BaseController {
         }
       } else if (payment_method == "saved-card") {
         if (!amount || !payment_method || !saved_card_id) {
+          return res.status(200).json({ error: "All fields are required." });
+        }
+      }
+      else if (payment_method == "paypal") {
+        if (!amount || !payment_method) {
           return res.status(200).json({ error: "All fields are required." });
         }
       }
@@ -2752,7 +2984,8 @@ class MemberController extends BaseController {
       let payment_intent = payment_intent_id;
       let payment_methodid = payment_method_id;
       if (payment_method === "credit-card") {
-      } else if (payment_method === "saved-card") {
+      } 
+      else if (payment_method === "saved-card") {
         if (!saved_card_id) {
           return res.status(200).json({ status: 0, msg: "Card is required." });
         }
@@ -2842,52 +3075,56 @@ class MemberController extends BaseController {
         payment_intent = payment_intent_id;
         payment_methodid = payment_method_id;
       }
+      if(payment_method!='paypal'){
+        await this.member.updateMemberData(userId, {
+          total_credits:
+            parseFloat(user?.total_credits) + parseFloat(formattedAmount)
+        });
 
-      await this.member.updateMemberData(userId, {
-        total_credits:
-          parseFloat(user?.total_credits) + parseFloat(formattedAmount)
-      });
+        const invoice = await this.paymentMethodModel.getInvoiceById(invoice_id);
+          if (!invoice) {
+              return res.status(200).json({ status: 0, msg: "Invoice not found." });
+          }
 
-      const invoice = await this.paymentMethodModel.getInvoiceById(invoice_id);
-        if (!invoice) {
-            return res.status(200).json({ status: 0, msg: "Invoice not found." });
-        }
-
-        // console.log("ids:",payment_intent,payment_methodid);return;
+          // console.log("ids:",payment_intent,payment_methodid);return;
 
 
-        const updateResult = await this.paymentMethodModel.updateInvoicePaymentDetails(invoice_id, {
-          payment_intent_id: payment_intent,
-          payment_method_id: payment_methodid,
-          payment_intent : payment_intent,
-          payment_method
-      });
-      if (updateResult.affectedRows > 0) {
-          await helpers.storeTransaction({
+          const updateResult = await this.paymentMethodModel.updateInvoicePaymentDetails(invoice_id, {
+            payment_intent_id: payment_intent,
+            payment_method_id: payment_methodid,
+            payment_intent : payment_intent,
+            payment_method
+        });
+        if (updateResult.affectedRows > 0) {
+            await helpers.storeTransaction({
+                user_id: userId,
+                amount: formattedAmount,
+                payment_method,
+                transaction_id: 0,
+                created_time: helpers.getUtcTimeInSeconds(),
+                payment_intent_id: payment_intent,
+                payment_method_id: payment_methodid,
+                type: "credits"
+            });
+            const createdDate = helpers.getUtcTimeInSeconds();
+            const creditEntry = {
               user_id: userId,
-              amount: formattedAmount,
-              payment_method,
-              transaction_id: 0,
-              created_time: helpers.getUtcTimeInSeconds(),
-              payment_intent_id: payment_intent,
-              payment_method_id: payment_methodid,
-              type: "credits"
-          });
-          const createdDate = helpers.getUtcTimeInSeconds();
-          const creditEntry = {
-            user_id: userId,
-            type: "admin", // Change type to 'user' as per requirement
-            credits: formattedAmount, // Credits used by the user
-            created_date: createdDate,
-            e_type: "credit" // Debit type entry
-          };
+              type: "admin", // Change type to 'user' as per requirement
+              credits: formattedAmount, // Credits used by the user
+              created_date: createdDate,
+              e_type: "credit" // Debit type entry
+            };
 
-          await this.pageModel.insertInCredits(creditEntry);
+            await this.pageModel.insertInCredits(creditEntry);
 
-          return res.status(200).json({ status: 1, msg: "Credits added successfully.", invoiceId: result.insertId });
-      } else {
-          return res.status(500).json({ status: 0, msg: "Failed to update invoice." });
+            return res.status(200).json({ status: 1, msg: "Credits added successfully.", invoiceId: result.insertId });
+        } else {
+            return res.status(500).json({ status: 0, msg: "Failed to update invoice." });
+        }
       }
+
+
+      
     } catch (error) {
       console.error("Error in createInvoice:", error);
       return res.status(200).json({ error: "An error occurred." });
@@ -2967,12 +3204,11 @@ class MemberController extends BaseController {
       }
 
       let insertedUsers = [];
-
+      // console.log(businessUsers);return;
       for (const user of businessUsers) {
         const userId = user.id;
         const hasInvoice = await this.member.checkExistingInvoice(userId);
         const hasCreditsMonth = await this.member.checkExistingMonthCredits(userId);
-
         if (!hasInvoice && !hasCreditsMonth) {
           const totalDebitAmount = await this.member.getTotalDebitCredits(userId);
           console.log("totalDebitAmount:",totalDebitAmount)

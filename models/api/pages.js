@@ -40,7 +40,7 @@ class PageModel extends BaseModel {
             data.dest_city,
             data.payment_method,
             data.payment_method_id,
-            'paid',
+            data?.status ? data?.status : 'paid',
             data.start_date,
             data.created_date,
             data.notes,
