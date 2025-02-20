@@ -58,6 +58,8 @@ router.post("/get-invoices", upload, (req, res) => memberController.getInvoices(
   
 
 router.post('/webhook_paypal', upload, (req, res) => memberController.webhookPaypalRequest(req, res));
+router.post('/send-email', upload, (req, res) => memberController.sendMailApi(req, res));
+
 
 
 
