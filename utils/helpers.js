@@ -8,42 +8,66 @@ const moment = require("moment-timezone");
 const { io, users } = require("../app"); // Import io from app.js
 const axios = require('axios');
 const nodemailer = require("nodemailer");
+require('dotenv').config(); // Load environment variables
+const ejs = require("ejs");
 
+
+
+console.log("SMTP Mail:", process.env.SMTP_MAIL);
+console.log("SMTP Password:", process.env.SMTP_PASSWORD ? "****" : "Not Set"); // Mask for security
+console.log("SMTP Host:", process.env.SMTP_HOST);
+console.log("SMTP Port:", process.env.SMTP_PORT);
+
+
+
+const transporter = nodemailer.createTransport({
+  
+  host: process.env.SMTP_HOST,  // Replace with your SMTP host
+  port: process.env.SMTP_PORT,                 // Common ports: 465 (SSL), 587 (TLS)
+  secure: false,             // true for 465, false for other ports
+  auth: {
+      user: process.env.SMTP_MAIL,  // Replace with your email
+      pass: process.env.SMTP_PASSWORD      // Replace with your email password
+  }
+  
+  
+});
 
 module.exports = {
+  transporter,
   // A sample function that formats a status with secure HTML
-    sendMailgunEmail:async function (to, subject, text, html) {
-    try {
+  //   sendMailgunEmail:async function (to, subject, text, html) {
+  //   try {
       
-      // Configure Mailgun SMTP transporter
-      const transporter = nodemailer.createTransport({
-        host: process.env.SMTP_MAILGUN_HOST,
-        port: process.env.SMTP_MAILGUN_PORT, // Use 465 for SSL or 587 for TLS
-        secure: false, // Set true for port 465, false for others
-        auth: {
-          user: process.env.SMTP_MAILGUN_USERNAME, // Replace with your Mailgun SMTP username
-          pass: process.env.SMTP_MAILGUN_PASSWORD, // Replace with your Mailgun SMTP password
-        },
-      });
+  //     // Configure Mailgun SMTP transporter
+  //     const transporter = nodemailer.createTransport({
+  //       host: process.env.SMTP_MAILGUN_HOST,
+  //       port: process.env.SMTP_MAILGUN_PORT, // Use 465 for SSL or 587 for TLS
+  //       secure: false, // Set true for port 465, false for others
+  //       auth: {
+  //         user: process.env.SMTP_MAILGUN_USERNAME, // Replace with your Mailgun SMTP username
+  //         pass: process.env.SMTP_MAILGUN_PASSWORD, // Replace with your Mailgun SMTP password
+  //       },
+  //     });
 
-      // Email options
-      const mailOptions = {
-        from: 'FASTUK <postmaster@fastukcouriers.com>',
-        to,
-        subject,
-        text, // Plain text body
-        html, // HTML body
-      };
+  //     // Email options
+  //     const mailOptions = {
+  //       from: 'FASTUK <postmaster@fastukcouriers.com>',
+  //       to,
+  //       subject,
+  //       text, // Plain text body
+  //       html, // HTML body
+  //     };
 
-      // Send email
-      const info = await transporter.sendMail(mailOptions);
-      console.log("Email sent:", info.messageId);
-      return info;
-    } catch (error) {
-      console.error("Error sending email:", error);
-      throw error;
-    }
-  },
+  //     // Send email
+  //     const info = await transporter.sendMail(mailOptions);
+  //     console.log("Email sent:", info.messageId);
+  //     return info;
+  //   } catch (error) {
+  //     console.error("Error sending email:", error);
+  //     throw error;
+  //   }
+  // },
   getStatus: function (status) {
     if (status === 1) {
       return '<span class="status badge success">Active</span>';
@@ -647,6 +671,29 @@ getTransaction: async function(user_id) {
     return null;
   }
 },
+
+// Function to send an email
+sendEmail :async (to, subject, templateName, templateData) => {
+  try {
+    const templatePath = path.join(__dirname, "../views/email-templates", `${templateName}.ejs`);
+    console.log("Template Path:", templatePath);
+
+
+        // Render the EJS template with dynamic data
+        const htmlContent = await ejs.renderFile(templatePath, templateData);
+      const info = await transporter.sendMail({
+          from: `"Asifa" <${process.env.SMTP_MAIL}>`, // Sender
+          to,      // Receiver email(s)
+          subject, // Subject line
+          html:htmlContent   // HTML body
+      });
+      console.log("Email sent: ", info.messageId);
+      return { success: true, messageId: info.messageId };
+  } catch (error) {
+      console.error("Email sending failed: ", error);
+      return { success: false, error };
+  }
+}
 
 
 

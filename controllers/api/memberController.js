@@ -668,21 +668,21 @@ class MemberController extends BaseController {
         if (!member) {
           return res
             .status(200)
-            .json({ status:0,msg: "Invalid token or user not found" });
+            .json({ error: "Invalid token or user not found" });
         }
         userId = member.id;
       } else {
         // Check email validity
         const emailRegex = /^\S+@\S+\.\S+$/;
         if (!emailRegex.test(email)) {
-          return res.status(200).json({ status:0,msg: "Invalid email format." });
+          return res.status(200).json({ error: "Invalid email format." });
         }
 
         // Check password match
         if (password !== confirm_password) {
           return res
             .status(200)
-            .json({ status: 0, msg: "Passwords do not match." });
+            .json({ success: false, message: "Passwords do not match." });
         }
 
         // Check if user already exists
@@ -690,7 +690,7 @@ class MemberController extends BaseController {
         if (userExist) {
           return res
             .status(200)
-            .json({ status:0,msg: "User already exists! Please login to continue!" });
+            .json({ error: "User already exists! Please login to continue!" });
         }
 
         // Hash password and create user
@@ -742,7 +742,7 @@ class MemberController extends BaseController {
       ) {
         return res.status(200).json({
           status: 0,
-          msg: "Price should be greater than 5"
+          message: "Price should be greater than 5"
         });
       }
 
@@ -753,16 +753,13 @@ class MemberController extends BaseController {
       if (isNaN(parsedAmount) || parsedAmount <= 0) {
         return res
           .status(200)
-          .json({ status:0,msg: "Amount must be a positive number." });
+          .json({ error: "Amount must be a positive number." });
       }
 
       // Create customer on Stripe
       const stripeCustomer = await stripe.customers.create({
         name: full_name,
         email: email
-      });
-      await this.member.updateMemberData(userId, {
-          customer_id:stripeCustomer?.id
       });
 
       // Retrieve payment method
@@ -794,7 +791,7 @@ class MemberController extends BaseController {
       console.error("Error creating payment intent:", error);
       return res.status(200).json({
         status: 0,
-        msg: "Failed to create payment intent",
+        message: "Failed to create payment intent",
         error: error.message
       });
     }
@@ -1068,107 +1065,22 @@ class MemberController extends BaseController {
         date,
         notes,
         saved_card_id,
-        order_details,
-        full_name,
-        email,
-        password,
-        confirm_password,
-        fingerprint
+        order_details
       } = req.body;
+      console.log("price:", price);
 
-      console.log("payment_method:", payment_method);
-      let token_arr=null
-      let authToken=token;
-      let mem_type=memType
-      if (!authToken) {
-          if(payment_method!=='credit-card'){
-              const requiredFields=[]
-              requiredFields.push("full_name", "email", "password", "confirm_password");
-              const { isValid, errors } = validateFields(req.body, requiredFields);
-              if (!isValid) {
-                return res.status(200).json({
-                  status: 0,
-                  msg: "All fields are required!",
-                  errors
-                });
-              }
-              const emailRegex = /^\S+@\S+\.\S+$/;
-              if (!emailRegex.test(email)) {
-                return res.status(200).json({ status:0,msg: "Invalid email format." });
-              }
-
-              // Check password match
-              if (password !== confirm_password) {
-                return res
-                  .status(200)
-                  .json({ status: 0, message: "Passwords do not match." });
-              }
-
-              // Check if user already exists
-              const userExist = await this.member.emailExists(email);
-              if (userExist) {
-                return res
-                  .status(200)
-                  .json({ status:0,msg: "User already exists! Please login to continue!" });
-              }
-
-              // Hash password and create user
-              const hashedPassword = await bcrypt.hash(password, 10);
-              const otp = Math.floor(100000 + Math.random() * 900000);
-              let userId = await this.member.createMember({
-                full_name,
-                email,
-                mem_type: "user",
-                password: hashedPassword,
-                mem_status: 1,
-                mem_verified: 0,
-                created_at: helpers.create_current_date(),
-                otp
-              });
-
-
-               let actualFingerprint =
-              fingerprint || this.generatePseudoFingerprint(req); // Use let to allow reassignment
-
-              // Generate a random number and create the token
-              const randomNum = crypto.randomBytes(16).toString("hex");
-              const tokenType = "user";
-              const expiryDate = new Date();
-              expiryDate.setMonth(expiryDate.getMonth() + 1); // Token expires in 1 hour
-
-              // Create the token
-              authToken = helpers.generateToken(
-                `${userId}-${randomNum}-${tokenType}`
-              );
-              mem_type='user'
-              await this.tokenModel.storeToken(
-                userId,
-                authToken,
-                tokenType,
-                expiryDate,
-                actualFingerprint,
-                "user"
-              );
-              // console.log("Token stored for user:", userId);
-              token_arr = { authToken, type: "user" };
-          }
-          else{
-            return res
-            .status(200)
-            .json({ status: 0, msg: "Login required!" });
-          }
-          
+      if (token) {
+        if (!token) {
+          return res.status(200).json({ status: 0, msg: "Token is required." });
         }
-      if (authToken) {
-
-        if (mem_type === "rider") {
+        if (memType === "rider") {
           return res
             .status(200)
             .json({ status: 0, msg: "Rider account can not create request!" });
         }
         const userResponse = await this.validateTokenAndGetMember(
-          authToken,
-          mem_type
+          token,
+          memType
         );
 
         if (userResponse.status === 0) {
@@ -1630,7 +1542,6 @@ class MemberController extends BaseController {
         console.log("Successfully CREATED REQUEST", apple_obj);
         // Send success response
         res.status(200).json({
-          token_arr:token_arr,
           status: 1,
           apple_obj: apple_obj,
           order_id:requestQuoteId,
@@ -1644,16 +1555,14 @@ class MemberController extends BaseController {
         });
       } else {
         return res.status(200).json({
-          status:0,
-          msg: "Login is required"
+          error: "Token is required"
         });
       }
     } catch (error) {
       console.error("Error in createRequestQuote:", error);
       res.status(200).json({
-        msg: "Internal server error",
-        details: error.message,
-        status:0
+        error: "Internal server error",
+        details: error.message
       });
     }
   }
@@ -1684,7 +1593,7 @@ class MemberController extends BaseController {
         memType
       );
 
-      const latestNotifications = await this.member.getLatestNotifications(userId,memType);
+      const latestNotifications = await this.member.getLatestNotifications();
       // console.log("latestNotifications:",latestNotifications)
 
       const memberData = {
@@ -1707,42 +1616,7 @@ class MemberController extends BaseController {
       });
     }
   }
-testNotification = async (req, res) => {
-    try {
-      helpers.sendMailgunEmail("abidaa.rehman@gmail.com",
-  "Test Mailgun Email",
-  "Hello, this is a test email from Mailgun SMTP!",
-  "<p>Hello, this is a <b>test email</b> from Mailgun SMTP!</p>");return;
-      // Static test data
-      const user_id = 16; // Replace with actual user ID for testing
-      const mem_type = "rider"; // Replace with actual member type
-      const sender = 1; // Replace with actual sender ID
-      const text = "Your request #52 has been assigned to a rider.";
 
-      // Call the storeNotification function
-      const result = await helpers.storeNotification(
-        user_id,
-        mem_type,
-        sender,
-        text,
-        '/dashboard/order-details/0b58d7e6'
-      );
-
-      // Return a success response
-      res.status(200).json({
-        status: 1,
-        message: "Test notification stored and emitted successfully",
-        result: result
-      });
-    } catch (error) {
-      console.error("Error in test notification API:", error);
-      res.status(500).json({
-        status: 0,
-        message: "Failed to store and emit test notification",
-        error: error.message
-      });
-    }
-  };
   uploadProfileImage = async (req, res) => {
     try {
       const { token, memType } = req.body; // Extract token and memType from request body
@@ -2397,17 +2271,12 @@ testNotification = async (req, res) => {
       if (!member) {
         return res.status(200).json({ status: 0, msg: "Member not found." });
       }
-      let customer_id=member.customer_id
+
       // Ensure member has a customer_id in Stripe
       if (!member.customer_id) {
-        const stripeCustomer = await stripe.customers.create({
-          name: member?.mem_fname+" "+member?.mem_lname,
-          email: member?.mem_email
-        });
-        customer_id=stripeCustomer?.id
-        await this.member.updateMemberData(member?.id, {
-          customer_id:customer_id
-        });
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Customer ID not found for member." });
       }
 
       // Retrieve the payment method from Stripe using the payment method ID
@@ -2439,11 +2308,11 @@ testNotification = async (req, res) => {
 
       // Attach the payment method to the customer in Stripe
       await stripe.paymentMethods.attach(payment_method_id, {
-        customer: customer_id
+        customer: member.customer_id
       });
 
       // Set the payment method as the default payment method for the customer
-      await stripe.customers.update(customer_id, {
+      await stripe.customers.update(member.customer_id, {
         invoice_settings: { default_payment_method: payment_method_id }
       });
 
@@ -2458,7 +2327,7 @@ testNotification = async (req, res) => {
       const newPaymentMethod = {
         user_id: member.id,
         user_type: memType,
-        customer_id: helpers.doEncode(customer_id), // Attach customer_id
+        customer_id: helpers.doEncode(member.customer_id), // Attach customer_id
         payment_method_id: helpers.doEncode(paymentMethod.id),
         card_number: helpers.doEncode(paymentMethod.card.last4),
         exp_month: helpers.doEncode(paymentMethod.card.exp_month),
@@ -2667,17 +2536,13 @@ testNotification = async (req, res) => {
           }
           notificationsArr.push(notificationObj);
         }
-        else{
-          notificationsArr.push(notificationObj);
-        }
       });
 
       // Return the fetched notifications
       return res.status(200).json({
         status: 1,
         msg: "Notifications fetched successfully.",
-        notifications: notificationsArr,
-        notifications_arr:notifications
+        notifications: notificationsArr
       });
     } catch (error) {
       console.error("Failed to fetch notifications:", error.message);
@@ -3425,6 +3290,38 @@ testNotification = async (req, res) => {
       res.status(200).json({ error: "Internal server error" });
     }
   }
+
+
+  // app.post('/send-email', async (req, res) => {
+    async sendMailApi(req, res) {
+    const { email,username,otp } = req.body;
+    const adminData = res.locals.adminData; // Get site settings from middleware
+
+    if (!adminData) {
+      return res.status(200).json({ success: false, message: "Site settings not found" });
+  }
+  console.log(adminData?.logo_image,"image")
+
+
+    const subject = "Verify Your Email - FastUk";
+        const templateData = {
+            username, // Pass username
+            otp,      // Pass OTP
+            adminData
+        };
+
+    if ( !subject || !email) {
+        return res.status(200).json({ status: 0, msg: "Missing required fields" });
+    }
+
+    const result = await helpers.sendEmail(email, subject, 'email-verify', templateData);
+    if (result.success) {
+        res.status(200).json({ status: 1, msg: "Email sent successfully", messageId: result.messageId });
+    } else {
+        res.status(200).json({ status: 0, msg: "Email sending failed", error: result.error });
+    }
+}
+
 }
 
 module.exports = MemberController;
