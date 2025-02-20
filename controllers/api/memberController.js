@@ -1687,9 +1687,9 @@ class MemberController extends BaseController {
 
   updateProfile = async (req, res) => {
     try {
-      const { token, first_name, last_name, mem_phone, address, bio, memType } =
+      const { token, first_name, last_name, mem_phone, address, bio, memType,vehicle_owner,vehicle_type,city,vehicle_registration_num,driving_license_num,dob } =
         req.body; // Assuming token and user data are sent in the request body
-
+        console.log(req.body)
       // If no token is provided
       if (!token) {
         return res.status(200).json({ status: 0, msg: "Token is required." });
@@ -1711,7 +1711,7 @@ class MemberController extends BaseController {
       }
 
       // Save the updated member data
-      const updatedData = {
+      let updatedData = {
         full_name: first_name + " " + last_name,
         mem_phone,
         mem_address1: address,
@@ -1722,6 +1722,12 @@ class MemberController extends BaseController {
       if (memType === "user" || memType === "business") {
         await this.member.updateMemberData(userId, updatedData); // Update member data
       } else if (memType === "rider") {
+        updatedData.vehicle_owner=vehicle_owner;
+        updatedData.vehicle_type=vehicle_type;
+        updatedData.city=city;
+        updatedData.vehicle_registration_num=vehicle_registration_num;
+        updatedData.driving_license_num=driving_license_num;
+        updatedData.dob=dob;
         await this.rider.updateRiderData(userId, updatedData); // Update rider data
       } else {
         return res
