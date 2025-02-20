@@ -13,12 +13,6 @@ const ejs = require("ejs");
 
 
 
-console.log("SMTP Mail:", process.env.SMTP_MAIL);
-console.log("SMTP Password:", process.env.SMTP_PASSWORD ? "****" : "Not Set"); // Mask for security
-console.log("SMTP Host:", process.env.SMTP_HOST);
-console.log("SMTP Port:", process.env.SMTP_PORT);
-
-
 
 const transporter = nodemailer.createTransport({
   
@@ -673,16 +667,22 @@ getTransaction: async function(user_id) {
 },
 
 // Function to send an email
-sendEmail :async (to, subject, templateName, templateData) => {
+sendEmail : async function (to, subject, templateName, templateData) {
   try {
     const templatePath = path.join(__dirname, "../views/email-templates", `${templateName}.ejs`);
-    console.log("Template Path:", templatePath);
+    let adminData=templateData?.adminData
+     if (!adminData) {
+          return res.status(200).json({ success: false, message: "Site settings not found" });
+        }
+        if (adminData) {
+            adminData.logo = process.env.BASE_URL+this.getImage(adminData.logo_image);
+        }
 
 
         // Render the EJS template with dynamic data
         const htmlContent = await ejs.renderFile(templatePath, templateData);
       const info = await transporter.sendMail({
-          from: `"Asifa" <${process.env.SMTP_MAIL}>`, // Sender
+          from: `${templateData?.adminData?.site_name} <${'noreply@fastukcouriers.com'}>`, // Sender
           to,      // Receiver email(s)
           subject, // Subject line
           html:htmlContent   // HTML body
