@@ -8,7 +8,7 @@ class MemberController extends BaseController {
     // Method to get the riders and render them in the view
     async getMembers(req, res) {
         try {
-            const members = await Member.getAllMembers();
+            const members = await Member.getAllMembers([{ field: 'mem_type', operator: '=', value: 'user' }]);
             // console.log('Fetched Riders:', riders); // Log the fetched riders
 
             // if (members && members.length > 0) {

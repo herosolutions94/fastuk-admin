@@ -2,16 +2,28 @@ const pool = require('../config/db-connection'); // Ensure this is promise-based
 const helpers = require('../utils/helpers');
 
 class Member {
-    static async getAllMembers() {
-        try {
-            const [rows] = await pool.query('SELECT * FROM members'); // Only take the first result
-            // console.log('Members fetched successfully:', rows); // Log the data (only the rows)
-            return rows; // Return the fetched rows
-        } catch (error) {
-            console.error('Error fetching members:', error);
-            throw error;
+    static async getAllMembers(conditions = []) {
+    try {
+        let query = 'SELECT * FROM members';
+        let params = [];
+
+        if (conditions.length > 0) {
+            const conditionStrings = conditions.map(({ field, operator, value }) => {
+                params.push(value);
+                return `${field} ${operator} ?`;
+            });
+
+            query += ' WHERE ' + conditionStrings.join(' AND ');
         }
+
+        const [rows] = await pool.query(query, params);
+        return rows;
+    } catch (error) {
+        console.error('Error fetching members:', error);
+        throw error;
     }
+}
+
     // Add a new method to fetch a rider by id
     static async getMemberById(id) {
         try {

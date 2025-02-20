@@ -499,7 +499,12 @@ class RiderController extends BaseController {
           });
       }
       // console.log(requestQuote.assigned_rider)
-
+      const userRow = await this.member.findById(requestQuote.user_id);
+      if (!userRow) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Error fetching user" });
+      }
       // Step 4: Assign the user ID to the assigned_rider column
       const updateStatus = await this.rider.assignRiderAndUpdateStatus(
         loggedInUser.id,
@@ -540,9 +545,14 @@ class RiderController extends BaseController {
       // console.log(orderDetailsLink);return;
       // Step 6: Send notification to the user
       const notificationText = `Your request #${request_id} has been assigned to a rider.`;
+      console.log("notification data",request_row.user_id, // The user ID from request_quote
+        userRow?.mem_type, // The user's member type
+        loggedInUser.id,
+        notificationText,
+        orderDetailsLink)
       await helpers.storeNotification(
         request_row.user_id, // The user ID from request_quote
-        "user", // The user's member type
+        userRow?.mem_type, // The user's member type
         loggedInUser.id,
         notificationText,
         orderDetailsLink
@@ -1048,7 +1058,12 @@ async UpdateWithdrawalMethod(req, res) {
       if (!request) {
         return res.status(200).json({ status: 0, msg: "Request not found." });
       }
-
+      const userRow = await this.member.findById(request[0].user_id);
+      if (!userRow) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Error fetching user" });
+      }
       // Handle request update based on type
       if (type?.toLowerCase() === "source") {
         // Update picked time for source
@@ -1162,7 +1177,7 @@ async UpdateWithdrawalMethod(req, res) {
       const notificationText = `Your request #${order.id} has been accepted by a rider.`;
       await helpers.storeNotification(
         order.user_id, // The user ID from request_quote
-        "user", // The user's member type
+        userRow?.mem_type, // The user's member type
         rider.user.id, // Use rider's ID as the sender
         notificationText,
         orderDetailsLink
@@ -1426,7 +1441,12 @@ async UpdateWithdrawalMethod(req, res) {
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Order not found." });
       }
-
+      const userRow = await this.member.findById(order.user_id);
+      if (!userRow) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Error fetching user" });
+      }
       const viasCount = await this.rider.countViasBySourceCompleted(order.id);
       // console.log("viasCount:", viasCount);
 
@@ -1467,9 +1487,10 @@ async UpdateWithdrawalMethod(req, res) {
 
 
       const notificationText = `Your request #${order.id} has been marked as completed.`;
+      
       await helpers.storeNotification(
         order.user_id, // The user ID from request_quote
-        "user", // The user's member type
+        userRow?.mem_type, // The user's member type
         rider.user.id,
         notificationText,
         orderDetailsLink
@@ -1588,6 +1609,12 @@ updateRequestStatusToCompleted = async (req, res) => {
       if (!request) {
         return res.status(200).json({ status: 0, msg: "Request not found." });
       }
+      const userRow = await this.member.findById(request[0].user_id);
+      if (!userRow) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Error fetching user" });
+      }
       // console.log("request:",request);return;
 
         // Update the status using the model
@@ -1605,9 +1632,6 @@ updateRequestStatusToCompleted = async (req, res) => {
 
         const amount = totalDistance * formattedRiderPrice;
         const created_time = helpers.getUtcTimeInSeconds()
-        console.log("amount:",amount)
-        console.log("totalDistance:",totalDistance)
-        console.log("riderPrice:",riderPrice)
 
         const formattedAmount = helpers.formatAmount(amount);
 
@@ -1637,7 +1661,7 @@ updateRequestStatusToCompleted = async (req, res) => {
         const notificationText = `Your request #${id} has been completed.`;
       await helpers.storeNotification(
         request[0].user_id, // The user ID from request_quote
-        "user", // The user's member type
+        userRow?.mem_type, // The user's member type
         rider.user.id,
         notificationText,
         orderDetailsLink // Pass the link
