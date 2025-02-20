@@ -257,7 +257,15 @@ class MemberController extends BaseController {
           "user",
           actualFingerprint
         );
-    
+        let adminData = res.locals.adminData; 
+        const subject = "Verify Your Email - "+adminData.site_name;
+        const templateData = {
+            username:cleanedData.full_name, // Pass username
+            otp:cleanedData.otp,      // Pass OTP
+            adminData
+        };
+
+        const result = await helpers.sendEmail(cleanedData.email, subject, 'email-verify', templateData);
         this.sendSuccess(
           res,
           { mem_type: mem_type, authToken: token, customer_id: customer.id },

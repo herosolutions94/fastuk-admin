@@ -3300,33 +3300,22 @@ class MemberController extends BaseController {
 
   // app.post('/send-email', async (req, res) => {
     async sendMailApi(req, res) {
-    const { email,username,otp } = req.body;
-    const adminData = res.locals.adminData; // Get site settings from middleware
-
-    if (!adminData) {
-      return res.status(200).json({ success: false, message: "Site settings not found" });
-  }
-  console.log(adminData?.logo_image,"image")
-
-
-    const subject = "Verify Your Email - FastUk";
+        const { email,username,otp } = req.body;
+        let adminData = res.locals.adminData; 
+        const subject = "Verify Your Email - FastUk";
         const templateData = {
             username, // Pass username
             otp,      // Pass OTP
             adminData
         };
 
-    if ( !subject || !email) {
-        return res.status(200).json({ status: 0, msg: "Missing required fields" });
-    }
-
-    const result = await helpers.sendEmail(email, subject, 'email-verify', templateData);
-    if (result.success) {
-        res.status(200).json({ status: 1, msg: "Email sent successfully", messageId: result.messageId });
-    } else {
-        res.status(200).json({ status: 0, msg: "Email sending failed", error: result.error });
-    }
-}
+        const result = await helpers.sendEmail(email, subject, 'email-verify', templateData);
+          if (result.success) {
+              res.status(200).json({ status: 1, msg: "Email sent successfully", messageId: result.messageId });
+          } else {
+              res.status(200).json({ status: 0, msg: "Email sending failed", error: result.error });
+          }
+      }
 
 }
 
