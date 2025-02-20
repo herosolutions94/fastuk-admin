@@ -16,7 +16,7 @@ class BusinessUserController extends BaseController {
     // Method to get the riders and render them in the view
     async getBusinessUsers(req, res) {
         try {
-            const businessUsers = await BusinessUser.getAllMembers();
+            const businessUsers = await BusinessUser.getAllMembers([{ field: 'mem_type', operator: '=', value: 'business' }]);
             // console.log('Fetched Riders:', riders); // Log the fetched riders
 
             if (businessUsers && businessUsers.length > 0) {

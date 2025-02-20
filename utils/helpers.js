@@ -7,10 +7,43 @@ const pool = require("../config/db-connection");
 const moment = require("moment-timezone");
 const { io, users } = require("../app"); // Import io from app.js
 const axios = require('axios');
+const nodemailer = require("nodemailer");
 
 
 module.exports = {
   // A sample function that formats a status with secure HTML
+    sendMailgunEmail:async function (to, subject, text, html) {
+    try {
+      
+      // Configure Mailgun SMTP transporter
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_MAILGUN_HOST,
+        port: process.env.SMTP_MAILGUN_PORT, // Use 465 for SSL or 587 for TLS
+        secure: false, // Set true for port 465, false for others
+        auth: {
+          user: process.env.SMTP_MAILGUN_USERNAME, // Replace with your Mailgun SMTP username
+          pass: process.env.SMTP_MAILGUN_PASSWORD, // Replace with your Mailgun SMTP password
+        },
+      });
+
+      // Email options
+      const mailOptions = {
+        from: 'FASTUK <postmaster@fastukcouriers.com>',
+        to,
+        subject,
+        text, // Plain text body
+        html, // HTML body
+      };
+
+      // Send email
+      const info = await transporter.sendMail(mailOptions);
+      console.log("Email sent:", info.messageId);
+      return info;
+    } catch (error) {
+      console.error("Error sending email:", error);
+      throw error;
+    }
+  },
   getStatus: function (status) {
     if (status === 1) {
       return '<span class="status badge success">Active</span>';
@@ -450,12 +483,13 @@ convertUtcToUKTime : function (utcTimeInSeconds) {
         const [siteSettingsRows] = await pool.query(siteSettingsQuery, [sender]);
         senderInfo = siteSettingsRows[0];
         senderInfo.is_admin=1;
-      }else if (mem_type === "user") {
+      }else if (mem_type === "user" || mem_type === "business") {
         const userQuery = `SELECT id, full_name as sender_name, mem_image as sender_dp FROM riders WHERE id = ?`;
         const [userRows] = await pool.query(userQuery, [sender]);
         senderInfo = userRows[0];
       } else if (mem_type === "rider") {
         const riderQuery = `SELECT id, full_name as sender_name, mem_image as sender_dp FROM members WHERE id = ?`;
+        console.log(riderQuery,sender);
         const [riderRows] = await pool.query(riderQuery, [sender]);
         senderInfo = riderRows[0];
       }

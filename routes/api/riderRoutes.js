@@ -18,7 +18,9 @@ router.post('/get-order-details/:encodedId', upload,riderController.getOrderDeta
 router.post('/update-request-status', upload,riderController.updateRequestStatus.bind(riderController));
 router.post('/mark-as-completed', upload,riderController.markAsCompleted.bind(riderController));
 router.get('/get-invoices-detail', upload,riderController.getInvoiceDetails.bind(riderController));
-router.post('/test-notification', upload,riderController.testNotification.bind(riderController));
+// router.post('/test-notification', upload,riderController.testNotification.bind(riderController));
+router.post('/test-notification-rider', upload, (req, res) => riderController.testNotification(req, res));
+
 router.post('/update-order-completed', upload,riderController.updateRequestStatusToCompleted.bind(riderController));
 router.post('/get-rider-dashboard-orders', upload,riderController.getRiderDashboardOrders.bind(riderController));
 router.post('/rider-payment-methods', upload,riderController.getRiderPaymentMethods.bind(riderController));

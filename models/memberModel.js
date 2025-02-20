@@ -389,10 +389,10 @@ WHERE n.user_id = ? AND n.mem_type = ?
     const query = 'DELETE FROM notifications WHERE id = ?;';
     await pool.query(query, [id]);
   }
-  async getLatestNotifications() {
+  async getLatestNotifications(userId,memType) {
     try {
-        const query = 'SELECT * FROM notifications ORDER BY id DESC LIMIT 3';
-        const [rows] = await pool.query(query); // Use correct query execution
+        const query = 'SELECT * FROM notifications WHERE user_id = ? AND mem_type = ? ORDER BY id DESC LIMIT 3';
+        const [rows] = await pool.query(query, [userId, memType]); // Use correct query execution
         return rows; // Return the result
     } catch (error) {
         console.error("Error fetching latest notifications:", error);
