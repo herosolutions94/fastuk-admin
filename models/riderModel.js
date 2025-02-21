@@ -227,7 +227,7 @@ GROUP BY
 }
 
 async getRidersByCity(city) {
-    const query = `SELECT id FROM riders WHERE city = ?`;
+    const query = `SELECT id,email FROM riders WHERE city = ?`;
     const [rows] = await pool.query(query, [city]);
     return rows; // Returns an array of riders
   }
