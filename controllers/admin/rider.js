@@ -327,6 +327,27 @@ class RiderController extends BaseController {
             const updatedRider = await Rider.findById(id);
             console.log("Updated Rider:", updatedRider);
 
+            let adminData = res.locals.adminData;
+        let subject, templateName;
+
+        if (is_approved === "approved") {
+            subject = "Congratulations! Your Rider Account is Approved - " + adminData.site_name;
+            templateName = "approval-email";
+        } else if (is_approved === "rejected") {
+            subject = "Rider Application Rejected - " + adminData.site_name;
+            templateName = "rejection-email";
+        }
+
+        // Prepare template data
+        const templateData = {
+            username: updatedRider.full_name,
+            adminData
+        };
+
+        // Send the email if status is approved or rejected
+        if (is_approved !== "pending") {
+            await helpers.sendEmail(updatedRider.email, subject, templateName, templateData);
+        }            
     
             if (updatedRider) {
                 return res.redirect('/admin/riders');

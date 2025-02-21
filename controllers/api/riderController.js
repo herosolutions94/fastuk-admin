@@ -6,8 +6,8 @@ const Rider = require("../../models/riderModel");
 const RiderModel = require("../../models/rider");
 const Token = require("../../models/tokenModel");
 const RequestQuoteModel = require("../../models/request-quote"); // Assuming you have this model
-const MemberModel = require('../../models/member');
-const VehicleModel = require('../../models/vehicle');
+const MemberModel = require("../../models/member");
+const VehicleModel = require("../../models/vehicle");
 
 const {
   validateEmail,
@@ -57,7 +57,6 @@ class RiderController extends BaseController {
 
       const is_approved = "pending";
 
-
       const cleanedData = {
         full_name: typeof full_name === "string" ? full_name.trim() : "",
         email: typeof email === "string" ? email.trim().toLowerCase() : "",
@@ -81,9 +80,7 @@ class RiderController extends BaseController {
             ? driving_license_num.trim()
             : "",
         driving_license:
-          typeof driving_license === "string"
-            ? driving_license.trim()
-            : "",
+          typeof driving_license === "string" ? driving_license.trim() : "",
         created_date: new Date(),
         status: 1,
         mem_verified: mem_verified || 0,
@@ -162,7 +159,7 @@ class RiderController extends BaseController {
       }
 
       cleanedData.customer_id = customer.id;
-      cleanedData.vehicle_type=vehicle_type
+      cleanedData.vehicle_type = vehicle_type;
       // Create the rider
       const riderId = await this.rider.createRider(cleanedData);
       // console.log('Created Rider ID:', riderId); // Log the created rider ID
@@ -193,6 +190,20 @@ class RiderController extends BaseController {
         expiryDate,
         actualFingerprint
       );
+      let adminData = res.locals.adminData;
+      const subject = "Verify Your Email - " + adminData.site_name;
+      const templateData = {
+        username: cleanedData.full_name, // Pass username
+        otp: cleanedData.otp, // Pass OTP
+        adminData
+      };
+
+      const result = await helpers.sendEmail(
+        cleanedData.email,
+        subject,
+        "email-verify",
+        templateData
+      );
 
       this.sendSuccess(
         res,
@@ -209,8 +220,6 @@ class RiderController extends BaseController {
     }
   }
 
-
-
   generatePseudoFingerprint(req) {
     const userAgent = req.headers["user-agent"] || "";
     const ipAddress = req.ip || "";
@@ -222,7 +231,7 @@ class RiderController extends BaseController {
   }
   async loginRider(req, res) {
     try {
-      let { email, password,fingerprint } = req.body;
+      let { email, password, fingerprint } = req.body;
       console.log(req.body);
       // Clean and trim data
       email = typeof email === "string" ? email.trim().toLowerCase() : "";
@@ -272,13 +281,12 @@ class RiderController extends BaseController {
         actualFingerprint
       );
 
-
       // Send success response
       this.sendSuccess(
-          res,
-          { mem_type: 'rider', authToken: token },
-          "Successfully logged in."
-        );
+        res,
+        { mem_type: "rider", authToken: token },
+        "Successfully logged in."
+      );
     } catch (error) {
       return res.status(200).json({
         success: false,
@@ -464,12 +472,10 @@ class RiderController extends BaseController {
       // console.log(req.body);return;
       // Validate input
       if (!token || !memType || !request_id) {
-        return res
-          .status(200)
-          .json({
-            status: 0,
-            msg: "Token, memType, and requestId are required."
-          });
+        return res.status(200).json({
+          status: 0,
+          msg: "Token, memType, and requestId are required."
+        });
       }
       // Step 1: Validate token and fetch user details
       const userResponse = await this.validateTokenAndGetMember(token, memType);
@@ -491,19 +497,15 @@ class RiderController extends BaseController {
 
       // Step 3: Check if a rider is already assigned
       if (requestQuote.assigned_rider) {
-        return res
-          .status(200)
-          .json({
-            status: 0,
-            msg: "Rider is already assigned to this request."
-          });
+        return res.status(200).json({
+          status: 0,
+          msg: "Rider is already assigned to this request."
+        });
       }
       // console.log(requestQuote.assigned_rider)
       const userRow = await this.member.findById(requestQuote.user_id);
       if (!userRow) {
-        return res
-          .status(200)
-          .json({ status: 0, msg: "Error fetching user" });
+        return res.status(200).json({ status: 0, msg: "Error fetching user" });
       }
       // Step 4: Assign the user ID to the assigned_rider column
       const updateStatus = await this.rider.assignRiderAndUpdateStatus(
@@ -524,7 +526,9 @@ class RiderController extends BaseController {
         const user = await this.member.findById(request_row.user_id);
         const vias = await this.rider.getViasByQuoteId(request_row.id);
         // const parcels = await this.rider.getParcelsByQuoteId(request_row.id);
-        const parcels = await this.rider.getParcelDetailsByQuoteId(request_row.id);
+        const parcels = await this.rider.getParcelDetailsByQuoteId(
+          request_row.id
+        );
         if (user) {
           request_row = {
             ...request_row,
@@ -539,17 +543,19 @@ class RiderController extends BaseController {
 
       const encodedId = helpers.doEncode(String(request_id)); // Convert order.id to a string
 
-
       const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
 
       // console.log(orderDetailsLink);return;
       // Step 6: Send notification to the user
       const notificationText = `Your request #${request_id} has been assigned to a rider.`;
-      console.log("notification data",request_row.user_id, // The user ID from request_quote
+      console.log(
+        "notification data",
+        request_row.user_id, // The user ID from request_quote
         userRow?.mem_type, // The user's member type
         loggedInUser.id,
         notificationText,
-        orderDetailsLink)
+        orderDetailsLink
+      );
       await helpers.storeNotification(
         request_row.user_id, // The user ID from request_quote
         userRow?.mem_type, // The user's member type
@@ -557,13 +563,11 @@ class RiderController extends BaseController {
         notificationText,
         orderDetailsLink
       );
-      return res
-        .status(200)
-        .json({
-          status: 1,
-          msg: "Rider assigned successfully.",
-          request_row: request_row
-        });
+      return res.status(200).json({
+        status: 1,
+        msg: "Rider assigned successfully.",
+        request_row: request_row
+      });
     } catch (error) {
       console.error("Error assigning rider:", error.message);
       return res
@@ -581,12 +585,10 @@ class RiderController extends BaseController {
       }
 
       if (memType !== "rider") {
-        return res
-          .status(200)
-          .json({
-            status: 0,
-            msg: "Invalid member type. Only riders can access this endpoint."
-          });
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid member type. Only riders can access this endpoint."
+        });
       }
 
       // Validate the token and get the rider details
@@ -636,12 +638,10 @@ class RiderController extends BaseController {
       }
 
       if (memType !== "rider") {
-        return res
-          .status(200)
-          .json({
-            status: 0,
-            msg: "Invalid member type. Only riders can access this endpoint."
-          });
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid member type. Only riders can access this endpoint."
+        });
       }
 
       // Validate the token and get the rider details
@@ -654,16 +654,20 @@ class RiderController extends BaseController {
       const rider = userResponse.user;
 
       const states = await helpers.getStatesByCountryId(230);
-       const bank_payment_methods = await this.rider.getWithdrawalPamentMethods(rider?.id,'bank-account');
-       const paypal_payment_methods = await this.rider.getWithdrawalPamentMethods(rider?.id,'paypal');
+      const bank_payment_methods = await this.rider.getWithdrawalPamentMethods(
+        rider?.id,
+        "bank-account"
+      );
+      const paypal_payment_methods =
+        await this.rider.getWithdrawalPamentMethods(rider?.id, "paypal");
       // console.log("Rider Orders with Encoded IDs:", ordersWithEncodedIds);
 
       // Return the fetched orders with encoded IDs
       return res.status(200).json({
         status: 1,
-        states:states,
-        bank_payment_methods:bank_payment_methods,
-        paypal_payment_methods:paypal_payment_methods,
+        states: states,
+        bank_payment_methods: bank_payment_methods,
+        paypal_payment_methods: paypal_payment_methods
       });
     } catch (error) {
       console.error("Error in getRiderOrders:", error);
@@ -676,19 +680,29 @@ class RiderController extends BaseController {
   }
   async AddWithdrawalMethod(req, res) {
     try {
-      const { token, memType,bank_name,account_title,account_number,swift_routing_no,country,state,city,paypal_email,payment_method } = req.body;
+      const {
+        token,
+        memType,
+        bank_name,
+        account_title,
+        account_number,
+        swift_routing_no,
+        country,
+        state,
+        city,
+        paypal_email,
+        payment_method
+      } = req.body;
 
       if (!token) {
         return res.status(200).json({ status: 0, msg: "Token is required." });
       }
 
       if (memType !== "rider") {
-        return res
-          .status(200)
-          .json({
-            status: 0,
-            msg: "Invalid member type. Only riders can access this endpoint."
-          });
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid member type. Only riders can access this endpoint."
+        });
       }
 
       // Validate the token and get the rider details
@@ -701,26 +715,27 @@ class RiderController extends BaseController {
       const rider = userResponse.user;
       const created_at = helpers.getUtcTimeInSeconds();
       let cleanedData = {};
-      if(payment_method=='bank-account'){
+      if (payment_method == "bank-account") {
         cleanedData = {
           bank_name: typeof bank_name === "string" ? bank_name.trim() : "",
-          account_title: typeof account_title === "string" ? account_title.trim() : "",
+          account_title:
+            typeof account_title === "string" ? account_title.trim() : "",
           account_number: account_number.trim(),
           swift_routing_no: swift_routing_no.trim(),
           country: country.trim(),
           state: state.trim(),
           city: city.trim(),
           mem_id: rider?.id,
-          payment_method:payment_method,
-          created_at:created_at
+          payment_method: payment_method,
+          created_at: created_at
         };
-      }
-      else if(payment_method=='paypal'){
+      } else if (payment_method == "paypal") {
         cleanedData = {
-          paypal_email: typeof paypal_email === "string" ? paypal_email.trim() : "",
+          paypal_email:
+            typeof paypal_email === "string" ? paypal_email.trim() : "",
           mem_id: rider?.id,
-          payment_method:payment_method,
-          created_at:created_at
+          payment_method: payment_method,
+          created_at: created_at
         };
       }
       // console.log(validateRequiredFields(cleanedData))
@@ -729,18 +744,19 @@ class RiderController extends BaseController {
         return res
           .status(200)
           .json({ status: 0, msg: "All fields are required." });
-      }
-      else{
-        const riderOrders = await this.rider.createWithdrawanMethod(cleanedData);
+      } else {
+        const riderOrders = await this.rider.createWithdrawanMethod(
+          cleanedData
+        );
         return res.status(200).json({
           status: 1,
-          msg:'Added successfully!'
+          msg: "Added successfully!"
         });
       }
 
       return res.status(200).json({
         status: 1,
-        states:states
+        states: states
       });
     } catch (error) {
       console.error("Error in getRiderOrders:", error);
@@ -751,21 +767,32 @@ class RiderController extends BaseController {
       });
     }
   }
-async UpdateWithdrawalMethod(req, res) {
+  async UpdateWithdrawalMethod(req, res) {
     try {
-      const { token, memType,bank_name,account_title,account_number,swift_routing_no,country,state,city,paypal_email,payment_method,payment_method_id } = req.body;
+      const {
+        token,
+        memType,
+        bank_name,
+        account_title,
+        account_number,
+        swift_routing_no,
+        country,
+        state,
+        city,
+        paypal_email,
+        payment_method,
+        payment_method_id
+      } = req.body;
 
       if (!token) {
         return res.status(200).json({ status: 0, msg: "Token is required." });
       }
 
       if (memType !== "rider") {
-        return res
-          .status(200)
-          .json({
-            status: 0,
-            msg: "Invalid member type. Only riders can access this endpoint."
-          });
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid member type. Only riders can access this endpoint."
+        });
       }
 
       // Validate the token and get the rider details
@@ -774,49 +801,52 @@ async UpdateWithdrawalMethod(req, res) {
       if (userResponse.status === 0) {
         return res.status(200).json(userResponse); // Return validation error response
       }
-      if(payment_method_id!==null && payment_method_id!=='' && payment_method_id!==undefined){
-          const payment_method_row = await this.rider.getWithdrawalPamentMethodRow(rider?.id,payment_method_id);
-          if(payment_method_row?.length===0){
-            return res
-            .status(200)
-            .json({
-              status: 0,
-              msg: "Invalid payment method to update!"
-            });
-          }
-      }
-      else{
-        return res
-            .status(200)
-            .json({
-              status: 0,
-              msg: "Invalid payment method to update!"
-            });
+      if (
+        payment_method_id !== null &&
+        payment_method_id !== "" &&
+        payment_method_id !== undefined
+      ) {
+        const payment_method_row =
+          await this.rider.getWithdrawalPamentMethodRow(
+            rider?.id,
+            payment_method_id
+          );
+        if (payment_method_row?.length === 0) {
+          return res.status(200).json({
+            status: 0,
+            msg: "Invalid payment method to update!"
+          });
+        }
+      } else {
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid payment method to update!"
+        });
       }
 
-      
       const created_at = helpers.getUtcTimeInSeconds();
       let cleanedData = {};
-      if(payment_method=='bank-account'){
+      if (payment_method == "bank-account") {
         cleanedData = {
           bank_name: typeof bank_name === "string" ? bank_name.trim() : "",
-          account_title: typeof account_title === "string" ? account_title.trim() : "",
+          account_title:
+            typeof account_title === "string" ? account_title.trim() : "",
           account_number: account_number.trim(),
           swift_routing_no: swift_routing_no.trim(),
           country: country.trim(),
           state: state.trim(),
           city: city.trim(),
           mem_id: rider?.id,
-          payment_method:payment_method,
-          created_at:created_at
+          payment_method: payment_method,
+          created_at: created_at
         };
-      }
-      else if(payment_method=='paypal'){
+      } else if (payment_method == "paypal") {
         cleanedData = {
-          paypal_email: typeof paypal_email === "string" ? paypal_email.trim() : "",
+          paypal_email:
+            typeof paypal_email === "string" ? paypal_email.trim() : "",
           mem_id: rider?.id,
-          payment_method:payment_method,
-          created_at:created_at
+          payment_method: payment_method,
+          created_at: created_at
         };
       }
       // console.log(validateRequiredFields(cleanedData))
@@ -825,18 +855,20 @@ async UpdateWithdrawalMethod(req, res) {
         return res
           .status(200)
           .json({ status: 0, msg: "All fields are required." });
-      }
-      else{
-        const riderOrders = await this.rider.updateWithdrawalMethod(cleanedData,{ id: payment_method_id });
-          return res.status(200).json({
-            status: 1,
-            msg:'Updated successfully!'
-          });
+      } else {
+        const riderOrders = await this.rider.updateWithdrawalMethod(
+          cleanedData,
+          { id: payment_method_id }
+        );
+        return res.status(200).json({
+          status: 1,
+          msg: "Updated successfully!"
+        });
       }
 
       return res.status(200).json({
         status: 1,
-        states:states
+        states: states
       });
     } catch (error) {
       console.error("Error in getRiderOrders:", error);
@@ -849,19 +881,17 @@ async UpdateWithdrawalMethod(req, res) {
   }
   async DeleteWithdrawalMethod(req, res) {
     try {
-      const { token, memType,payment_method_id } = req.body;
+      const { token, memType, payment_method_id } = req.body;
 
       if (!token) {
         return res.status(200).json({ status: 0, msg: "Token is required." });
       }
 
       if (memType !== "rider") {
-        return res
-          .status(200)
-          .json({
-            status: 0,
-            msg: "Invalid member type. Only riders can access this endpoint."
-          });
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid member type. Only riders can access this endpoint."
+        });
       }
 
       // Validate the token and get the rider details
@@ -870,37 +900,35 @@ async UpdateWithdrawalMethod(req, res) {
       if (userResponse.status === 0) {
         return res.status(200).json(userResponse); // Return validation error response
       }
-      if(payment_method_id!==null && payment_method_id!=='' && payment_method_id!==undefined){
-          const payment_method_row = await this.rider.getWithdrawalPamentMethodRow(rider?.id,payment_method_id);
-          if(payment_method_row?.length===0){
-            return res
-            .status(200)
-            .json({
-              status: 0,
-              msg: "Invalid payment method to update!"
-            });
-          }
-          const whereCondition = { id: payment_method_id };
-
-          const result = await this.rider.deleteWithdrawalMethod(whereCondition);
+      if (
+        payment_method_id !== null &&
+        payment_method_id !== "" &&
+        payment_method_id !== undefined
+      ) {
+        const payment_method_row =
+          await this.rider.getWithdrawalPamentMethodRow(
+            rider?.id,
+            payment_method_id
+          );
+        if (payment_method_row?.length === 0) {
           return res.status(200).json({
-            status: 1,
-            msg:"Deleted successfully!"
+            status: 0,
+            msg: "Invalid payment method to update!"
           });
-      }
-      else{
-        return res
-            .status(200)
-            .json({
-              status: 0,
-              msg: "Invalid payment method to update!"
-            });
-      }
+        }
+        const whereCondition = { id: payment_method_id };
 
-      
-      
-
-      
+        const result = await this.rider.deleteWithdrawalMethod(whereCondition);
+        return res.status(200).json({
+          status: 1,
+          msg: "Deleted successfully!"
+        });
+      } else {
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid payment method to update!"
+        });
+      }
     } catch (error) {
       console.error("Error in getRiderOrders:", error);
       return res.status(200).json({
@@ -910,16 +938,15 @@ async UpdateWithdrawalMethod(req, res) {
       });
     }
   }
-  async getThreeDaysBeforeEarnings(req,res) {
-    try{
-      const rows=await this.rider.getEarningsBefore3Days();
-      console.log(rows)
+  async getThreeDaysBeforeEarnings(req, res) {
+    try {
+      const rows = await this.rider.getEarningsBefore3Days();
+      console.log(rows);
       for (const row of rows) {
         await this.rider.updateEarningStatusToCleared(row.id);
       }
       console.log("Successfully updated the statuses to cleared.");
-    }
-    catch (error) {
+    } catch (error) {
       console.error("Error in getOrderDetailsByEncodedId:", error);
       return res.status(200).json({
         status: 0,
@@ -965,25 +992,22 @@ async UpdateWithdrawalMethod(req, res) {
       // console.log(rider.id, decodedId)
       // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
 
-
-
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Order not found." });
       }
 
       // Check if the assigned rider matches the logged-in rider
       if (order.assigned_rider !== rider.id) {
-        return res
-          .status(200)
-          .json({
-            status: 0,
-            msg: "This order is not assigned to the logged-in rider."
-          });
+        return res.status(200).json({
+          status: 0,
+          msg: "This order is not assigned to the logged-in rider."
+        });
       }
       // console.log(order,"order")
 
-      let vehicle = order.selected_vehicle ? await VehicleModel.getVehicleById(order.selected_vehicle) : null;
-
+      let vehicle = order.selected_vehicle
+        ? await VehicleModel.getVehicleById(order.selected_vehicle)
+        : null;
 
       const viasCount = await this.rider.countViasBySourceCompleted(order.id);
 
@@ -999,8 +1023,6 @@ async UpdateWithdrawalMethod(req, res) {
       const formattedPaidAmount = helpers.formatAmount(paidAmount);
       const formattedDueAmount = helpers.formatAmount(dueAmount);
 
-
-
       order = {
         ...order,
         formatted_start_date: helpers.formatDateToUK(order?.start_date),
@@ -1011,8 +1033,8 @@ async UpdateWithdrawalMethod(req, res) {
         viasCount: viasCount,
         formattedPaidAmount,
         formattedDueAmount,
-        reviews:reviews,
-        dueAmount:dueAmount,
+        reviews: reviews,
+        dueAmount: dueAmount,
         vehicle
       };
       // Fetch parcels and vias based on the quoteId from the order
@@ -1036,15 +1058,15 @@ async UpdateWithdrawalMethod(req, res) {
   updateRequestStatus = async (req, res) => {
     const { token, memType, encodedId, type, via_id } = req.body;
     // console.log(req.body,"encodediddd");return;
-    console.log(token)
+    console.log(token);
     try {
       // Validate token and fetch rider details
       const rider = await this.validateTokenAndGetMember(token, memType);
       if (!rider) {
         return res.status(200).json({ status: 0, msg: "Unauthorized access." });
       }
-      if (rider?.status===0) {
-        return res.status(200).json({ status: 0, msg: rider?.msg});
+      if (rider?.status === 0) {
+        return res.status(200).json({ status: 0, msg: rider?.msg });
       }
 
       // Decode the encoded ID
@@ -1060,9 +1082,7 @@ async UpdateWithdrawalMethod(req, res) {
       }
       const userRow = await this.member.findById(request[0].user_id);
       if (!userRow) {
-        return res
-          .status(200)
-          .json({ status: 0, msg: "Error fetching user" });
+        return res.status(200).json({ status: 0, msg: "Error fetching user" });
       }
       // Handle request update based on type
       if (type?.toLowerCase() === "source") {
@@ -1138,7 +1158,6 @@ async UpdateWithdrawalMethod(req, res) {
       });
       // console.log("Order retrieved:", order);
 
-
       if (!order || order.assigned_rider !== riderId) {
         return res
           .status(200)
@@ -1172,7 +1191,6 @@ async UpdateWithdrawalMethod(req, res) {
       };
 
       const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
-
 
       const notificationText = `Your request #${order.id} has been accepted by a rider.`;
       await helpers.storeNotification(
@@ -1228,7 +1246,7 @@ async UpdateWithdrawalMethod(req, res) {
       }
 
       const formattedHandballCharges = helpers.formatAmount(handball_charges);
-    const formattedWaitingCharges = helpers.formatAmount(waiting_charges);
+      const formattedWaitingCharges = helpers.formatAmount(waiting_charges);
 
       // Handle source type logic
       if (type === "source") {
@@ -1241,8 +1259,7 @@ async UpdateWithdrawalMethod(req, res) {
             1,
             type,
             null,
-           'charges'
-
+            "charges"
           );
           if (!handballInvoice) {
             return res
@@ -1259,7 +1276,7 @@ async UpdateWithdrawalMethod(req, res) {
             1,
             type,
             null,
-           'charges'
+            "charges"
           );
           if (!waitingInvoice) {
             return res
@@ -1275,12 +1292,10 @@ async UpdateWithdrawalMethod(req, res) {
             1
           );
         if (!updatedRequestQuote) {
-          return res
-            .status(200)
-            .json({
-              status: 0,
-              msg: "Error updating source completion status"
-            });
+          return res.status(200).json({
+            status: 0,
+            msg: "Error updating source completion status"
+          });
         }
       } else if (type === "via") {
         // Handle via type logic
@@ -1313,15 +1328,13 @@ async UpdateWithdrawalMethod(req, res) {
             1,
             type,
             via_id,
-           'charges'
+            "charges"
           );
           if (!handballInvoice) {
-            return res
-              .status(200)
-              .json({
-                status: 0,
-                msg: "Error creating handball invoice for via"
-              });
+            return res.status(200).json({
+              status: 0,
+              msg: "Error creating handball invoice for via"
+            });
           }
         }
 
@@ -1333,15 +1346,13 @@ async UpdateWithdrawalMethod(req, res) {
             1,
             type,
             via_id,
-           'charges'
+            "charges"
           );
           if (!waitingInvoice) {
-            return res
-              .status(200)
-              .json({
-                status: 0,
-                msg: "Error creating waiting invoice for via"
-              });
+            return res.status(200).json({
+              status: 0,
+              msg: "Error creating waiting invoice for via"
+            });
           }
         }
 
@@ -1357,12 +1368,10 @@ async UpdateWithdrawalMethod(req, res) {
           decodedRequestId
         );
         if (!updatedRequestTime) {
-          return res
-            .status(200)
-            .json({
-              status: 0,
-              msg: "Error updating updated_time in request_quote"
-            });
+          return res.status(200).json({
+            status: 0,
+            msg: "Error updating updated_time in request_quote"
+          });
         }
         console.log("Creating invoice for destination charges");
       } else if (type === "destination") {
@@ -1378,15 +1387,13 @@ async UpdateWithdrawalMethod(req, res) {
             1,
             type,
             null,
-           'charges'
+            "charges"
           );
           if (!handballInvoice) {
-            return res
-              .status(200)
-              .json({
-                status: 0,
-                msg: "Error creating handball invoice for destination"
-              });
+            return res.status(200).json({
+              status: 0,
+              msg: "Error creating handball invoice for destination"
+            });
           }
         }
 
@@ -1400,15 +1407,13 @@ async UpdateWithdrawalMethod(req, res) {
             1,
             type,
             null,
-           'charges'
+            "charges"
           );
           if (!waitingInvoice) {
-            return res
-              .status(200)
-              .json({
-                status: 0,
-                msg: "Error creating waiting invoice for destination"
-              });
+            return res.status(200).json({
+              status: 0,
+              msg: "Error creating waiting invoice for destination"
+            });
           }
         }
 
@@ -1419,12 +1424,10 @@ async UpdateWithdrawalMethod(req, res) {
             1
           );
         if (!updatedRequestQuote) {
-          return res
-            .status(200)
-            .json({
-              status: 0,
-              msg: "Error updating destination completion status"
-            });
+          return res.status(200).json({
+            status: 0,
+            msg: "Error updating destination completion status"
+          });
         }
       } else {
         return res
@@ -1443,9 +1446,7 @@ async UpdateWithdrawalMethod(req, res) {
       }
       const userRow = await this.member.findById(order.user_id);
       if (!userRow) {
-        return res
-          .status(200)
-          .json({ status: 0, msg: "Error fetching user" });
+        return res.status(200).json({ status: 0, msg: "Error fetching user" });
       }
       const viasCount = await this.rider.countViasBySourceCompleted(order.id);
       // console.log("viasCount:", viasCount);
@@ -1479,15 +1480,14 @@ async UpdateWithdrawalMethod(req, res) {
         viasCount,
         formattedPaidAmount,
         formattedDueAmount,
-        dueAmount:dueAmount
+        dueAmount: dueAmount
       };
       // console.log(formattedOrder)
 
       const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
 
-
       const notificationText = `Your request #${order.id} has been marked as completed.`;
-      
+
       await helpers.storeNotification(
         order.user_id, // The user ID from request_quote
         userRow?.mem_type, // The user's member type
@@ -1497,13 +1497,11 @@ async UpdateWithdrawalMethod(req, res) {
       );
 
       // Step 5: Respond with the updated order
-      res
-        .status(200)
-        .json({
-          status: 1,
-          order: formattedOrder,
-          msg: "Request marked as completed"
-        });
+      res.status(200).json({
+        status: 1,
+        order: formattedOrder,
+        msg: "Request marked as completed"
+      });
     } catch (error) {
       console.error("Error in markAsCompleted:", error);
       res.status(500).json({ status: 0, msg: "Server error" });
@@ -1526,12 +1524,10 @@ async UpdateWithdrawalMethod(req, res) {
       );
 
       if (!invoices || invoices.length === 0) {
-        return res
-          .status(200)
-          .json({
-            status: 0,
-            msg: "No invoices found for the provided request ID."
-          });
+        return res.status(200).json({
+          status: 0,
+          msg: "No invoices found for the provided request ID."
+        });
       }
 
       return res.status(200).json({ status: 1, invoices });
@@ -1575,17 +1571,19 @@ async UpdateWithdrawalMethod(req, res) {
     }
   };
 
-updateRequestStatusToCompleted = async (req, res) => {
+  updateRequestStatusToCompleted = async (req, res) => {
     try {
-        const { id, token } = req.body; // ID of the request to update
-        // console.log("id:",id);return;
+      const { id, token } = req.body; // ID of the request to update
+      // console.log("id:",id);return;
 
-        // Check if ID is provided
-        if (!id) {
-            return res.status(200).json({ status: 0, msg: 'Request ID is required' });
-        }
+      // Check if ID is provided
+      if (!id) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Request ID is required" });
+      }
 
-        // Step 1: Validate token and fetch rider
+      // Step 1: Validate token and fetch rider
       const rider = await this.validateTokenAndGetMember(token, "rider");
       if (!rider) {
         return res.status(200).json({ status: 0, msg: "Unauthorized access." });
@@ -1593,7 +1591,6 @@ updateRequestStatusToCompleted = async (req, res) => {
       // console.log("rider:",rider)
 
       const encodedId = helpers.doEncode(String(id)); // Convert order.id to a string
-
 
       // Decode the encoded ID
       const decodedRequestId = helpers.doDecode(encodedId);
@@ -1611,412 +1608,462 @@ updateRequestStatusToCompleted = async (req, res) => {
       }
       const userRow = await this.member.findById(request[0].user_id);
       if (!userRow) {
-        return res
-          .status(200)
-          .json({ status: 0, msg: "Error fetching user" });
+        return res.status(200).json({ status: 0, msg: "Error fetching user" });
       }
       // console.log("request:",request);return;
 
-        // Update the status using the model
-        const updatedRequest = await RequestQuoteModel.updateRequestStatus(id, 'completed');
-        // console.log("updatedRequest:",updatedRequest)
+      // Update the status using the model
+      const updatedRequest = await RequestQuoteModel.updateRequestStatus(
+        id,
+        "completed"
+      );
+      // console.log("updatedRequest:",updatedRequest)
 
-        if (!updatedRequest) {
-            return res.status(200).json({ status: 0, msg: 'Request not found' });
-        }
-
-        // Step 2: Calculate earnings and insert into the earnings table
-        const totalDistance = request[0].total_distance || 0;
-        const riderPrice = request[0].rider_price || 0; // Assuming `rider_price` is part of the request data
-        const formattedRiderPrice = helpers.formatAmount(riderPrice);
-
-        const amount = totalDistance * formattedRiderPrice;
-        const created_time = helpers.getUtcTimeInSeconds()
-
-        const formattedAmount = helpers.formatAmount(amount);
-
-
-    if (formattedAmount > 0) {
-      const earningsData = {
-        user_id: rider.user.id,
-        amount: formattedAmount,
-        type: "credit",
-        status: "pending",
-        created_time: created_time, // UTC time in seconds
-      };
-      // console.log(rider.user.id,amount,created_time);return;
-
-      const insertedEarnings = await helpers.insertEarnings(earningsData);
-      // console.log("insertedEarnings:",insertedEarnings);return;
-
-      if (!insertedEarnings) {
-        return res
-          .status(200)
-          .json({ status: 0, msg: "Failed to insert earnings data." });
+      if (!updatedRequest) {
+        return res.status(200).json({ status: 0, msg: "Request not found" });
       }
-    }
 
-        const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
+      // Step 2: Calculate earnings and insert into the earnings table
+      const totalDistance = request[0].total_distance || 0;
+      const riderPrice = request[0].rider_price || 0; // Assuming `rider_price` is part of the request data
+      const formattedRiderPrice = helpers.formatAmount(riderPrice);
 
-        const notificationText = `Your request #${id} has been completed.`;
+      const amount = totalDistance * formattedRiderPrice;
+      const created_time = helpers.getUtcTimeInSeconds();
+
+      const formattedAmount = helpers.formatAmount(amount);
+
+      if (formattedAmount > 0) {
+        const earningsData = {
+          user_id: rider.user.id,
+          amount: formattedAmount,
+          type: "credit",
+          status: "pending",
+          created_time: created_time // UTC time in seconds
+        };
+        // console.log(rider.user.id,amount,created_time);return;
+
+        const insertedEarnings = await helpers.insertEarnings(earningsData);
+        // console.log("insertedEarnings:",insertedEarnings);return;
+
+        if (!insertedEarnings) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Failed to insert earnings data." });
+        }
+      }
+
+      const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
+
+      const notificationText = `Your request #${id} has been completed.`;
       await helpers.storeNotification(
         request[0].user_id, // The user ID from request_quote
         userRow?.mem_type, // The user's member type
         rider.user.id,
         notificationText,
         orderDetailsLink // Pass the link
-
       );
 
-        return res.status(200).json({
-            status: 1,
-            msg: "Status updated to completed and earnings added.",
-            data: updatedRequest,
-        });
+      return res.status(200).json({
+        status: 1,
+        msg: "Status updated to completed and earnings added.",
+        data: updatedRequest
+      });
     } catch (error) {
-        console.error('Error updating status:', error);
-        return res.status(200).json({
-          status: 0, msg: 'An error occurred while updating the status',
-        });
+      console.error("Error updating status:", error);
+      return res.status(200).json({
+        status: 0,
+        msg: "An error occurred while updating the status"
+      });
     }
-}
+  };
 
-async getRiderDashboardOrders(req, res) {
-  try {
-    const { token, memType } = req.body;
+  async getRiderDashboardOrders(req, res) {
+    try {
+      const { token, memType } = req.body;
 
-    // Validate token and memType
-    if (!token) {
-      return res.status(200).json({ status: 0, msg: "Token is required." });
+      // Validate token and memType
+      if (!token) {
+        return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
+
+      if (memType !== "rider") {
+        // Ensure the memType is 'rider'
+        return res.status(200).json({ status: 0, msg: "Invalid member type." });
+      }
+
+      // Validate the token and get the rider details
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse); // Return validation error response
+      }
+
+      // Extract the logged-in rider ID from the token validation response
+      const member = userResponse.user;
+      const riderId = member.id; // Assuming the `id` field contains the rider's unique ID
+
+      // Call the model function to get the completed orders
+      const completedOrders = await this.rider.getCompletedOrdersByRider(
+        riderId
+      );
+      console.log(completedOrders);
+      const ordersWithEncodedIds = completedOrders.map((order) => {
+        const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string
+        return { ...order, encodedId }; // Add encodedId to each order
+      });
+
+      // Call the model function to get the total orders with status 'completed' or 'accepted'
+      const totalOrders = await this.rider.getTotalOrdersByStatus(riderId);
+
+      // Call the model function to get the total number of completed orders
+      const totalCompletedOrders = await this.rider.getTotalCompletedOrders(
+        riderId
+      );
+      console.log(completedOrders, totalOrders, totalCompletedOrders);
+
+      // Return the response with the fetched orders and total order counts
+      return res.status(200).json({
+        status: 1,
+        msg: "Rider dashboard data fetched successfully.",
+        ordersWithEncodedIds, // Last 3 completed orders
+        totalOrders, // Total number of 'completed' or 'accepted' orders
+        totalCompletedOrders // Total number of 'completed' orders
+      });
+    } catch (error) {
+      console.error("Error fetching rider dashboard orders:", error.message);
+      return res.status(200).json({ status: 0, msg: "Internal Server Error" });
     }
-
-    if (memType !== "rider") { // Ensure the memType is 'rider'
-      return res.status(200).json({ status: 0, msg: "Invalid member type." });
-    }
-
-    // Validate the token and get the rider details
-    const userResponse = await this.validateTokenAndGetMember(token, memType);
-
-    if (userResponse.status === 0) {
-      return res.status(200).json(userResponse); // Return validation error response
-    }
-
-    // Extract the logged-in rider ID from the token validation response
-    const member = userResponse.user;
-    const riderId = member.id; // Assuming the `id` field contains the rider's unique ID
-
-    // Call the model function to get the completed orders
-    const completedOrders = await this.rider.getCompletedOrdersByRider(riderId);
-    console.log(completedOrders)
-    const ordersWithEncodedIds = completedOrders.map((order) => {
-            const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string
-            return { ...order, encodedId }; // Add encodedId to each order
-          });
-
-    // Call the model function to get the total orders with status 'completed' or 'accepted'
-    const totalOrders = await this.rider.getTotalOrdersByStatus(riderId);
-
-    // Call the model function to get the total number of completed orders
-    const totalCompletedOrders = await this.rider.getTotalCompletedOrders(riderId);
-    console.log(completedOrders,totalOrders,totalCompletedOrders)
-
-    // Return the response with the fetched orders and total order counts
-    return res.status(200).json({
-      status: 1,
-      msg: "Rider dashboard data fetched successfully.",
-      ordersWithEncodedIds,          // Last 3 completed orders
-      totalOrders,              // Total number of 'completed' or 'accepted' orders
-      totalCompletedOrders,     // Total number of 'completed' orders
-    });
-  } catch (error) {
-    console.error("Error fetching rider dashboard orders:", error.message);
-    return res.status(200).json({ status: 0, msg: "Internal Server Error" });
   }
-}
 
-async getRiderEarnings(req, res) {
-  try {
-    const { token, memType } = req.body;
-    // console.log(req.body,"req.body")
+  async getRiderEarnings(req, res) {
+    try {
+      const { token, memType } = req.body;
+      // console.log(req.body,"req.body")
 
-    // Validate token and memType
-    if (!token) {
-      return res.status(200).json({ status: 0, msg: "Token is required." });
+      // Validate token and memType
+      if (!token) {
+        return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
+
+      if (memType !== "rider") {
+        // Ensure the memType is 'rider'
+        return res.status(200).json({ status: 0, msg: "Invalid member type." });
+      }
+
+      // Validate the token and get the rider details
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse); // Return validation error response
+      }
+
+      // Extract the logged-in rider ID from the token validation response
+      const riderId = userResponse.user.id;
+
+      // Now, call the model's getRiderEarnings function to fetch the earnings
+      const earningsData = await this.rider.getRiderEarnings(riderId);
+      console.log(
+        "net income:",
+        earningsData.netIncome,
+        "available balance:",
+        earningsData.availableBalance,
+        earningsData.totalWithdrawn
+      );
+
+      if (!earningsData) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "No earnings found for this rider." });
+      }
+
+      const formattedNetIncome = helpers.formatAmount(earningsData.netIncome);
+      const formattedAvailableBalance = helpers.formatAmount(
+        earningsData.availableBalance
+      );
+      const totalWithdrawn = helpers.formatAmount(earningsData.totalWithdrawn);
+      // const formattedEarnings = helpers.formatAmount(earningsData.earnings);
+
+      const bank_payment_methods = await this.rider.getWithdrawalPamentMethods(
+        riderId,
+        "bank-account"
+      );
+      const paypal_payment_methods =
+        await this.rider.getWithdrawalPamentMethods(riderId, "paypal");
+
+      const formattedEarnings = earningsData.earnings.map((earning) => ({
+        ...earning,
+        amount: helpers.formatAmount(earning.amount) // Assuming each earning has an `amount` field
+      }));
+
+      // Return earnings data, net income, and available balance
+      return res.status(200).json({
+        status: 1,
+        netIncome: formattedNetIncome,
+        availableBalance: formattedAvailableBalance,
+        earnings: formattedEarnings,
+        totalWithdrawn: totalWithdrawn,
+        bank_payment_methods: bank_payment_methods,
+        paypal_payment_methods: paypal_payment_methods
+      });
+    } catch (error) {
+      console.error("Error fetching earnings:", error);
+      return res
+        .status(200)
+        .json({ status: 0, msg: "An error occurred while fetching earnings" });
     }
-
-    if (memType !== "rider") { // Ensure the memType is 'rider'
-      return res.status(200).json({ status: 0, msg: "Invalid member type." });
-    }
-
-    // Validate the token and get the rider details
-    const userResponse = await this.validateTokenAndGetMember(token, memType);
-
-    if (userResponse.status === 0) {
-      return res.status(200).json(userResponse); // Return validation error response
-    }
-
-    // Extract the logged-in rider ID from the token validation response
-    const riderId = userResponse.user.id;
-
-    // Now, call the model's getRiderEarnings function to fetch the earnings
-    const earningsData = await this.rider.getRiderEarnings(riderId);
-    console.log("net income:",earningsData.netIncome,"available balance:",earningsData.availableBalance,earningsData.totalWithdrawn)
-
-    if (!earningsData) {
-      return res.status(200).json({ status: 0, msg: "No earnings found for this rider." });
-    }
-
-    const formattedNetIncome = helpers.formatAmount(earningsData.netIncome);
-    const formattedAvailableBalance = helpers.formatAmount(earningsData.availableBalance);
-    const totalWithdrawn = helpers.formatAmount(earningsData.totalWithdrawn);
-    // const formattedEarnings = helpers.formatAmount(earningsData.earnings);
-
-
-    const bank_payment_methods = await this.rider.getWithdrawalPamentMethods(riderId,'bank-account');
-    const paypal_payment_methods = await this.rider.getWithdrawalPamentMethods(riderId,'paypal');
-
-    const formattedEarnings = earningsData.earnings.map(earning => ({
-      ...earning,
-      amount: helpers.formatAmount(earning.amount), // Assuming each earning has an `amount` field
-    }));
-
-
-
-    // Return earnings data, net income, and available balance
-    return res.status(200).json({
-      status: 1,
-      netIncome: formattedNetIncome,
-      availableBalance: formattedAvailableBalance,
-      earnings: formattedEarnings,
-      totalWithdrawn:totalWithdrawn,
-      bank_payment_methods:bank_payment_methods,
-      paypal_payment_methods:paypal_payment_methods
-    });
-  } catch (error) {
-    console.error("Error fetching earnings:", error);
-    return res.status(200).json({ status: 0, msg: "An error occurred while fetching earnings" });
   }
-}
-async saveWithDrawalRequest(req, res) {
-  try {
-    const { token, memType, payment_method, account_details, paypal_details } = req.body;
+  async saveWithDrawalRequest(req, res) {
+    try {
+      const {
+        token,
+        memType,
+        payment_method,
+        account_details,
+        paypal_details
+      } = req.body;
 
-    // Validate token and memType
-    if (!token) {
-      return res.status(200).json({ status: 0, msg: "Token is required." });
+      // Validate token and memType
+      if (!token) {
+        return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
+
+      if (memType !== "rider") {
+        return res.status(200).json({ status: 0, msg: "Invalid member type." });
+      }
+
+      // Validate the token and get the rider details
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse);
+      }
+
+      const riderId = userResponse.user.id;
+
+      // Validate payment method and required details
+      if (payment_method === "bank-account" && !account_details) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Bank details are required." });
+      }
+
+      if (payment_method === "paypal" && !paypal_details) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "PayPal email is required!" });
+      }
+
+      // Get cleared earnings for the rider
+      const clearedEarnings = await this.rider.getClearedEarnings(riderId);
+      const availableBalance = clearedEarnings.reduce(
+        (sum, earning) => sum + parseFloat(earning.amount),
+        0
+      );
+
+      // Validate available balance
+      if (availableBalance <= 0) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Insufficient balance for withdrawal." });
+      }
+
+      const formattedBalance = helpers.formatAmount(availableBalance);
+
+      // Create debit entry in the earnings table
+      const created_time = helpers.getUtcTimeInSeconds();
+      const debitEntry = await helpers.insertEarnings({
+        user_id: riderId,
+        amount: formattedBalance, // Store available balance
+        type: "debit", // Debit entry
+        status: "cleared", // Cleared status
+        created_time: created_time
+      });
+
+      if (!debitEntry) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Failed to create debit entry." });
+      }
+
+      const earningId = debitEntry[0].insertId; // Assuming this is how `insertId` is accessed
+
+      // Create an entry in the withdraw_requests table
+      const created_at = helpers.getUtcTimeInSeconds();
+      const updated_at = helpers.getUtcTimeInSeconds();
+      const result = await this.rider.createWithdrawalRequest({
+        riderId,
+        earning_id: earningId, // Link to the debit entry
+        amount: formattedBalance, // Withdrawal amount
+        status: "pending", // Withdrawal request is pending
+        payment_method,
+        account_details,
+        paypal_details,
+        created_at,
+        updated_at
+      });
+
+      if (!result.insertId) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Failed to create withdrawal request." });
+      }
+
+      return res
+        .status(200)
+        .json({ status: 1, msg: "Withdrawal request submitted successfully." });
+    } catch (error) {
+      console.error("Error in saveWithDrawalRequest:", error);
+      return res.status(500).json({ status: 0, msg: "Internal server error." });
     }
-
-    if (memType !== "rider") {
-      return res.status(200).json({ status: 0, msg: "Invalid member type." });
-    }
-
-    // Validate the token and get the rider details
-    const userResponse = await this.validateTokenAndGetMember(token, memType);
-
-    if (userResponse.status === 0) {
-      return res.status(200).json(userResponse);
-    }
-
-    const riderId = userResponse.user.id;
-
-    // Validate payment method and required details
-    if (payment_method === "bank-account" && !account_details) {
-      return res.status(200).json({ status: 0, msg: "Bank details are required." });
-    }
-
-    if (payment_method === "paypal" && !paypal_details) {
-      return res.status(200).json({ status: 0, msg: "PayPal email is required!" });
-    }
-
-    // Get cleared earnings for the rider
-    const clearedEarnings = await this.rider.getClearedEarnings(riderId);
-    const availableBalance = clearedEarnings.reduce((sum, earning) => sum + parseFloat(earning.amount), 0);
-
-    // Validate available balance
-    if (availableBalance <= 0) {
-      return res.status(200).json({ status: 0, msg: "Insufficient balance for withdrawal." });
-    }
-
-    const formattedBalance = helpers.formatAmount(availableBalance);
-
-    // Create debit entry in the earnings table
-    const created_time = helpers.getUtcTimeInSeconds();
-    const debitEntry = await helpers.insertEarnings({
-      user_id: riderId,
-      amount: formattedBalance, // Store available balance
-      type: "debit", // Debit entry
-      status: "cleared", // Cleared status
-      created_time: created_time,
-    });
-
-    if (!debitEntry) {
-      return res.status(200).json({ status: 0, msg: "Failed to create debit entry." });
-    }
-
-    const earningId = debitEntry[0].insertId; // Assuming this is how `insertId` is accessed
-
-    // Create an entry in the withdraw_requests table
-    const created_at = helpers.getUtcTimeInSeconds();
-    const updated_at = helpers.getUtcTimeInSeconds();
-    const result = await this.rider.createWithdrawalRequest({
-      riderId,
-      earning_id: earningId, // Link to the debit entry
-      amount: formattedBalance, // Withdrawal amount
-      status: "pending", // Withdrawal request is pending
-      payment_method,
-      account_details,
-      paypal_details,
-      created_at,
-      updated_at,
-    });
-
-    if (!result.insertId) {
-      return res.status(200).json({ status: 0, msg: "Failed to create withdrawal request." });
-    }
-
-    return res.status(200).json({ status: 1, msg: "Withdrawal request submitted successfully." });
-  } catch (error) {
-    console.error("Error in saveWithDrawalRequest:", error);
-    return res.status(500).json({ status: 0, msg: "Internal server error." });
   }
-}
 
-async getRiderDocumentsApi(req, res) {
-  try {
-    const { token, memType } = req.body;
-    console.log("Received Token:", token);
-    console.log("Received Member Type:", memType);
+  async getRiderDocumentsApi(req, res) {
+    try {
+      const { token, memType } = req.body;
+      console.log("Received Token:", token);
+      console.log("Received Member Type:", memType);
 
+      // Validate token and memType
+      if (!token) {
+        return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
 
-    // Validate token and memType
-    if (!token) {
-      return res.status(200).json({ status: 0, msg: "Token is required." });
-    }
+      if (memType !== "rider") {
+        return res.status(200).json({ status: 0, msg: "Invalid member type." });
+      }
 
-    if (memType !== "rider") {
-      return res.status(200).json({ status: 0, msg: "Invalid member type." });
-    }
+      // Validate the token and get the rider details
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+      console.log("User Response:", userResponse);
 
-    // Validate the token and get the rider details
-    const userResponse = await this.validateTokenAndGetMember(token, memType);
-    console.log("User Response:", userResponse);
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse);
+      }
 
-
-    if (userResponse.status === 0) {
-      return res.status(200).json(userResponse);
-    }
-
-    const riderId = userResponse.user.id;
-    console.log("Fetching documents for Rider ID:", riderId);
+      const riderId = userResponse.user.id;
+      console.log("Fetching documents for Rider ID:", riderId);
 
       // Fetch the documents for the given rider_id
       const documents = await RiderModel.getDocuments(riderId);
       console.log("Fetched Documents:", documents);
 
-
       // If no documents are found
       if (documents.length === 0) {
-          return res.status(200).json({ message: 'No documents found for this rider.' });
+        return res
+          .status(200)
+          .json({ message: "No documents found for this rider." });
       }
 
       // Return the list of documents as JSON
       res.status(200).json({ documents });
-
-  } catch (error) {
-      console.error('Error fetching documents:', error);
-      res.status(200).json({ error: 'Failed to fetch documents' });
+    } catch (error) {
+      console.error("Error fetching documents:", error);
+      res.status(200).json({ error: "Failed to fetch documents" });
+    }
   }
-}
 
-async uploadRiderDocument  (req, res)  {
-  try {
-    const { req_id, memType, token } = req.body;
-    const riderDocument = req.files && req.files["rider_document"] ? req.files["rider_document"][0].filename : '';
-    console.log("req.body", req.body);  // Log body data
-console.log(token,req_id,riderDocument,'all data')
+  async uploadRiderDocument(req, res) {
+    try {
+      const { req_id, memType, token } = req.body;
+      const riderDocument =
+        req.files && req.files["rider_document"]
+          ? req.files["rider_document"][0].filename
+          : "";
+      console.log("req.body", req.body); // Log body data
+      console.log(token, req_id, riderDocument, "all data");
 
+      // Validate request
+      if (!token || !req_id || !riderDocument) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Missing required fields." });
+      }
 
-    // Validate request
-    if (!token || !req_id || !riderDocument) {
-      return res.status(200).json({ status: 0, msg: "Missing required fields." });
+      // Validate token and get user
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse);
+      }
+
+      const riderId = userResponse.user.id;
+
+      // Check if the document belongs to the logged-in user
+
+      const existingDoc = await RiderModel.getDocumentByIdAndRiderId(
+        req_id,
+        riderId
+      );
+      console.log("existingDoc:", existingDoc);
+
+      if (!existingDoc.length) {
+        return res.status(200).json({ status: 0, msg: "Unauthorized access." });
+      }
+
+      // Encrypt filename and move file
+
+      const encryptedFileName = riderDocument;
+
+      // Update document record
+      await RiderModel.updateDocumentNameAndStatus(encryptedFileName, req_id);
+      console.log(
+        await RiderModel.updateDocumentNameAndStatus(encryptedFileName, req_id)
+      );
+
+      res
+        .status(200)
+        .json({
+          status: 1,
+          msg: "File uploaded successfully.",
+          encryptedFileName
+        });
+    } catch (error) {
+      console.error("Upload error:", error);
+      res.status(200).json({ status: 0, msg: "Internal server error." });
     }
-
-    // Validate token and get user
-    const userResponse = await this.validateTokenAndGetMember(token, memType);
-    if (userResponse.status === 0) {
-      return res.status(200).json(userResponse);
-    }
-
-    const riderId = userResponse.user.id;
-
-    // Check if the document belongs to the logged-in user
-
-    const existingDoc = await RiderModel.getDocumentByIdAndRiderId(req_id,riderId);
-    console.log("existingDoc:",existingDoc)
-
-    if (!existingDoc.length) {
-      return res.status(200).json({ status: 0, msg: "Unauthorized access." });
-    }
-
-    // Encrypt filename and move file
-
-    const encryptedFileName = riderDocument
-
-    // Update document record
-    await RiderModel.updateDocumentNameAndStatus(encryptedFileName, req_id)
-    console.log(    await RiderModel.updateDocumentNameAndStatus(encryptedFileName, req_id)
-  )
-    
-
-    res.status(200).json({ status: 1, msg: "File uploaded successfully.", encryptedFileName });
-  } catch (error) {
-    console.error("Upload error:", error);
-    res.status(200).json({ status: 0, msg: "Internal server error." });
   }
-};
 
-// router.post("/delete-rider-document", async (req, res) => {
+  // router.post("/delete-rider-document", async (req, res) => {
   async deleteRiderDocument(req, res) {
     try {
       const { req_id, token, memType } = req.body;
-  
+
       if (!req_id || !token || !memType) {
         return res.status(200).json({ status: 0, msg: "Invalid request data" });
       }
-  
+
       // Validate user
       const userResponse = await this.validateTokenAndGetMember(token, memType);
       if (userResponse.status === 0) {
         return res.status(200).json(userResponse);
       }
-  
+
       const riderId = userResponse.user.id;
-  
+
       // Fetch the document based on req_id AND riderId
-      const documentExists = await RiderModel.getDocumentByIdAndRiderId(req_id, riderId);
-  
+      const documentExists = await RiderModel.getDocumentByIdAndRiderId(
+        req_id,
+        riderId
+      );
+
       if (!documentExists) {
-        return res.status(200).json({ status: 0, msg: "Document not found or does not belong to the rider" });
+        return res
+          .status(200)
+          .json({
+            status: 0,
+            msg: "Document not found or does not belong to the rider"
+          });
       }
-  
+
       // Delete the document
       await RiderModel.deleteDocument(req_id, riderId);
-  
+
       return res.json({ status: 1, msg: "Document deleted successfully" });
     } catch (error) {
       console.error("Delete error:", error);
       return res.status(200).json({ status: 0, msg: "Server error" });
     }
   }
-  
-  
-
-
-
-
-
-
-
 }
 
 module.exports = RiderController;
