@@ -1,0 +1,110 @@
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Request</title>
+  </head>
+  <body
+    style="
+/*      font-family: Poppins;*/
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+    ">
+    <div
+      style="
+        max-width: 900px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #d4e0df;
+      ">
+      <table style="width: 100%; border-spacing: 0;">
+        <tbody>
+            <tr>
+                <td style="padding: 0;">
+                    <a href=""
+                        style="display: block; width: 100px; margin: 10px auto 0; text-decoration: none;">
+                        <img src="<%=adminData.logo %>"
+                            alt="Logo"
+                            style="display: block; width: 100%;">
+                    </a>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
+        <table style="width: 100%; margin-top: 30px; border-collapse: collapse">
+        <tr>
+          <td style="padding: 10px">
+            <h2 style="color: #ed1c24; font-weight: 600">Request Quote</h2>
+
+            <% if (type === 'rider') { %>
+              <p>You have received a new delivery request! Please review the details and accept the request if you are available to pick up the parcel.</p>
+            <% } else { %>
+              <p>Thank you for requesting a quote! Your parcel delivery request has been successfully created! Our riders will receive a notification. You will be notified once a rider has accepted your request.</p>
+            <% } %>
+
+            <p>
+              <strong style="font-weight: 600">Booking Id:</strong> <%= order.booking_id %>
+            </p>
+            <p>
+              <strong style="font-weight: 600">Start Date:</strong> <%= order.start_date %>
+            </p>
+          </td>
+        </tr>
+
+  </table>
+      <table style="width: 100%; margin-top: 10px; border-collapse: collapse">
+        
+        <tr>
+          <td style="width: 50%; padding: 10px">
+
+            <strong style="padding-bottom: 10px; font-weight: 600"
+              >Pickup Location</strong
+            ><br />
+            <%=order.source_address %>, <%=order.source_city %> <br/><%=order.source_postcode %>
+          </td>
+          <td style="width: 50%; padding: 10px">
+            <strong style="padding-bottom: 10px; font-weight: 600"
+              >Drop-off Location</strong
+            ><br />
+            <%=order.dest_address %>, <%=order.dest_city %> <br/><%=order.dest_postcode %>
+          </td>
+        </tr>
+      </table>
+
+      <table
+        style="
+          width: 100%;
+          margin-top: 20px;
+          border-collapse: collapse;
+          border: 1px solid #ddd;
+        ">
+        <thead>
+          <tr style="background-color: #ed1c24; color: white; text-align: left">
+            <th style="padding: 13px; font-weight: 600">Parcel Type</th>
+            <th style="padding: 13px; font-weight: 600">Length</th>
+            <th style="padding: 13px; font-weight: 600">Width</th>
+            <th style="padding: 13px; font-weight: 600">Height</th>
+            <th style="padding: 13px; font-weight: 600">Weight</th>
+          </tr>
+        </thead>
+        <tbody style="border: 1px solid #fff5f6">
+          <% order.parcels.forEach(parcel => { %>
+              <tr>
+                <td style="padding: 13px"><%= parcel.parcel_type %></td>
+                <td style="padding: 13px"><%= parcel.length %></td>
+                <td style="padding: 13px"><%= parcel.width %></td>
+                <td style="padding: 13px"><%= parcel.height %></td>
+                <td style="padding: 13px"><%= parcel.weight %></td>
+              </tr>
+            <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

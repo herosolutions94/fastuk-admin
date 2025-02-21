@@ -1504,7 +1504,13 @@ class MemberController extends BaseController {
           };
         } else if (payment_method != "paypal") {
           const orderDetailsLink = `/rider-dashboard/jobs`;
+          let order = await this.member.getUserOrderDetailsById({
+            userId: userId,
+            requestId: requestQuoteId
+          });
 
+          const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
+          order={...order,parcels:parcels,start_date:helpers.formatDateToUK(order.start_date)}
           const ridersInCity = await this.rider.getRidersByCity(source_city);
 
           if (ridersInCity && ridersInCity.length > 0) {
@@ -1522,6 +1528,12 @@ class MemberController extends BaseController {
                 notificationText,
                 orderDetailsLink
               );
+
+              await helpers.sendEmail(rider.email, "New Order Requests - FastUk", 'request-quote', {
+                  adminData,
+                  order,
+                  type:"rider"
+              });
             }
           }
 
@@ -1540,6 +1552,15 @@ class MemberController extends BaseController {
           });
         }
         console.log("Successfully CREATED REQUEST", apple_obj);
+        
+        const templateData = {
+            username:member.full_name, // Pass username
+            adminData,
+            order,
+            type:"user"
+        };
+
+        const result = await helpers.sendEmail(member.email, "Parcel Request Confirmed: Awaiting Rider Assignment - FastUk", 'request-quote', templateData);
         // Send success response
         res.status(200).json({
           status: 1,
@@ -3300,16 +3321,22 @@ class MemberController extends BaseController {
 
   // app.post('/send-email', async (req, res) => {
     async sendMailApi(req, res) {
-        const { email,username,otp } = req.body;
+        const { email,username } = req.body;
         let adminData = res.locals.adminData; 
-        const subject = "Verify Your Email - FastUk";
+        const subject = "Parcel Request Confirmed: Awaiting Rider Assignment - FastUk";
+        let order = await this.member.getUserOrderDetailsById({
+          userId: 1,
+          requestId: 1
+        });
+        const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
+        order={...order,parcels:parcels,start_date:helpers.formatDateToUK(order.start_date)}
         const templateData = {
             username, // Pass username
-            otp,      // Pass OTP
-            adminData
+            adminData,
+            order
         };
 
-        const result = await helpers.sendEmail(email, subject, 'email-verify', templateData);
+        const result = await helpers.sendEmail(email, subject, 'request-quote', templateData);
           if (result.success) {
               res.status(200).json({ status: 1, msg: "Email sent successfully", messageId: result.messageId });
           } else {
