@@ -184,6 +184,28 @@ class BusinessUserController extends BaseController {
     
             const updatedBusinessUser = await BusinessUser.findById(id);
             console.log("Updated User:", updatedBusinessUser);
+
+            let adminData = res.locals.adminData;
+                    let subject, templateName;
+            
+                    if (is_approved === "approved") {
+                        subject = "Congratulations! Your Business Account is Approved - " + adminData.site_name;
+                        templateName = "approval-email";
+                    } else if (is_approved === "rejected") {
+                        subject = "Business Application Rejected - " + adminData.site_name;
+                        templateName = "rejection-email";
+                    }
+            
+                    // Prepare template data
+                    const templateData = {
+                        username: updatedBusinessUser.full_name,
+                        adminData
+                    };
+            
+                    // Send the email if status is approved or rejected
+                    if (is_approved !== "pending") {
+                        await helpers.sendEmail(updatedBusinessUser.email, subject, templateName, templateData);
+                    }     
     
             if (updatedBusinessUser) {
                 // If approved, update credits and deactivate the account
