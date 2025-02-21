@@ -597,7 +597,7 @@ class MemberController extends BaseController {
       order_details
     } = req.body;
 
-    // console.log(req.body);
+    console.log("req.body:",req.body);
 
     const requiredFields = [
       "selectedVehicle",
@@ -735,6 +735,23 @@ class MemberController extends BaseController {
         // console.log("Token stored for user:", userId);
         token_arr = { authToken, type: "user" };
       }
+      let adminData = res.locals.adminData;
+      const otp = Math.floor(100000 + Math.random() * 900000);
+
+            const subject = "Verify Your Email - " + adminData.site_name;
+            const templateData = {
+              username: full_name, // Pass username
+              otp: otp, // Pass OTP
+              adminData
+            };
+      
+            const result = await helpers.sendEmail(
+              email,
+              subject,
+              "email-verify",
+              templateData
+            );console.log("result:",result)
+            ;
       if (
         parcel_price_obj?.total == undefined ||
         parcel_price_obj?.total == null ||
