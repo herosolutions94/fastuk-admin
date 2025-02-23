@@ -23,6 +23,7 @@ const helpers = require("../../utils/helpers");
 const { SMTP_MAIL, SMTP_PASSWORD } = process.env;
 const Stripe = require("stripe");
 const { pool } = require("../../config/db-connection");
+const { order } = require("paypal-rest-sdk");
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 class MemberController extends BaseController {
   constructor() {
@@ -1501,7 +1502,7 @@ class MemberController extends BaseController {
         // )
         //   return;
         };
-        console.log(req.body)
+        // console.log(req.body)
       //  return;
         let apple_obj = {};
         if (payment_method === "apple-pay") {
@@ -1521,13 +1522,7 @@ class MemberController extends BaseController {
           };
         } else if (payment_method != "paypal") {
           const orderDetailsLink = `/rider-dashboard/jobs`;
-          let order = await this.member.getUserOrderDetailsById({
-            userId: userId,
-            requestId: requestQuoteId
-          });
-
-          const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
-          order={...order,parcels:parcels,start_date:helpers.formatDateToUK(order.start_date)}
+         
           const ridersInCity = await this.rider.getRidersByCity(source_city);
 
           if (ridersInCity && ridersInCity.length > 0) {
@@ -1546,9 +1541,18 @@ class MemberController extends BaseController {
                 orderDetailsLink
               );
 
+              
+            
+              let orderRow = await this.member.getUserOrderDetailsById({
+                userId: userId,
+                requestId: requestQuoteId
+              });
+    
+              const parcelsArray = await this.rider.getParcelDetailsByQuoteId(orderRow.id);
+              orderRow={...orderRow,parcels:parcelsArray,start_date:helpers.formatDateToUK(orderRow.start_date)}
               await helpers.sendEmail(rider.email, "New Order Requests - FastUk", 'request-quote', {
-                  adminData,
-                  order,
+                  adminData:siteSettings,
+                  order:orderRow,
                   type:"rider"
               });
             }
@@ -1568,16 +1572,32 @@ class MemberController extends BaseController {
             type: "Request Quote"
           });
         }
-        console.log("Successfully CREATED REQUEST", apple_obj);
+        // console.log("Successfully CREATED REQUEST", apple_obj);
+        let orderRow = await this.member.getUserOrderDetailsById({
+          userId: userId,
+          requestId: requestQuoteId
+        });
+
+        const parcelsArray = await this.rider.getParcelDetailsByQuoteId(orderRow.id);
+        orderRow={...orderRow,parcels:parcelsArray,start_date:helpers.formatDateToUK(orderRow.start_date)}
+        console.log("order:",orderRow)
+
+
         
         const templateData = {
+
             username:member.full_name, // Pass username
-            adminData,
-            order,
+            adminData:siteSettings,
+            order:orderRow
+            ,
             type:"user"
         };
+        console.log("templateData:", templateData)
 
         const result = await helpers.sendEmail(member.email, "Parcel Request Confirmed: Awaiting Rider Assignment - FastUk", 'request-quote', templateData);
+        console.log("result:", result,member.email)
+
+        
         // Send success response
         res.status(200).json({
           status: 1,

@@ -507,20 +507,27 @@ class RiderController extends BaseController {
       if (!userRow) {
         return res.status(200).json({ status: 0, msg: "Error fetching user" });
       }
+
+      // const riderRow = await this.rider.findById(requestQuote.assigned_rider);
+      // if (!riderRow) {
+      //   return res.status(200).json({ status: 0, msg: "Error fetching rider" });
+      // }
+      // console.log("riderRow:",riderRow)
+
       // Step 4: Assign the user ID to the assigned_rider column
       const updateStatus = await this.rider.assignRiderAndUpdateStatus(
         loggedInUser.id,
         request_id
       );
       // console.log("updateStatus:", updateStatus);
-
+      
       if (updateStatus.affectedRows === 0) {
         return res
           .status(200)
           .json({ status: 0, msg: "Failed to assign rider to the request." });
       }
       let request_row = await this.rider.getRequestQuoteById(request_id);
-      // console.log("request_row:",request_row)
+      console.log("request_row:",request_row)
 
       if (request_row) {
         const user = await this.member.findById(request_row.user_id);
@@ -563,6 +570,31 @@ class RiderController extends BaseController {
         notificationText,
         orderDetailsLink
       );
+
+      let adminData = res.locals.adminData;
+      const user = await this.member.findById(request_row.user_id);
+
+
+      await helpers.sendEmail(
+        user.email,
+        "Request Accepted",
+        "rider-job-acceptance-email",
+        {
+          adminData,
+          order: request_row,
+          type: "user"
+        }
+      );
+
+      const templateData = {
+        username: user.full_name, // Pass username
+        adminData,
+        order: request_row,
+        type: "user"
+      };
+      console.log("templateData:",templateData)
+
+
       return res.status(200).json({
         status: 1,
         msg: "Rider assigned successfully.",
@@ -1077,6 +1109,9 @@ class RiderController extends BaseController {
       // console.log(rider);return;
       // Fetch the request by assigned rider and ID
       const request = await this.rider.getRequestById(requestId, rider.user.id);
+      const parcels = await this.rider.getParcelDetailsByQuoteId(requestId);
+
+
       if (!request) {
         return res.status(200).json({ status: 0, msg: "Request not found." });
       }
@@ -1101,6 +1136,34 @@ class RiderController extends BaseController {
             .status(500)
             .json({ status: 0, msg: "Error updating request status." });
         }
+        let adminData = res.locals.adminData;
+
+        const requestRow = {
+          ...request,  // Spread request properties into order
+          parcels: parcels // Add parcels as an array inside order
+        };
+
+
+
+      await helpers.sendEmail(
+        userRow.email,
+        "Order picked from source",
+        "source-picked-email",
+        {
+          adminData,
+          order: requestRow,
+          type: "user"
+        }
+      );
+
+      const templateData = {
+        username: userRow.full_name, // Pass username
+        adminData,
+        order: requestRow,
+        type: "user"
+      };
+      console.log("order:",requestRow);
+
       } else if (type?.toLowerCase() === "via") {
         if (!via_id) {
           return res
@@ -1169,7 +1232,6 @@ class RiderController extends BaseController {
 
       // Fetch parcels and vias
       // const parcels = await this.rider.getParcelsByQuoteId(order.id);
-      const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
       const vias = await this.rider.getViasByQuoteId(order.id);
       const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
 
@@ -2010,13 +2072,11 @@ class RiderController extends BaseController {
         await RiderModel.updateDocumentNameAndStatus(encryptedFileName, req_id)
       );
 
-      res
-        .status(200)
-        .json({
-          status: 1,
-          msg: "File uploaded successfully.",
-          encryptedFileName
-        });
+      res.status(200).json({
+        status: 1,
+        msg: "File uploaded successfully.",
+        encryptedFileName
+      });
     } catch (error) {
       console.error("Upload error:", error);
       res.status(200).json({ status: 0, msg: "Internal server error." });
@@ -2047,12 +2107,10 @@ class RiderController extends BaseController {
       );
 
       if (!documentExists) {
-        return res
-          .status(200)
-          .json({
-            status: 0,
-            msg: "Document not found or does not belong to the rider"
-          });
+        return res.status(200).json({
+          status: 0,
+          msg: "Document not found or does not belong to the rider"
+        });
       }
 
       // Delete the document
