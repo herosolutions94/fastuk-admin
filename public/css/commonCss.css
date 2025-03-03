@@ -15172,7 +15172,9 @@ tbody.collapse.in {
   color: #333;
   white-space: nowrap;
 }
-
+.dropdown-menu > li > a.btn{
+  color:#fff !important;
+}
 .dropdown-menu > li > a:focus,
 .dropdown-menu > li > a:hover {
   color: #262626;

@@ -20,12 +20,6 @@
             <th width="19%">
               <p>Name</p>
             </th>
-            <th width="15%">
-              <p>Email</p>
-            </th>
-            <th width="14%">
-              <p>Phone No</p>
-            </th>
             <th width="14%">
               <p>Approval Status</p>
             </th>
@@ -56,12 +50,10 @@
                     alt="Driving License" />
                 </div>
                 <div class="custm-cntnt">
-                  <p><%= rider.full_name %></p>
+                  <p><%= rider.full_name %><br /><%= rider.email %></p>
                 </div>
               </div>
             </td>
-            <td><p><%= rider.email %></p></td>
-            <td><p><%= rider.mem_phone %></p></td>
             <td>
               <p><%- helpers.getRiderApprovalStatus(rider.is_approved) %></p>
             </td>
@@ -78,11 +70,13 @@
                   <i class="fa fa-ellipsis-h"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-primary" role="menu">
+                <% if (rider.is_approved!=='approved') { %>
                   <li>
                     <a href="/admin/riders/update-status/<%= rider.id %>?is_approved=approved" class="btn btn-success">
                       Approve
                     </a>
                   </li>
+                  <% } %>
                   <li>
                     <a href="/admin/riders/update-status/<%= rider.id %>?is_approved=rejected" class="btn btn-danger">
                       Reject
@@ -95,7 +89,7 @@
                   </li>
                   <li>
                     <a href="/admin/riders/documents/<%= rider.id %>"
-                      ><i class="fa fa-pencil" aria-hidden="true"></i>Add Document</a
+                      ><i class="fa fa-file" aria-hidden="true"></i>Add Document</a
                     >
                   </li>
                   <li>
