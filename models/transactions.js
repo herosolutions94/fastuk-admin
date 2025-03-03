@@ -14,6 +14,7 @@ class TransactionsModel extends BaseModel {
       const result = await pool.query(`
             SELECT 
     t.id AS id,
+    t.transaction_id AS transaction_id,
     t.user_id,
     t.amount,
     t.type,
