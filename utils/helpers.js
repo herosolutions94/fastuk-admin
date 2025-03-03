@@ -70,6 +70,11 @@ module.exports = {
       return '<span class="status badge danger">InActive</span>';
     }
   },
+  shortText: function(text, length) {
+    if (!text || typeof text !== "string") return "";
+    if (text.length <= length) return text;
+    return text.substring(0, length) + "...";
+},
 uploadImageFromUrl: async function (imageUrl) {
         try {
         // Define uploads folder in the main project directory
@@ -405,6 +410,18 @@ getStateNameByStateId:async function(state_id) {
     return moment(date)
       .tz("Europe/London") // Set the timezone to UK (Europe/London)
       .format("D MMMM YYYY"); // Format the date in UK format
+  },
+  getRiderMessageForAddress: function(array, address) {
+     return array
+        .map((obj) => {
+            if (obj.source_address === address) {
+                return `Picked-up Location: Parcel Number ${obj.parcel_number} will be picked from ${obj.source_address}`;
+            } else if (obj.destination_address === address) {
+                return `Drop-off Location: Parcel Number ${obj.parcel_number} will be dropped at ${obj.destination_address}`;
+            }
+            return null; // Return null if the address is not found
+        })
+        .filter((message) => message !== null);
   },
 
   getUtcTimeInSeconds: function () {

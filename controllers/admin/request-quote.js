@@ -23,20 +23,46 @@ class RequestQuoteController extends BaseController {
     }
 
     
-    async getRequestQuotes(req, res) {
+    async getCompletedRequestQuotes(req, res) {
         try {
             // const id = req.body; // Fetch ID from route params if available
 
-            const requestQuotesWithMembers = await RequestQuote.getRequestQuotesWithMembers();
+            const requestQuotesWithMembers = await RequestQuote.getRequestQuotesWithMembers(["rq.status = 'completed'"]);
+            
+            console.log('Completed Request Quotes:', requestQuotesWithMembers);
+
+    
+            res.render('admin/request-quotes', { requestQuotes: requestQuotesWithMembers });
+        } catch (error) {
+            console.error('Error fetching request quotes with members:', error);
+            this.sendError(res, 'Failed to fetch request quotes');
+        }
+    }
+    async getInProgressRequestQuotes(req, res) {
+        try {
+            // const id = req.body; // Fetch ID from route params if available
+
+            const requestQuotesWithMembers = await RequestQuote.getRequestQuotesWithMembers(["rq.status = 'accepted'"]);
             
             // console.log('Request Quotes:', requestQuotesWithMembers);
 
     
-            if (requestQuotesWithMembers && requestQuotesWithMembers.length > 0) {
-                res.render('admin/request-quotes', { requestQuotes: requestQuotesWithMembers });
-            } else {
-                this.sendError(res, 'No request quotes found');
-            }
+            res.render('admin/request-quotes', { requestQuotes: requestQuotesWithMembers });
+        } catch (error) {
+            console.error('Error fetching request quotes with members:', error);
+            this.sendError(res, 'Failed to fetch request quotes');
+        }
+    }
+    async getUpcomingRequestQuotes(req, res) {
+        try {
+            // const id = req.body; // Fetch ID from route params if available
+
+            const requestQuotesWithMembers = await RequestQuote.getRequestQuotesWithMembers(["rq.status = 'paid'","rq.start_date > CURDATE()"]);
+            
+            // console.log('Request Quotes:', requestQuotesWithMembers);
+
+    
+            res.render('admin/request-quotes', { requestQuotes: requestQuotesWithMembers });
         } catch (error) {
             console.error('Error fetching request quotes with members:', error);
             this.sendError(res, 'Failed to fetch request quotes');
@@ -51,7 +77,7 @@ class RequestQuoteController extends BaseController {
             if (!orderDetails) {
                 return this.sendError(res, 'Order not found');
             }
-            console.log("orderDetails:",orderDetails)
+           
     
             const parcels = await this.rider.getParcelDetailsByQuoteId(orderDetails.id);
             // const invoices = await this.rider.getInvoicesDetailsByRequestId(orderDetails.id);
@@ -59,8 +85,8 @@ class RequestQuoteController extends BaseController {
     
             
             // console.log("invoices:",invoices)
-            console.log("invoices date:",orderDetails?.invoices?.created_date)
-            console.log("reviews:",reviews)
+            // console.log("invoices date:",orderDetails?.invoices?.created_date)
+            // console.log("reviews:",reviews)
     
             const encodedId = helpers.doEncode(orderDetails.id); // Encode ID properly
     
@@ -72,7 +98,7 @@ class RequestQuoteController extends BaseController {
                 // invoices: invoices,
                 reviews: reviews
             };
-    
+         console.log("orderDetails:",order)
             
     
             res.render('admin/order-details', { 
