@@ -198,6 +198,19 @@ class RiderController extends BaseController {
         // Send notification to the rider
         await helpers.storeNotification(rider_id, 'rider', 0, notificationText, link);
 
+        const userRow = await this.riderModel.findById(rider_id);
+        let adminData = res.locals.adminData; 
+            const result=await helpers.sendEmail(
+              userRow.email,
+              `Document Submission Request from ${adminData?.site_name}`,
+              "document-request",
+              {
+                username:userRow?.full_name,
+                adminData,
+                title:title,
+                description:description
+              }
+            );
 
             // Redirect to the documents page after successful submission
             this.sendSuccess(res, {}, 'Document Request created successfully!', 200, `/admin/riders/documents/${rider_id}`)
@@ -289,7 +302,20 @@ class RiderController extends BaseController {
     
             // Fetch updated document details
             const updatedDoc = await Rider.getDocumentById(id);
-    
+            const userRow = await this.riderModel.findById(updatedDoc.rider_id);
+            let adminData = res.locals.adminData; 
+            const result=await helpers.sendEmail(
+              userRow.email,
+              `Your Document Has Been ${status} from ${adminData?.site_name}`,
+              "document-request-status",
+              {
+                username:userRow?.full_name,
+                adminData,
+                title:updatedDoc?.title,
+                description:updatedDoc?.description,
+                status:status
+              }
+            );
             if (updatedDoc) {
                 return res.redirect(`/admin/riders/documents/${updatedDoc.rider_id}`);
             } else {

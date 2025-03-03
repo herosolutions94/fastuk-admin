@@ -27,7 +27,7 @@
               <p>Created Date</p>
             </th>
             <th width="15%">
-              <p>Request Id</p>
+              <p>Request</p>
             </th>
             <th width="10%">
               <p>Action</p>
@@ -53,7 +53,7 @@
               <p><%= helpers.convertUtcToUkFormat(review.created_at) %></p>
             </td>
             <td>
-              <p><%= review.request_id %></p>
+              <p><a href="/admin/order-detail/<%= review.request_id %>">Request</a></p>
             </td>
             <td>
               <div class="btn-group">

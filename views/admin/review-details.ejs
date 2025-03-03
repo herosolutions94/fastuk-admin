@@ -19,7 +19,7 @@
           <div class="list-group details-group">
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>User: </strong><%= review.member_name %></p>
+                <p><strong>User: </strong><img src="<%= helpers.getImage(review.member_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;"><%= review.member_name %></p>
               </div>
             </div>
             <div class="list-group-item">
@@ -42,15 +42,10 @@
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Request Id: </strong><%= review.request_id %></p>
+                <p><strong>Request Id: </strong><a href="/admin/order-detail/<%= review.request_id %>">Request</a></p>
               </div>
             </div>
-            <div class="list-group-item">
-              <div class="d-flex w-100">
-                <p><strong>User Image: </strong></p>
-                <img src="<%= helpers.getImage(review.member_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;">
-              </div>
-            </div>
+            
             
       
           </div>

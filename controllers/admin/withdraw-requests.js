@@ -1,9 +1,15 @@
 
 
 const WithdrawaRequestModel = require('../../models/withdraw-requests');
+const RiderModel = require('../../models/riderModel');
 const BaseController = require('../baseController');
+const helpers = require('../../utils/helpers');
 
 class WithdrawaRequestController extends BaseController {
+    constructor() {
+        super();
+        this.riderModel = new RiderModel();
+      }
     // Method to get the riders and render them in the view
     async getWithdrawalRequests(req, res) {
         try {
@@ -65,16 +71,37 @@ class WithdrawaRequestController extends BaseController {
     async approveWithdrawalRequest(req, res) {
         try {
           const withdrawalRequestId = req.params.id;
-    
-          // Update the status of the withdrawal request
-          const result = await WithdrawaRequestModel.updateWithdrawalStatus(withdrawalRequestId);
-    
-          if (result) {
-            // Redirect back to the withdrawal requests list after approving
-            res.redirect('/admin/withdraw-requests-list');
+            const withdrawalRequest = await WithdrawaRequestModel.getWithdrawalRequestById(withdrawalRequestId);
+            let adminData = res.locals.adminData;
+          if (withdrawalRequest) {
+            const result = await WithdrawaRequestModel.updateWithdrawalStatus(withdrawalRequestId);
+                // console.log('withdrawalRequest',withdrawalRequest)
+              if (result) {
+                const userRow = await this.riderModel.findById(withdrawalRequest?.rider_id);
+                console.log('userRow',userRow)
+                  if (userRow) {
+                      await helpers.sendEmail(
+                          userRow.email,
+                          `Your Withdrawal Has Been Processed Successfully`,
+                          "withraw-user",
+                          {
+                              username: userRow?.full_name,
+                              adminData,
+                              account_details:withdrawalRequest?.account_details ? withdrawalRequest?.account_details : withdrawalRequest?.paypal_details,
+                              amount:withdrawalRequest?.amount,
+                          }
+                      );
+                  }
+                // Redirect back to the withdrawal requests list after approving
+                res.redirect('/admin/withdraw-requests-list');
+              } else {
+                this.sendError(res, 'Failed to approve withdrawal request');
+              }
           } else {
-            this.sendError(res, 'Failed to approve withdrawal request');
+            res.status(200).send('Withdrawal Request not found');
           }
+          // Update the status of the withdrawal request
+          
         } catch (error) {
           console.error('Error approving withdrawal request:', error);
           res.status(200).send('Failed to approve withdrawal request');
