@@ -35,9 +35,9 @@
       <table style="width: 100%; margin-top: 30px; border-collapse: collapse">
         <tr>
           <td style="padding: 10px">
-            <h2 style="color: #ed1c24; font-weight: 600">Your Order Has Been Picked Up!</h2>
+            <h2 style="color: #ed1c24; font-weight: 600"> Order is completed!</h2>
             <p>
-              Good news! Rider has been reached at <%= address %>.
+              Good news! Rider has marked the order as completed. Please go to order details page and give your review about the rider and services provided by us.
             </p>
             <p>
               <strong style="font-weight: 600">Tracking ID:</strong> <%= order.tracking_id %>
@@ -98,14 +98,7 @@
         </tbody>
       </table>
 
-      <div style="text-align: center; margin-top: 20px;">
-        <p style="font-size: 14px; color: #555;">
-          Thank you for choosing our service! You can track your order using the Tracking ID: 
-          <a href="https://fastukcouriers.com/order-tracking?tracking_id=<%= order.tracking_id %>" style="display: inline-block; text-align: center; margin-bottom: 10px; background: #077EFF; color: #fff; text-decoration: none; padding: 10px 30px; border-radius: 50px; font-weight: 500;">
-            Track Order
-          </a>
-        </p>
-      </div>
+      
     </div>
   </body>
 </html>

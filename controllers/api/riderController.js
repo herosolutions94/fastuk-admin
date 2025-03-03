@@ -543,7 +543,8 @@ class RiderController extends BaseController {
             user_image: user?.mem_image,
             vias: vias,
             parcels: parcels,
-            rider_name: loggedInUser?.full_name
+            rider_name: loggedInUser?.full_name,
+            start_date:helpers.formatDateToUK(request_row?.start_date)
           };
         }
       }
@@ -555,14 +556,7 @@ class RiderController extends BaseController {
       // console.log(orderDetailsLink);return;
       // Step 6: Send notification to the user
       const notificationText = `Your request #${request_id} has been assigned to a rider.`;
-      console.log(
-        "notification data",
-        request_row.user_id, // The user ID from request_quote
-        userRow?.mem_type, // The user's member type
-        loggedInUser.id,
-        notificationText,
-        orderDetailsLink
-      );
+      
       await helpers.storeNotification(
         request_row.user_id, // The user ID from request_quote
         userRow?.mem_type, // The user's member type
@@ -971,22 +965,48 @@ class RiderController extends BaseController {
     }
   }
   async getThreeDaysBeforeEarnings(req, res) {
-    try {
-      const rows = await this.rider.getEarningsBefore3Days();
-      console.log(rows);
-      for (const row of rows) {
-        await this.rider.updateEarningStatusToCleared(row.id);
+      try {
+          const rows = await this.rider.getEarningsBefore3Days();
+          let adminData = res.locals.adminData;
+          // Extract unique user IDs
+          const uniqueUserIds = [...new Set(rows.map(row => row.user_id))];
+
+          
+
+          // Update earning statuses to "cleared" in a single batch process
+          for (const row of rows) {
+              await this.rider.updateEarningStatusToCleared(row.id);
+          }
+          for (const userId of uniqueUserIds) {
+              const userRow = await this.rider.findById(userId);
+              
+              if (userRow) {
+                  await helpers.sendEmail(
+                      userRow.email,
+                      `Your Earnings Have Been Added – Ready for Withdrawal!`,
+                      "earnings",
+                      {
+                          username: userRow?.full_name,
+                          adminData,
+                      }
+                  );
+              }
+          }
+          return res.status(200).json({
+              status: 1,
+              msg: "Emails sent successfully and earnings updated."
+          });
+
+      } catch (error) {
+          console.error("Error in getThreeDaysBeforeEarnings:", error);
+          return res.status(500).json({
+              status: 0,
+              msg: "Internal server error.",
+              error: error.message
+          });
       }
-      console.log("Successfully updated the statuses to cleared.");
-    } catch (error) {
-      console.error("Error in getOrderDetailsByEncodedId:", error);
-      return res.status(200).json({
-        status: 0,
-        msg: "Internal server error.",
-        error: error.message
-      });
-    }
   }
+
   async getOrderDetailsByEncodedId(req, res) {
     try {
       const { token } = req.body;
@@ -1137,9 +1157,9 @@ class RiderController extends BaseController {
             .json({ status: 0, msg: "Error updating request status." });
         }
         let adminData = res.locals.adminData;
-
+        let request_row=request[0];
         const requestRow = {
-          ...request,  // Spread request properties into order
+          ...request_row,  // Spread request properties into order
           parcels: parcels // Add parcels as an array inside order
         };
 
@@ -1152,7 +1172,8 @@ class RiderController extends BaseController {
         {
           adminData,
           order: requestRow,
-          type: "user"
+          type: "user",
+          address:request_row?.source_address
         }
       );
 
@@ -1190,6 +1211,26 @@ class RiderController extends BaseController {
             .status(500)
             .json({ status: 0, msg: "Error updating via status." });
         }
+        let adminData = res.locals.adminData;
+        let request_row=request[0];
+          const requestRow = {
+            ...request_row,  // Spread request properties into order
+            parcels: parcels // Add parcels as an array inside order
+          };
+
+
+
+        await helpers.sendEmail(
+          userRow.email,
+          "Rider reached at: "+via?.address,
+          "source-picked-email",
+          {
+            adminData,
+            order: requestRow,
+            type: "user",
+            address:via?.address
+          }
+        );
       } else if (type?.toLowerCase() === "destination") {
         // Replicating source logic for destination update
         const deliveredTime = helpers.getUtcTimeInSeconds();
@@ -1207,6 +1248,26 @@ class RiderController extends BaseController {
             .status(200)
             .json({ status: 0, msg: "Error updating destination status." });
         }
+        let adminData = res.locals.adminData;
+        let request_row=request[0];
+          const requestRow = {
+            ...request_row,  // Spread request properties into order
+            parcels: parcels // Add parcels as an array inside order
+          };
+
+
+
+        await helpers.sendEmail(
+          userRow.email,
+          "Rider reached at: "+request_row?.dest_address,
+          "source-picked-email",
+          {
+            adminData,
+            order: requestRow,
+            type: "user",
+            address:request_row?.dest_address
+          }
+        );
       } else {
         return res
           .status(200)
@@ -1303,10 +1364,12 @@ class RiderController extends BaseController {
         decodedRequestId,
         rider.user.id
       );
+      
       if (!request) {
         return res.status(200).json({ status: 0, msg: "Request not found." });
       }
-
+      const parcels_arr = await this.rider.getParcelDetailsByQuoteId(decodedRequestId);
+      const member_row = await this.member.findById(request[0].user_id);
       const formattedHandballCharges = helpers.formatAmount(handball_charges);
       const formattedWaitingCharges = helpers.formatAmount(waiting_charges);
 
@@ -1359,6 +1422,27 @@ class RiderController extends BaseController {
             msg: "Error updating source completion status"
           });
         }
+        let adminData = res.locals.adminData;
+        let request_row=request[0];
+          const requestRow = {
+            ...request_row,  // Spread request properties into order
+            parcels: parcels_arr // Add parcels as an array inside order
+          };
+
+
+
+        await helpers.sendEmail(
+          member_row.email,
+          "Rider completed at: "+request_row?.source_address,
+          "request-mark-as-completed",
+          {
+            adminData,
+            order: requestRow,
+            type: "user",
+            address:request_row?.source_address,
+            invoice:formattedHandballCharges || formattedWaitingCharges ? 1 : 0
+          }
+        );
       } else if (type === "via") {
         // Handle via type logic
         if (!via_id) {
@@ -1435,6 +1519,27 @@ class RiderController extends BaseController {
             msg: "Error updating updated_time in request_quote"
           });
         }
+        let adminData = res.locals.adminData;
+        let request_row=request[0];
+          const requestRow = {
+            ...request_row,  // Spread request properties into order
+            parcels: parcels_arr // Add parcels as an array inside order
+          };
+
+
+
+        await helpers.sendEmail(
+          member_row.email,
+          "Rider completed at: "+viaRow?.address,
+          "request-mark-as-completed",
+          {
+            adminData,
+            order: requestRow,
+            type: "user",
+            address:viaRow?.address,
+            invoice:formattedHandballCharges || formattedWaitingCharges ? 1 : 0
+          }
+        );
         console.log("Creating invoice for destination charges");
       } else if (type === "destination") {
         // Handle destination type logic (similar to source)
@@ -1491,6 +1596,27 @@ class RiderController extends BaseController {
             msg: "Error updating destination completion status"
           });
         }
+        let adminData = res.locals.adminData;
+        let request_row=request[0];
+          const requestRow = {
+            ...request_row,  // Spread request properties into order
+            parcels: parcels_arr // Add parcels as an array inside order
+          };
+
+
+
+        await helpers.sendEmail(
+          member_row.email,
+          "Rider completed at: "+request_row?.dest_address,
+          "request-mark-as-completed",
+          {
+            adminData,
+            order: requestRow,
+            type: "user",
+            address:request_row?.dest_address,
+            invoice:formattedHandballCharges || formattedWaitingCharges ? 1 : 0
+          }
+        );
       } else {
         return res
           .status(200)
@@ -1672,6 +1798,24 @@ class RiderController extends BaseController {
       if (!userRow) {
         return res.status(200).json({ status: 0, msg: "Error fetching user" });
       }
+      let adminData = res.locals.adminData; 
+        // const request = await this.rider.getRequestById(54, 9);
+        const parcels = await this.rider.getParcelDetailsByQuoteId(decodedRequestId);
+        let request_row=request[0];
+         const requestRow = {
+          ...request_row,  // Spread request properties into order
+            parcels: parcels // Add parcels as an array inside order
+          };
+            const result=await helpers.sendEmail(
+              userRow.email,
+              "Order is completed - share your Review",
+              "request-completed",
+              {
+                adminData,
+                order: requestRow,
+                type: "user"
+              }
+            );
       // console.log("request:",request);return;
 
       // Update the status using the model
@@ -1850,6 +1994,13 @@ class RiderController extends BaseController {
         riderId,
         "bank-account"
       );
+      let bank_payment_methods_arr=[]
+      for (let bank_payment_method of bank_payment_methods) {
+        let state_name=await helpers.getStateNameByStateId(bank_payment_method.state)
+        bank_payment_method={...bank_payment_method,state:state_name,country:'United Kingdom'}
+        bank_payment_methods_arr.push(bank_payment_method)
+      }
+      console.log('bank_payment_methods_arr',bank_payment_methods_arr)
       const paypal_payment_methods =
         await this.rider.getWithdrawalPamentMethods(riderId, "paypal");
 
@@ -1865,7 +2016,7 @@ class RiderController extends BaseController {
         availableBalance: formattedAvailableBalance,
         earnings: formattedEarnings,
         totalWithdrawn: totalWithdrawn,
-        bank_payment_methods: bank_payment_methods,
+        bank_payment_methods: bank_payment_methods_arr,
         paypal_payment_methods: paypal_payment_methods
       });
     } catch (error) {

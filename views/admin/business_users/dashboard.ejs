@@ -27,14 +27,8 @@
             <th width="7%">
               <p>#</p>
             </th>
-            <th width="5%">
-              <p>Image</p>
-            </th>
-            <th width="10%">
-              <p>Name</p>
-            </th>
-            <th width="15%">
-              <p>Email</p>
+            <th width="25%">
+              <p>User</p>
             </th>
             <th width="14%">
               <p>Approval Status</p>
@@ -66,14 +60,9 @@
                     src="<%= helpers.getImage(businessUser.mem_image) %>"
                     alt="Driving License" />
                 </div>
+                <br /><%= businessUser.full_name %><br /><%= businessUser.email %>
               </div>
             </td>
-            <td>
-              <div class="custm-cntnt">
-                <p><%= businessUser.full_name %></p>
-              </div>
-            </td>
-            <td><p><%= businessUser.email %></p></td>
             <td>
               <p><%- helpers.getBusinessUserApprovalStatus(businessUser.is_approved) %></p>
             </td>
