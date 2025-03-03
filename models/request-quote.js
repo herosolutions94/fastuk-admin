@@ -34,20 +34,30 @@ class RequestQuoteModel extends BaseModel {
     //     }
     // }
 
-    static async getRequestQuotesWithMembers() {
+    static async getRequestQuotesWithMembers(whereConditions) {
         try {
-            const query = `
+            let query = `
                 SELECT 
                     rq.*, 
                     m.id AS user_id, 
                     m.full_name AS member_name, 
-                    m.email AS member_email 
+                    m.mem_image AS member_image,
+                    r.id AS rider_id,
+                    r.full_name AS rider_name,
+                    r.mem_image AS rider_image
                 FROM ${this.tableName} rq
-                LEFT JOIN members m ON rq.user_id = m.id
-                WHERE rq.status IN ('completed', 'accepted', 'paid');
-                
+                INNER JOIN members m ON rq.user_id = m.id
+                LEFT JOIN riders r ON rq.assigned_rider = r.id
             `;
-    
+
+            // Append additional WHERE conditions if provided
+            if (Array.isArray(whereConditions) && whereConditions.length > 0) {
+                if(whereConditions[0]){
+                    query+= `Where`;
+                }
+                query += ` ${whereConditions.join(" AND ")}`;
+            }
+            query += `GROUP BY rq.id`;
             const [rows] = await pool.query(query);
     
             // console.log("ID:", id); // Ensure the ID is logged
@@ -61,51 +71,80 @@ class RequestQuoteModel extends BaseModel {
     }
 
     static async getOrderDetailsById(orderId) {
-        try {
-            const orderQuery = `
-                SELECT 
-                rq.*, 
-                m.id AS user_id, 
-                m.full_name AS member_name, 
-                m.mem_image AS member_dp, 
-                r.id AS rider_id, 
-                r.full_name AS rider_name, 
-                r.mem_image AS rider_dp
-            FROM ${this.tableName} rq
-            LEFT JOIN members m ON rq.user_id = m.id
-            LEFT JOIN riders r ON rq.assigned_rider = r.id
-            WHERE rq.id = ?;
-            `;
-    
-            const parcelsQuery = `
-                SELECT request_id, parcel_number, parcel_type, length, width, height, weight, source, destination, distance
-                FROM request_parcels
-                WHERE request_id = ?;
-            `;
-    
-            const invoicesQuery = `
-                SELECT request_id, type, amount, amount_type, status, created_date, via_id, payment_type, payment_intent_id, payment_method_id, payment_method
-                FROM invoices
-                WHERE request_id = ?;
-            `;
-    
-            // Execute queries
-            const [orderRows] = await pool.query(orderQuery, [orderId]);
-            const [parcelsRows] = await pool.query(parcelsQuery, [orderId]);
-            const [invoicesRows] = await pool.query(invoicesQuery, [orderId]);
-    
-            if (!orderRows.length) return null; // No order found
-    
-            return { 
-                ...orderRows[0], // Order details
-                parcels: parcelsRows, // Array of parcels
-                invoices: invoicesRows // Array of invoices
-            };
-        } catch (error) {
-            console.error('Error fetching order details:', error);
-            throw error;
+    try {
+        const orderQuery = `
+            SELECT 
+            rq.*, 
+            m.id AS user_id, 
+            m.full_name AS member_name, 
+            m.mem_image AS member_dp, 
+            r.id AS rider_id, 
+            r.full_name AS rider_name, 
+            r.mem_image AS rider_dp
+        FROM ${this.tableName} rq
+        LEFT JOIN members m ON rq.user_id = m.id
+        LEFT JOIN riders r ON rq.assigned_rider = r.id
+        WHERE rq.id = ?;
+        `;
+
+        const parcelsDistanceQuery = `
+            SELECT COALESCE(SUM(distance), 0) AS total_distance 
+            FROM request_parcels 
+            WHERE request_id = ?;
+        `;
+        const vehicleQuery = `
+            SELECT title 
+            FROM vehicles 
+            WHERE id = ?;
+        `;
+
+        const parcelsQuery = `
+            SELECT *
+            FROM order_details
+            WHERE order_id = ?;
+        `;
+        const viasQuery = `
+            SELECT *
+            FROM vias
+            WHERE request_id = ?;
+        `;
+
+        const invoicesQuery = `
+            SELECT request_id, type, amount, amount_type, status, created_date, via_id, payment_type, payment_intent_id, payment_method_id, payment_method
+            FROM invoices
+            WHERE request_id = ?;
+        `;
+
+        // Execute queries
+        const [orderRows] = await pool.query(orderQuery, [orderId]);
+        const [parcelsRows] = await pool.query(parcelsQuery, [orderId]);
+        const [viasRows] = await pool.query(viasQuery, [orderId]);
+        const [parcelsDistanceQueryRows] = await pool.query(parcelsDistanceQuery, [orderId]);
+        let vehicle_name="";
+        if(orderRows?.length > 0){
+            const selected_vehicle=orderRows[0]?.selected_vehicle
+            let [vehicleQueryRows] = await pool.query(vehicleQuery, [selected_vehicle]);
+            vehicle_name=vehicleQueryRows?.length > 0 ? vehicleQueryRows[0]?.title : ''
         }
+        
+        const [invoicesRows] = await pool.query(invoicesQuery, [orderId]);
+
+        if (!orderRows.length) return null; // No order found
+
+        return { 
+            ...orderRows[0], // Order details
+            parcels: parcelsRows, // Array of parcels
+            invoices: invoicesRows,
+            vias:viasRows,
+            total_distance: parcelsDistanceQueryRows?.length > 0 ? parcelsDistanceQueryRows[0]?.total_distance : 0,
+            vehicle_name:vehicle_name
+        };
+    } catch (error) {
+        console.error('Error fetching order details:', error);
+        throw error;
     }
+}
+
     
     
     
