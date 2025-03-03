@@ -76,23 +76,23 @@
       >
         <thead>
           <tr style="background-color: #ed1c24; color: white; text-align: left">
-            <th style="padding: 13px; font-weight: 600">Parcel Type</th>
-            <th style="padding: 13px; font-weight: 600">Length</th>
-            <th style="padding: 13px; font-weight: 600">Width</th>
-            <th style="padding: 13px; font-weight: 600">Height</th>
-            <th style="padding: 13px; font-weight: 600">Weight</th>
+            <th style="padding: 13px; font-weight: 600">Parcel</th>
+            <th style="padding: 13px; font-weight: 600">Source</th>
+            <th style="padding: 13px; font-weight: 600">Destination</th>
+            <th style="padding: 13px; font-weight: 600">Distance</th>
           </tr>
         </thead>
         <tbody>
+           <% let totalDistance = 0; let subtotal=0; %>
           <% order.parcels.forEach(parcel => { %>
-            <tr>
-              <td style="padding: 13px"><%= parcel.parcel_type %></td>
-              <td style="padding: 13px"><%= parcel.length %></td>
-              <td style="padding: 13px"><%= parcel.width %></td>
-              <td style="padding: 13px"><%= parcel.height %></td>
-              <td style="padding: 13px"><%= parcel.weight %></td>
-            </tr>
-          <% }); %>
+            <% totalDistance += parcel.distance; subtotal +=parseFloat(parcel.distance) * parseFloat(parcel.price) %>
+              <tr>
+                <td style="padding: 13px"><%= parcel.parcel_number %><br /><%=parcel?.length%> x <%=parcel?.width%> x <%=parcel?.height%> x <%=parcel?.weight%></td>
+                <td style="padding: 13px"><%= parcel.source_address %></td>
+                <td style="padding: 13px"><%= parcel.destination_address %></td>
+                <td style="padding: 13px"><%= parcel.distance %> miles</td>
+              </tr>
+            <% }); %>
         </tbody>
       </table>
     </div>

@@ -35,9 +35,11 @@
       <table style="width: 100%; margin-top: 30px; border-collapse: collapse">
         <tr>
           <td style="padding: 10px">
-            <h2 style="color: #ed1c24; font-weight: 600">Your Order Has Been Picked Up!</h2>
             <p>
-              Good news! Rider has been reached at <%= address %>.
+              Good news! Rider has completed working at <%= address %>.
+              <% if (parseInt(invoice) ==1) { %>
+                Invoices has been generated for handball/waiting charges, please review and pay for invoice.
+              <% } %>
             </p>
             <p>
               <strong style="font-weight: 600">Tracking ID:</strong> <%= order.tracking_id %>

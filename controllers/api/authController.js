@@ -64,6 +64,7 @@ class MemberController extends BaseController {
         business_name:
           typeof business_name === "string" ? business_name.trim() : "",
         full_name: typeof full_name === "string" ? full_name.trim() : "",
+        mem_city: typeof city === "string" ? city.trim() : "",
         designation: typeof designation === "string" ? designation.trim() : "",
         email: typeof email === "string" ? email.trim().toLowerCase() : "",
         password: typeof password === "string" ? password.trim() : "",
@@ -204,13 +205,15 @@ class MemberController extends BaseController {
         confirm_password,
         mem_status,
         mem_verified,
-        fingerprint // Keep fingerprint as a parameter
+        fingerprint,
+        google_id,
+        user_image
       } = req.body;
 
       const mem_type = "user";
 
       // Clean and trim data
-      const cleanedData = {
+      let cleanedData = {
         full_name: typeof full_name === "string" ? full_name.trim() : "",
         email: typeof email === "string" ? email.trim().toLowerCase() : "",
         password: typeof password === "string" ? password.trim() : "",
@@ -221,6 +224,16 @@ class MemberController extends BaseController {
         mem_verified: mem_verified || 0,
         mem_type: mem_type
       };
+      if(google_id){
+        cleanedData={...cleanedData,google_id:google_id,mem_verified:1, mem_status:1}
+      }
+      if(user_image){
+        const imageName = await helpers.uploadImageFromUrl(user_image);
+        if(imageName?.imageName){
+          cleanedData={...cleanedData,mem_image:imageName?.imageName}
+        }
+        
+      }
 
       // Validation for empty fields
       if (!validateRequiredFields(cleanedData)) {
@@ -263,12 +276,14 @@ class MemberController extends BaseController {
       // Remove `confirm_password` as it is not needed in the database
       delete cleanedData.confirm_password;
 
-      // Generate OTP
-      const otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
-      cleanedData.otp = parseInt(otp, 10); // Add OTP to cleanedData
-      cleanedData.expire_time = moment()
-        .add(3, "minutes")
-        .format("YYYY-MM-DD HH:mm:ss");
+      if(!google_id){
+          let otp = Math.floor(100000 + Math.random() * 900000); 
+          cleanedData.otp = parseInt(otp, 10); // Add OTP to cleanedData
+          cleanedData.expire_time = moment()
+          .add(3, "minutes")
+          .format("YYYY-MM-DD HH:mm:ss");
+      }
+      
 
       // Create a customer in Stripe
       const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY); // Initialize Stripe with your secret key
@@ -298,23 +313,26 @@ class MemberController extends BaseController {
         "user",
         actualFingerprint
       );
-      let adminData = res.locals.adminData;
-      const subject = "Verify Your Email - " + adminData.site_name;
-      const templateData = {
-        username: cleanedData.full_name, // Pass username
-        otp: cleanedData.otp, // Pass OTP
-        adminData
-      };
+      if(!google_id){
+        let adminData = res.locals.adminData;
+        const subject = "Verify Your Email - " + adminData.site_name;
+        const templateData = {
+          username: cleanedData.full_name, // Pass username
+          otp: cleanedData.otp, // Pass OTP
+          adminData
+        };
 
-      const result = await helpers.sendEmail(
-        cleanedData.email,
-        subject,
-        "email-verify",
-        templateData
-      );
+        const result = await helpers.sendEmail(
+          cleanedData.email,
+          subject,
+          "email-verify",
+          templateData
+        );
+      }
+      
       this.sendSuccess(
         res,
-        { mem_type: mem_type, authToken: token, customer_id: customer.id },
+        { mem_type: mem_type, authToken: token, customer_id: customer.id,google_account_status:google_id ? 1 : 0 },
         "User registered successfully."
       );
     } catch (error) {
@@ -328,18 +346,27 @@ class MemberController extends BaseController {
 
   async loginUser(req, res) {
     try {
-      let { email, password, fingerprint, memType } = req.body;
+      let { email, password, fingerprint, memType ,googleId} = req.body;
 
       // Clean and trim data
       email = typeof email === "string" ? email.trim().toLowerCase() : "";
       password = typeof password === "string" ? password.trim() : "";
-
-      // Validate required fields
-      if (!validateRequiredFields({ email, password })) {
-        return res
-          .status(200)
-          .json({ status: 0, msg: "Email and password are required." });
+      if(googleId){
+        if (!validateRequiredFields({ email, googleId })) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Email and password are required." });
+        }
       }
+      else{
+        if (!validateRequiredFields({ email, password })) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Email and password are required." });
+        }
+      }
+      // Validate required fields
+      
 
       // Email validation
       if (!validateEmail(email)) {
@@ -355,16 +382,26 @@ class MemberController extends BaseController {
           .status(200)
           .json({ status: 0, msg: "Email or password is incorrect." });
       }
-      // Compare the provided password with the hashed password
-      const passwordMatch = await bcrypt.compare(
-        password,
-        existingUser.password
-      );
-      if (!passwordMatch) {
-        return res
-          .status(200)
-          .json({ status: 0, msg: "Email or password is incorrect." });
+      if(googleId){
+        if(existingUser?.google_id!==googleId){
+          return res
+              .status(200)
+              .json({ status: 0, msg: "Your account does not associated with google account, please use password to login." });
+        }
       }
+      else{
+          const passwordMatch = await bcrypt.compare(
+            password,
+            existingUser.password
+          );
+          if (!passwordMatch) {
+            return res
+              .status(200)
+              .json({ status: 0, msg: "Email or password is incorrect." });
+          }
+      }
+      // Compare the provided password with the hashed password
+      
       let actualFingerprint =
         fingerprint || this.generatePseudoFingerprint(req);
       const token = await this.storeAndReturnToken(
@@ -527,12 +564,33 @@ console.log("Template Data:", templateData);
 
       // Generate a new OTP
 
-      // Update the OTP and expire_time in the members table
-      await this.member.updateMemberData(member.id, {
-        deactivated_reason: reason,
-        is_deactivated: 1
-      });
-
+      if(memType==='rider'){
+          await this.rider.updateRiderData(member.id, {
+            deactivated_reason: reason,
+            is_deactivated: 1
+          });
+      }
+      else{
+        await this.member.updateMemberData(member.id, {
+          deactivated_reason: reason,
+          is_deactivated: 1
+        });
+      }
+      
+      const adminData = res.locals.adminData;
+      const subject = `Email Has Been Deactivated - ${adminData.site_name}`;
+      
+      const templateData = {
+        username: member.full_name, // Pass username
+        adminData,
+        reason
+      };
+      const result = await helpers.sendEmail(
+          member.email,
+          subject,
+          "email-deactivated",
+          templateData,
+        );
       // Respond with the new OTP's expiry time
       return res.status(200).json({
         status: 1,
@@ -540,7 +598,7 @@ console.log("Template Data:", templateData);
       });
     } catch (error) {
       // Server error handling
-      console.error("Error generating new OTP:", error);
+      console.error("Error:", error);
       return res.status(200).json({
         status: 0,
         msg: "An error occurred while generating a new OTP.",
@@ -586,6 +644,7 @@ console.log("Template Data:", templateData);
       // }
 
       // Validate OTP from the database
+      console.log(cleanedOtp,memberData.otp)
       if (parseInt(memberData.otp) !== cleanedOtp) {
         return res.status(200).json({
           status: 0,
@@ -750,7 +809,7 @@ console.log("Template Data:", templateData);
 
       // Send OTP email
       const adminData = res.locals.adminData;
-      const subject = `Verify Your Email - ${adminData.site_name}`;
+      const subject = `Forget Password Request - ${adminData.site_name}`;
       const templateData = {
           username: existingMember.full_name, // Pass username
           otp, // Pass OTP
@@ -958,13 +1017,43 @@ console.log("Template Data:", templateData);
       }
 
       const user = validationResponse.user;
-      // console.log("Generated OTP:", newOtp, "Expire Time:", newExpireTime);
+      let adminData = res.locals.adminData;
+      const subject = "Confirm Your Email Change Request - " + adminData.site_name;
+      let otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
+      otp = parseInt(otp, 10); // Add OTP to cleanedData
+      const newExpireTime = new Date();
+      newExpireTime.setMinutes(newExpireTime.getMinutes() + 3);
+      const templateData = {
+        username: user.full_name, // Pass username
+        otp: otp, // Pass OTP
+        adminData
+      };
 
-      // Update the OTP and expiry time based on memType
+      
       if (memType === "user" || memType === "business") {
-        await Member.updateTempEmail(user.id, email);
+        await this.member.updateMemberData(user.id, {
+          temp_email: email,
+          otp: otp,
+          expire_time: newExpireTime
+        });
+        const result = await helpers.sendEmail(
+          user.email,
+          subject,
+          "email-user-request",
+          templateData
+        );
       } else if (memType === "rider") {
-        await this.rider.updateTempEmail(user.id, email);
+        await this.rider.updateRiderData(user.id, {
+          temp_email: email,
+          otp: otp,
+          expire_time: newExpireTime
+        });
+        const result = await helpers.sendEmail(
+          user.email,
+          subject,
+          "email-user-request",
+          templateData
+        );
       } else {
         return res
           .status(200)
@@ -974,7 +1063,214 @@ console.log("Template Data:", templateData);
       // Respond with OTP expiry time
       return res.status(200).json({
         status: 1,
-        msg: "Email address updated successfully."
+        msg: "Email request sent to your current email successfully.",
+        expire_time:newExpireTime
+      });
+    } catch (error) {
+      // Server error handling
+      console.error("Error in updating email address:", error.message);
+      return res.status(200).json({
+        status: 0,
+        msg: "An error occurred while updating email address.",
+        error: error.message
+      });
+    }
+  }
+  async VerifyUpdateEmailAddress(req, res) {
+    try {
+      const { otp, token, memType } = req.body;
+      // console.log("Request body:", req.body);
+
+      // Validate the token and memType
+      if (!otp || !token || !memType) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Email, Token and memType are required." });
+      }
+
+      // Validate token and get user
+      const validationResponse = await this.validateTokenAndGetMember(
+        token,
+        memType
+      );
+
+      if (validationResponse.status === 0) {
+        // If the token is invalid, return the validation error message
+        return res.status(200).json(validationResponse);
+      }
+
+      const user = validationResponse.user;
+
+      const cleanedOtp = parseInt(otp);
+      if (parseInt(user.otp) !== cleanedOtp) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid OTP."
+        });
+      }
+      const currentTime = new Date();
+      const expireTime = new Date(user.expire_time);
+
+      if (currentTime > expireTime) {
+        return res.status(200).json({
+          status: 0,
+          msg: "OTP has expired. Please request to change email again.",
+          isOtpExpired: 1
+        });
+      }
+
+
+
+
+      let adminData = res.locals.adminData;
+      const subject = "Verify Your New Email Address - " + adminData.site_name;
+      let new_otp = Math.floor(100000 + Math.random() * 900000); // Generate 6-digit OTP
+      new_otp = parseInt(new_otp, 10); // Add OTP to cleanedData
+      const newExpireTime = new Date();
+      newExpireTime.setMinutes(newExpireTime.getMinutes() + 3);
+      const templateData = {
+        username: user.full_name, // Pass username
+        otp: new_otp, // Pass OTP
+        adminData
+      };
+
+      
+      if (memType === "user" || memType === "business") {
+        await this.member.updateMemberData(user.id, {
+          otp: new_otp,
+          expire_time: newExpireTime
+        });
+        const result = await helpers.sendEmail(
+          user.temp_email,
+          subject,
+          "email-new-user-request",
+          templateData
+        );
+      } else if (memType === "rider") {
+        await this.rider.updateRiderData(user.id, {
+          otp: new_otp,
+          expire_time: newExpireTime
+        });
+        const result = await helpers.sendEmail(
+          user.temp_email,
+          subject,
+          "email-new-user-request",
+          templateData
+        );
+      } else {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Invalid memType provided." });
+      }
+
+      // Respond with OTP expiry time
+      return res.status(200).json({
+        status: 1,
+        msg: "Email sent to your new email. Please verify to update email address.",
+        expire_time:newExpireTime
+      });
+    } catch (error) {
+      // Server error handling
+      console.error("Error in updating email address:", error.message);
+      return res.status(200).json({
+        status: 0,
+        msg: "An error occurred while updating email address.",
+        error: error.message
+      });
+    }
+  }
+  async FinishVerifyUpdateEmailAddress(req, res) {
+    try {
+      const { otp, token, memType } = req.body;
+      // console.log("Request body:", req.body);
+
+      // Validate the token and memType
+      if (!otp || !token || !memType) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Email, Token and memType are required." });
+      }
+
+      // Validate token and get user
+      const validationResponse = await this.validateTokenAndGetMember(
+        token,
+        memType
+      );
+
+      if (validationResponse.status === 0) {
+        // If the token is invalid, return the validation error message
+        return res.status(200).json(validationResponse);
+      }
+
+      const user = validationResponse.user;
+
+      const cleanedOtp = parseInt(otp);
+      if (parseInt(user.otp) !== cleanedOtp) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid OTP."
+        });
+      }
+      const currentTime = new Date();
+      const expireTime = new Date(user.expire_time);
+
+      if (currentTime > expireTime) {
+        return res.status(200).json({
+          status: 0,
+          msg: "OTP has expired. Please request to change email again.",
+          isOtpExpired: 1
+        });
+      }
+
+
+
+
+      let adminData = res.locals.adminData;
+      const subject = "Email is changed - " + adminData.site_name;
+      
+      const templateData = {
+        username: user.full_name, // Pass username
+        adminData
+      };
+
+      
+      if (memType === "user" || memType === "business") {
+        await this.member.updateMemberData(user.id, {
+          otp: null,
+          expire_time: null,
+          temp_email:null,
+          email:user.temp_email
+        });
+        const result = await helpers.sendEmail(
+          user.temp_email,
+          subject,
+          "email-changed",
+          templateData
+        );
+      } else if (memType === "rider") {
+        await this.rider.updateRiderData(user.id, {
+          otp: null,
+          expire_time: null,
+          temp_email:null,
+          email:user.temp_email
+        });
+        const result = await helpers.sendEmail(
+          user.temp_email,
+          subject,
+          "email-changed",
+          templateData
+        );
+      } else {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Invalid memType provided." });
+      }
+
+      // Respond with OTP expiry time
+      return res.status(200).json({
+        status: 1,
+        msg: "Email updated successfully",
+        // expire_time:newExpireTime
       });
     } catch (error) {
       // Server error handling

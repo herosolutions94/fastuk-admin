@@ -115,11 +115,23 @@ class MemberController extends BaseController {
             .status(200)
             .json({ status: 0, msg: "Request quote not found." });
         }
+        const userRow = await this.rider.findById(requestQuote.assigned_rider);
         const requestReview = await this.rider.createRequestReview(cleanedData);
         const orderDetailsLink = `/rider-dashboard/order-details/${helpers.doEncode(
           request_id
         )}`;
-
+        let adminData = res.locals.adminData; 
+            const result=await helpers.sendEmail(
+              userRow.email,
+              `You've received a review for Booking ID: ${requestQuote?.booking_id}`,
+              "request-review",
+              {
+                adminData,
+                order: requestQuote,
+                type: "user",
+                review:cleanedData
+              }
+            );
         const notificationText = `You've received a review from user.`;
         await helpers.storeNotification(
           requestQuote.assigned_rider, // The user ID from request_quote
@@ -894,7 +906,7 @@ class MemberController extends BaseController {
       const custom_id = webhookEvent.resource.purchase_units?.[0]?.custom_id; // Your custom order_id
       const reference_id = webhookEvent.resource.purchase_units?.[0]?.reference_id; // Your custom order_id
       const payerID = webhookEvent.resource.payer?.payer_id; // ✅ Extract payer_id
-
+      const siteSettings = res.locals.adminData;
       if (eventType === "CHECKOUT.ORDER.APPROVED") {
         if(reference_id==='order'){
           const orderDetails = await RequestQuoteModel.getOrderDetailsById(custom_id);
@@ -925,6 +937,15 @@ class MemberController extends BaseController {
                   notificationText,
                   orderDetailsLink
                 );
+
+
+                const parcelsArray = await this.rider.getParcelDetailsByQuoteId(orderDetails.id);
+                const orderRow={...orderDetails,parcels:parcelsArray,start_date:helpers.formatDateToUK(orderDetails.start_date)}
+                await helpers.sendEmail(rider.email, "New Order Requests - FastUk", 'request-quote', {
+                    adminData:siteSettings,
+                    order:orderRow,
+                    type:"rider"
+                });
               }
             }
 
@@ -943,6 +964,25 @@ class MemberController extends BaseController {
               payment_method_id: '',
               type: "Request Quote"
             });
+            
+
+            const userRow = await this.member.findById(orderDetails.user_id);
+            
+            const parcelsArray = await this.rider.getParcelDetailsByQuoteId(orderDetails?.id);
+            const orderRow={...orderDetails,parcels:parcelsArray,start_date:helpers.formatDateToUK(orderDetails.start_date)}
+
+
+            
+            const templateData = {
+
+                username:userRow.full_name, // Pass username
+                adminData:siteSettings,
+                order:orderRow,
+                type:"user"
+            };
+            // console.log("templateData:", templateData)
+
+            const result = await helpers.sendEmail(userRow.email, "Parcel Request Confirmed: Awaiting Rider Assignment - FastUk", 'request-quote', templateData);
           await helpers.storeWebHookData({
             type: `Paypal Payer ID: ${payerID}`,
             response: `Paypal Payment Successful for Order: ${custom_id}`
@@ -1037,6 +1077,29 @@ class MemberController extends BaseController {
               payment_method_id: '',
               type: "Invoice"
             });
+
+        let adminData = res.locals.adminData; 
+        // const request = await this.rider.getRequestById(54, 9);
+        const userRow = await this.rider.findById(orderDetails.assigned_rider);
+        const parcels = await this.rider.getParcelDetailsByQuoteId(orderDetails.id);
+        const dueAmount = await RequestQuoteModel.calculateDueAmount(orderDetails.id);
+        let request_row=orderDetails;
+         const requestRow = {
+          ...request_row,  // Spread request properties into order
+            parcels: parcels // Add parcels as an array inside order
+          };
+          if(parseFloat(dueAmount)<=0){
+            const result=await helpers.sendEmail(
+              userRow.email,
+              "Invoice paid for: "+orderDetails?.booking_id,
+              "request-invoice-paid",
+              {
+                adminData,
+                order: requestRow,
+                type: "user"
+              }
+            );
+          }
           await helpers.storeWebHookData({
             type: `Paypal Payer ID for Invoice: ${payerID}`,
             response: `Paypal Payment Successful for Invoice: ${custom_id}`
@@ -1571,16 +1634,11 @@ class MemberController extends BaseController {
             payment_method_id: payment_methodid,
             type: "Request Quote"
           });
-        }
-        // console.log("Successfully CREATED REQUEST", apple_obj);
-        let orderRow = await this.member.getUserOrderDetailsById({
-          userId: userId,
-          requestId: requestQuoteId
-        });
-
-        const parcelsArray = await this.rider.getParcelDetailsByQuoteId(orderRow.id);
+          let orderRow =  await RequestQuoteModel.getOrderDetailsById(requestQuoteId);
+        // console.log("orderRow",orderRow)
+        const parcelsArray = await this.rider.getParcelDetailsByQuoteId(requestQuoteId);
         orderRow={...orderRow,parcels:parcelsArray,start_date:helpers.formatDateToUK(orderRow.start_date)}
-        console.log("order:",orderRow)
+        // console.log("order:",orderRow)
 
 
         
@@ -1592,10 +1650,13 @@ class MemberController extends BaseController {
             ,
             type:"user"
         };
-        console.log("templateData:", templateData)
+        // console.log("templateData:", templateData)
 
         const result = await helpers.sendEmail(member.email, "Parcel Request Confirmed: Awaiting Rider Assignment - FastUk", 'request-quote', templateData);
-        console.log("result:", result,member.email)
+        }
+        // console.log("Successfully CREATED REQUEST", requestQuoteId);
+        
+        // console.log("result:", result,member.email)
 
         
         // Send success response
@@ -2780,6 +2841,13 @@ class MemberController extends BaseController {
 
       const user = validationResponse.user;
       const userId = user.id;
+      let order = await this.member.getUserOrderDetailsById({
+          userId: userId,
+          requestId: requestId
+        });
+      if (!order) {
+        return res.status(200).json({ status: 0, msg: 'Invalid request!' });
+      }
       // Define necessary variables
       const locType = ""; // Set this based on your application's logic
       const amountType = ""; // Set this based on your application's logic
@@ -2954,17 +3022,41 @@ class MemberController extends BaseController {
         );
         invoice_id=result.insertId
       }
-      const created_time = helpers.getUtcTimeInSeconds();
-      await helpers.storeTransaction({
-        user_id: userId,
-        amount: formattedAmount,
-        payment_method: payment_method,
-        transaction_id: requestId,
-        created_time: created_time,
-        payment_intent_id: payment_intent_id,
-        payment_method_id: payment_method_id,
-        type: "Invoice"
-      });
+      if (payment_method !== "paypal") {
+        const created_time = helpers.getUtcTimeInSeconds();
+        await helpers.storeTransaction({
+          user_id: userId,
+          amount: formattedAmount,
+          payment_method: payment_method,
+          transaction_id: requestId,
+          created_time: created_time,
+          payment_intent_id: payment_intent_id,
+          payment_method_id: payment_method_id,
+          type: "Invoice"
+        });
+        let adminData = res.locals.adminData; 
+        // const request = await this.rider.getRequestById(54, 9);
+        const userRow = await this.rider.findById(order.assigned_rider);
+        const parcels = await this.rider.getParcelDetailsByQuoteId(requestId);
+        const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
+        let request_row=order;
+         const requestRow = {
+          ...request_row,  // Spread request properties into order
+            parcels: parcels // Add parcels as an array inside order
+          };
+          if(parseFloat(dueAmount)<=0){
+            const result=await helpers.sendEmail(
+              userRow.email,
+              "Invoice paid for: "+order?.booking_id,
+              "request-invoice-paid",
+              {
+                adminData,
+                order: requestRow,
+                type: "user"
+              }
+            );
+          }
+        }
 
       // console.log(result,'result')
       // Handle response
@@ -3266,8 +3358,13 @@ class MemberController extends BaseController {
           .status(200)
           .json({ msg: "No approved business users found." });
       }
-
+      let adminData = res.locals.adminData; 
       let insertedUsers = [];
+      const currentDate = new Date();
+      const currentMonth = currentDate.toLocaleString('default', { month: 'long' });
+      const currentYear = currentDate.getFullYear();
+      const previousMonthDate = new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1);
+      const previousMonth = previousMonthDate.toLocaleString('default', { month: 'long' });
       // console.log(businessUsers);return;
       for (const user of businessUsers) {
         const userId = user.id;
@@ -3276,9 +3373,26 @@ class MemberController extends BaseController {
         if (!hasInvoice && !hasCreditsMonth) {
           const totalDebitAmount = await this.member.getTotalDebitCredits(userId);
           console.log("totalDebitAmount:",totalDebitAmount)
-
-          await this.member.insertInvoice(userId, totalDebitAmount);
-          insertedUsers.push(userId);
+          if(totalDebitAmount > 0){
+            await this.member.insertInvoice(userId, totalDebitAmount);
+            insertedUsers.push(userId);
+            const userRow = await this.member.findById(userId);
+            
+            const result=await helpers.sendEmail(
+              userRow.email,
+              `Your Monthly Invoice for Credits Used ${currentMonth+", "+currentYear}`,
+              "credit-invoice",
+              {
+                username:userRow?.full_name,
+                adminData,
+                credits:totalDebitAmount,
+                amount:helpers.formatAmount(totalDebitAmount),
+                previousMonth,
+                currentMonth
+              }
+            );
+          }
+          
         }
       }
       console.log(insertedUsers,'insertedUsers')
@@ -3358,27 +3472,59 @@ class MemberController extends BaseController {
 
   // app.post('/send-email', async (req, res) => {
     async sendMailApi(req, res) {
+      let imageUrl="https://lh3.googleusercontent.com/a/ACg8ocKv3R5NekjaraAxt94bLLdWumu8magwLH9YzENjc3eh9t7Crpk=s100";
+      const imageName = await helpers.uploadImageFromUrl(imageUrl);
+      console.log(imageName);return;
         const { email,username } = req.body;
         let adminData = res.locals.adminData; 
-        const subject = "Parcel Request Confirmed: Awaiting Rider Assignment - FastUk";
-        let order = await this.member.getUserOrderDetailsById({
-          userId: 1,
-          requestId: 1
-        });
-        const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
-        order={...order,parcels:parcels,start_date:helpers.formatDateToUK(order.start_date)}
-        const templateData = {
-            username, // Pass username
-            adminData,
-            order
-        };
+        // const subject = "Parcel Request Confirmed: Awaiting Rider Assignment - FastUk";
+        // let order = await this.member.getUserOrderDetailsById({
+        //   userId: 1,
+        //   requestId: 1
+        // });
+        // const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
+        // order={...order,parcels:parcels,start_date:helpers.formatDateToUK(order.start_date)}
+        // const templateData = {
+        //     username, // Pass username
+        //     adminData,
+        //     order,
+        //     type:"user"
+        // };
 
-        const result = await helpers.sendEmail(email, subject, 'request-quote', templateData);
-          if (result.success) {
-              res.status(200).json({ status: 1, msg: "Email sent successfully", messageId: result.messageId });
-          } else {
-              res.status(200).json({ status: 0, msg: "Email sending failed", error: result.error });
+        // const result = await helpers.sendEmail(email, subject, 'request-quote', templateData);
+        //   if (result.success) {
+        //       res.status(200).json({ status: 1, msg: "Email sent successfully", messageId: result.messageId });
+        //   } else {
+        //       res.status(200).json({ status: 0, msg: "Email sending failed", error: result.error });
+        //   }
+        let order = await this.member.getUserOrderDetailsById({
+          userId: 13,
+          requestId: 54
+        });
+        // const request = await this.rider.getRequestById(54, 9);
+        const userRow = await this.member.findById(order.user_id);
+        const parcels = await this.rider.getParcelDetailsByQuoteId(54);
+        const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
+        let request_row=order;
+         const requestRow = {
+          ...request_row,  // Spread request properties into order
+            parcels: parcels // Add parcels as an array inside order
+          };
+          if(parseFloat(dueAmount)<=0){
+            const result=await helpers.sendEmail(
+              userRow.email,
+              "Invoice paid for: "+order?.booking_id,
+              "request-invoice-paid",
+              {
+                adminData,
+                order: requestRow,
+                type: "user"
+              }
+            );
           }
+
+
+        
       }
 
 }

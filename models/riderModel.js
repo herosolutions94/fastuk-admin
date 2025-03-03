@@ -70,7 +70,7 @@ class RiderModel extends BaseModel {
     async getRequestQuotesByCity (city) {
         const query = `
             SELECT * FROM request_quote
-            WHERE source_city = ? AND assigned_rider IS NULL
+            WHERE source_city = ? AND assigned_rider IS NULL ORDER BY id DESC;
         `;
         const [rows] = await pool.query(query, [city]); // Using promise wrapper
         return rows;
@@ -417,7 +417,7 @@ getEarningsBefore3Days = async () => {
   const query = `
     SELECT *
 FROM earnings
-WHERE created_time <= UNIX_TIMESTAMP(UTC_TIMESTAMP()) - (3 * 24 * 60 * 60)
+WHERE created_time <= UNIX_TIMESTAMP(UTC_TIMESTAMP()) - (3 * 24 * 60 * 60) AND status='pending'
   `;
 
   try {

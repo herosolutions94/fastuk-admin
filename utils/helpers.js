@@ -8,6 +8,7 @@ const moment = require("moment-timezone");
 const { io, users } = require("../app"); // Import io from app.js
 const axios = require('axios');
 const nodemailer = require("nodemailer");
+const mime = require("mime-types");
 require('dotenv').config(); // Load environment variables
 const ejs = require("ejs");
 
@@ -69,6 +70,46 @@ module.exports = {
       return '<span class="status badge danger">InActive</span>';
     }
   },
+uploadImageFromUrl: async function (imageUrl) {
+        try {
+        // Define uploads folder in the main project directory
+        const uploadsDir = path.resolve(__dirname, "../uploads");
+
+        // Ensure the uploads directory exists
+        if (!fs.existsSync(uploadsDir)) {
+            fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+
+        // Fetch the image
+        const response = await axios({
+            url: imageUrl,
+            responseType: "stream",
+        });
+
+        // Get the correct file extension
+        const contentType = response.headers["content-type"];
+        const extension = mime.extension(contentType) ? `.${mime.extension(contentType)}` : ".jpg"; // Default to .jpg if unknown
+
+        // Generate a unique encrypted filename
+        const encryptedName = crypto.randomBytes(16).toString("hex") + extension;
+        const filePath = path.join(uploadsDir, encryptedName);
+
+        // Save the image
+        const writer = fs.createWriteStream(filePath);
+        response.data.pipe(writer);
+
+        return new Promise((resolve, reject) => {
+            writer.on("finish", () => {
+                // const fullUrl = `${BASE_URL}/${encryptedName}`;
+                resolve({ imageName: encryptedName, extension });
+            });
+            writer.on("error", reject);
+        });
+    } catch (error) {
+        console.error("Error uploading image:", error);
+        throw error;
+    }
+    },
   getDocumentStatus: function (status) {
     if (status == 'rejected') {
       return '<span class="status badge danger">Rejected</span>';
@@ -343,6 +384,15 @@ getBusinessUserApprovalStatus: function (status) {
     try {
         const [rows] = await pool.query('SELECT * FROM tbl_states WHERE country_id = ?', [country_id]);
         return rows; // Return fetched states
+    } catch (error) {
+        console.error('Error fetching states:', error);
+        throw error;
+    }
+},
+getStateNameByStateId:async function(state_id) {
+    try {
+        const [rows] = await pool.query('SELECT * FROM tbl_states WHERE id = ?', [state_id]);
+        return rows?.length > 0 ? rows[0]?.name : null; // Return fetched states
     } catch (error) {
         console.error('Error fetching states:', error);
         throw error;
@@ -678,7 +728,7 @@ sendEmail : async function (to, subject, templateName, templateData) {
             adminData.logo = process.env.BASE_URL+this.getImage(adminData.logo_image);
         }
 
-
+        console.log('templateData',templateData)
         // Render the EJS template with dynamic data
         const htmlContent = await ejs.renderFile(templatePath, templateData);
       const info = await transporter.sendMail({
