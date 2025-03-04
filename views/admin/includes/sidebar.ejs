@@ -61,7 +61,7 @@
           <span class="hide-menu">Jobs</span></a
         >
         <ul
-          class="<%= currentPath === currentPath === 'completed-jobs' || currentPath === 'inprogress-jobs' || currentPath === 'upcoming-jobs' ? 'sub-menu show' : 'sub-menu' %>">
+          class="<%= currentPath === 'completed-jobs' || currentPath === 'inprogress-jobs' || currentPath === 'upcoming-jobs' ? 'sub-menu show' : 'sub-menu' %>">
           <li class="sidebar-item">
             <a
               href="/admin/completed-jobs"
@@ -140,6 +140,14 @@
           class="<%= currentPath === 'transactions-list' ? 'active sidebar-link' : 'sidebar-link' %>">
           <i class="fa-light fa-dollar"></i>
           <span class="hide-menu">Transactions</span></a
+        >
+      </li>
+      <li class="sidebar-item">
+        <a
+          href="/admin/earnings"
+          class="<%= currentPath === 'transactions-list' ? 'active sidebar-link' : 'sidebar-link' %>">
+          <i class="fa-light fa-dollar"></i>
+          <span class="hide-menu">Earnings</span></a
         >
       </li>
       <li class="sidebar-item">

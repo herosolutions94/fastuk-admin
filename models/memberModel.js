@@ -13,7 +13,7 @@ class MemberModel extends BaseModel {
     // Method to check if an email exists (find by email)
     async findByEmail(email) {
         try {
-            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE email = ?`, [email]);
+            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE is_deleted != 1 AND email = ?`, [email]);
             return rows.length ? rows[0] : null; // Return the first result or null
         } catch (error) {
             throw new Error(`Error fetching member by email from ${this.tableName}: ${error.message}`);

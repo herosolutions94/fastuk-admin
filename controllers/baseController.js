@@ -72,6 +72,9 @@ class BaseController {
           if (!user) {
               return { status: 0, msg: "User not found.",not_logged_in:1 };
           }
+          if (user?.is_deleted===1) {
+              return { status: 0, msg: "User not found.",not_logged_in:1 };
+          }
   
           // Step 4: Return the user details
           return { status: 1, user };

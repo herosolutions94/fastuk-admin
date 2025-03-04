@@ -14,7 +14,7 @@ class RiderModel extends BaseModel {
     // Method to check if an email exists (find by email)
     async findByEmail(email) {
         try {
-            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE email = ?`, [email]);
+            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE is_deleted !=1 AND email = ?`, [email]);
             return rows.length ? rows[0] : null; // Return the first result or null
         } catch (error) {
             throw new Error(`Error fetching rider by email from ${this.tableName}: ${error.message}`);
@@ -418,6 +418,31 @@ getEarningsBefore3Days = async () => {
     SELECT *
 FROM earnings
 WHERE created_time <= UNIX_TIMESTAMP(UTC_TIMESTAMP()) - (3 * 24 * 60 * 60) AND status='pending'
+  `;
+
+  try {
+    const [results] = await pool.query(query);
+    return results;
+  } catch (error) {
+    console.error('Error fetching earnings:', error);
+    return [];
+  }
+};
+getAllEarnings = async () => {
+  const query = `
+    SELECT 
+    e.id AS id,
+    e.user_id,
+    e.amount,
+    e.type,
+    e.status,
+    e.created_time,
+    m.id AS member_id,
+    m.full_name AS member_name,
+    m.mem_image AS mem_image
+FROM earnings e
+JOIN members m ON e.user_id = m.id
+ORDER BY e.created_time DESC;
   `;
 
   try {

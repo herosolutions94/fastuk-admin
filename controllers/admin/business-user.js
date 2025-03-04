@@ -19,12 +19,7 @@ class BusinessUserController extends BaseController {
             const businessUsers = await BusinessUser.getAllMembers([{ field: 'mem_type', operator: '=', value: 'business' }]);
             // console.log('Fetched Riders:', riders); // Log the fetched riders
 
-            if (businessUsers && businessUsers.length > 0) {
-                // Corrected res.render with only two arguments
-                res.render('admin/business_users/dashboard', { businessUsers: businessUsers || [] });
-            } else {
-                this.sendError(res, 'No business-users found');
-            }
+            res.render('admin/business_users/dashboard', { businessUsers: businessUsers || [] });
         } catch (error) {
             console.error('Error fetching business-users:', error); // Log the error for debugging
             this.sendError(res, 'Failed to fetch business-users');
