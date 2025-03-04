@@ -3,12 +3,13 @@ const path = require('path'); // For handling file paths
 
 const Member = require('../../models/member');
 const BaseController = require('../baseController');
+const helpers = require("../../utils/helpers");
 
 class MemberController extends BaseController {
     // Method to get the riders and render them in the view
     async getMembers(req, res) {
         try {
-            const members = await Member.getAllMembers([{ field: 'mem_type', operator: '=', value: 'user' }]);
+            const members = await Member.getAllMembers([{ field: 'mem_type', operator: '=', value: 'user' },{ field: 'is_deleted', operator: '!=', value: 1 }]);
             // console.log('Fetched Riders:', riders); // Log the fetched riders
 
             // if (members && members.length > 0) {
@@ -108,38 +109,35 @@ class MemberController extends BaseController {
                 return this.sendError(res, 'Member not found');
             }
 
-            const memberImage = currentMember.mem_image; // Get the image filename
-            // console.log('Member to delete:', currentMember); // Log rider details for debugging
+            // const memberImage = currentMember.mem_image; // Get the image filename
+            // // console.log('Member to delete:', currentMember); // Log rider details for debugging
 
-            // Step 2: Check if the rider has an associated image
-            if (memberImage) {
-                const imagePath = path.join(__dirname, '../../uploads/', memberImage);
-                // console.log('Image Path:', imagePath); // Log the image path
+            // // Step 2: Check if the rider has an associated image
+            // if (memberImage) {
+            //     const imagePath = path.join(__dirname, '../../uploads/', memberImage);
+            //     // console.log('Image Path:', imagePath); // Log the image path
 
-                // Check if the image file exists before trying to delete
-                if (fs.existsSync(imagePath)) {
-                    // console.log('Image found. Deleting now...');
-                    fs.unlink(imagePath, (err) => {
-                        if (err) {
-                            console.error('Error deleting rider image:', err); // Log the error if deletion fails
-                        } else {
-                            console.log('Rider image deleted successfully');
-                        }
-                    });
-                } else {
-                    console.log('Image file not found:', imagePath); // Log if the image file doesn't exist
-                }
-            }
+            //     // Check if the image file exists before trying to delete
+            //     if (fs.existsSync(imagePath)) {
+            //         // console.log('Image found. Deleting now...');
+            //         fs.unlink(imagePath, (err) => {
+            //             if (err) {
+            //                 console.error('Error deleting rider image:', err); // Log the error if deletion fails
+            //             } else {
+            //                 console.log('Rider image deleted successfully');
+            //             }
+            //         });
+            //     } else {
+            //         console.log('Image file not found:', imagePath); // Log if the image file doesn't exist
+            //     }
+            // }
 
             // Step 3: Delete the rider from the database
-            const result = await Member.deleteMemberById(memberId);
-            if (result) {
-                // Redirect to the riders list after deletion
-                this.sendSuccess(res, {}, 'Member deleted successfully!', 200, '/admin/members')
-
-            } else {
-                this.sendError(res, 'Failed to delete memberr');
-            }
+            const result = await Member.updateMemberData(memberId,{
+                is_deleted:1,
+                deleted_at:helpers.getUtcTimeInSeconds()
+            });
+            this.sendSuccess(res, {}, 'Member deleted successfully!', 200, '/admin/members')
         } catch (error) {
             console.error('Error deleting member:', error);
             this.sendError(res, 'Failed to delete member');

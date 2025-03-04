@@ -18,9 +18,7 @@ class RiderController extends BaseController {
         try {
             const riders = await Rider.getAllRiders();
     
-            if (!riders || riders.length === 0) {
-                return this.sendError(res, 'No riders found');
-            }
+            
     
             // Fetch earnings sequentially for each rider
             for (let rider of riders) {
@@ -132,38 +130,35 @@ class RiderController extends BaseController {
                 return this.sendError(res, 'Rider not found');
             }
 
-            const riderImage = currentRider.driving_license; // Get the image filename
-            console.log('Rider to delete:', currentRider); // Log rider details for debugging
+            // const riderImage = currentRider.driving_license; // Get the image filename
+            // console.log('Rider to delete:', currentRider); // Log rider details for debugging
 
-            // Step 2: Check if the rider has an associated image
-            if (riderImage) {
-                const imagePath = path.join(__dirname, '../../uploads/', riderImage);
-                console.log('Image Path:', imagePath); // Log the image path
+            // // Step 2: Check if the rider has an associated image
+            // if (riderImage) {
+            //     const imagePath = path.join(__dirname, '../../uploads/', riderImage);
+            //     console.log('Image Path:', imagePath); // Log the image path
 
-                // Check if the image file exists before trying to delete
-                if (fs.existsSync(imagePath)) {
-                    console.log('Image found. Deleting now...');
-                    fs.unlink(imagePath, (err) => {
-                        if (err) {
-                            console.error('Error deleting rider image:', err); // Log the error if deletion fails
-                        } else {
-                            console.log('Rider image deleted successfully');
-                        }
-                    });
-                } else {
-                    console.log('Image file not found:', imagePath); // Log if the image file doesn't exist
-                }
-            }
+            //     // Check if the image file exists before trying to delete
+            //     if (fs.existsSync(imagePath)) {
+            //         console.log('Image found. Deleting now...');
+            //         fs.unlink(imagePath, (err) => {
+            //             if (err) {
+            //                 console.error('Error deleting rider image:', err); // Log the error if deletion fails
+            //             } else {
+            //                 console.log('Rider image deleted successfully');
+            //             }
+            //         });
+            //     } else {
+            //         console.log('Image file not found:', imagePath); // Log if the image file doesn't exist
+            //     }
+            // }
 
             // Step 3: Delete the rider from the database
-            const result = await Rider.deleteRiderById(riderId);
-            if (result) {
-                // Redirect to the riders list after deletion
-                this.sendSuccess(res, {}, 'Rider deleted successfully!', 200, '/admin/riders')
-
-            } else {
-                this.sendError(res, 'Failed to delete rider');
-            }
+            const result = await this.riderModel.updateRiderData(riderId,{
+                is_deleted:1,
+                deleted_at:helpers.getUtcTimeInSeconds()
+            });
+            this.sendSuccess(res, {}, 'Rider deleted successfully!', 200, '/admin/riders')
         } catch (error) {
             console.error('Error deleting rider:', error);
             this.sendError(res, 'Failed to delete rider');

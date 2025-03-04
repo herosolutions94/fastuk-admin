@@ -70,6 +70,13 @@ module.exports = {
       return '<span class="status badge danger">InActive</span>';
     }
   },
+  getEarningStatus: function (status) {
+    if (status === 'cleared') {
+      return '<span class="status badge success">Cleared</span>';
+    } else {
+      return '<span class="status badge warning">Pending</span>';
+    }
+  },
   shortText: function(text, length) {
     if (!text || typeof text !== "string") return "";
     if (text.length <= length) return text;

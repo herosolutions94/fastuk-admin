@@ -3,7 +3,7 @@ const pool = require('../config/db-connection'); // Ensure this is promise-based
 class Rider {
     static async getAllRiders() {
         try {
-            const [rows] = await pool.query('SELECT * FROM riders'); // Only take the first result
+            const [rows] = await pool.query('SELECT * FROM riders WHERE is_deleted!=1'); // Only take the first result
             // console.log('Riders fetched successfully:', rows); // Log the data (only the rows)
             return rows; // Return the fetched rows
         } catch (error) {
