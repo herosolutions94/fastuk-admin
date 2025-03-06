@@ -19,6 +19,14 @@ class MemberModel extends BaseModel {
             throw new Error(`Error fetching member by email from ${this.tableName}: ${error.message}`);
         }
     }
+    async findByPhone(mem_phone) {
+        try {
+            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE is_deleted != 1 AND mem_phone = ?`, [mem_phone]);
+            return rows.length ? rows[0] : null; // Return the first result or null
+        } catch (error) {
+            throw new Error(`Error fetching member by phone from ${this.tableName}: ${error.message}`);
+        }
+    }
 
     async findByOtp(otp) {
         try {
