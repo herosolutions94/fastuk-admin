@@ -28,6 +28,7 @@ router.post('/get-addresses', upload, (req, res) => pagesController.getAddress(r
 router.post('/save-subscriber', upload, (req, res) => pagesController.save_subscriber(req, res));
 router.post('/save-contact-message', upload, (req, res) => pagesController.save_contact_message(req, res));
 router.post('/site-settings', upload, (req, res) => pagesController.getSiteSettingsData(req, res));
+router.post('/search-cities', upload, (req, res) => pagesController.searchCities(req, res));
 
 
 

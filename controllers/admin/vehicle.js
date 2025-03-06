@@ -86,13 +86,14 @@ class VehicleController extends BaseController {
             const vehicles = await Vehicle.getAllVehicles();
             // console.log('Fetched Riders:', riders); // Log the fetched riders
 
-            if (vehicles && vehicles.length > 0) {
+            // if (vehicles && vehicles.length > 0) {
                 // Corrected res.render with only two arguments
                 res.render('admin/vehicles', { vehicles: vehicles || [] });
-            } else {
-                this.sendError(res, 'No vehicles found');
-            }
-        } catch (error) {
+            
+            // } else {
+            //     this.sendError(res, 'No vehicles found');
+            // }
+            }catch (error) {
             console.error('Error fetching vehicles:', error); // Log the error for debugging
             this.sendError(res, 'Failed to fetch vehicles');
         }

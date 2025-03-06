@@ -31,6 +31,42 @@
             <p><%=stats.completedOrders%></p>
           </div>
         </div>
+        <div class="col">
+          <div class="inner">
+            <h3>Total Earnings</h3>
+            <p><%=stats.earnings.toFixed(2)%></p>
+          </div>
+        </div>
+        <div class="col">
+          <div class="inner">
+            <h3>Total Transactions</h3>
+            <p><%=stats.transactions.toFixed(2)%></p>
+          </div>
+        </div>
+        <div class="col">
+          <div class="inner">
+            <h3>Total Rider Price</h3>
+            <p><%=stats.riderPrice.toFixed(2)%></p>
+          </div>
+        </div>
+        <div class="col">
+          <div class="inner">
+            <h3>User Service Fee</h3>
+            <p><%=stats.taxResult.toFixed(2)%></p>
+          </div>
+        </div>
+        <div class="col">
+          <div class="inner">
+            <h3>Net Profit</h3>
+            <p><%=stats.netProfit.toFixed(2)%></p>
+          </div>
+        </div>
+        <div class="col">
+          <div class="inner">
+            <h3>Withdraw Amount</h3>
+            <p><%=stats.withdrawResult || 0%></p>
+          </div>
+        </div>
       </div>
     </div>
   </div>
