@@ -222,6 +222,7 @@ class MemberController extends BaseController {
         created_at: new Date(),
         mem_status: mem_status || 0,
         mem_verified: mem_verified || 0,
+        mem_phone_verified:0,
         mem_type: mem_type
       };
       if(google_id){
