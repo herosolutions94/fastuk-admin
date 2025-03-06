@@ -7,6 +7,7 @@ const PageModel = require("../../models/api/pages"); // Assuming you have this m
 const PaymentMethodModel = require("../../models/api/paymentMethodModel"); // Assuming you have this model
 const RequestQuoteModel = require("../../models/request-quote"); // Assuming you have this model
 const RemotePostCodeModel = require("../../models/remote-post-code"); // Assuming you have this model
+const moment = require("moment");
 
 const Token = require("../../models/tokenModel");
 const Addresses = require("../../models/api/addressModel");
@@ -1804,6 +1805,61 @@ class MemberController extends BaseController {
     }
   };
 
+  updateUserPhoneNumber = async (req, res) => {
+    try {
+      const { token, mem_phone, memType } =
+        req.body; 
+        if (!token) {
+          return res.status(200).json({ status: 0, msg: "Token is required." });
+        }
+        const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+        if (userResponse.status === 0) {
+          // If validation fails, return the error message
+          return res.status(200).json(userResponse);
+        }
+        const member = userResponse.user;
+        const userId=member?.id
+        if (!mem_phone) {
+          return res.status(200).json({
+            status: 0,
+            msg: "Phone required."
+          });
+        }
+        let existingPhone = await this.member.findByPhone(mem_phone);
+
+          // Check if the rider exists by email
+          if (existingPhone) {
+            return res
+              .status(200)
+              .json({ status: 0, msg: "Phone already exists." });
+          }
+          let updatedData = {
+            mem_phone,
+          };
+          let otp = Math.floor(100000 + Math.random() * 900000); 
+          updatedData.phone_otp = parseInt(otp, 10); // Add OTP to cleanedData
+          updatedData.phone_expire_time = moment()
+          .add(3, "minutes")
+          .format("YYYY-MM-DD HH:mm:ss");
+          if (memType === "user" || memType === "business") {
+            await this.member.updateMemberData(userId, updatedData); // Update member data
+          }
+          return res.status(200).json({
+            status: 1,
+            msg: "Phone updated successfully.",
+            expire_time:updatedData.phone_expire_time,
+          });
+      }
+      catch (error) {
+        console.error("Error updating profile:", error.message);
+        return res.status(500).json({
+          status: 0,
+          msg: "Server error.",
+          details: error.message
+        });
+      }
+  };
   updateProfile = async (req, res) => {
     try {
       const { token, first_name, last_name, mem_phone, address, bio, memType,vehicle_owner,vehicle_type,city,vehicle_registration_num,driving_license_num,dob } =
@@ -1828,7 +1884,14 @@ class MemberController extends BaseController {
           msg: "First name, last name, phone number, and address are required."
         });
       }
+      let existingPhone = await this.member.findByPhone(mem_phone);
 
+      // Check if the rider exists by email
+      if (existingPhone) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Phone already exists." });
+      }
       // Save the updated member data
       let updatedData = {
         full_name: first_name + " " + last_name,
