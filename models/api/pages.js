@@ -158,6 +158,19 @@ class PageModel extends BaseModel {
         const [result] = await pool.query(query, values);
         return result; // Returning result for debugging
     }
+
+    async findAllCities(query) {
+        const sql = `SELECT name FROM cities WHERE name LIKE ? LIMIT 10`; // Use MySQL wildcard query
+        const values = [`%${query}%`]; // Pass query value
+    
+        try {
+          const [result] = await pool.execute(sql, values); // Use .execute() for MySQL
+          return result; // Returning result array
+        } catch (error) {
+          console.error("Database Error:", error);
+          throw error;
+        }
+      }
     
     
 
