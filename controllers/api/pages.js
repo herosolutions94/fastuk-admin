@@ -557,7 +557,27 @@ class PagesController extends BaseController {
       }
     }    
 
-  
+    async searchCities(req, res) {
+      const { query } = req.body; // Get search query from body
+    
+      if (!query) {
+        return res.status(200).json({ status: 0, msg: "Query field is required" });
+      }
+    
+      try {
+        const result = await this.pageModel.findAllCities(query); // Pass query to model function
+    
+        return res.status(200).json({
+          status: 1,
+          msg: "Cities fetched successfully!",
+          data: result, // Return result array
+        });
+      } catch (error) {
+        console.error("Database Error:", error);
+        return res.status(200).json({ status: 0, msg: "Internal Server Error" });
+      }
+    }
+    
 
 }
 
