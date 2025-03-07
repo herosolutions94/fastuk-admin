@@ -40,11 +40,11 @@ const indexView = async (req, res, next) => {
         const membersCount = membersCountResult[0].count;
         const messagesCount = messagesCountResult[0].count;
         const completedOrdersCount = completedOrdersCountResult[0].count;
-        const earningsCount = earningsCountResult[0].earnings;
-        const transactionsCount = transactionsCountResult[0].transactions;
-        const riderPrice = riderPriceResult[0].rider_price;
-        const taxResult = totalTaxResult[0].tax;
-        const withdrawResult = withdrawAmountResult[0].amount;
+        const earningsCount = earningsCountResult?.length > 0 ? earningsCountResult[0].earnings : 0;
+        const transactionsCount = transactionsCountResult?.length > 0 ? transactionsCountResult[0].transactions : 0;
+        const riderPrice = riderPriceResult?.length > 0 ? riderPriceResult[0].rider_price : 0;
+        const taxResult = totalTaxResult?.length > 0 ? totalTaxResult[0].tax : 0;
+        const withdrawResult = withdrawAmountResult?.length > 0 ? withdrawAmountResult[0].amount : 0;
 
         // Render the admin dashboard with counts
         res.render('admin/dashboard', {
@@ -54,12 +54,12 @@ const indexView = async (req, res, next) => {
                 members: membersCount,
                 messages: messagesCount,
                 completedOrders: completedOrdersCount,
-                earnings:earningsCount,
-                transactions:transactionsCount,
-                riderPrice:riderPrice,
-                taxResult:taxResult,
-                netProfit:netProfit,
-                withdrawResult:withdrawResult
+                earnings:earningsCount ? earningsCount : 0,
+                transactions:transactionsCount ? transactionsCount : 0,
+                riderPrice:riderPrice ? riderPrice : 0,
+                taxResult:taxResult ? taxResult : 0,
+                netProfit:netProfit ? netProfit : 0,
+                withdrawResult:withdrawResult ? withdrawResult : 0
             }
         });
     } catch (error) {
