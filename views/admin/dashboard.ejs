@@ -6,65 +6,73 @@
       </div>
     </div>
     <div class="grids">
+      <h4>Completed Orders History</h4>
       <div class="flex">
+        
         <div class="col">
-          <div class="inner">
-            <h3>Total Riders</h3>
-            <p><%= stats.riders %></p>
-          </div>
-        </div>
-        <div class="col">
-          <div class="inner">
-            <h3>Total Users</h3>
-            <p><%=stats.members%></p>
-          </div>
-        </div>
-        <div class="col">
-          <div class="inner">
-            <h3>Total Messages</h3>
-            <p><%=stats.messages%></p>
-          </div>
-        </div>
-        <div class="col">
-          <div class="inner">
+          <div class="inner info-gradient">
+            <div class="icon">
+              <i class="fa-light fa-calendar"></i>
+            </div>
             <h3>Total Orders</h3>
             <p><%=stats.completedOrders%></p>
           </div>
         </div>
         <div class="col">
-          <div class="inner">
-            <h3>Total Earnings</h3>
-            <p><%=stats.earnings.toFixed(2)%></p>
-          </div>
-        </div>
-        <div class="col">
-          <div class="inner">
+          <div class="inner success-gradient">
+            <div class="icon">
+              <i class="fa-light fa-dollar"></i>
+            </div>
             <h3>Total Transactions</h3>
-            <p><%=stats.transactions.toFixed(2)%></p>
+            <p>£<%=stats.transactions.toFixed(2)%></p>
           </div>
         </div>
         <div class="col">
-          <div class="inner">
-            <h3>Total Rider Price</h3>
-            <p><%=stats.riderPrice.toFixed(2)%></p>
+          <div class="inner success-gradient">
+            <div class="icon">
+              <i class="fa-light fa-dollar"></i>
+            </div>
+            <h3>Total Earnings</h3>
+            <p>£<%=stats.earnings.toFixed(2)%></p>
           </div>
         </div>
         <div class="col">
-          <div class="inner">
-            <h3>User Service Fee</h3>
-            <p><%=stats.taxResult.toFixed(2)%></p>
-          </div>
-        </div>
-        <div class="col">
-          <div class="inner">
-            <h3>Net Profit</h3>
-            <p><%=stats.netProfit.toFixed(2)%></p>
-          </div>
-        </div>
-        <div class="col">
-          <div class="inner">
+          <div class="inner success-gradient">
+            <div class="icon">
+              <i class="fa-light fa-dollar"></i>
+            </div>
             <h3>Withdraw Amount</h3>
-            <p><%=stats.withdrawResult || 0%></p>
+            <p>£<%=stats.withdrawResult || 0%></p>
+          </div>
+        </div>
+      </div>
+      <div class="flex">
+        
+        <div class="col">
+          <div class="inner primary-gradient">
+            <div class="icon">
+              <i class="fa-light fa-gauge"></i>
+            </div>
+            <h3>Total Riders</h3>
+            <p><%= stats.riders %></p>
+          </div>
+        </div>
+        <div class="col">
+          <div class="inner warning-gradient">
+            <div class="icon">
+              <i class="fa-light fa-gauge"></i>
+            </div>
+            <h3>Total Users</h3>
+            <p><%=stats.members%></p>
+          </div>
+        </div>
+        <div class="col">
+          <div class="inner secondary-gradient">
+            <div class="icon">
+              <i class="fa-light fa-comments"></i>
+            </div>
+            <h3>Total Messages</h3>
+            <p><%=stats.messages%></p>
           </div>
         </div>
       </div>
