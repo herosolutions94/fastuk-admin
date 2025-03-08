@@ -168,6 +168,7 @@ const adminMessageRoutes = require('./routes/admin/message');
 const testimonialRoutes = require('./routes/admin/testimonial');
 const teamMemberRoutes = require('./routes/admin/team');
 const serviceRoutes = require('./routes/admin/service');
+const subAdminRoutes = require('./routes/admin/sub-admin');
 const faqRoutes = require('./routes/admin/faq');
 const vehicleRoutes = require('./routes/admin/vehicle');
 const remotePostCodeRoutes = require('./routes/admin/remote-post-code');
@@ -230,6 +231,7 @@ app.use('/admin', WithdrawalRequestsRoutes);
 app.use('/admin', reviewRoutes);
 app.use('/admin', businessUserRoutes);
 app.use('/admin', transactionsRoutes);
+app.use('/admin', subAdminRoutes);
 
 
 
