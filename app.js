@@ -168,6 +168,7 @@ const adminMessageRoutes = require('./routes/admin/message');
 const testimonialRoutes = require('./routes/admin/testimonial');
 const teamMemberRoutes = require('./routes/admin/team');
 const serviceRoutes = require('./routes/admin/service');
+const subAdminRoutes = require('./routes/admin/sub-admin');
 const faqRoutes = require('./routes/admin/faq');
 const vehicleRoutes = require('./routes/admin/vehicle');
 const remotePostCodeRoutes = require('./routes/admin/remote-post-code');
@@ -181,6 +182,8 @@ const transactionsRoutes = require('./routes/admin/transactions');
 const authMiddleware = require('./middleware/authMiddleware');
 const authenticationMiddleware = require('./middleware/authentication');
 const siteInfoMiddleware = require('./middleware/siteInfoMiddleware');
+const checkAccessMiddleware = require('./middleware/checkAccessMiddleware');
+const requestMiddleware = require('./middleware/requestMiddleware');
 const { getUserIdFromToken } = require('./utils/sockets');
 const { pool } = require('./config/db-connection');
 
@@ -193,6 +196,8 @@ app.set('layout', 'admin/layout');
 
 app.use(express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static('uploads'));
+app.use(requestMiddleware)
+
 
 
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -212,8 +217,11 @@ app.use('/api', memberRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', apiPagesRoutes);
 app.use('/api', authApiRoutes);
+
 app.use('/admin', accountRoutes);
 app.use('/admin', authRoutes);
+// app.use(checkAccessMiddleware)
+
 app.use('/admin', adminRiderRoutes);
 app.use('/admin', adminMemberRoutes);
 app.use('/admin', adminMessageRoutes);
@@ -230,6 +238,7 @@ app.use('/admin', WithdrawalRequestsRoutes);
 app.use('/admin', reviewRoutes);
 app.use('/admin', businessUserRoutes);
 app.use('/admin', transactionsRoutes);
+app.use('/admin', subAdminRoutes);
 
 
 

@@ -89,6 +89,14 @@ class AdminModel extends BaseModel {
         }
     }
 
+    async getPermissions(adminId) {
+        const [permissions] = await pool.query(
+          `SELECT GROUP_CONCAT(permission_id) AS perms FROM site_permissions_admin WHERE admin_id = ?`, 
+          [adminId]
+        );
+        return permissions[0]?.perms ? permissions[0].perms.split(',') : [];
+      }
+
 
 }
 

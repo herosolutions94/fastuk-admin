@@ -18,11 +18,15 @@ const indexView = async (req, res, next) => {
         const ridersCount = ridersCountResult[0].count;
         const membersCount = membersCountResult[0].count;
         const messagesCount = messagesCountResult[0].count;
-       
+
+
+        console.log("session:",req.session)
+
 
         // Render the admin dashboard with counts
         res.render('admin/dashboard', {
             layout: 'admin/layout',
+            req: req,
             stats: {
                 riders: ridersCount,
                 members: membersCount,
