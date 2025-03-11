@@ -23,14 +23,14 @@
             <th width="10%">
               <p>User</p>
             </th>
-            <th width="15%">
-              <p>Booking Id</p>
-            </th>
             <th width="25%">
               <p>Pickup</p>
             </th>
             <th width="25%">
               <p>Drop-off</p>
+            </th>
+            <th width="25%">
+              <p>Amount</p>
             </th>
             <th width="15%">
               <p>Status</p>
@@ -49,6 +49,7 @@
             </td>
 
             <td>
+            <% if (requestQuote.assigned_rider) { %>
               <div class="flex">
                 <div class="image">
                   <img
@@ -59,6 +60,9 @@
                   <p><%= requestQuote.rider_name %></p>
                 </div>
               </div>
+              <% }else{ %>
+              Rider not assigned yet!
+              <% } %>
             </td>
             <td>
               <div class="flex">
@@ -72,14 +76,15 @@
                 </div>
               </div>
             </td>
-            <td>
-              <p><%= requestQuote.booking_id %></p>
-            </td>
+            
             <td>
               <p><%= helpers.shortText(requestQuote.source_address,15) %></p>
             </td>
             <td>
               <p><%= helpers.shortText(requestQuote.dest_address,15) %></p>
+            </td>
+            <td>
+              <p>£<%= requestQuote.total_amount %></p>
             </td>
             <td>
               <p>

@@ -7,28 +7,7 @@ const indexView = async (req, res, next) => {
         const [ridersCountResult] = await pool.query('SELECT COUNT(*) AS count FROM riders');
         const [membersCountResult] = await pool.query('SELECT COUNT(*) AS count FROM members');
         const [messagesCountResult] = await pool.query('SELECT COUNT(*) AS count FROM messages');
-        const [completedOrdersCountResult] = await pool.query(
-            'SELECT COUNT(*) AS count FROM request_quote WHERE status = ?',
-            ['completed'] // Use parameterized query to prevent SQL injection
-        );
-        const [earningsCountResult] = await pool.query('SELECT SUM(amount) AS earnings FROM earnings WHERE status=?',['cleared']);
-        // console.log("earnings:",earningsCountResult)
-        const [transactionsCountResult] = await pool.query(`
-            SELECT SUM(t.amount) AS transactions 
-            FROM transactions t 
-            JOIN request_quote rq ON t.transaction_id = rq.id 
-            WHERE t.transaction_id IS NOT NULL 
-            AND t.transaction_id != 0 
-            AND rq.status = 'completed'
-        `);
-        const [riderPriceResult] = await pool.query('SELECT SUM(rider_price) AS rider_price FROM request_quote WHERE status=?',['completed']);
-        const [totalTaxResult] = await pool.query('SELECT SUM(tax) AS tax FROM request_quote WHERE status=?',['completed']);
-        const netProfit = (transactionsCountResult[0].transactions || 0) - (riderPriceResult[0].rider_price || 0);
-// console.log('Net Profit:', netProfit);
-
-        const [withdrawAmountResult] = await pool.query('SELECT SUM(amount) AS amount FROM withdraw_requests WHERE status=?',['completed']);
-
-
+        
 
 
          
@@ -39,13 +18,7 @@ const indexView = async (req, res, next) => {
         const ridersCount = ridersCountResult[0].count;
         const membersCount = membersCountResult[0].count;
         const messagesCount = messagesCountResult[0].count;
-        const completedOrdersCount = completedOrdersCountResult[0].count;
-        const earningsCount = earningsCountResult[0].earnings;
-        console.log("earningsCount:",earningsCount)
-        const transactionsCount = transactionsCountResult[0].transactions;
-        const riderPrice = riderPriceResult[0].rider_price;
-        const taxResult = totalTaxResult[0].tax;
-        const withdrawResult = withdrawAmountResult[0].amount;
+
 
         console.log("session:",req.session)
 
@@ -58,13 +31,7 @@ const indexView = async (req, res, next) => {
                 riders: ridersCount,
                 members: membersCount,
                 messages: messagesCount,
-                completedOrders: completedOrdersCount,
-                earnings:earningsCount,
-                transactions:transactionsCount,
-                riderPrice:riderPrice,
-                taxResult:taxResult,
-                netProfit:netProfit,
-                withdrawResult:withdrawResult
+                
             }
         });
     } catch (error) {

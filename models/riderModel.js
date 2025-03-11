@@ -453,6 +453,27 @@ ORDER BY e.created_time DESC;
     return [];
   }
 };
+static async getEarningById(id) {
+    const [transaction] = await pool.query(
+      `SELECT * FROM earnings WHERE id = ?`,
+      [id]
+    );
+    return transaction; // This should be an object, not an array
+  }
+  static async updateEarningData(id, data) {
+        // Extract keys and values from the data object
+        const keys = Object.keys(data); // ['otp', 'expire_time']
+        const values = Object.values(data); // [newOtp, newExpireTime]
+
+        // Construct the SET clause dynamically
+        const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
+
+        // Build the query dynamically
+        const query = `UPDATE earnings SET ${setClause} WHERE id = ?`;
+
+        // Execute the query, adding the memberId to the values array
+        await pool.query(query, [...values, id]);
+    }
 async updateEarningStatusToCleared(earningId) {
   const query = `UPDATE earnings SET status = 'cleared' WHERE id = ?`;
 
