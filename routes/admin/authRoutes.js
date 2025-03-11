@@ -10,7 +10,7 @@ const  checkAccessMiddleware  = require('../../middleware/checkAccessMiddleware'
 
 
 router.get('/login', redirectIfAuthenticated, authController.renderLoginPage.bind(authController));
-router.post('/login', upload, authController.login.bind(authController));
+router.post('/loginAuth', upload, authController.login.bind(authController));
 router.post('/update-settings',checkAccessMiddleware(19),ensureAuthenticated, upload, authController.updateSiteSettings.bind(authController));
 router.get('/site-settings', ensureAuthenticated,checkAccessMiddleware(19), authController.getSiteSettings.bind(authController));
 
