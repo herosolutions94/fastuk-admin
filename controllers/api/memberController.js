@@ -1837,17 +1837,58 @@ class MemberController extends BaseController {
           let updatedData = {
             mem_phone,
           };
+          const newExpireTime = new Date();
+          newExpireTime.setMinutes(newExpireTime.getMinutes() + 3);
           let otp = Math.floor(100000 + Math.random() * 900000); 
           updatedData.phone_otp = parseInt(otp, 10); // Add OTP to cleanedData
-          updatedData.phone_expire_time = moment()
-          .add(3, "minutes")
-          .format("YYYY-MM-DD HH:mm:ss");
+          updatedData.phone_expire_time = newExpireTime;
           if (memType === "user" || memType === "business") {
             await this.member.updateMemberData(userId, updatedData); // Update member data
           }
           return res.status(200).json({
             status: 1,
             msg: "Phone updated successfully.",
+            expire_time:updatedData.phone_expire_time,
+            mem_phone:mem_phone
+          });
+      }
+      catch (error) {
+        console.error("Error updating profile:", error.message);
+        return res.status(500).json({
+          status: 0,
+          msg: "Server error.",
+          details: error.message
+        });
+      }
+  };
+  resendOtpUserPhoneNumber = async (req, res) => {
+    try {
+      const { token, mem_phone, memType } =
+        req.body; 
+        if (!token) {
+          return res.status(200).json({ status: 0, msg: "Token is required." });
+        }
+        const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+        if (userResponse.status === 0) {
+          // If validation fails, return the error message
+          return res.status(200).json(userResponse);
+        }
+        const member = userResponse.user;
+        const userId=member?.id
+        
+          let updatedData = {};
+          const newExpireTime = new Date();
+          newExpireTime.setMinutes(newExpireTime.getMinutes() + 3);
+          let otp = Math.floor(100000 + Math.random() * 900000); 
+          updatedData.phone_otp = parseInt(otp, 10); // Add OTP to cleanedData
+          updatedData.phone_expire_time = newExpireTime;
+          if (memType === "user" || memType === "business") {
+            await this.member.updateMemberData(userId, updatedData); // Update member data
+          }
+          return res.status(200).json({
+            status: 1,
+            msg: "Code sent successfully.",
             expire_time:updatedData.phone_expire_time,
           });
       }

@@ -72,12 +72,7 @@ class RemotePostCodeController extends BaseController {
             const remotePostCodes = await RemotePostCode.getAllRemotePostCodes();
             // console.log('Fetched Riders:', riders); // Log the fetched riders
 
-            if (remotePostCodes && remotePostCodes.length > 0) {
-                // Corrected res.render with only two arguments
-                res.render('admin/remote-post-codes', { remotePostCodes: remotePostCodes || [] });
-            } else {
-                this.sendError(res, 'No remote post code found');
-            }
+            res.render('admin/remote-post-codes', { remotePostCodes: remotePostCodes || [] });
         } catch (error) {
             console.error('Error fetching remote post codes:', error); // Log the error for debugging
             this.sendError(res, 'Failed to fetch remote post codes');

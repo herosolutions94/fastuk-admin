@@ -85,6 +85,7 @@ class MemberController extends BaseController {
         created_at: new Date(),
         mem_status: 1,
         mem_verified: 0,
+        mem_phone_verified:0,
         mem_type: mem_type,
         is_approved: is_approved
       };
@@ -220,7 +221,7 @@ class MemberController extends BaseController {
         confirm_password:
           typeof confirm_password === "string" ? confirm_password.trim() : "",
         created_at: new Date(),
-        mem_status: mem_status || 0,
+        mem_status: 1,
         mem_verified: mem_verified || 0,
         mem_phone_verified:0,
         mem_type: mem_type
@@ -382,6 +383,11 @@ class MemberController extends BaseController {
         return res
           .status(200)
           .json({ status: 0, msg: "Email or password is incorrect." });
+      }
+      if(parseInt(existingUser?.mem_status)!==1){
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Your account is blocked by admin, please contact admin for further details." });
       }
       if(googleId){
         if(existingUser?.google_id!==googleId){

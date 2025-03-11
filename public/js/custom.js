@@ -1,5 +1,32 @@
 //contact form
 
+$(document).on("change", "#report_filter", function (e) {
+    let filter=$(this).val();
+    $.ajax({
+        url: '/admin/filter-completed-reports',
+        data: {filter:filter},
+        dataType: 'JSON',
+        method: 'POST',
+        error: function (rs) {
+            
+            showToast('Error submitting form. Please try again later.', 'error');
+        },
+        success: function (response) {
+            console.log("Response:", response);
+            const completedOrders=response?.stats?.completedOrders
+            const earnings=response?.stats?.earnings
+            const transactions=response?.stats?.transactions
+            const withdrawResult=response?.stats?.withdrawResult
+            $(".completedOrders").html(completedOrders)
+            $(".earnings").html("£"+earnings)
+            $(".transactions").html("£"+transactions)
+            $(".withdrawResult").html("£"+withdrawResult)
+            
+        },
+        complete: function () {
+        },
+    });
+})
 $(document).on("submit", ".frmAjax", function (e) {
     e.preventDefault();
     var frm = this;

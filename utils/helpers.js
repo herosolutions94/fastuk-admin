@@ -64,7 +64,7 @@ module.exports = {
   //   }
   // },
   getStatus: function (status) {
-    if (status === 1) {
+    if (parseInt(status) === 1) {
       return '<span class="status badge success">Active</span>';
     } else {
       return '<span class="status badge danger">InActive</span>';
