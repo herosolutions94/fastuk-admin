@@ -767,7 +767,30 @@ sendEmail : async function (to, subject, templateName, templateData) {
       console.error("Email sending failed: ", error);
       return { success: false, error };
   }
-}
+},
+
+isAdmin: async function (req) { 
+  return req.session && req.session.admin && req.session.admin.type === 'admin';
+},
+
+hasAccess: async function (req, permissionId = 0) { 
+  if (await this.isAdmin(req)) return true; // ✅ Ensure true for admins
+
+  let permissions = req.session.permissions || []; 
+  permissions = permissions.map(p => parseInt(p, 10)).filter(Number.isInteger); 
+
+  console.log("Checking permission:", permissionId, "User permissions:", permissions);
+  return permissions.includes(permissionId);
+},
+
+access: async function (req, permissionId) { 
+  if (await this.isAdmin(req)) return true; // ✅ Ensure true for admins
+
+  const permissions = req.session.permissions || [];
+  return permissions.includes(permissionId.toString()); 
+},
+
+
 
 
 

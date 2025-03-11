@@ -2,11 +2,13 @@ const express = require('express');
 const accountController = require('../../controllers/admin/account');
 const { ensureAuthenticated } = require('../../middleware/authMiddleware');
 const router = express.Router();
+const  checkAccessMiddleware  = require('../../middleware/checkAccessMiddleware');
 
 
 
-router.get('/dashboard', ensureAuthenticated, accountController.indexView);
-router.get('/dashboard', ensureAuthenticated, accountController.indexView);
+
+router.get('/dashboard', ensureAuthenticated,checkAccessMiddleware(1), accountController.indexView);
+router.get('/dashboard', ensureAuthenticated,checkAccessMiddleware(1), accountController.indexView);
 // router.get('/site-settings', accountController.siteSettingsView);
 router.get('/home', accountController.homeView);
 router.get('/message', accountController.messageView);
