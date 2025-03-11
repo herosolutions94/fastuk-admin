@@ -41,14 +41,19 @@ const indexView = async (req, res, next) => {
         const messagesCount = messagesCountResult[0].count;
         const completedOrdersCount = completedOrdersCountResult[0].count;
         const earningsCount = earningsCountResult[0].earnings;
+        console.log("earningsCount:",earningsCount)
         const transactionsCount = transactionsCountResult[0].transactions;
         const riderPrice = riderPriceResult[0].rider_price;
         const taxResult = totalTaxResult[0].tax;
         const withdrawResult = withdrawAmountResult[0].amount;
 
+        console.log("session:",req.session)
+
+
         // Render the admin dashboard with counts
         res.render('admin/dashboard', {
             layout: 'admin/layout',
+            req: req,
             stats: {
                 riders: ridersCount,
                 members: membersCount,
