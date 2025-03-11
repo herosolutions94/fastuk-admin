@@ -25,6 +25,7 @@ class TransactionsModel extends BaseModel {
     m.mem_image AS mem_image
 FROM transactions t
 JOIN members m ON t.user_id = m.id
+        WHERE t.is_deleted=0
 ORDER BY t.created_time DESC;
 ;
           `);
@@ -63,6 +64,20 @@ ORDER BY t.created_time DESC;
       throw new Error("Failed to delete transaction");
     }
   }
+  static async updateData(id, data) {
+        // Extract keys and values from the data object
+        const keys = Object.keys(data); // ['otp', 'expire_time']
+        const values = Object.values(data); // [newOtp, newExpireTime]
+
+        // Construct the SET clause dynamically
+        const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
+
+        // Build the query dynamically
+        const query = `UPDATE ${this.tableName} SET ${setClause} WHERE id = ?`;
+
+        // Execute the query, adding the memberId to the values array
+        await pool.query(query, [...values, id]);
+    }
 }
 
 module.exports = TransactionsModel;

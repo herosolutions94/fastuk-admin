@@ -28,6 +28,7 @@ router.post('/create-simple-payment-intent', upload, (req, res) => memberControl
 router.post('/save-request-quote', upload, (req, res) => memberController.createRequestQuote(req, res));
 
 router.post('/update-user-phone-number', upload, (req, res) => memberController.updateUserPhoneNumber(req, res));
+router.post('/resend-otp-phone-number', upload, (req, res) => memberController.resendOtpUserPhoneNumber(req, res));
 router.post('/update-profile', upload, (req, res) => memberController.updateProfile(req, res));
 router.post('/update-password', upload, (req, res) => memberController.changePassword(req, res));
 router.post('/get-user-orders', upload, (req, res) => memberController.getUserOrders(req, res));
