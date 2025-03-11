@@ -53,6 +53,7 @@
           </li>
         </ul>
       </li>
+      <li class="small_head">Jobs</li>
       <li class="sidebar-item">
         <a
           href="javascript:void(0)"
@@ -85,20 +86,46 @@
           </li>
         </ul>
       </li>
+      <li class="small_head">Reports</li>
+      <li class="sidebar-item">
+        <a
+          href="javascript:void(0)"
+          class="<%= currentPath === 'completed-reports' || currentPath === 'inprogress-reports' ? 'active sidebar-link has-arrow' : 'sidebar-link has-arrow' %>">
+          <i class="fas fa-analytics"></i>
+          <span class="hide-menu">Reports</span></a
+        >
+        <ul
+          class="<%= currentPath === 'completed-reports' || currentPath === 'inprogress-reports' ? 'sub-menu show' : 'sub-menu' %>">
+          <li class="sidebar-item">
+            <a
+              href="/admin/completed-reports"
+              class="<%= currentPath === 'completed-reports' ? 'active sidebar-link' : 'sidebar-link' %>">
+              <span class="hide-menu">Completed Jobs</span></a
+            >
+          </li>
+          <li class="sidebar-item">
+            <a
+              href="/admin/inprogress-reports"
+              class="<%= currentPath === 'inprogress-reports' ? 'active sidebar-link' : 'sidebar-link' %>">
+              <span class="hide-menu">In Progress Reports</span></a
+            >
+          </li>
+        </ul>
+      </li>
       <li class="small_head">User Requests</li>
       <li class="sidebar-item">
         <a
           href="/admin/transactions-list"
           class="<%= currentPath === 'transactions-list' ? 'active sidebar-link' : 'sidebar-link' %>">
-          <i class="fa-light fa-dollar"></i>
+          <i class="fa-light fa-gbp"></i>
           <span class="hide-menu">Transactions</span></a
         >
       </li>
       <li class="sidebar-item">
         <a
           href="/admin/earnings"
-          class="<%= currentPath === 'transactions-list' ? 'active sidebar-link' : 'sidebar-link' %>">
-          <i class="fa-light fa-dollar"></i>
+          class="<%= currentPath === 'earnings' ? 'active sidebar-link' : 'sidebar-link' %>">
+          <i class="fa-light fa-gbp"></i>
           <span class="hide-menu">Earnings</span></a
         >
       </li>

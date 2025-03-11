@@ -14,6 +14,7 @@ const earnings_Controller = new EarningsController();
 router.get('/earnings', ensureAuthenticated, earnings_Controller.getEarnings.bind(earnings_Controller));
 router.get('/transactions-list', ensureAuthenticated, transactionsController.getTransactions.bind(transactionsController));
 router.delete('/transactions/delete/:id', ensureAuthenticated, transactionsController.deleteTransaction.bind(transactionsController));
+router.delete('/earnings/delete/:id', ensureAuthenticated, earnings_Controller.deleteEarning.bind(earnings_Controller));
 
 
 
