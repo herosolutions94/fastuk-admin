@@ -92,10 +92,10 @@
               <div class="col-md-6">
                 <div class="txtGrp">
                   <label class="switch">Status
-                    <input type="checkbox" name="mem_status" /><span
+                    <input type="checkbox" name="mem_status"  /><span
                       class="switch-state bg-primary"></span>
                   </label>
-                  <select name="mem_status">
+                  <select name="mem_status" class=" ">
                     <option value="1" <%= member.mem_status == 1 ? 'selected' : '' %>>Active</option>
                     <option value="0" <%= member.mem_status == 0 ? 'selected' : '' %>>Inactive</option>
                 </select>
