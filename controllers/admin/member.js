@@ -6,6 +6,7 @@ const BaseController = require('../baseController');
 const helpers = require("../../utils/helpers");
 
 class MemberController extends BaseController {
+    
     // Method to get the riders and render them in the view
     async getMembers(req, res) {
         try {

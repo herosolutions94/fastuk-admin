@@ -12,6 +12,8 @@
   <nav class="sidebar-nav scroll-sidebar" data-simplebar>
     <ul id="sidebarnav">
       <li class="small_head">Main</li>
+      <% if (sidebarPermissions[1]) { %>
+
       <li class="sidebar-item">
         <a
           href="/admin/dashboard"
@@ -20,16 +22,34 @@
           <span class="hide-menu">Dashboard</span></a
         >
       </li>
+      <% } %>
+      <% if (req.session.admin && req.session.admin.type === 'admin') { %>
+        <li class="sidebar-item">
+          <a href="/admin/sub-admins" class="<%= currentPath === 'sub-admins' ? 'active sidebar-link' : 'sidebar-link' %>">
+            <i class="fa-light fa-gauge"></i>
+            <span class="hide-menu">Site Sub Admins</span>
+          </a>
+        </li>
+      <% } %>
+      
+
+      
+      
       <li class="small_head">Users</li>
+      <% if (sidebarPermissions[2] || sidebarPermissions[3]) { %>
+
       <li class="sidebar-item">
         <a
           href="javascript:void(0)"
           class="<%= currentPath === 'members' || currentPath === 'riders' ? 'active sidebar-link has-arrow' : 'sidebar-link has-arrow' %>">
+
           <i class="fa-light fa-users"></i>
           <span class="hide-menu">Users</span></a
         >
         <ul
           class="<%= currentPath === 'members' || currentPath === 'riders' ? 'sub-menu show' : 'sub-menu' %>">
+          <% if (sidebarPermissions[2]) { %> 
+
           <li class="sidebar-item">
             <a
               href="/admin/members"
@@ -37,6 +57,11 @@
               <span class="hide-menu">Users</span></a
             >
           </li>
+          <% } %>
+
+          <% if (sidebarPermissions[3]) { %>
+
+
           <li class="sidebar-item">
             <a
               href="/admin/riders"
@@ -44,6 +69,11 @@
               <span class="hide-menu">Riders</span></a
             >
           </li>
+          <% } %>
+
+          <% if  (sidebarPermissions[4]) { %> 
+
+
           <li class="sidebar-item">
             <a
               href="/admin/business-users"
@@ -51,8 +81,15 @@
               <span class="hide-menu">Business Users</span></a
             >
           </li>
+          <% } %>
+
         </ul>
       </li>
+      <% } %>
+
+      <% if (sidebarPermissions[5]) { %>
+
+
       <li class="small_head">Jobs</li>
       <li class="sidebar-item">
         <a
@@ -86,6 +123,9 @@
           </li>
         </ul>
       </li>
+      <% } %>
+      <% if (sidebarPermissions[6] || sidebarPermissions[7] || sidebarPermissions[8] || sidebarPermissions[9] ) { %>
+
       <li class="small_head">Reports</li>
       <li class="sidebar-item">
         <a
@@ -113,6 +153,8 @@
         </ul>
       </li>
       <li class="small_head">User Requests</li>
+      <% if (sidebarPermissions[6]) { %>
+
       <li class="sidebar-item">
         <a
           href="/admin/transactions-list"
@@ -121,6 +163,10 @@
           <span class="hide-menu">Transactions</span></a
         >
       </li>
+      <% } %>
+      <% if (sidebarPermissions[7]) { %>
+
+
       <li class="sidebar-item">
         <a
           href="/admin/earnings"
@@ -129,6 +175,10 @@
           <span class="hide-menu">Earnings</span></a
         >
       </li>
+      <% } %>
+      <% if (sidebarPermissions[8]) { %>
+
+
       <li class="sidebar-item">
         <a
           href="/admin/withdraw-requests-list"
@@ -137,6 +187,11 @@
           <span class="hide-menu">Withdrawal Requests</span></a
         >
       </li>
+      <% } %>
+
+      <% if (sidebarPermissions[9]) { %>
+
+
       
       <li class="sidebar-item">
         <a
@@ -146,7 +201,14 @@
           <span class="hide-menu">Reviews</span></a
         >
       </li>
+      <% } %>
+      <% } %>
+      <% if (sidebarPermissions[10] || sidebarPermissions[11] || sidebarPermissions[12] || sidebarPermissions[13]|| sidebarPermissions[14] || sidebarPermissions[15] || sidebarPermissions[16] || sidebarPermissions[17] || sidebarPermissions[18] || sidebarPermissions[19]) { %>
+
+
       <li class="small_head">Pages</li>
+      <% if (sidebarPermissions[10]) { %>
+
       <li class="sidebar-item">
         <a
           href="/admin/pages"
@@ -155,6 +217,10 @@
           <span class="hide-menu">Manage Pages</span></a
         >
       </li>
+      <% } %>
+      <% if (sidebarPermissions[11]) { %>
+
+
       <li class="sidebar-item">
         <a
           href="/admin/team-members"
@@ -163,6 +229,11 @@
           <span class="hide-menu">Team</span></a
         >
       </li>
+      <% } %>
+
+      <% if (sidebarPermissions[12]) { %>
+
+
       <li class="sidebar-item">
         <a
           href="/admin/testimonial"
@@ -171,6 +242,11 @@
           <span class="hide-menu">Testimonials</span></a
         >
       </li>
+      <% } %>
+
+      <% if (sidebarPermissions[13]) { %>
+
+
       <li class="sidebar-item">
         <a
           href="/admin/faqs"
@@ -179,6 +255,11 @@
           <span class="hide-menu">Faqs</span></a
         >
       </li>
+      <% } %>
+
+      <% if (sidebarPermissions[14]) { %>
+
+
       <li class="sidebar-item">
         <a
           href="/admin/services"
@@ -187,6 +268,10 @@
           <span class="hide-menu">Services</span></a
         >
       </li>
+      <% } %>
+      <% if (sidebarPermissions[15]) { %>
+
+
       <li class="sidebar-item">
         <a
           href="/admin/vehicles-list"
@@ -195,6 +280,11 @@
           <span class="hide-menu">Vehicles</span></a
         >
       </li>
+      <% } %>
+
+      <% if (sidebarPermissions[16]) { %>
+
+
       
       <li class="sidebar-item">
         <a
@@ -204,6 +294,11 @@
           <span class="hide-menu">Subscribers</span></a
         >
       </li>
+      <% } %>
+
+      <% if (sidebarPermissions[17]) { %>
+
+
       
       <li class="sidebar-item">
         <a
@@ -213,6 +308,10 @@
           <span class="hide-menu">Remote Post Codes</span></a
         >
       </li>
+      <% } %>
+      <% if (sidebarPermissions[18]) { %>
+
+
       <li class="sidebar-item">
         <a
           href="/admin/messages-list"
@@ -221,6 +320,10 @@
           <span class="hide-menu">Messages</span></a
         >
       </li>
+      <% } %>
+      <% if (sidebarPermissions[19]) { %>
+
+
       <li class="sidebar-item">
         <a
           href="/admin/site-settings"
@@ -229,15 +332,23 @@
           <span class="hide-menu">Site Settings</span></a
         >
       </li>
+      <% } %>
+      <% } %>
+
+      <% if (sidebarPermissions[19]) { %>
+
+
 
       <li class="sidebar-item">
         <a
           href="/admin/change-password-form"
           class="<%= currentPath === 'change-password-form' ? 'active sidebar-link' : 'sidebar-link' %>">
           <i class="fa-sharp fa-light fa-unlock-alt"></i>
-          <span class="hide-menu">Change Pssword</span></a
+          <span class="hide-menu">Change Password</span></a
         >
       </li>
+      <% } %>
+
     </ul>
   </nav>
   <div class="sidebar-footer hide-menu">

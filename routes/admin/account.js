@@ -3,6 +3,15 @@ const accountController = require('../../controllers/admin/account');
 const ReportsController = require('../../controllers/admin/reports');
 const { ensureAuthenticated } = require('../../middleware/authMiddleware');
 const router = express.Router();
+const  checkAccessMiddleware  = require('../../middleware/checkAccessMiddleware');
+
+
+
+
+router.get('/dashboard', ensureAuthenticated,checkAccessMiddleware(1), accountController.indexView);
+router.get('/dashboard', ensureAuthenticated,checkAccessMiddleware(1), accountController.indexView);
+// router.get('/site-settings', accountController.siteSettingsView);
+
 const upload = require('../../file-upload');
 
 
@@ -11,10 +20,6 @@ router.get('/completed-reports', ensureAuthenticated, ReportsController.complete
 router.get('/inprogress-reports', ensureAuthenticated, ReportsController.inprogressReportsView);
 router.post('/filter-completed-reports', ensureAuthenticated,upload, ReportsController.filterCompletedReportsView);
 
-
-
-
-router.get('/dashboard', ensureAuthenticated, accountController.indexView);
 router.get('/home', accountController.homeView);
 router.get('/message', accountController.messageView);
 router.get('/message-detail', accountController.messageDetailView);

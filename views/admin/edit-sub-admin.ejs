@@ -1,0 +1,105 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Edit Sub Admin</h3>
+        <ul>
+          <li><a href="/admin/dashboard">Dashboard</a></li>
+          <li class="active"><a href="">Edit Sub Admin</a></li>
+        </ul>
+      </div>
+      <div class="text text2">
+        <a href="/admin/sub-admins" class="webBtn mdBtn greenBtn"
+          ><i class="fa-regular fa-arrow-left"></i>Cancel</a
+        >
+      </div>
+    </div>
+    <div class="dashTable">
+      <div class="card editor_card">
+        <div class="card-header">
+          <h5>Sub Admin</h5>
+        </div>
+        <div class="card-body full_width">
+          <form
+            id="editFaqForm"
+            class="frmAjax"
+            action="/admin/sub-admins/update/<%= subAdmin.id %>"
+            method="post"
+            enctype="multipart/form-data">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="row switch-showcase">
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label">Status</label>
+                      <div
+                        class="txtGrp">
+                        <select name="status" class="input">
+                          <option value="1" <%= subAdmin.status == 1 ? 'selected' : '' %>>Active</option>
+                          <option value="0" <%= subAdmin.status == 0 ? 'selected' : '' %>>Inactive</option>
+                      </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >Name<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="name"
+                        type="text"
+                        name="name"
+                        value="<%= editSubAdminId ? subAdmin.name : '' %>" />
+                    </div>
+                  </div>
+                  <div class="col-md-12">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >User name<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        name="user_name"
+                        id="user_name"
+                        value="<%= editSubAdminId ? subAdmin.user_name : '' %>"
+                        />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >Password<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                      type="password"
+                      name="password"
+                      id="pswd"
+                      class="txtBox"
+                      placeholder="Password" 
+                      />                    
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer text-end">
+              <button class="webBtn" type="submit">
+                Update Content <i class="spinner hidden"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+        <hr />
+      </div>
+    </div>
+  </div>
+</section>
