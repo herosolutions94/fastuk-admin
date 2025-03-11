@@ -33,16 +33,26 @@ class VehicleModel extends BaseModel {
             throw error;
         }
     }
+    static async getActiveVehicles() {
+        try {
+            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE status=1`); // Only take the first result
+            // console.log('Riders fetched successfully:', rows); // Log the data (only the rows)
+            return rows; // Return the fetched rows
+        } catch (error) {
+            console.error('Error fetching vehicle:', error);
+            throw error;
+        }
+    }
     static async getVehicleById(id) {
         const [vehicle] = await pool.query(`SELECT * FROM ${this.tableName} WHERE id = ?`, [id]);
         return vehicle; // This should be an object, not an array
     }
 
     static async updateVehicle(id, vehicleData) {
-        const { title, price, status, vehicle_image } = vehicleData;
+        const { title, price, status, vehicle_image, business_user_price, admin_price, remote_price } = vehicleData;
         await pool.query(
-            `UPDATE ${this.tableName} SET title = ?, price = ?, status = ?, vehicle_image = ? WHERE id = ?`,
-            [title, price, status, vehicle_image, id]
+            `UPDATE ${this.tableName} SET title = ?, price = ?, status = ?, vehicle_image = ?, business_user_price = ?, admin_price = ?, remote_price = ? WHERE id = ?`,
+            [title, price, status, vehicle_image, business_user_price, admin_price, remote_price, id]
         );
     }
     static async deleteVehicleById(id) {
@@ -54,6 +64,16 @@ class VehicleModel extends BaseModel {
             throw new Error('Failed to delete service');
         }
     }
+
+    // static async getVehicleById(vehicleId) {
+    //     try {
+    //         const [rows] = await pool.query("SELECT * FROM vehicles WHERE id = ?", [vehicleId]);
+    //         return rows.length > 0 ? rows[0] : null;
+    //     } catch (error) {
+    //       console.error("Error fetching vehicle details:", error);
+    //       throw error;
+    //     }
+    //   }
 
     
 }

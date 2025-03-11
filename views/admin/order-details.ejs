@@ -1,0 +1,430 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Request Quote</h3>
+        <ul>
+          <li><a href="/admin/dashbaord">Home</a></li>
+          <li class="active"><a href="">Booking ID: <%= order.booking_id %></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dashTable">
+    <div class="row">
+      <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+              <h5>Rider Details:</h5>
+            </div>
+
+            <div class="card-body">
+              <div class="list-group details-group">
+                <% if (order?.assigned_rider) { %>
+                  <div class="list-group-item">
+                      <div class="d-flex w-100">
+                          <p><strong>Rider: </strong>
+                              <img src="<%= helpers.getImage(order.rider_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;">
+                              <%= order.rider_name %>
+                          </p>
+                      </div>
+                  </div>
+              <% } else { %>
+                  <p>Rider is not assigned yet.</p>
+              <% } %>
+
+              </div>
+            </div>
+        </div>
+      </div>
+      <div class="col-md-6">
+         <div class="card">
+        <div class="card-header">
+          <h5>User Details:</h5>
+        </div>
+
+        <div class="card-body">
+          <div class="list-group details-group">
+              <div class="list-group-item">
+                  <div class="d-flex w-100">
+                      <p><strong>Rider: </strong>
+                          <img src="<%= helpers.getImage(order.member_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;">
+                          <%= order.member_name %>
+                      </p>
+                  </div>
+              </div>
+
+          </div>
+        </div>
+    </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+              <h5>General Details:</h5>
+            </div>
+
+            <div class="card-body">
+              <div class="list-group details-group">
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p>
+                        <strong>Vehicle: </strong><%= order.vehicle_name %>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p>
+                        <strong>Status: </strong><p>
+               
+            </p>
+             <% if (order && order.status === 'completed') { %>
+                    <a href="#" class="status badge success">Completed</a>
+                <% } else if (order && order.status === 'accepted') { %>
+                    <a href="#" class="status badge warning">In Progress</a>
+                <% } else if (order && order.status === 'paid') { %>
+                    <a href="#" class="status badge success">Paid</a>
+                <% } else { %>
+                    <a href="#" class="status badge warning">Unknown Status</a>
+                <% } %>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p>
+                        <strong>Pickup Address: </strong><%= order.source_address %>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p>
+                        <strong>Drop-off Address: </strong><%= order.dest_address %>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p>
+                        <strong>Distance: </strong><%= order.total_distance %>miles
+                      </p>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p>
+                        <strong>Start Date: </strong><%= helpers.formatDateToUK(order.start_date) %>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p>
+                        <strong>Notes: </strong><%= order.notes %>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p>
+                        <strong>Payment Method: </strong><%= order.payment_method %>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p>
+                        <strong>Assigned Date: </strong><%= helpers.toUKDateFormat(order.assigned_date) %>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p>
+                        <strong>Created Date: </strong><%=
+                        helpers.toUKDateFormat(order.created_date) %>
+                      </p>
+                    </div>
+                  </div>
+
+              </div>
+            </div>
+        </div>
+      </div>
+      
+    </div>
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+              <h5>Parcels:</h5>
+            </div>
+
+            <div class="card-body">
+            <% if (order?.parcels?.length > 0) { %>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th width="25%">Parcel</th>
+                  <th width="10%">Price</th>
+                  <th width="25%">Source</th>
+                  <th width="25%">Destination</th>
+                  <th>Distance (miles)</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% order?.parcels.forEach(parcel => { %>
+                <tr>
+                  <td><%= parcel.parcel_number %><br /><%= parcel.parcel_type %><br /><%= parcel.length %>cm × <%= parcel.width %>cm × <%=
+                    parcel.height %>cm<br /><%= parcel.weight %>kg</td>
+                  <td>£<%= parcel.price %></td>
+                  <td><%= parcel.source_address %></td>
+                  <td><%= parcel.destination_address %></td>
+                  <td><%= parcel.distance %></td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+            <% } else { %>
+            <p>No parcels found for this order.</p>
+            <% } %>
+                  
+            </div>
+        </div>
+      </div>
+      
+    </div>
+
+    <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+              <h5>Job Stages:</h5>
+            </div>
+
+            <div class="card-body">
+                <div class="list-group details-group">
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p>
+                        <strong>Start (Pickup): </strong><%= order.source_address %>
+                      </p>
+                      <p>
+                            <%=helpers.getRiderMessageForAddress(
+                              order?.parcels,
+                              order?.source_address
+                            )%>
+                          </p>
+                          <% if (order?.is_picked ==1) { %>
+                            <p>
+                                  Rider have reached 
+                                  <strong style="margin-left:3px;margin-right:3px"><%=order?.source_address%></strong> at 
+                                  <strong style="margin-left:3px;margin-left:3px"><%=helpers.convertUtcToUkFormat(order?.picked_time)%></strong>
+                                </p>
+                          <% } %>
+                          <% if (order?.source_completed ==1) { %>
+                            <p>
+                                  Package has been picked
+                                </p>
+                          <% } %>
+                    </div>
+                  </div>
+                </div>
+                <div class="list-group-item">
+                   <% order?.vias.forEach((via, index) => { 
+                        let formattedTime = via.picked_time 
+                            ? new Date(via.picked_time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
+                            : ''; 
+                        let riderMessages = helpers.getRiderMessageForAddress(order?.parcels, via.address);
+                    %>
+                        <div class="colsA" key="<%= index %>">
+                            
+                            <div class="detail">
+                                <div class="blue_note">
+                                    <h5>Interim Stop (Stopped for package handover)</h5>
+                                    <div class="location_ico">
+                                        <p><%= via.address %>, <%= via.city %></p>
+                                    </div>
+                                    <p>
+                                        <% riderMessages.forEach(message => { %>
+                                            <%= message %><br />
+                                        <% }); %>
+                                    </p>
+                                    <% if (via.is_picked === 1) { %>
+                                        <div class="time_block">
+                                            <p>Rider have reached <strong><%= via.address %></strong> at <strong><%= formattedTime %></strong></p>
+                                        </div>
+                                        <div class="handboll">
+                                            <form>
+                                                <% if (via.source_completed === 1) { %>
+                                                    <div class="item-picked-message">
+                                                        <h6>Package has been Picked</h6>
+                                                    </div>
+                                                <% } %>
+                                            </form>
+                                        </div>
+                                    <% } %>
+                                </div>
+                            </div>
+                        </div>
+                    <% }); %>
+
+                  </div>
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p>
+                        <strong>End (Destination): </strong><%= order.dest_address %>
+                      </p>
+                      <p>
+                            <%=helpers.getRiderMessageForAddress(
+                              order?.parcels,
+                              order?.dest_address
+                            )%>
+                          </p>
+                          <% if (order?.is_picked ==1) { %>
+                            <p>
+                                  Rider have reached 
+                                  <strong style="margin-left:3px;margin-right:3px"><%=order?.dest_address%></strong> at 
+                                  <strong style="margin-left:3px;margin-left:3px"><%=helpers.convertUtcToUkFormat(order?.delivered_time)%></strong>
+                                </p>
+                          <% } %>
+                          <% if (order?.finished ==1) { %>
+                            <p>
+                                  Package has been delivered
+                                </p>
+                          <% } %>
+                    </div>
+                  </div>
+                </div>
+                </div>
+            
+                  
+            </div>
+        </div>
+      </div>
+      
+    </div>
+    
+   
+      <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+              <div class="card-header">
+                <h5>Payment Details:</h5>
+              </div>
+
+              <div class="card-body">
+                <div class="list-group details-group">
+                  
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p><strong>Total Amount: </strong>£<%= order.total_amount %></p>
+                    </div>
+                  </div>
+                  
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p><strong>Tax: </strong>£<%= order.tax %></p>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p><strong>Rider Price: </strong>£<%= order.rider_price %></p>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                    
+                  <h3>Invoices</h3>
+                  <% if (order?.invoices.length > 0) { %>
+                  <table class="table">
+                    <thead>
+                      <tr>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Created Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <% order?.invoices.forEach(invoice => { %>
+                      <tr>
+                        <td><%= invoice.type %></td>
+                        <td>£<%= invoice.amount %></td>
+                        <td><p>
+                          <% if (invoice.status === 1) { %>
+                          <a href="#" class="status badge success">Active</a>
+                          <% } else { %>
+                          <a href="#" class="status badge warning">Inactive</a>
+                          <% } %>
+                        </p></td>
+                        
+                        <td>
+                          <%= helpers.convertUtcToUkFormat(invoice.created_date)
+                          %>
+                        </td>
+                      </tr>
+                      <% }); %>
+                    </tbody>
+                  </table>
+                  <% } else { %>
+                  <p>No invoices found for this order.</p>
+                  <% } %>
+                  
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+        </div>
+      </div>
+      <div class="row">
+      <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+              <h5>Reviews:</h5>
+            </div>
+
+            <div class="card-body">
+           <h3>Reviews</h3>
+            <% if (order?.reviews.length > 0) { %>
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>Review</th>
+                  <th>Rating</th>
+                  <th>Created Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                <% order?.reviews.forEach(review => { %>
+                <tr>
+                  <td><%= review.review %></td>
+                  <td>
+                    <p class="rateYo"></p>
+                  </td>
+                  <td>
+                    <%= helpers.convertUtcToUkFormat(review.created_at) %>
+                  </td>
+                </tr>
+                <% }); %>
+              </tbody>
+            </table>
+            <% } else { %>
+            <p>No reviews found for this order.</p>
+            <% } %>
+                  
+            </div>
+        </div>
+      </div>
+
+
+
+      
+    </div>
+    </div>
+  </div>
+</section>

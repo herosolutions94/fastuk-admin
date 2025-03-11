@@ -3,20 +3,22 @@ const path = require('path'); // For handling file paths
 
 const Member = require('../../models/member');
 const BaseController = require('../baseController');
+const helpers = require("../../utils/helpers");
 
 class MemberController extends BaseController {
+    
     // Method to get the riders and render them in the view
     async getMembers(req, res) {
         try {
-            const members = await Member.getAllMembers();
+            const members = await Member.getAllMembers([{ field: 'mem_type', operator: '=', value: 'user' },{ field: 'is_deleted', operator: '!=', value: 1 }]);
             // console.log('Fetched Riders:', riders); // Log the fetched riders
 
-            if (members && members.length > 0) {
+            // if (members && members.length > 0) {
                 // Corrected res.render with only two arguments
                 res.render('admin/members/index', { members: members || [] });
-            } else {
-                this.sendError(res, 'No members found');
-            }
+            // } else {
+            //     this.sendError(res, 'No members found');
+            // }
         } catch (error) {
             console.error('Error fetching members:', error); // Log the error for debugging
             this.sendError(res, 'Failed to fetch members');
@@ -31,11 +33,13 @@ class MemberController extends BaseController {
 
             const members = await Member.getMemberById(memberId); // Expecting an array from the model
             const member = members[0]; // Get the first member if it exists
+            const states = await Member.getStatesByCountryId(230); // Fetch states for country_id = 230
+
             // console.log('Member:', member); // Log the rider data
 
             if (member) {
                 res.render('admin/members/edit-member', {
-                    member, editMemberId: memberId,
+                    member, editMemberId: memberId, states,
                     imageFilenames: [member.mem_image],
                     mem_status: member.mem_status // Pass the status to the view
 
@@ -86,7 +90,6 @@ class MemberController extends BaseController {
                 // If no new image is uploaded, retain the old image
                 memberData.mem_image = currentMember.mem_image;
             }
-
             // Update the rider in the database
             await Member.updateMember(memberId, memberData);
 
@@ -107,43 +110,68 @@ class MemberController extends BaseController {
                 return this.sendError(res, 'Member not found');
             }
 
-            const memberImage = currentMember.mem_image; // Get the image filename
-            // console.log('Member to delete:', currentMember); // Log rider details for debugging
+            // const memberImage = currentMember.mem_image; // Get the image filename
+            // // console.log('Member to delete:', currentMember); // Log rider details for debugging
 
-            // Step 2: Check if the rider has an associated image
-            if (memberImage) {
-                const imagePath = path.join(__dirname, '../../uploads/', memberImage);
-                // console.log('Image Path:', imagePath); // Log the image path
+            // // Step 2: Check if the rider has an associated image
+            // if (memberImage) {
+            //     const imagePath = path.join(__dirname, '../../uploads/', memberImage);
+            //     // console.log('Image Path:', imagePath); // Log the image path
 
-                // Check if the image file exists before trying to delete
-                if (fs.existsSync(imagePath)) {
-                    // console.log('Image found. Deleting now...');
-                    fs.unlink(imagePath, (err) => {
-                        if (err) {
-                            console.error('Error deleting rider image:', err); // Log the error if deletion fails
-                        } else {
-                            console.log('Rider image deleted successfully');
-                        }
-                    });
-                } else {
-                    console.log('Image file not found:', imagePath); // Log if the image file doesn't exist
-                }
-            }
+            //     // Check if the image file exists before trying to delete
+            //     if (fs.existsSync(imagePath)) {
+            //         // console.log('Image found. Deleting now...');
+            //         fs.unlink(imagePath, (err) => {
+            //             if (err) {
+            //                 console.error('Error deleting rider image:', err); // Log the error if deletion fails
+            //             } else {
+            //                 console.log('Rider image deleted successfully');
+            //             }
+            //         });
+            //     } else {
+            //         console.log('Image file not found:', imagePath); // Log if the image file doesn't exist
+            //     }
+            // }
 
             // Step 3: Delete the rider from the database
-            const result = await Member.deleteMemberById(memberId);
-            if (result) {
-                // Redirect to the riders list after deletion
-                this.sendSuccess(res, {}, 'Member deleted successfully!', 200, '/admin/members')
-
-            } else {
-                this.sendError(res, 'Failed to delete memberr');
-            }
+            const result = await Member.updateMemberData(memberId,{
+                is_deleted:1,
+                deleted_at:helpers.getUtcTimeInSeconds()
+            });
+            this.sendSuccess(res, {}, 'Member deleted successfully!', 200, '/admin/members')
         } catch (error) {
             console.error('Error deleting member:', error);
             this.sendError(res, 'Failed to delete member');
         }
     }
+
+    // Fetch states by country_id
+    // async getStates(req, res) {
+    //     const { country_id } = req.query; // Retrieve country_id from query parameters
+    //     try {
+    //         const states = await Member.getStatesByCountryId(230);
+    //         if (states && states.length > 0) {
+    //             this.sendSuccess(res, states, 'States fetched successfully!');
+    //         } else {
+    //             this.sendError(res, 'No states found for the selected country.');
+    //         }
+    //     } catch (error) {
+    //         console.error('Error fetching states:', error);
+    //         this.sendError(res, 'Failed to fetch states.');
+    //     }
+    // }
+
+    // async getStates(req, res) {
+    //     try {
+    //         const memberId = req.params.id; // Get the member ID from the URL
+    //         const member = await Member.getMemberById(memberId); // Fetch member details
+    //         const states = await Member.getStatesByCountryId(230); // Fetch states for country_id = 230
+    //         res.render('admin/members/edit-member', { member, states }); // Pass data to EJS
+    //     } catch (error) {
+    //         console.error('Error rendering edit member form:', error);
+    //         this.sendError(res, 'Failed to render edit member form');
+    //     }
+    // }
 
 
 }

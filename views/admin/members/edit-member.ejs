@@ -30,7 +30,7 @@
                     class="input"
                     name="full_name"
                     value="<%= member.full_name %>"
-                    required />
+                     />
                 </div>
               </div>
               
@@ -42,7 +42,7 @@
                     class="input"
                     name="email"
                     value="<%= member.email %>"
-                    required />
+                     />
                 </div>
               </div>
               <div class="col-md-6">
@@ -53,7 +53,7 @@
                     class="input"
                     name="mem_phone"
                     value="<%= member.mem_phone %>"
-                    required />
+                     />
                 </div>
               </div>
               <div class="col-md-6">
@@ -64,20 +64,29 @@
                     class="input"
                     name="mem_city"
                     value="<%= member.mem_city %>"
-                    required />
+                     />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="txtGrp">
-                  <label class="form-label" for="mem_state">State:</label>
-                  <input
-                    type="text"
-                    class="input"
-                    name="mem_state"
-                    value="<%= member.mem_state %>"
-                    required />
+                    <label class="form-label" for="mem_state">State:</label>
+                    <select class="input" name="mem_state" >
+                        <option value="0">Select State</option>
+                        <% if (states && states.length > 0) { %>
+                            <% states.forEach(state => { %>
+                                <option
+                                    value="<%= state.id %>"
+                                    <%= member.mem_state == state.id ? 'selected' : '' %>>
+                                    <%= state.name %>
+                                </option>
+                            <% }); %>
+                        <% } else { %>
+                            <option value="">No states available</option>
+                        <% } %>
+                    </select>
                 </div>
-              </div>
+            </div>
+            
               <div class="col-md-6">
                 <div class="txtGrp">
                   <label class="form-label" for="mem_address1">Address:</label>
@@ -86,13 +95,14 @@
                     class="input"
                     name="mem_address1"
                     value="<%= member.mem_address1 %>"
-                    required />
+                     />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="txtGrp">
                   <label class="switch">Status
-                    <input type="checkbox" name="mem_status"  /><span
+                    <input type="checkbox" name="mem_status"  />
+                    <span
                       class="switch-state bg-primary"></span>
                   </label>
                   <select name="mem_status" class=" ">
@@ -109,19 +119,20 @@
           <div class="card-body preview">
             <h5 class="card-title">Image</h5>
             <div class="blog_img">
-              <% if (imageFilenames && imageFilenames[0]) { %>
               <img
                 src="<%= helpers.getImage(imageFilenames[0]) %>"
                 alt="Main Image"
-                class="card-img-top" />
+                class="card-img-top previewImg" />
 
-              <% } %>
             </div>
             <div class="in-upload">
               <button type="button" class="uploadImg">
                 <i class="fa-regular fa-image"></i>choose another image
               </button>
-              <input type="file" class="uploadFile" name="mem_image" />
+              <input type="file" class="uploadFile" name="mem_image"                         
+              value="<%= editMemberId ? member.mem_image : '' %>"
+              />
+
             </div>
           </div>
           <hr />

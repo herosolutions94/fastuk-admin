@@ -1,0 +1,68 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text txtFlex">
+      <% if (type==='inprogress') { %>
+        <h3>In Progress Jobs Statistics</h3>
+      <% } if (type==='completed') { %>
+        <h3>Completed Jobs Statistics</h3>
+        <form>
+          <div class="reportFilter txtGrp">
+            <select name="report_filter" id="report_filter" class="input txtBox">
+              <option value="">Select option</option>
+              <option value="today">Today</option>
+              <option value="weekly">Weekly</option>
+              <option value="monthly">Monthly</option>
+              <option value="yearly">Yearly</option>
+            </select>
+          </div>
+        </form>
+      <% }  %>
+      </div>
+    </div>
+    <div class="grids">
+      
+      <div class="flex">
+        
+        <div class="col">
+          <div class="inner info-gradient">
+            <div class="icon">
+              <i class="fa-light fa-calendar"></i>
+            </div>
+            <h3>Total Orders</h3>
+            <p class="completedOrders"><%=stats.completedOrders%></p>
+          </div>
+        </div>
+        <div class="col">
+          <div class="inner success-gradient">
+            <div class="icon">
+              <i class="fa-light fa-gbp"></i>
+            </div>
+            <h3>Total Transactions</h3>
+            <p class="transactions">£<%=stats.transactions.toFixed(2)%></p>
+          </div>
+        </div>
+        <% if (type==='completed') { %>
+        <div class="col">
+          <div class="inner success-gradient">
+            <div class="icon">
+              <i class="fa-light fa-gbp"></i>
+            </div>
+            <h3>Total Rider Earnings</h3>
+            <p class="earnings">£<%=stats.earnings.toFixed(2)%></p>
+          </div>
+        </div>
+        <% }  %>
+        <div class="col">
+          <div class="inner success-gradient">
+            <div class="icon">
+              <i class="fa-light fa-gbp"></i>
+            </div>
+            <h3>Withdraw Amount</h3>
+            <p class="withdrawResult">£<%=stats.withdrawResult || 0%></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

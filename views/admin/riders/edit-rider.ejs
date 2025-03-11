@@ -46,12 +46,12 @@
               </div>
               <div class="col-md-6">
                 <div class="txtGrp">
-                  <label class="form-label" for="phone_number">Phone:</label>
+                  <label class="form-label" for="mem_phone">Phone:</label>
                   <input
                     type="text"
                     class="input"
-                    name="phone_number"
-                    value="<%= rider.phone_number %>"
+                    name="mem_phone"
+                    value="<%= rider.mem_phone %>"
                     required />
                 </div>
               </div>
@@ -72,8 +72,8 @@
                   <input
                     type="text"
                     class="input"
-                    name="address"
-                    value="<%= rider.address %>"
+                    name="mem_address1"
+                    value="<%= rider.mem_address1 %>"
                     required />
                 </div>
               </div>
@@ -125,7 +125,7 @@
                 <div class="txtGrp">
                   <label class="form-label" for="state">Status:</label>
                   <label class="switch">
-                    <input type="checkbox" name="status" /><span
+                    <span
                       class="switch-state bg-primary"></span>
                   </label>
                   <select name="status">
@@ -138,7 +138,7 @@
                 <div class="txtGrp">
                   <label class="form-label" for="state">Do you own a vehicle?:</label>
                   <label class="switch">
-                    <input type="checkbox" name="vehicle_owner" /><span
+                    <span
                       class="switch-state bg-primary"></span>
                   </label>
                   <select name="vehicle_owner">
@@ -168,7 +168,9 @@
               <button type="button" class="uploadImg">
                 <i class="fa-regular fa-image"></i>choose another image
               </button>
-              <input type="file" class="uploadFile" name="driving_license" />
+              <input type="file" class="uploadFile" name="driving_license"                         
+              value="<%= editRiderId ? rider.driving_license : '' %>"
+              />
             </div>
           </div>
           <hr />

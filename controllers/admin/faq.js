@@ -33,15 +33,10 @@ class FaqController extends BaseController {
             // console.log("req.body",req.body);  // To check if name and description are being sent
 
 
-            const faqImage = req.files && req.files["faq_image"] ? req.files["faq_image"][0].filename : '';
-            // console.log("req.file:",req.file);  // To check if the file is being uploaded
-
-
             // Clean and trim data
             const cleanedData = {
                 ques: typeof ques === 'string' ? ques.trim() : '',
                 ans: typeof ans === 'string' ? ans.trim() : '',
-                faq_image: faqImage,  // Change this to match your DB column name
                 status: status || 0,
             };
 
@@ -103,7 +98,6 @@ class FaqController extends BaseController {
                 res.render('admin/edit-faq', {
                     faq, 
                     editFaqId: faqId, 
-                    imageFilenames: [faq.faq_image], // Make sure to access the rider image correctly
                     status: faq.status // Pass the status to the view
 
                 });
@@ -126,39 +120,7 @@ class FaqController extends BaseController {
     
             // Debugging output
             // console.log('Current faq:', currentFaq);
-            
-            // Check if a new image is uploaded
-            const faqImage = req.files && req.files["faq_image"] ? req.files["faq_image"][0].filename : null;
-    
-            // Debugging output
-            // console.log('New faq image:', faqImage);
-    
-            // Handle image replacement
-            if (faqImage) {
-                // If there is an old image, delete it
-                if (currentFaq.faq_image) {
-                    const oldImagePath = path.join(__dirname, '../../uploads/', currentFaq.faq_image);
-                    
-                    // Check if the old image file exists before trying to delete
-                    if (fs.existsSync(oldImagePath)) {
-                        fs.unlink(oldImagePath, (err) => {
-                            if (err) {
-                                console.error('Error deleting old image:', err);
-                            } else {
-                                console.log('Old image deleted successfully');
-                            }
-                        });
-                    } else {
-                        console.log('Old image file not found:', oldImagePath);
-                    }
-                }
-    
-                // Update the testimonial data with the new image filename
-                faqData.faq_image = faqImage;
-            } else {
-                // If no new image is uploaded, retain the old image
-                faqData.faq_image = currentFaq.faq_image;
-            }
+
     
             // Update the testimonial in the database
             await Faq.updateFaq(faqId, faqData);
@@ -177,29 +139,6 @@ class FaqController extends BaseController {
             const currentFaq = (await Faq.getFaqById(faqId))[0]; // Fetch current rider details
             if (!currentFaq) {
                 return this.sendError(res, 'Faq not found');
-            }
-
-            const faqImage = currentFaq.faq_image; // Get the image filename
-            // console.log('Faq to delete:', faqImage); // Log rider details for debugging
-
-            // Step 2: Check if the rider has an associated image
-            if (faqImage) {
-                const imagePath = path.join(__dirname, '../../uploads/', faqImage);
-                // console.log('Image Path:', imagePath); // Log the image path
-
-                // Check if the image file exists before trying to delete
-                if (fs.existsSync(imagePath)) {
-                    // console.log('Image found. Deleting now...');
-                    fs.unlink(imagePath, (err) => {
-                        if (err) {
-                            console.error('Error deleting faq image:', err); // Log the error if deletion fails
-                        } else {
-                            console.log('Faq image deleted successfully');
-                        }
-                    });
-                } else {
-                    console.log('Image file not found:', imagePath); // Log if the image file doesn't exist
-                }
             }
 
             // Step 3: Delete the rider from the database

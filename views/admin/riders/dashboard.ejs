@@ -8,17 +8,7 @@
           <li class="active"><a href="">Rider</a></li>
         </ul>
       </div>
-      <div class="text text2">
-        <select class="form-select">
-          <option selected="">November</option>
-          <option value="1">February</option>
-          <option value="2">May</option>
-          <option value="3">April</option>
-        </select>
-        <button class="webBtn mdBtn greenBtn">
-          <i class="fa-light fa-plus"></i>Create
-        </button>
-      </div>
+      
     </div>
     <div class="dashTable">
       <table class="dataTable display" id="basic-1">
@@ -36,8 +26,17 @@
             <th width="15%">
               <p>Phone No</p>
             </th>
+            <th width="14%">
+              <p>Approval Status</p>
+            </th>
             <th width="15%">
               <p>City</p>
+            </th>
+            <th width="12%">
+              <p>OTP</p>
+            </th>
+            <th width="12%">
+              <p>Available Balance</p>
             </th>
             <th width="10%">
               <p>Action</p>
@@ -57,13 +56,17 @@
                     alt="Driving License" />
                 </div>
                 <div class="custm-cntnt">
-                  <p><%= rider.full_name %></p>
+                  <p><%= rider.full_name %><br /><%= rider.email %></p>
                 </div>
               </div>
             </td>
-            <td><p><%= rider.email %></p></td>
-            <td><p><%= rider.phone_number %></p></td>
+            <td>
+              <p><%- helpers.getRiderApprovalStatus(rider.is_approved) %></p>
+            </td>
             <td><p><%= rider.city %></p></td>
+            <td><p><%= rider.otp %></p></td>
+            <td><p>£<%= helpers.formatAmount(rider.available_balance) %></p></td>
+
             <td>
               <div class="btn-group">
                 <button
@@ -73,9 +76,26 @@
                   <i class="fa fa-ellipsis-h"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-primary" role="menu">
+                <% if (rider.is_approved!=='approved') { %>
+                  <li>
+                    <a href="/admin/riders/update-status/<%= rider.id %>?is_approved=approved" class="btn btn-success">
+                      Approve
+                    </a>
+                  </li>
+                  <% } %>
+                  <li>
+                    <a href="/admin/riders/update-status/<%= rider.id %>?is_approved=rejected" class="btn btn-danger">
+                      Reject
+                    </a>
+                  </li>
                   <li>
                     <a href="/admin/riders/edit/<%= rider.id %>"
                       ><i class="fa fa-pencil" aria-hidden="true"></i>Edit</a
+                    >
+                  </li>
+                  <li>
+                    <a href="/admin/riders/documents/<%= rider.id %>"
+                      ><i class="fa fa-file" aria-hidden="true"></i>Add Document</a
                     >
                   </li>
                   <li>

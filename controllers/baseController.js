@@ -25,7 +25,7 @@ class BaseController {
             memType,
             expiryDate,
             actualFingerprint,
-            "user"
+            memType
           );
           return authToken;
     }
@@ -39,27 +39,28 @@ class BaseController {
           const tokenRecord = await tokenModel.findByToken(token);
         //   console.log("tokenRecord:",tokenRecord)
           if (!tokenRecord) {
-              return { status: 0, msg: "Invalid or expired token." };
+              return { status: 0, msg: "Invalid or expired token.",not_logged_in:1 };
           }
   
           const { type: tokenType, user_id: userId, expiry_date: expiryDate } = tokenRecord;
-  console.log(new Date(expiryDate) , new Date())
+//   console.log(new Date(expiryDate) , new Date())
           // Check if token has expired
           if (new Date(expiryDate) < new Date()) {
-              return { status: 0, msg: "Token has expired." };
+              return { status: 0, msg: "Token has expired.",not_logged_in:1 };
           }
   
           // Step 2: Validate token type matches expected type (e.g., memType)
           if (memType === "user" && tokenType !== "user") {
-              return { status: 0, msg: "Invalid token type for user." };
-          } else if (memType === "rider" && tokenType !== "rider") {
-              return { status: 0, msg: "Invalid token type for rider." };
+              return { status: 0, msg: "Invalid token type for user.",not_logged_in:1 };
+          } 
+          else if (memType === "rider" && tokenType !== "rider") {
+              return { status: 0, msg: "Invalid token type for rider.",not_logged_in:1 };
           }
   
           // Step 3: Fetch user details from the appropriate table
           let user;
         //   console.log("memType:",memType)
-          if (memType === "user") {
+          if (memType === "user" || memType === "business") {
               
               user = await memberModel.findById(userId);
           } else if (memType === "rider") {
@@ -69,14 +70,17 @@ class BaseController {
         //   console.log(user)
   
           if (!user) {
-              return { status: 0, msg: "User not found." };
+              return { status: 0, msg: "User not found.",not_logged_in:1 };
+          }
+          if (user?.is_deleted===1) {
+              return { status: 0, msg: "User not found.",not_logged_in:1 };
           }
   
           // Step 4: Return the user details
           return { status: 1, user };
       } catch (err) {
           console.error("Token validation error:", err.message);
-          return { status: 0, msg: "An error occurred while validating the token." };
+          return { status: 0, msg: "An error occurred while validating the token.",not_logged_in:1 };
       }
   }
   

@@ -1,0 +1,97 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Documents</h3>
+        <!-- <ul>
+          <li><a href="">Home</a></li>
+          <li class="active"><a href="">Documents</a></li>
+        </ul> -->
+      </div>
+      <div class="text text2">
+        <a href="/admin/riders/documents/create/<%= rider_id ? rider_id : '' %>" class="webBtn mdBtn greenBtn">
+          <i class="fa-light fa-plus"></i>Add New</a
+        >
+      </div>
+    </div>
+    <div class="dashTable">
+      <table class="dataTable display" id="basic-1">
+        <thead>
+          <tr class="table-scnd-row blog-table">
+            <th width="10%">
+              <p>Sr#</p>
+            </th>            
+            <th width="20%">
+              <p>Name</p>
+            </th>
+            <th width="20%">
+              <p>Status</p>
+            </th>
+            <th width="10%">
+              <p>Action</p>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (documents && documents.length > 0) { %> <%
+            documents.forEach((document, index) => { %>
+          <tr class="bottom-cntnt" id="document-<%= document.id %>">
+            <td>
+              <p><%= index + 1 %></p>
+            </td>
+            
+            <td>
+              <p><%= document.title %></p>
+            </td>
+            <td>
+              <p><%- helpers.getDocumentStatus(document.status) %></p>
+            </td>
+            <td>
+              <div class="btn-group">
+                <button
+                  type="button"
+                  class="dropdown-toggle"
+                  data-toggle="dropdown">
+                  <i class="fa fa-ellipsis-h"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-primary" role="menu">
+                  <% if (document.status === 'pending') { %>
+                    
+                    <li>
+                      <a href="/admin/riders/documents/update-status/<%= document.id %>?status=approved" class="btn btn-success">
+                        Approve
+                      </a>
+                    </li>
+                    <li>
+                      <a href="/admin/riders/documents/update-status/<%= document.id %>?status=rejected" class="btn btn-danger">
+                        Reject
+                      </a>
+                    </li>
+                    
+                  <% } else { %>
+                    <li>
+                      <a href="/admin/riders/documents/edit/<%= document.rider_id %>/<%= document.id %>">
+                        <i class="fa fa-pencil" aria-hidden="true"></i> Edit
+                      </a>
+                    </li>
+                  <% } %>
+                  <li>
+                    <a href="#" class="delete-item" data-id="<%= document.id %>" 
+                       data-url="/admin/riders/documents/delete/<%= document.rider_id %>/<%= document.id %>">
+                      <i class="fa fa-trash" aria-hidden="true"></i> Delete
+                    </a>
+                  </li>
+                </ul>
+              </div>
+            </td>
+          </tr>
+          <% }) %> <% } else { %>
+          <tr>
+            <td colspan="8"><p>No Documents found.</p></td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>

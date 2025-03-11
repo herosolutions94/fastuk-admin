@@ -4,30 +4,116 @@ const path = require('path'); // For handling file paths
 
 const BaseController = require('../baseController');
 const RequestQuote = require('../../models/request-quote');
+const Member = require("../../models/memberModel");
+const Rider = require("../../models/riderModel");
+const PaymentMethodModel = require("../../models/api/paymentMethodModel"); // Assuming you have this model
+
 const { validateRequiredFields } = require('../../utils/validators');
+const helpers = require('../../utils/helpers');
 
 
 class RequestQuoteController extends BaseController {
     constructor() {
         super();
+        this.member = new Member();
+        this.rider = new Rider();
         this.requestQuote = new RequestQuote();
+        this.paymentMethodModel = new PaymentMethodModel();
+
     }
 
     
-    async getRequestQuotes(req, res) {
+    async getCompletedRequestQuotes(req, res) {
         try {
-            const requestQuotesWithMembers = await RequestQuote.getRequestQuotesWithMembers();
+            // const id = req.body; // Fetch ID from route params if available
+
+            const requestQuotesWithMembers = await RequestQuote.getRequestQuotesWithMembers(["rq.status = 'completed'"]);
+            
+            console.log('Completed Request Quotes:', requestQuotesWithMembers);
+
     
-            if (requestQuotesWithMembers && requestQuotesWithMembers.length > 0) {
-                res.render('admin/request-quotes', { requestQuotes: requestQuotesWithMembers });
-            } else {
-                this.sendError(res, 'No request quotes found');
-            }
+            res.render('admin/request-quotes', { requestQuotes: requestQuotesWithMembers });
         } catch (error) {
             console.error('Error fetching request quotes with members:', error);
             this.sendError(res, 'Failed to fetch request quotes');
         }
     }
+    async getInProgressRequestQuotes(req, res) {
+        try {
+            // const id = req.body; // Fetch ID from route params if available
+
+            const requestQuotesWithMembers = await RequestQuote.getRequestQuotesWithMembers(["rq.status = 'accepted'"]);
+            
+            // console.log('Request Quotes:', requestQuotesWithMembers);
+
+    
+            res.render('admin/request-quotes', { requestQuotes: requestQuotesWithMembers });
+        } catch (error) {
+            console.error('Error fetching request quotes with members:', error);
+            this.sendError(res, 'Failed to fetch request quotes');
+        }
+    }
+    async getUpcomingRequestQuotes(req, res) {
+        try {
+            // const id = req.body; // Fetch ID from route params if available
+
+            const requestQuotesWithMembers = await RequestQuote.getRequestQuotesWithMembers(["rq.status = 'paid'","rq.start_date > CURDATE()"]);
+            
+            // console.log('Request Quotes:', requestQuotesWithMembers);
+
+    
+            res.render('admin/request-quotes', { requestQuotes: requestQuotesWithMembers });
+        } catch (error) {
+            console.error('Error fetching request quotes with members:', error);
+            this.sendError(res, 'Failed to fetch request quotes');
+        }
+    }
+
+    async getOrderDetails(req, res) {
+        try {
+            const { id } = req.params; // Get the order ID from the route parameters
+    
+            const orderDetails = await RequestQuote.getOrderDetailsById(id);
+            if (!orderDetails) {
+                return this.sendError(res, 'Order not found');
+            }
+           
+    
+            const parcels = await this.rider.getParcelDetailsByQuoteId(orderDetails.id);
+            // const invoices = await this.rider.getInvoicesDetailsByRequestId(orderDetails.id);
+            const reviews = await this.rider.getOrderReviews(orderDetails.id);
+    
+            
+            // console.log("invoices:",invoices)
+            // console.log("invoices date:",orderDetails?.invoices?.created_date)
+            // console.log("reviews:",reviews)
+    
+            const encodedId = helpers.doEncode(orderDetails.id); // Encode ID properly
+    
+            const order = {
+                ...orderDetails,
+                formatted_start_date: helpers.formatDateToUK(orderDetails.start_date),
+                encodedId: encodedId,
+                parcels: parcels,
+                // invoices: invoices,
+                reviews: reviews
+            };
+         console.log("orderDetails:",order)
+            
+    
+            res.render('admin/order-details', { 
+                order,
+            });
+    
+        } catch (error) {
+            console.error('Error fetching order details:', error);
+            this.sendError(res, 'Failed to fetch order details');
+        }
+    }
+    
+    
+    
+    
     
 
     

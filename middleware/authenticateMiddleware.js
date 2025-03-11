@@ -1,3 +1,4 @@
+const pool = require("../config/db-connection");
 const helpers = require("../utils/helpers");
 
 // Middleware to verify and fetch user based on memtype and token
@@ -29,7 +30,7 @@ const authenticateUser = async (req, res, next) => {
   
       let user;
       if (memtype === 'user') {
-        const result = await pool.query('SELECT * FROM members WHERE id = ? AND type = ?', [userId, 'member']);
+        const result = await pool.query('SELECT * FROM members WHERE id = ? AND mem_type = ?', [userId, 'member']);
         user = result.rows[0];
       } else if (memtype === 'rider') {
         const result = await pool.query('SELECT * FROM riders WHERE id = ?', [userId]);

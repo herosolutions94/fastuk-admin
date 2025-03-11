@@ -9,7 +9,7 @@ const riderController = new RiderController();
 
 // Route to register a rider
 router.post('/register-riders', upload, riderController.registerRider.bind(riderController));
-router.post('/login', riderController.loginRider.bind(riderController));
+router.post('/rider-login', upload,riderController.loginRider.bind(riderController));
 router.post('/verify-email', upload,riderController.verifyEmail.bind(riderController));
 router.post('/rider-jobs', upload,riderController.getRequestQuotesByCity.bind(riderController));
 router.post('/accept-request-quote-by-rider', upload,riderController.assignRiderToRequest.bind(riderController));
@@ -18,6 +18,24 @@ router.post('/get-order-details/:encodedId', upload,riderController.getOrderDeta
 router.post('/update-request-status', upload,riderController.updateRequestStatus.bind(riderController));
 router.post('/mark-as-completed', upload,riderController.markAsCompleted.bind(riderController));
 router.get('/get-invoices-detail', upload,riderController.getInvoiceDetails.bind(riderController));
+// router.post('/test-notification', upload,riderController.testNotification.bind(riderController));
+router.post('/test-notification-rider', upload, (req, res) => riderController.testNotification(req, res));
+
+router.post('/update-order-completed', upload,riderController.updateRequestStatusToCompleted.bind(riderController));
+router.post('/get-rider-dashboard-orders', upload,riderController.getRiderDashboardOrders.bind(riderController));
+router.post('/rider-payment-methods', upload,riderController.getRiderPaymentMethods.bind(riderController));
+router.post('/add-withdrawal-method', upload,riderController.AddWithdrawalMethod.bind(riderController));
+router.post('/update-withdrawal-method', upload,riderController.UpdateWithdrawalMethod.bind(riderController));
+router.post('/delete-withdrawal-method', upload,riderController.DeleteWithdrawalMethod.bind(riderController));
+router.post('/get-rider-earnings', upload, riderController.getRiderEarnings.bind(riderController));
+router.post('/save-withdrawal-request', upload, riderController.saveWithDrawalRequest.bind(riderController));
+router.get('/update-rider-earnings-status', riderController.getThreeDaysBeforeEarnings.bind(riderController));
+router.post('/get-rider-document-requests', upload, riderController.getRiderDocumentsApi.bind(riderController));
+router.post('/upload-rider-document', upload, riderController.uploadRiderDocument.bind(riderController));
+router.post('/delete-rider-document', upload, riderController.deleteRiderDocument.bind(riderController));
+
+
+
 
 
 

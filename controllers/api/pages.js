@@ -6,10 +6,12 @@ const baseController = new BaseController(); // Instantiate the BaseController
 
 const PageModel = require("../../models/api/pages"); // Assuming you have this model
 const MemberModel = require("../../models/memberModel");
+const MessageModel = require("../../models/messageModel");
 const Token = require("../../models/tokenModel");
 const helpers = require('../../utils/helpers')
 
 const TestimonialModel = require("../../models/api/testimonialModel");
+const SubscribersModel = require("../../models/api/subscribersModel");
 const TeamModel = require("../../models/api/teamModel");
 const FaqModel = require("../../models/api/faqModel");
 const VehicleModel = require("../../models/api/vehicleModel");
@@ -39,8 +41,10 @@ class PagesController extends BaseController {
   constructor() {
     super();
     this.pageModel = new PageModel();
+    this.subscribers = new SubscribersModel();
     this.tokenModel = new Token();
-    this.memberModel = new MemberModel(); // Create an instance of MemberModel
+    this.memberModel = new MemberModel(); 
+    this.contact_messages = new MessageModel(); 
   }
   async getHomeData(req, res) {
     const testimonialModel = new TestimonialModel();
@@ -273,7 +277,7 @@ class PagesController extends BaseController {
       console.error("Error:", err);
       res.status(200).json({ error: "Internal Server Error" });
     }
-  }
+  }z
   async getSignUpData(req, res) {
     try {
       const siteSettings = res.locals.adminData;
@@ -283,11 +287,12 @@ class PagesController extends BaseController {
       const formData = pageContent
         ? JSON.parse(pageContent.content || "{}")
         : {};
-
+        const cities = await helpers.getCities();
       // Combine the content and multi_text data
       const jsonResponse = {
         siteSettings,
         content: formData,
+        cities:cities
       };
 
       // Return data in JSON format
@@ -309,10 +314,42 @@ class PagesController extends BaseController {
         : {};
         const cities = await helpers.getCities();  // Use await to get the cities array
 
-
+      const vehicleModel = new VehicleModel();
+      const vehicles = await vehicleModel.getActiveVehicles();
       // Combine the content and multi_text data
       const jsonResponse = {
         siteSettings,
+        content: formData,
+        vehicles: vehicles,
+        cities
+      };
+
+      // Return data in JSON format
+      res.json(jsonResponse);
+    } catch (err) {
+      console.error("Error:", err);
+      res.status(200).json({ error: "Internal Server Error" });
+    }
+  }
+
+  async getRiderProfileData(req, res) {
+    try {
+      const siteSettings = res.locals.adminData;
+
+      const pageContent = await this.pageModel.findByKey("rider-signup");
+      const formData = pageContent
+        ? JSON.parse(pageContent.content || "{}")
+        : {};
+
+      
+        const cities = await helpers.getCities();  // Use await to get the cities array
+
+      const vehicleModel = new VehicleModel();
+      const vehicles = await vehicleModel.getActiveVehicles();
+      // Combine the content and multi_text data
+      const jsonResponse = {
+        siteSettings,
+        vehicles: vehicles,
         content: formData,
         cities
       };
@@ -432,9 +469,115 @@ class PagesController extends BaseController {
     }
   }
 
-  
+  async save_subscriber(req, res) {
+      try {
+        const {
+          email
+        } = req.body;
+    
+        if (!email || email=='' || email==null || email==undefined) {
+          return res.status(200).json({ status: 0, msg: "Email is required!" });
+        }
+    
+        // Email validation
+        if (!validateEmail(email)) {
+          return res.status(200).json({ status: 0, msg: "Invalid email format." });
+        }
+    
+        // Check if email already exists
+        const existingUser = await this.subscribers.findByEmail(email);
+        if (existingUser) {
+          return res.status(200).json({ status: 0, msg: "Email already exists." });
+        }
+    
+    
+        // Create the user
+        await this.subscribers.createSubscriber({email:email,created_at:new Date(),status:0});
+    
+        return res.status(200).json({
+          status: 1,
+          msg: "Subscribed successfully!",
+        });
+      } catch (error) {
+        return res.status(200).json({
+          status: 0,
+          msg: "An error occurred during registration.",
+          error: error.message,
+        });
+      }
+    }
+    async save_contact_message(req, res) {
+      try {
+        const {
+          name,
+          email,
+          phone_number,
+          subject,
+          message,
+        } = req.body;
+    
+        if (!email || email=='' || email==null || email==undefined) {
+          return res.status(200).json({ status: 0, msg: "Email is required!" });
+        }
+    
+        // Email validation
+        if (!validateEmail(email)) {
+          return res.status(200).json({ status: 0, msg: "Invalid email format." });
+        }
+        await this.contact_messages.createMessage({name:name,email:email,phone_number:phone_number,subject:subject,message:message,created_date:new Date(),status:0});
+    
+        return res.status(200).json({
+          status: 1,
+          msg: "Message sent successfully!",
+        });
+      } catch (error) {
+        return res.status(200).json({
+          status: 0,
+          msg: "An error occurred during registration.",
+          error: error.message,
+        });
+      }
+    }
 
+    async getSiteSettingsData(req, res) {
+      try {
+        const siteSettings = res.locals.adminData;
+        // console.log(siteSettings,'siteSettings')
   
+        // Combine the content and multi_text data
+        const jsonResponse = {
+          site_settings:siteSettings,
+        };
+  
+        // Return data in JSON format
+        res.json(jsonResponse);
+      } catch (err) {
+        console.error("Error:", err);
+        res.status(200).json({ error: "Internal Server Error" });
+      }
+    }    
+
+    async searchCities(req, res) {
+      const { query } = req.body; // Get search query from body
+    
+      if (!query) {
+        return res.status(200).json({ status: 0, msg: "Query field is required" });
+      }
+    
+      try {
+        const result = await this.pageModel.findAllCities(query); // Pass query to model function
+    
+        return res.status(200).json({
+          status: 1,
+          msg: "Cities fetched successfully!",
+          data: result, // Return result array
+        });
+      } catch (error) {
+        console.error("Database Error:", error);
+        return res.status(200).json({ status: 0, msg: "Internal Server Error" });
+      }
+    }
+    
 
 }
 

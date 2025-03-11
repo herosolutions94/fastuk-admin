@@ -2,26 +2,40 @@ const fs = require('fs'); // Import the file system module
 const path = require('path'); // For handling file paths
 
 const Rider = require('../../models/rider');
+const RiderModel = require('../../models/riderModel');
 const BaseController = require('../baseController');
+const helpers = require('../../utils/helpers');
 
 class RiderController extends BaseController {
     // Method to get the riders and render them in the view
+
+    constructor() {
+        super();
+        this.riderModel = new RiderModel();
+    }
+
     async getRiders(req, res) {
         try {
             const riders = await Rider.getAllRiders();
-            // console.log('Fetched Riders:', riders); // Log the fetched riders
-
-            if (riders && riders.length > 0) {
-                // Corrected res.render with only two arguments
-                res.render('admin/riders/dashboard', { riders: riders || [] });
-            } else {
-                this.sendError(res, 'No riders found');
+    
+            
+    
+            // Fetch earnings sequentially for each rider
+            for (let rider of riders) {
+                const earningsData = await this.riderModel.getRiderEarnings(rider.id);
+                rider.available_balance = earningsData.availableBalance; // Add balance field to each rider
             }
+    
+            // Render with updated riders' data
+            res.render('admin/riders/dashboard', { riders });
+    
         } catch (error) {
-            console.error('Error fetching riders:', error); // Log the error for debugging
+            console.error('Error fetching riders:', error);
             this.sendError(res, 'Failed to fetch riders');
         }
     }
+    
+    
     // Method to fetch a single rider by id and render the edit form
     async editRider(req, res) {
         try {
@@ -116,43 +130,264 @@ class RiderController extends BaseController {
                 return this.sendError(res, 'Rider not found');
             }
 
-            const riderImage = currentRider.driving_license; // Get the image filename
-            console.log('Rider to delete:', currentRider); // Log rider details for debugging
+            // const riderImage = currentRider.driving_license; // Get the image filename
+            // console.log('Rider to delete:', currentRider); // Log rider details for debugging
 
-            // Step 2: Check if the rider has an associated image
-            if (riderImage) {
-                const imagePath = path.join(__dirname, '../../uploads/', riderImage);
-                console.log('Image Path:', imagePath); // Log the image path
+            // // Step 2: Check if the rider has an associated image
+            // if (riderImage) {
+            //     const imagePath = path.join(__dirname, '../../uploads/', riderImage);
+            //     console.log('Image Path:', imagePath); // Log the image path
 
-                // Check if the image file exists before trying to delete
-                if (fs.existsSync(imagePath)) {
-                    console.log('Image found. Deleting now...');
-                    fs.unlink(imagePath, (err) => {
-                        if (err) {
-                            console.error('Error deleting rider image:', err); // Log the error if deletion fails
-                        } else {
-                            console.log('Rider image deleted successfully');
-                        }
-                    });
-                } else {
-                    console.log('Image file not found:', imagePath); // Log if the image file doesn't exist
-                }
-            }
+            //     // Check if the image file exists before trying to delete
+            //     if (fs.existsSync(imagePath)) {
+            //         console.log('Image found. Deleting now...');
+            //         fs.unlink(imagePath, (err) => {
+            //             if (err) {
+            //                 console.error('Error deleting rider image:', err); // Log the error if deletion fails
+            //             } else {
+            //                 console.log('Rider image deleted successfully');
+            //             }
+            //         });
+            //     } else {
+            //         console.log('Image file not found:', imagePath); // Log if the image file doesn't exist
+            //     }
+            // }
 
             // Step 3: Delete the rider from the database
-            const result = await Rider.deleteRiderById(riderId);
-            if (result) {
-                // Redirect to the riders list after deletion
-                this.sendSuccess(res, {}, 'Rider deleted successfully!', 200, '/admin/riders')
-
-            } else {
-                this.sendError(res, 'Failed to delete rider');
-            }
+            const result = await this.riderModel.updateRiderData(riderId,{
+                is_deleted:1,
+                deleted_at:helpers.getUtcTimeInSeconds()
+            });
+            this.sendSuccess(res, {}, 'Rider deleted successfully!', 200, '/admin/riders')
         } catch (error) {
             console.error('Error deleting rider:', error);
             this.sendError(res, 'Failed to delete rider');
         }
     }
+
+    renderCreateDocumentForm(req, res) {
+        const { rider_id } = req.params;
+        res.render('admin/add-document-request', { rider_id }); // Render your form view
+    }
+
+    async createDocumentRequest(req, res) {
+        try {
+            const { rider_id } = req.params; // Get rider ID from params
+            const { title, description } = req.body; // Get form data
+
+            if (!title || !description) {
+                return res.status(200).json({ error: 'Title and Description are required' });
+            }
+
+            // Insert document request into the database
+            await Rider.create({
+                rider_id,
+                title,
+                description,
+            });
+
+            // Prepare notification for the rider
+        const notificationText = `You have a new document request: ${title}`;
+        const link = `/admin/riders/documents/${rider_id}`; // Link to the documents page
+
+        // Send notification to the rider
+        await helpers.storeNotification(rider_id, 'rider', 0, notificationText, link);
+
+        const userRow = await this.riderModel.findById(rider_id);
+        let adminData = res.locals.adminData; 
+            const result=await helpers.sendEmail(
+              userRow.email,
+              `Document Submission Request from ${adminData?.site_name}`,
+              "document-request",
+              {
+                username:userRow?.full_name,
+                adminData,
+                title:title,
+                description:description
+              }
+            );
+
+            // Redirect to the documents page after successful submission
+            this.sendSuccess(res, {}, 'Document Request created successfully!', 200, `/admin/riders/documents/${rider_id}`)
+
+        } catch (error) {
+            console.error('Error creating document request:', error);
+            res.status(200).json({ error: 'Failed to create document request' });
+        }
+    }
+
+
+    async getRiderDocuments(req, res) {
+        try {
+            // console.log("Request Params:", req.params); 
+
+            const { rider_id } = req.params; 
+            if (!rider_id) {
+                return res.status(200).send("Rider ID is required.");
+            }
+    
+            const documents = await Rider.getDocuments(rider_id);
+            res.render('admin/documents', { documents, rider_id }); 
+        } catch (error) {
+            console.error('Error fetching rider documents:', error);
+            res.status(200).json({ error: 'Failed to fetch documents' });
+        }
+    }
+
+    async renderEditDocumentForm(req, res) {
+        try {
+            const { rider_id, document_id } = req.params;
+            console.log("rider_id:",rider_id,"document_id:",document_id)
+    
+            // Fetch document details
+            const document = await Rider.getDocumentById(document_id);
+    
+            if (!document) {
+                return res.status(200).send('Document not found');
+            }
+    
+            res.render('admin/edit-document', { rider_id, document });
+        } catch (error) {
+            console.error('Error fetching document for edit:', error);
+            res.status(200).json({ error: 'Failed to load document for editing' });
+        }
+    }
+
+    async updateDocument(req, res) {
+        try {
+            const { rider_id, document_id } = req.params;
+            const { title, description } = req.body;
+    
+            if (!title || !description) {
+                return res.status(200).json({ error: 'Title and Description are required' });
+            }
+    
+            await Rider.updateDocument(document_id, title, description);
+    
+            this.sendSuccess(res, {}, 'Document updated successfully!', 200, `/admin/riders/documents/${rider_id}`);
+        } catch (error) {
+            console.error('Error updating document:', error);
+            res.status(200).json({ error: 'Failed to update document' });
+        }
+    }
+
+    async deleteDocument(req, res) {
+        try {
+            const { rider_id, document_id } = req.params;
+    
+            await Rider.deleteDocument(document_id);
+    
+            this.sendSuccess(res, {}, 'Document deleted successfully!', 200, `/admin/riders/documents/${rider_id}`);
+        } catch (error) {
+            console.error('Error deleting document:', error);
+            res.status(200).json({ error: 'Failed to delete document' });
+        }
+    }
+
+    async updateDocumentStatus(req, res) {
+        try {
+            const { id } = req.params;
+            const { status } = req.query;  // ✅ Read from query parameters
+    
+            if (!id || !status) {
+                return res.status(400).json({ status: 0, msg: "Missing parameters." });
+            }
+    
+            await Rider.updateDocumentStatus(id, status);
+    
+            // Fetch updated document details
+            const updatedDoc = await Rider.getDocumentById(id);
+            const userRow = await this.riderModel.findById(updatedDoc.rider_id);
+            let adminData = res.locals.adminData; 
+            const result=await helpers.sendEmail(
+              userRow.email,
+              `Your Document Has Been ${status} from ${adminData?.site_name}`,
+              "document-request-status",
+              {
+                username:userRow?.full_name,
+                adminData,
+                title:updatedDoc?.title,
+                description:updatedDoc?.description,
+                status:status
+              }
+            );
+            if (updatedDoc) {
+                return res.redirect(`/admin/riders/documents/${updatedDoc.rider_id}`);
+            } else {
+                return this.sendError(res, "Failed to update document status");
+            }
+        } catch (error) {
+            console.error("Error updating document status:", error);
+            return res.status(500).json({ status: 0, msg: "Internal server error." });
+        }
+    }
+
+    async handleRiderApprove(req, res) {
+        try {
+            console.log("req.params:", req.params);
+            console.log("req.query:", req.query);
+    
+            const { id } = req.params;
+            const { is_approved } = req.query;  
+    
+            // Ensure ID and is_approved are present
+            if (!id || !is_approved) {
+                return res.status(400).json({ status: 0, msg: "Missing parameters." });
+            }
+    
+            // Check if is_approved is a valid enum value
+            const validStatuses = ["pending", "approved", "rejected"];
+            if (!validStatuses.includes(is_approved)) {
+                return res.status(200).json({ status: 0, msg: "Invalid approval status." });
+            }
+    
+            // Update business user status in the database
+            await Rider.updateRiderApprove(id, is_approved);
+    
+            // Fetch the updated user
+            const updatedRider = await Rider.findById(id);
+            console.log("Updated Rider:", updatedRider);
+
+            let adminData = res.locals.adminData;
+        let subject, templateName;
+
+        if (is_approved === "approved") {
+            subject = "Congratulations! Your Rider Account is Approved - " + adminData.site_name;
+            templateName = "approval-email";
+        } else if (is_approved === "rejected") {
+            subject = "Rider Application Rejected - " + adminData.site_name;
+            templateName = "rejection-email";
+        }
+
+        // Prepare template data
+        const templateData = {
+            username: updatedRider.full_name,
+            adminData
+        };
+
+        // Send the email if status is approved or rejected
+        if (is_approved !== "pending") {
+            await helpers.sendEmail(updatedRider.email, subject, templateName, templateData);
+        }            
+    
+            if (updatedRider) {
+                return res.redirect('/admin/riders');
+            } else {
+                return res.status(200).json({ status: 0, msg: "Failed to approve rider." });
+            }
+        } catch (error) {
+            console.error("Error approving rider:", error);
+            return res.status(200).json({ status: 0, msg: "Internal server error." });
+        }
+    }
+    
+    
+    
+    
+    
+    
+    
+    
     
 
 }

@@ -7,36 +7,38 @@ const upload = require('../../file-upload');
 
 const router = express.Router();
 const pagesController = new PagesController();
+const  checkAccessMiddleware  = require('../../middleware/checkAccessMiddleware');
 
-router.get('/pages', ensureAuthenticated, pagesController.manage_pages.bind(pagesController));
-router.get('/pages/home', ensureAuthenticated, pagesController.homeView.bind(pagesController));
-router.post('/pages/home-form', ensureAuthenticated, upload, pagesController.homeForm.bind(pagesController));
-router.get('/pages/about', ensureAuthenticated, pagesController.aboutView.bind(pagesController));
-router.post('/pages/about-form', ensureAuthenticated, upload, pagesController.aboutForm.bind(pagesController));
-router.get('/pages/contact', ensureAuthenticated, pagesController.contactView.bind(pagesController));
-router.post('/pages/contact-form', ensureAuthenticated, upload, pagesController.contactForm.bind(pagesController));
-router.get('/pages/privacy-policy', ensureAuthenticated, pagesController.privacyPolicyView.bind(pagesController));
-router.post('/pages/privacy-policy-form', ensureAuthenticated, upload, pagesController.privacyPolicyForm.bind(pagesController));
-router.get('/pages/terms-conditions', ensureAuthenticated, pagesController.termsConditionsView.bind(pagesController));
-router.post('/pages/terms-conditions-form', ensureAuthenticated, upload, pagesController.termsConditionsForm.bind(pagesController));
-router.get('/pages/help-support', ensureAuthenticated, pagesController.helpSupportView.bind(pagesController));
-router.post('/pages/help-support-form', ensureAuthenticated, upload, pagesController.helpSupportForm.bind(pagesController));
-router.get('/pages/faq', ensureAuthenticated, pagesController.faqView.bind(pagesController));
-router.post('/pages/faq-form', ensureAuthenticated, upload, pagesController.faqForm.bind(pagesController));
-router.get('/pages/login', ensureAuthenticated, pagesController.loginView.bind(pagesController));
-router.post('/pages/login-form', ensureAuthenticated, upload, pagesController.loginForm.bind(pagesController));
-router.get('/pages/forgot-password', ensureAuthenticated, pagesController.forgotPasswordView.bind(pagesController));
-router.post('/pages/forgot-password-form', ensureAuthenticated, upload, pagesController.forgotPasswordForm.bind(pagesController));
-router.get('/pages/sign-up', ensureAuthenticated, pagesController.signUpView.bind(pagesController));
-router.post('/pages/sign-up-form', ensureAuthenticated, upload, pagesController.signUpForm.bind(pagesController));
-router.get('/pages/rider-signup', ensureAuthenticated, pagesController.riderSignUpView.bind(pagesController));
-router.post('/pages/rider-signup-form', ensureAuthenticated, upload, pagesController.riderSignUpForm.bind(pagesController));
-router.get('/pages/reset-password', ensureAuthenticated, pagesController.resetPasswordView.bind(pagesController));
-router.post('/pages/reset-password-form', ensureAuthenticated, upload, pagesController.resetPasswordForm.bind(pagesController));
-router.get('/pages/business', ensureAuthenticated, pagesController.businessView.bind(pagesController));
-router.post('/pages/business-form', ensureAuthenticated, upload, pagesController.businessForm.bind(pagesController));
-router.get('/pages/rider', ensureAuthenticated, pagesController.riderView.bind(pagesController));
-router.post('/pages/rider-form', ensureAuthenticated, upload, pagesController.riderForm.bind(pagesController));
+
+router.get('/pages', ensureAuthenticated, checkAccessMiddleware(10), pagesController.manage_pages.bind(pagesController));
+router.get('/pages/home', ensureAuthenticated, checkAccessMiddleware(10), pagesController.homeView.bind(pagesController));
+router.post('/pages/home-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.homeForm.bind(pagesController));
+router.get('/pages/about', ensureAuthenticated, checkAccessMiddleware(10), pagesController.aboutView.bind(pagesController));
+router.post('/pages/about-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.aboutForm.bind(pagesController));
+router.get('/pages/contact', ensureAuthenticated, checkAccessMiddleware(10), pagesController.contactView.bind(pagesController));
+router.post('/pages/contact-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.contactForm.bind(pagesController));
+router.get('/pages/privacy-policy', ensureAuthenticated, checkAccessMiddleware(10), pagesController.privacyPolicyView.bind(pagesController));
+router.post('/pages/privacy-policy-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.privacyPolicyForm.bind(pagesController));
+router.get('/pages/terms-conditions', ensureAuthenticated, checkAccessMiddleware(10), pagesController.termsConditionsView.bind(pagesController));
+router.post('/pages/terms-conditions-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.termsConditionsForm.bind(pagesController));
+router.get('/pages/help-support', ensureAuthenticated, checkAccessMiddleware(10), pagesController.helpSupportView.bind(pagesController));
+router.post('/pages/help-support-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.helpSupportForm.bind(pagesController));
+router.get('/pages/faq', ensureAuthenticated,checkAccessMiddleware(10), pagesController.faqView.bind(pagesController));
+router.post('/pages/faq-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.faqForm.bind(pagesController));
+router.get('/pages/login', ensureAuthenticated, checkAccessMiddleware(10), pagesController.loginView.bind(pagesController));
+router.post('/pages/login-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.loginForm.bind(pagesController));
+router.get('/pages/forgot-password', ensureAuthenticated, checkAccessMiddleware(10), pagesController.forgotPasswordView.bind(pagesController));
+router.post('/pages/forgot-password-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.forgotPasswordForm.bind(pagesController));
+router.get('/pages/sign-up', ensureAuthenticated, checkAccessMiddleware(10), pagesController.signUpView.bind(pagesController));
+router.post('/pages/sign-up-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.signUpForm.bind(pagesController));
+router.get('/pages/rider-signup', ensureAuthenticated, checkAccessMiddleware(10),pagesController.riderSignUpView.bind(pagesController));
+router.post('/pages/rider-signup-form', ensureAuthenticated,checkAccessMiddleware(10), upload, pagesController.riderSignUpForm.bind(pagesController));
+router.get('/pages/reset-password', ensureAuthenticated,checkAccessMiddleware(10), pagesController.resetPasswordView.bind(pagesController));
+router.post('/pages/reset-password-form', ensureAuthenticated,checkAccessMiddleware(10), upload, pagesController.resetPasswordForm.bind(pagesController));
+router.get('/pages/business', ensureAuthenticated,checkAccessMiddleware(10), pagesController.businessView.bind(pagesController));
+router.post('/pages/business-form', ensureAuthenticated,checkAccessMiddleware(10), upload, pagesController.businessForm.bind(pagesController));
+router.get('/pages/rider', ensureAuthenticated,checkAccessMiddleware(10), pagesController.riderView.bind(pagesController));
+router.post('/pages/rider-form', ensureAuthenticated,checkAccessMiddleware(10), upload, pagesController.riderForm.bind(pagesController));
 
 
 
