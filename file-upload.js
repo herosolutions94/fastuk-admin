@@ -18,6 +18,7 @@ const storage = multer.diskStorage({
     const uniqueFilename = Date.now() + '-' + Math.round(Math.random() * 1E9);
     const extname = path.extname(file.originalname).toLowerCase();
     cb(null, uniqueFilename + extname);
+
   },
 });
 
@@ -27,6 +28,8 @@ const upload = multer({
     // console.log(file)
     const allowedExtensions = ['.webp', '.ico', '.jpg', '.jpeg', '.png', '.gif', '.svg', '.mp4', '.mov', '.avi','.mp3', '.ogg', '.wav'];
     const extname = path.extname(file.originalname).toLowerCase();
+    console.log("Final Stored Filename:", extname); // Debugging
+
     if (allowedExtensions.includes(extname)) {
       return cb(null, true);
     } else {
@@ -107,6 +110,7 @@ const upload = multer({
   { name: 'sec4_rider_image_2', maxCount: 1 },
   { name: 'sec4_rider_image_3', maxCount: 1 },
   { name: 'vehicle_image', maxCount: 1 },
+  { name: 'rider_document', maxCount: 1 },
 
 
 

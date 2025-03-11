@@ -17,36 +17,88 @@
               <p>Sr#</p>
             </th>
 
-            <th width="20%">
-              <p>Name</p>
+            <th width="10%">
+              <p>Rider</p>
+            </th>
+            <th width="10%">
+              <p>User</p>
+            </th>
+            <th width="25%">
+              <p>Pickup</p>
+            </th>
+            <th width="25%">
+              <p>Drop-off</p>
+            </th>
+            <th width="25%">
+              <p>Amount</p>
             </th>
             <th width="15%">
               <p>Status</p>
             </th>
-            <th width="10%">
-              <p>Action</p>
+            <th width="15%">
+              <p></p>
             </th>
           </tr>
         </thead>
         <tbody>
           <% if (requestQuotes && requestQuotes.length > 0) { %> <%
           requestQuotes.forEach((requestQuote, index) => { %>
-          <tr class="bottom-cntnt" id="requestQuotes-<%= requestQuotes.id %>">
+          <tr class="bottom-cntnt" id="requestQuotes-<%= requestQuote.id %>">
             <td>
               <p><%= index + 1 %></p>
             </td>
 
             <td>
-              <p><%= requestQuote.full_name %></p>
+            <% if (requestQuote.assigned_rider) { %>
+              <div class="flex">
+                <div class="image">
+                  <img
+                    src="<%= helpers.getImage(requestQuote.rider_image) %>"
+                    alt="Rider Image" />
+                </div>
+                <div class="custm-cntnt">
+                  <p><%= requestQuote.rider_name %></p>
+                </div>
+              </div>
+              <% }else{ %>
+              Rider not assigned yet!
+              <% } %>
+            </td>
+            <td>
+              <div class="flex">
+                <div class="image">
+                  <img
+                    src="<%= helpers.getImage(requestQuote.member_image) %>"
+                    alt="User Image" />
+                </div>
+                <div class="custm-cntnt">
+                  <p><%= requestQuote.member_name %></p>
+                </div>
+              </div>
+            </td>
+            
+            <td>
+              <p><%= helpers.shortText(requestQuote.source_address,15) %></p>
+            </td>
+            <td>
+              <p><%= helpers.shortText(requestQuote.dest_address,15) %></p>
+            </td>
+            <td>
+              <p>£<%= requestQuote.total_amount %></p>
             </td>
             <td>
               <p>
-                <% if (requestQuote.status === 1) { %>
-                <a href="#" class="status badge success">Active</a>
+                <% if (requestQuote && requestQuote.status === 'completed') { %>
+                    <a href="#" class="status badge success">Completed</a>
+                <% } else if (requestQuote && requestQuote.status === 'accepted') { %>
+                    <a href="#" class="status badge warning">In Progress</a>
+                <% } else if (requestQuote && requestQuote.status === 'paid') { %>
+                    <a href="#" class="status badge success">Paid</a>
                 <% } else { %>
-                <a href="#" class="status badge warning">Inactive</a>
+                    <a href="#" class="status badge warning">Unknown Status</a>
                 <% } %>
-              </p>
+            </p>
+            
             </td>
             <td>
               <div class="btn-group">
@@ -57,6 +109,11 @@
                   <i class="fa fa-ellipsis-h"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-primary" role="menu">
+                  <li>
+                    <a href="/admin/job-detail/<%= requestQuote.id %>">
+                      <i class="fa fa-building" aria-hidden="true"></i>View
+                    </a>
+                  </li>
                   <li>
                     <a
                       href="#"

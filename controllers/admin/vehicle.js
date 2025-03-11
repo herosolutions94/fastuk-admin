@@ -5,6 +5,7 @@ const path = require('path'); // For handling file paths
 const BaseController = require('../baseController');
 const Vehicle = require('../../models/vehicle');
 const { validateRequiredFields } = require('../../utils/validators');
+const message = require('./message');
 
 
 class VehicleController extends BaseController {
@@ -28,6 +29,9 @@ class VehicleController extends BaseController {
             const {
                 title,
                 price,
+                business_user_price,
+                admin_price,
+                // remote_price,
                 status,
             } = req.body;
             console.log("req.body",req.body);  // To check if name and description are being sent
@@ -41,13 +45,17 @@ class VehicleController extends BaseController {
             const cleanedData = {
                 title: typeof title === 'string' ? title.trim() : '',
                 price: typeof price === 'string' ? price.trim().toLowerCase() : '',
+                business_user_price: typeof business_user_price === 'string' ? business_user_price.trim().toLowerCase() : '',
+                admin_price: typeof admin_price === 'string' ? admin_price.trim().toLowerCase() : '',
+                // remote_price: typeof remote_price === 'string' ? remote_price.trim().toLowerCase() : '',
                 vehicle_image: vehicleImage,  // Change this to match your DB column name
                 status: status || 0,
             };
+            console.log(cleanedData,"cleanedData")
 
             // Validation for empty fields
             if (!validateRequiredFields(cleanedData)) {
-                return res.status(200).json({ success: false, message: 'All fields are required.' });
+                return res.status(200).json({ status: 0, msg: 'All fields are required.' });
             }
             // Create the rider
             const vehicleId = await this.vehicle.createVehicle(cleanedData);
@@ -78,13 +86,14 @@ class VehicleController extends BaseController {
             const vehicles = await Vehicle.getAllVehicles();
             // console.log('Fetched Riders:', riders); // Log the fetched riders
 
-            if (vehicles && vehicles.length > 0) {
+            // if (vehicles && vehicles.length > 0) {
                 // Corrected res.render with only two arguments
                 res.render('admin/vehicles', { vehicles: vehicles || [] });
-            } else {
-                this.sendError(res, 'No vehicles found');
-            }
-        } catch (error) {
+            
+            // } else {
+            //     this.sendError(res, 'No vehicles found');
+            // }
+            }catch (error) {
             console.error('Error fetching vehicles:', error); // Log the error for debugging
             this.sendError(res, 'Failed to fetch vehicles');
         }

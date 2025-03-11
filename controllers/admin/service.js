@@ -60,7 +60,7 @@ class ServiceController extends BaseController {
         res.json({
             status: 1,
             message: 'Service added successfully!',
-            redirect_url: '/admin/services-list'
+            redirect_url: '/admin/services'
         });
 
 
@@ -172,7 +172,7 @@ class ServiceController extends BaseController {
             res.json({
                 status: 1,
                 message: 'Service updated successfully!',
-                redirect_url: '/admin/services-list'
+                redirect_url: '/admin/services'
             });
         } catch (error) {
             console.error('Failed to update service:', error);

@@ -1,0 +1,56 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Review Detail</h3>
+        <ul>
+          <li><a href="">Home</a></li>
+          <li class="active"><a href="">Review Detail</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dashTable">
+      <div class="card">
+        <div class="card-header">
+          <h5>Review Details:</h5>
+        </div>
+
+        <div class="card-body">
+          <div class="list-group details-group">
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>User: </strong><img src="<%= helpers.getImage(review.member_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;"><%= review.member_name %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Review Text: </strong><%= review.review %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Rating: </strong>
+                  <div class="rateYo" data-rateyo-rating="<%= review.rating %>"></div>
+                </p>
+              </div>
+            </div>
+            
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Created Date: </strong><%= helpers.convertUtcToUkFormat(review.created_at) %></p>
+              </div>
+            </div>
+            <div class="list-group-item">
+              <div class="d-flex w-100">
+                <p><strong>Request Id: </strong><a href="/admin/order-detail/<%= review.request_id %>">Request</a></p>
+              </div>
+            </div>
+            
+            
+      
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

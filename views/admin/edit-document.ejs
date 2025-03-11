@@ -1,0 +1,80 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Edit Document</h3>
+        <ul>
+          <li><a href="/admin/dashbaord">Dashboard</a></li>
+          <li class="active"><a href="">Edit Document</a></li>
+        </ul>
+      </div>
+      <!-- <div class="text text2">
+        <a href="/admin/testimonial" class="webBtn mdBtn greenBtn"
+          ><i class="fa-regular fa-arrow-left"></i>Cancel</a
+        >
+      </div> -->
+    </div>
+    <div class="dashTable">
+      <div class="card editor_card">
+        <div class="card-header">
+          <h5>Document Block</h5>
+        </div>
+        <div class="card-body full_width">
+          <form
+            id="editTestimonialForm"
+            class="frmAjax"
+            action="/admin/riders/documents/edit/<%= rider_id %>/<%= document.id %>"
+            method="post"
+            enctype="multipart/form-data">
+            <div class="row">
+              
+              <div class="col-md-9">
+                <div class="row switch-showcase">
+                  
+
+                  <div class="col-md-5">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >Name<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="title"
+                        type="text"
+                        name="title"
+                        value="<%= document.title ? document.title : '' %>" />
+                    </div>
+                  </div>
+                  
+                  <div class="col-md-12">
+                    <div class="txtGrp">
+                      <label class="form-label" for="detail"
+                        >Description<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <textarea
+                        class="ckeditor"
+                        name="description"
+                        id="editor1">
+<%= document.description ? document.description : '' %></textarea
+                      >
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer text-end">
+              <button class="webBtn" type="submit">
+                Update Content <i class="spinner hidden"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+        <hr />
+      </div>
+    </div>
+  </div>
+</section>

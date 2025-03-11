@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Assign Permissions</title>
+</head>
+<body>
+<h2>Assign Permissions for <%= permissions?.permission %></h2>
+
+<form action="/admin/manage-permissions/<%= subAdminId %>" method="POST">
+  <input type="hidden" name="sub_admin_id" value="<%= subAdminId %>">
+
+  
+  <% permissions.forEach(permission => {  console.log(assignedPermissions.includes(permission.id)) %>
+    <label>
+      <input type="checkbox" name="permission" value="<%= permission.id %>"
+        <% if (assignedPermissions.includes(permission.id)) { %> checked <% } %> >
+      <%= permission.permission %>
+    </label>
+    <br>
+  <% }); %>
+  
+ 
+
+  <button type="submit">Update Permissions</button>
+</form>
+</body>
+</html>

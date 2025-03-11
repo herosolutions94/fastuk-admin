@@ -9,10 +9,20 @@ class PaymentMethodModel extends BaseModel {
 
     // Get all payment methods for a user by user_id and user_type
     async getPaymentMethodsByUserId(userId, userType) {
-        const query = `SELECT * FROM payment_methods WHERE user_id = ? AND user_type = ?`;
+        const query = `SELECT * FROM payment_methods WHERE user_id = ? AND user_type = ? ORDER BY 
+                    \`is_default\` DESC,  -- Place rows with default = 1 at the top
+                    id DESC `;
         const [rows] = await pool.query(query, [userId, userType]);  // The query now works with promises
 
         return rows;
+    }
+    async getPaymentMethodById(id) {
+        // Your database query here
+        const query = 'SELECT * FROM payment_methods WHERE id = ?';
+        console.log(query,"query")
+        const [rows] = await pool.query(query, [id]);
+        console.log(rows,"rows")
+        return rows?.length > 0 ? rows[0] : null;
     }
 
     async getPaymentMethodsByIdAndUserId(id, userId) {
@@ -37,7 +47,7 @@ class PaymentMethodModel extends BaseModel {
         try {
           const query = 'SELECT * FROM payment_methods WHERE user_id = ? AND is_default = 1';
           const [rows] = await pool.query(query, [userId]);
-          return rows[0]; // Returns an array of matching rows
+          return rows || [];  // Ensure it returns an array
         } catch (error) {
           console.error('Error fetching default payment method:', error.message);
           throw new Error('Database error');
@@ -61,6 +71,26 @@ class PaymentMethodModel extends BaseModel {
         const [result] = await pool.query(query, [id]);
         return result;
     }
+
+    async getInvoiceById(id) {
+        const query = "SELECT * FROM credit_invoices WHERE id = ?";
+        const [rows] = await pool.query(query, [id]);
+        return rows.length > 0 ? rows[0] : null;
+    }
+
+
+    async updateInvoicePaymentDetails(id, { payment_method_id, payment_intent_id, payment_method, payment_intent }) {
+        const query = `
+            UPDATE credit_invoices 
+            SET payment_method_id = ?, payment_intent_id = ?, payment_method = ?, payment_intent = ? , status = ?
+            WHERE id = ?
+        `;
+        const [result] = await pool.query(query, [payment_method_id, payment_intent_id, payment_method, payment_intent, 1, id]);
+        console.log("result:",payment_method_id, payment_intent_id, payment_method, payment_intent)
+        return result;
+    }
+    
+    
 }
 
 module.exports = PaymentMethodModel;

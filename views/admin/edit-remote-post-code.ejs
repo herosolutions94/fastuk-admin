@@ -35,10 +35,7 @@
                       <label class="form-label">Status</label>
                       <div
                         class="txtGrp-body text-end icon-state switch-outline">
-                        <label class="switch">
-                          <input type="checkbox" name="status" /><span
-                            class="switch-state bg-primary"></span>
-                        </label>
+                        
                         <select name="status">
                           <option value="1" <%= remotePostCode.status == 1 ? 'selected' : '' %>>Active</option>
                           <option value="0" <%= remotePostCode.status == 0 ? 'selected' : '' %>>Inactive</option>
@@ -60,6 +57,21 @@
                         type="text"
                         name="title"
                         value="<%= editRemotePostCodeId ? remotePostCode.title : '' %>" />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >Remote Price<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="remote_price"
+                        type="text"
+                        name="remote_price"
+                        value="<%= editRemotePostCodeId ? remotePostCode.remote_price : '' %>" />
                     </div>
                   </div>
                   

@@ -19,11 +19,16 @@ router.get('/login-page', (req, res) => pagesController.getLoginData(req, res));
 router.get('/forget-password', (req, res) => pagesController.getForgotPasswordData(req, res));
 router.get('/signup', (req, res) => pagesController.getSignUpData(req, res));
 router.get('/rider-signup', (req, res) => pagesController.getRiderSignUpData(req, res));
+router.get('/rider-profile', (req, res) => pagesController.getRiderProfileData(req, res));
 router.get('/reset-password', (req, res) => pagesController.getResetPasswordData(req, res));
 router.get('/business', (req, res) => pagesController.getBusinessData(req, res));
 router.get('/rider', (req, res) => pagesController.getRiderData(req, res));
 
 router.post('/get-addresses', upload, (req, res) => pagesController.getAddress(req, res));
+router.post('/save-subscriber', upload, (req, res) => pagesController.save_subscriber(req, res));
+router.post('/save-contact-message', upload, (req, res) => pagesController.save_contact_message(req, res));
+router.post('/site-settings', upload, (req, res) => pagesController.getSiteSettingsData(req, res));
+router.post('/search-cities', upload, (req, res) => pagesController.searchCities(req, res));
 
 
 

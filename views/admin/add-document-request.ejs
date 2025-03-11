@@ -1,0 +1,80 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Add New Document Request</h3>
+        <ul>
+          <li><a href="/admin/dashbaord">Dashboard</a></li>
+          <li class="active"><a href="">New Document Request</a></li>
+        </ul>
+      </div>
+      <div class="text text2">
+        <a href="/admin/testimonial" class="webBtn mdBtn greenBtn"
+          ><i class="fa-regular fa-arrow-left"></i>Cancel</a
+        >
+      </div>
+    </div>
+    <div class="dashTable">
+      <div class="card editor_card">
+        <div class="card-header">
+          <h5>Document Request Block</h5>
+        </div>
+        <div class="card-body full_width">
+          <form
+            id="addDocumentForm"
+            class="frmAjax"
+            action="/admin/riders/documents/create/<%= rider_id %>"
+            method="post"
+            enctype="multipart/form-data">
+            <div class="row">
+              <div class="col-md-12">
+                <div class="row">
+                  
+                  <div class="col-md-12">
+                    <div class="row switch-showcase">
+                      
+                      <div class="col-md-12">
+                        <div class="txtGrp">
+                          <label class="form-label" for="title"
+                            >Title<abbr class="required" title="required"
+                              >*</abbr
+                            ></label
+                          >
+                          <input
+                            class="input"
+                            id="title"
+                            type="text"
+                            name="title" />
+                        </div>
+                      </div>
+                      
+                      <div class="col-md-12">
+                        <div class="txtGrp">
+                          <label class="form-label" for="detail"
+                            >Description<abbr class="required" title="required"
+                              >*</abbr
+                            ></label
+                          >
+                          <textarea
+                            class="ckEditor"
+                            name="description"
+                            id="editor1"></textarea>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer text-end">
+              <button class="webBtn" type="submit">
+                Add Content <i class="spinner hidden"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+        <hr />
+      </div>
+    </div>
+  </div>
+</section>

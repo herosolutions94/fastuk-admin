@@ -9,7 +9,7 @@
         </ul>
       </div>
       <div class="text text2">
-        <a href="blog.php" class="webBtn mdBtn greenBtn"
+        <a href="/admin/vehicles-list" class="webBtn mdBtn greenBtn"
           ><i class="fa-regular fa-arrow-left"></i>Cancel</a
         >
       </div>
@@ -61,7 +61,7 @@
                       <div
                         class="txtGrp-body text-end icon-state switch-outline">
                         <label class="switch">
-                          <input type="checkbox" name="status" /><span
+                          <span
                             class="switch-state bg-primary"></span>
                         </label>
                         <select name="status">
@@ -103,17 +103,31 @@
                     </div>
                     <div class="txtGrp">
                       <label class="form-label" for="detail"
-                        >Remote Price<abbr class="required" title="required"
+                        >Business User Price<abbr class="required" title="required"
                           >*</abbr
                         ></label
                       >
                       <input
                         class="input"
-                        id="remote_price"
+                        id="business_user_price"
                         type="text"
-                        name="remote_price"
-                        value="<%= editVehicleId ? vehicle.remote_price : '' %>" />
+                        name="business_user_price"
+                        value="<%= editVehicleId ? vehicle.business_user_price : '' %>" />
                     </div>
+                    <div class="txtGrp">
+                      <label class="form-label" for="detail"
+                        >Rider Price<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="admin_price"
+                        type="text"
+                        name="admin_price"
+                        value="<%= editVehicleId ? vehicle.admin_price : '' %>" />
+                    </div>
+                    
                   </div>
                 </div>
               </div>

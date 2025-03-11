@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rider Accepted Your Request</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+    "
+  >
+    <div
+      style="
+        max-width: 900px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #d4e0df;
+      "
+    >
+      <table style="width: 100%; border-spacing: 0;">
+        <tbody>
+          <tr>
+            <td style="padding: 0; text-align: center;">
+              <img src="<%= adminData.logo %>" alt="Logo" style="width: 100px;" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table style="width: 100%; margin-top: 30px; border-collapse: collapse">
+        <tr>
+          <td style="padding: 10px">
+            <h2 style="color: #ed1c24; font-weight: 600">Your Request Has Been Accepted!</h2>
+            <p>
+              Great news! A rider has accepted your delivery request. Below are the details of your parcel delivery.
+            </p>
+            <p>
+              <strong style="font-weight: 600">Booking ID:</strong> <%= order.booking_id %>
+            </p>
+            <p>
+              <strong style="font-weight: 600">Start Date:</strong> <%= order.start_date %>
+            </p>
+            <p>
+              <strong style="font-weight: 600">Assigned Rider:</strong> <%= order.rider_name %>
+            </p>
+
+          </td>
+        </tr>
+      </table>
+
+      <table style="width: 100%; margin-top: 10px; border-collapse: collapse">
+        <tr>
+          <td style="width: 50%; padding: 10px">
+            <strong style="font-weight: 600">Pickup Location</strong><br />
+            <%= order.source_address %>, <%= order.source_city %> <br /><%= order.source_postcode %>
+          </td>
+          <td style="width: 50%; padding: 10px">
+            <strong style="font-weight: 600">Drop-off Location</strong><br />
+            <%= order.dest_address %>, <%= order.dest_city %> <br /><%= order.dest_postcode %>
+          </td>
+        </tr>
+      </table>
+
+      <table
+        style="
+          width: 100%;
+          margin-top: 20px;
+          border-collapse: collapse;
+          border: 1px solid #ddd;
+        "
+      >
+        <thead>
+          <tr style="background-color: #ed1c24; color: white; text-align: left">
+            <th style="padding: 13px; font-weight: 600">Parcel</th>
+            <th style="padding: 13px; font-weight: 600">Source</th>
+            <th style="padding: 13px; font-weight: 600">Destination</th>
+            <th style="padding: 13px; font-weight: 600">Distance</th>
+          </tr>
+        </thead>
+        <tbody>
+           <% let totalDistance = 0; let subtotal=0; %>
+          <% order.parcels.forEach(parcel => { %>
+            <% totalDistance += parcel.distance; subtotal +=parseFloat(parcel.distance) * parseFloat(parcel.price) %>
+              <tr>
+                <td style="padding: 13px"><%= parcel.parcel_number %><br /><%=parcel?.length%> x <%=parcel?.width%> x <%=parcel?.height%> x <%=parcel?.weight%></td>
+                <td style="padding: 13px"><%= parcel.source_address %></td>
+                <td style="padding: 13px"><%= parcel.destination_address %></td>
+                <td style="padding: 13px"><%= parcel.distance %> miles</td>
+              </tr>
+            <% }); %>
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>

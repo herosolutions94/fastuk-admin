@@ -10,12 +10,12 @@ class MessageController extends BaseController {
             const messages = await Message.getAllMessages();
             // console.log('Fetched Riders:', riders); // Log the fetched riders
 
-            if (messages && messages.length > 0) {
+            // if (messages && messages.length > 0) {
                 // Corrected res.render with only two arguments
                 res.render('admin/message', { messages: messages || [] });
-            } else {
-                this.sendError(res, 'No messages found');
-            }
+            // } else {
+            //     this.sendError(res, 'No messages found');
+            // }
         } catch (error) {
             console.error('Error fetching messages:', error); // Log the error for debugging
             this.sendError(res, 'Failed to fetch messages');

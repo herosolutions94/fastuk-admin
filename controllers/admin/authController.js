@@ -31,7 +31,7 @@ class AdminController extends BaseController {
 
             // Check if admin exists in the database
             const admin = await Admin.findByUsername(user_name);
-            // console.log('Admin:', admin);  // Check if admin is null or valid
+            console.log('Admin:', admin);  // Check if admin is null or valid
 
             if (!admin) {
                 return this.sendError(res, 'Admin not found', 200);
@@ -39,17 +39,37 @@ class AdminController extends BaseController {
 
             // Compare the provided password with the hashed password stored in the database
             const isPasswordValid = await bcrypt.compare(password, admin.password);
-            // console.log('Is password valid:', isPasswordValid);  // Should be true or false
+            console.log('Is password valid:', isPasswordValid);  // Should be true or false
 
             if (!isPasswordValid) {
                 return this.sendError(res, 'Invalid email or password', 200);
             }
 
+            if (admin.status === 0) {
+                return res.redirect('/admin/login');
+              }
+
+              const permissions = await this.admin.getPermissions(admin.id);
+              const permissionsInt = permissions.map(Number); // Convert to integers
+
+              console.log('permissions:', permissionsInt);
+    
+          if (admin.type !== 'admin' && permissions.length === 0) {
+            res.redirect('/admin/login');
+            return ;
+          }
+
+          console.log("session:",req.session.admin)
+    
+
             // Store admin details in session
             req.session.admin = {
                 id: admin.id,
-                user_name: admin.user_name
+                user_name: admin.user_name,
+                type : admin.type
             };
+            req.session.permissions = permissionsInt;
+
             this.sendSuccess(res, {}, 'Logged In Successfully!', 200, '/admin/dashboard')
 
         } catch (error) {
@@ -64,7 +84,7 @@ class AdminController extends BaseController {
             // Extract fields from the request body
             const {
                 site_domain, site_name, site_email, site_address, receiving_site_email, site_noreply_email,
-                site_phone, footer_copyright, site_facebook, site_twitter, site_instagram, site_youtube,
+                site_phone, footer_copyright, site_facebook, site_twitter, site_instagram, site_linkedin, site_youtube,
                 site_spotify, site_etsy,
                 site_sandbox,site_processing_fee
             } = req.body;
@@ -96,6 +116,7 @@ class AdminController extends BaseController {
                 site_facebook: Array.isArray(site_facebook) ? site_facebook.join(',') : site_facebook,
                 site_twitter: Array.isArray(site_twitter) ? site_twitter.join(',') : site_twitter,
                 site_instagram: Array.isArray(site_instagram) ? site_instagram.join(',') : site_instagram,
+                site_linkedin: Array.isArray(site_linkedin) ? site_linkedin.join(',') : site_linkedin,
                 site_youtube: Array.isArray(site_youtube) ? site_youtube.join(',') : site_youtube,
                 site_spotify: Array.isArray(site_spotify) ? site_spotify.join(',') : site_spotify,
                 site_etsy: Array.isArray(site_etsy) ? site_etsy.join(',') : site_etsy,
@@ -121,6 +142,7 @@ class AdminController extends BaseController {
         try {
             // Fetch the current settings from the database
             const settings = await this.admin.getSettings();
+            console.log(settings,'settings')
 
             // Render the site settings page and pass the settings to the view
             return res.render('admin/site-settings', {
@@ -191,6 +213,32 @@ class AdminController extends BaseController {
         console.error('Error during logout:', error);
         res.status(200).send('Internal Server Error');
     }
+
+    async checkPermissions(req, res, next) {
+        try {
+          const { admin } = req.session;
+          console.log("admin:",admin)
+          if (!admin) {
+            return res.redirect('/admin/login').send({ error: 'Session expired. Please log in again.' });
+          }
+    
+          if (admin.status === 0) {
+            return res.redirect('/admin/login').send({ error: 'Please contact the administrator to activate your account!' });
+          }
+    
+          const permissions = await this.admin.getPermissions(admin.id);
+    
+          if (admin.type !== 'admin' && permissions.length === 0) {
+            return res.redirect('/admin/login').send({ error: 'Insufficient permissions, please contact the administrator!' });
+          }
+    
+          req.session.permissions = permissions;
+          next();
+        } catch (error) {
+          console.error('Error checking permissions:', error);
+          res.status(200).send({ error: 'Internal server error' });
+        }
+      }
 
 
 }

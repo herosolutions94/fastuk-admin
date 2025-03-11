@@ -4,13 +4,16 @@
 /node_modules
 /.pnp
 .pnp.js
-
+app.js
+/config/db-connection.js
 # testing
 /coverage
-
+.gitignore
 # next.js
 /.next/
 /out/
+/uploads
+uploads
 
 # production
 /build

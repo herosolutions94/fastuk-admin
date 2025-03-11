@@ -183,6 +183,23 @@
                   <div class="row">
                     <div class="col-md-12">
                       <label class="form-label">
+                        Linkedin Link
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <i class="fab fa-twitter ic-left"></i>
+
+                      <input
+                        type="text"
+                        name="site_linkedin"
+                        value="<%= settings.site_linkedin || '' %>"
+                        class="input" />
+                    </div>
+                  </div>
+                </div>
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
                         Twitter Link
                         <abbr class="required" title="required">*</abbr>
                       </label>
@@ -291,9 +308,37 @@
                         name="site_sandbox"
                         value="<%= settings.site_sandbox || '' %>"
                         class="input">
-                        <option value="1">Testing</option>
-                        <option value="0">Live</option>
+                        <option value="1" <%= settings.site_sandbox === '1' ? 'selected' : '' %>>Testing</option>
+                        <option value="0" <%= settings.site_sandbox === '0' ? 'selected' : '' %>>Live</option>
                       </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <h5>Site Processing Fee(%)</h5>
+        </div>
+        <div class="card-body strip_it">
+          
+            <div class="row">
+              <div class="col-md-12">
+                <div class="txtGrp">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <label class="form-label">
+                        Payment Mode
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <input
+                        type="number"
+                        name="site_processing_fee"
+                        value="<%= settings.site_processing_fee || '' %>"
+                        class="input" />
                     </div>
                   </div>
                 </div>
