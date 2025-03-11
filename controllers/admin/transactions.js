@@ -5,7 +5,7 @@ const path = require('path'); // For handling file paths
 const BaseController = require('../baseController');
 const Transactions = require('../../models/transactions');
 const { validateRequiredFields } = require('../../utils/validators');
-
+const helpers = require("../../utils/helpers");
 
 class TransactionsController extends BaseController {
     constructor() {
@@ -42,17 +42,20 @@ class TransactionsController extends BaseController {
             }
 
             // Step 3: Delete the rider from the database
-            const result = await Transactions.deleteTransactionById(transactionId);
-            if (result) {
+            const result = await Transactions.updateData(transactionId,{
+                is_deleted:1,
+                deleted_at:helpers.getUtcTimeInSeconds()
+            });
+            // if (result) {
                 // Redirect to the riders list after deletion
                 res.json({
                     status: 1,
                     message: 'Transaction deleted successfully!',
                     redirect_url: '/admin/transactions-list'
                 });            
-            } else {
-                this.sendError(res, 'Failed to delete Transaction');
-            }
+            // } else {
+            //     this.sendError(res, 'Failed to delete Transaction');
+            // }
         } catch (error) {
             return res.status(200).json({ // Changed to status 500 for server errors
                 status: 0,
