@@ -21,7 +21,7 @@ class AdminController extends BaseController {
 
     async login(req, res) {
         try {
-            // console.log(req.body)
+            // console.log(req.body);return;
             const { user_name, password } = req.body;
 
             // Validate email and password presence
@@ -39,23 +39,23 @@ class AdminController extends BaseController {
 
             // Compare the provided password with the hashed password stored in the database
             const isPasswordValid = await bcrypt.compare(password, admin.password);
-            console.log('Is password valid:', isPasswordValid);  // Should be true or false
+            console.log('Is password valid:', isPasswordValid); // Should be true or false
 
             if (!isPasswordValid) {
                 return this.sendError(res, 'Invalid email or password', 200);
             }
-
+            // console.log('admin.status:', admin.status); return
             if (admin.status === 0) {
-                return res.redirect('/admin/login');
+                return this.sendError(res, 'this account is blocked by admin!', 200);
               }
 
               const permissions = await this.admin.getPermissions(admin.id);
               const permissionsInt = permissions.map(Number); // Convert to integers
 
-              console.log('permissions:', permissionsInt);
+            //   console.log('permissions:', permissionsInt);return;
     
           if (admin.type !== 'admin' && permissions.length === 0) {
-            res.redirect('/admin/login');
+            return this.sendError(res, 'this account has no permission to access the admin!', 200);
             return ;
           }
 

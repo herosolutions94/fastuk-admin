@@ -126,6 +126,9 @@
       <% } %>
       <% if (sidebarPermissions[6] || sidebarPermissions[7] || sidebarPermissions[8] || sidebarPermissions[9] ) { %>
 
+        <% if (sidebarPermissions[20]) { %>
+
+
       <li class="small_head">Reports</li>
       <li class="sidebar-item">
         <a
@@ -152,6 +155,11 @@
           </li>
         </ul>
       </li>
+
+      <% } %>
+
+
+
       <li class="small_head">User Requests</li>
       <% if (sidebarPermissions[6]) { %>
 
@@ -335,7 +343,6 @@
       <% } %>
       <% } %>
 
-      <% if (sidebarPermissions[19]) { %>
 
 
 
@@ -347,7 +354,6 @@
           <span class="hide-menu">Change Password</span></a
         >
       </li>
-      <% } %>
 
     </ul>
   </nav>
