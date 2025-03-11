@@ -30,7 +30,7 @@
                     class="input"
                     name="full_name"
                     value="<%= member.full_name %>"
-                    required />
+                     />
                 </div>
               </div>
               
@@ -42,7 +42,7 @@
                     class="input"
                     name="email"
                     value="<%= member.email %>"
-                    required />
+                     />
                 </div>
               </div>
               <div class="col-md-6">
@@ -53,7 +53,7 @@
                     class="input"
                     name="mem_phone"
                     value="<%= member.mem_phone %>"
-                    required />
+                     />
                 </div>
               </div>
               <div class="col-md-6">
@@ -64,14 +64,14 @@
                     class="input"
                     name="mem_city"
                     value="<%= member.mem_city %>"
-                    required />
+                     />
                 </div>
               </div>
               <div class="col-md-6">
                 <div class="txtGrp">
                     <label class="form-label" for="mem_state">State:</label>
-                    <select class="input" name="mem_state" required>
-                        <option value="">Select State</option>
+                    <select class="input" name="mem_state" >
+                        <option value="0">Select State</option>
                         <% if (states && states.length > 0) { %>
                             <% states.forEach(state => { %>
                                 <option
@@ -95,7 +95,7 @@
                     class="input"
                     name="mem_address1"
                     value="<%= member.mem_address1 %>"
-                    required />
+                     />
                 </div>
               </div>
               <div class="col-md-6">

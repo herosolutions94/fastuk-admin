@@ -7,28 +7,7 @@ const indexView = async (req, res, next) => {
         const [ridersCountResult] = await pool.query('SELECT COUNT(*) AS count FROM riders');
         const [membersCountResult] = await pool.query('SELECT COUNT(*) AS count FROM members');
         const [messagesCountResult] = await pool.query('SELECT COUNT(*) AS count FROM messages');
-        const [completedOrdersCountResult] = await pool.query(
-            'SELECT COUNT(*) AS count FROM request_quote WHERE status = ?',
-            ['completed'] // Use parameterized query to prevent SQL injection
-        );
-        const [earningsCountResult] = await pool.query('SELECT SUM(amount) AS earnings FROM earnings WHERE status=?',['cleared']);
-        // console.log("earnings:",earningsCountResult)
-        const [transactionsCountResult] = await pool.query(`
-            SELECT SUM(t.amount) AS transactions 
-            FROM transactions t 
-            JOIN request_quote rq ON t.transaction_id = rq.id 
-            WHERE t.transaction_id IS NOT NULL 
-            AND t.transaction_id != 0 
-            AND rq.status = 'completed'
-        `);
-        const [riderPriceResult] = await pool.query('SELECT SUM(rider_price) AS rider_price FROM request_quote WHERE status=?',['completed']);
-        const [totalTaxResult] = await pool.query('SELECT SUM(tax) AS tax FROM request_quote WHERE status=?',['completed']);
-        const netProfit = (transactionsCountResult[0].transactions || 0) - (riderPriceResult[0].rider_price || 0);
-// console.log('Net Profit:', netProfit);
-
-        const [withdrawAmountResult] = await pool.query('SELECT SUM(amount) AS amount FROM withdraw_requests WHERE status=?',['completed']);
-
-
+        
 
 
          
@@ -39,12 +18,7 @@ const indexView = async (req, res, next) => {
         const ridersCount = ridersCountResult[0].count;
         const membersCount = membersCountResult[0].count;
         const messagesCount = messagesCountResult[0].count;
-        const completedOrdersCount = completedOrdersCountResult[0].count;
-        const earningsCount = earningsCountResult?.length > 0 ? earningsCountResult[0].earnings : 0;
-        const transactionsCount = transactionsCountResult?.length > 0 ? transactionsCountResult[0].transactions : 0;
-        const riderPrice = riderPriceResult?.length > 0 ? riderPriceResult[0].rider_price : 0;
-        const taxResult = totalTaxResult?.length > 0 ? totalTaxResult[0].tax : 0;
-        const withdrawResult = withdrawAmountResult?.length > 0 ? withdrawAmountResult[0].amount : 0;
+       
 
         // Render the admin dashboard with counts
         res.render('admin/dashboard', {
@@ -53,13 +27,7 @@ const indexView = async (req, res, next) => {
                 riders: ridersCount,
                 members: membersCount,
                 messages: messagesCount,
-                completedOrders: completedOrdersCount,
-                earnings:earningsCount ? earningsCount : 0,
-                transactions:transactionsCount ? transactionsCount : 0,
-                riderPrice:riderPrice ? riderPrice : 0,
-                taxResult:taxResult ? taxResult : 0,
-                netProfit:netProfit ? netProfit : 0,
-                withdrawResult:withdrawResult ? withdrawResult : 0
+                
             }
         });
     } catch (error) {

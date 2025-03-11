@@ -4006,3 +4006,10 @@ header .navbar-nav {
   color: #000 !important;
     background-color: RGBA(239, 244, 250, 1) !important
 }
+.txtFlex{
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  width: 100%;
+  align-items: center;
+}
