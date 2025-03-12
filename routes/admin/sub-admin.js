@@ -17,7 +17,7 @@ router.post('/sub-admins/update/:id', ensureAuthenticated, upload, subAdminContr
 router.delete('/sub-admins/delete/:id', ensureAuthenticated,isAdmin, subAdminController.deleteSubAdmin.bind(subAdminController));
 router.get('/subadmin-permissions/:sub_admin_id', ensureAuthenticated,isAdmin, subAdminController.getPermissionsPage.bind(subAdminController));
 
-router.post('/manage-permissions/:sub_admin_id', ensureAuthenticated,isAdmin, subAdminController.manageSubAdminPermissions.bind(subAdminController));
+router.post('/manage-permissions/:sub_admin_id', ensureAuthenticated,upload,isAdmin, subAdminController.manageSubAdminPermissions.bind(subAdminController));
 
 
 
