@@ -1,27 +1,46 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>Assign Permissions</title>
-</head>
-<body>
-<h2>Assign Permissions for <%= permissions?.permission %></h2>
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Assign Permissions</h3>
+        <ul>
+          <li><a href="/admin/dashboard">Home</a></li>
+          <li class="active"><a href="">Assign Permissions</a></li>
+        </ul>
+      </div>
+      <div class="text text2">
+        <a href="/admin/sub-admins" class="webBtn mdBtn greenBtn"
+          ><i class="fa-regular fa-arrow-left"></i>Cancel</a
+        >
+      </div>
+      
+    </div>
+    <div class="dashTable">
+      <div class="card editor_card">
+        <div class="card-header">
+          <h5>Vehicle Block</h5>
+        </div>
+        <div class="card-body full_width">
+          <form action="/admin/manage-permissions/<%= subAdminId %>" method="POST" class="frmAjax">
+            <input type="hidden" name="sub_admin_id" value="<%= subAdminId %>">
 
-<form action="/admin/manage-permissions/<%= subAdminId %>" method="POST">
-  <input type="hidden" name="sub_admin_id" value="<%= subAdminId %>">
+            
+            <% permissions.forEach(permission => {  console.log(assignedPermissions.includes(permission.id)) %>
+              <label>
+                <input type="checkbox" name="permission" value="<%= permission.id %>"
+                  <% if (assignedPermissions.includes(permission.id)) { %> checked <% } %> >
+                <%= permission.permission %>
+              </label>
+              <br>
+            <% }); %>
+            
+          
 
-  
-  <% permissions.forEach(permission => {  console.log(assignedPermissions.includes(permission.id)) %>
-    <label>
-      <input type="checkbox" name="permission" value="<%= permission.id %>"
-        <% if (assignedPermissions.includes(permission.id)) { %> checked <% } %> >
-      <%= permission.permission %>
-    </label>
-    <br>
-  <% }); %>
-  
- 
+            <button type="submit">Update Permissions</button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
-  <button type="submit">Update Permissions</button>
-</form>
-</body>
-</html>
