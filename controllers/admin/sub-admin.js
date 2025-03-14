@@ -25,7 +25,7 @@ class SubAdminController extends BaseController {
   async addSubAdmin(req, res) {
     try {
       const { name, user_name, password, status, type } = req.body;
-      console.log("req.body", req.body); // To check if name and description are being sent
+      // console.log("req.body", req.body); // To check if name and description are being sent
 
       // Clean and trim data
       const cleanedData = {
@@ -46,11 +46,11 @@ class SubAdminController extends BaseController {
       }
       // Create the rider
       const subAdminId = await this.subAdmin.createSubAdmin(cleanedData);
-      console.log("Created SubAdmin ID:", subAdminId); // Log the created rider ID
+      // console.log("Created SubAdmin ID:", subAdminId); // Log the created rider ID
 
       // Verify OTP was stored properly
       const createdSubAdmin = await this.subAdmin.findById(subAdminId);
-      console.log("Created Service:", createdSubAdmin); // Log the created rider
+      // console.log("Created Service:", createdSubAdmin); // Log the created rider
       res.json({
         status: 1,
         message: "SubAdmin added successfully!",
@@ -81,15 +81,15 @@ class SubAdminController extends BaseController {
   async editSubAdmin(req, res) {
     try {
       const subAdminId = req.params.id; // Get the rider ID from the request parameters
-      console.log("Fetching service with ID:", subAdminId); // Log the ID
+      // console.log("Fetching service with ID:", subAdminId); // Log the ID
 
       // Fetch the rider by ID
       const subAdmin = (
         await SubAdmin.getSubAdminById(subAdminId, "sub_admin")
       )[0]; // Extract the first rider if it's returned as an array
-      console.log("Fetched sub admin:", subAdmin); // Log fetched rider data
+      // console.log("Fetched sub admin:", subAdmin); // Log fetched rider data
 
-      console.log("sub admin data before rendering:", subAdmin); // Log the rider data
+      // console.log("sub admin data before rendering:", subAdmin); // Log the rider data
 
       // Check if rider exists
       if (subAdmin) {
@@ -119,7 +119,7 @@ class SubAdminController extends BaseController {
       )[0];
 
       // Debugging output
-      console.log("Current SubAdmin:", currentSubAdmin);
+      // console.log("Current SubAdmin:", currentSubAdmin);
 
       // Update the service in the database
       await SubAdmin.updateSubAdmin(subAdminId, subAdminData);
@@ -185,7 +185,7 @@ class SubAdminController extends BaseController {
 
       // Fetch assigned permissions for the sub-admin
       const assignedPermissions = await SubAdmin.getPermissions(sub_admin_id);
-      console.log("assignedPermissions:", assignedPermissions);
+      // console.log("assignedPermissions:", assignedPermissions);
 
       // Render the permissions page
       res.render("admin/permissions", {
@@ -206,11 +206,11 @@ class SubAdminController extends BaseController {
 
   async manageSubAdminPermissions(req, res) {
     try {
-      console.log("🛠️ Full Request Body:", req.body);
+      // console.log("🛠️ Full Request Body:", req.body);
 
       const { permission, sub_admin_id } = req.body;
-      console.log("Received permissions:", req.body.permission);
-      console.log("Sub Admin ID:", req.body.sub_admin_id);
+      // console.log("Received permissions:", req.body.permission);
+      // console.log("Sub Admin ID:", req.body.sub_admin_id);
 
       if (!sub_admin_id) {
         return this.sendError(res, "Sub admin ID is required.", 400);
@@ -220,14 +220,14 @@ class SubAdminController extends BaseController {
         ? req.body.permission
         : [req.body.permission];
 
-      console.log("🚀 Incoming Permissions:", permissions); // Debugging
+      // console.log("🚀 Incoming Permissions:", permissions); // Debugging
 
       // Step 1: Delete Previous Permissions
       const deleteResult = await SubAdmin.deletePermissions(sub_admin_id);
-      console.log(
-        `✅ Deleted old permissions for SubAdmin ID: ${sub_admin_id}`
-      );
-      console.log("Deleted permissions result:", deleteResult);
+      // console.log(
+      //   `✅ Deleted old permissions for SubAdmin ID: ${sub_admin_id}`
+      // );
+      // console.log("Deleted permissions result:", deleteResult);
 
       // Step 2: Insert New Permissions
       if (permissions.length > 0) {
@@ -239,7 +239,7 @@ class SubAdminController extends BaseController {
 
       // Step 3: Fetch All Permissions
       const assignedPermissions = await SubAdmin.getPermissions(sub_admin_id);
-      console.log("🎯 Assigned Permissions:", assignedPermissions); // Debug log
+      // console.log("🎯 Assigned Permissions:", assignedPermissions); // Debug log
 
       
       res.json({
@@ -252,7 +252,7 @@ class SubAdminController extends BaseController {
       return this.sendError(
         res,
         "An error occurred while managing permissions.",
-        500
+        200
       );
     }
   }
