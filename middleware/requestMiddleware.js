@@ -15,14 +15,14 @@ module.exports = async (req, res, next) => {
         req.session.permissions.forEach(id => {
             res.locals.sidebarPermissions[id] = true;
         });
-        console.log("Final Sidebar Permissions:", res.locals.sidebarPermissions);
+        // console.log("Final Sidebar Permissions:", res.locals.sidebarPermissions);
 
     }
 
-    console.log("Final Sidebar Permissions:", res.locals.sidebarPermissions);
-    console.log("Session Permissions:", req.session.permissions);
+    // console.log("Final Sidebar Permissions:", res.locals.sidebarPermissions);
+    // console.log("Session Permissions:", req.session.permissions);
 
-    console.log("Admin Type:", req.session.admin ? req.session.admin.type : "No Admin");
+    // console.log("Admin Type:", req.session.admin ? req.session.admin.type : "No Admin");
 
     next();
 };

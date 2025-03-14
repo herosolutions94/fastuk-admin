@@ -21,7 +21,7 @@ class SubAdminModel extends BaseModel {
     async findById(subAdminId) {
         const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
         const [rows] = await pool.query(query, [subAdminId]);
-        console.log(rows)
+        // console.log(rows)
     return rows.length ? rows[0] : null; // Return the first result or null
     }
 
@@ -38,7 +38,7 @@ class SubAdminModel extends BaseModel {
 
     static async getSubAdminById(id, type) {
         const [subAdmin] = await pool.query(`SELECT * FROM ${this.tableName} WHERE id = ? AND type = ?`, [id, type]);
-        console.log("subAdmin:", subAdmin);
+        // console.log("subAdmin:", subAdmin);
         return subAdmin; // This will return only sub_admin if found
     }
     
@@ -96,7 +96,7 @@ class SubAdminModel extends BaseModel {
             [sub_admin_id]
         );
     
-        console.log("🔍 Raw query result:", rows); // Should be an array of objects
+        // console.log("🔍 Raw query result:", rows); // Should be an array of objects
     
         if (!rows.length) {
             console.log("❌ No permissions found for this sub-admin.");
@@ -104,7 +104,7 @@ class SubAdminModel extends BaseModel {
         }
     
         const permissionIds = rows.map(row => row.permission_id);
-        console.log("✅ Extracted permission IDs:", permissionIds);
+        // console.log("✅ Extracted permission IDs:", permissionIds);
     
         return permissionIds;
     }
@@ -113,7 +113,7 @@ class SubAdminModel extends BaseModel {
     
     static async getAllPermissions() {
         const [result] = await pool.query('SELECT * FROM site_permissions'); // Assuming your table name is `permissions`
-        console.log("Raw permissions result:", result);
+        // console.log("Raw permissions result:", result);
 
         return result;
     }

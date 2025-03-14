@@ -1007,7 +1007,7 @@ class PagesController extends BaseController {
             const formData = { ...existingContent, ...helpers.sanitizeData(req.body) };
 
             if (req.files) {
-                const imageKeys = ['rider_image1', 'rider_image2', 'rider_image3', 'sec3_rider_image_0', 'sec3_rider_image_1', 'sec3_rider_image_2', 'sec3_rider_image_3,',
+                const imageKeys = ['rider_image1', 'rider_image2', 'rider_image3', 'sec3_rider_image_0', 'sec3_rider_image_1', 'sec3_rider_image_2', 'sec3_rider_image_3',
                     'sec4_rider_image_0', 'sec4_rider_image_1', 'sec4_rider_image_2', 'sec4_rider_image_3'
                 ];
 
@@ -1017,7 +1017,6 @@ class PagesController extends BaseController {
                     }
                 });
             }
-
             // Step 4: Clear old sec_text values
             await this.pages.deleteSecTextValues('home');
 
