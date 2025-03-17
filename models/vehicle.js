@@ -19,7 +19,7 @@ class VehicleModel extends BaseModel {
     async findById(vehicleId) {
         const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
         const [rows] = await pool.query(query, [vehicleId]);
-        console.log(rows)
+        // console.log(rows)
     return rows.length ? rows[0] : null; // Return the first result or null
     }
 

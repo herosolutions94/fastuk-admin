@@ -19,7 +19,7 @@ async function getUserIdFromToken(token, memType) {
       // Step 2: Split the decrypted token (assuming token is in a specific format like 'xxx-yyy-userId')
       const parts = decryptedToken.split("-");
       if (parts.length < 3) {
-          console.log('Invalid token format');
+        //   console.log('Invalid token format');
           return null; // Token format is invalid
       }
 
@@ -43,7 +43,7 @@ async function getUserIdFromToken(token, memType) {
           // If the user exists in the database, return the user_id
           return userId;
       } else {
-          console.log('User not found in the database or invalid memType');
+        //   console.log('User not found in the database or invalid memType');
           return null; // or throw an error if you prefer
       }
   } catch (error) {

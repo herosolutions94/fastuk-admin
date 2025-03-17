@@ -193,12 +193,12 @@ class ServiceController extends BaseController {
             }
 
             const serviceImage = currentService.service_image; // Get the image filename
-            console.log('Service to delete:', currentService); // Log rider details for debugging
+            // console.log('Service to delete:', currentService); // Log rider details for debugging
 
             // Step 2: Check if the rider has an associated image
             if (serviceImage) {
                 const imagePath = path.join(__dirname, '../../uploads/', serviceImage);
-                console.log('Image Path:', imagePath); // Log the image path
+                // console.log('Image Path:', imagePath); // Log the image path
 
                 // Check if the image file exists before trying to delete
                 if (fs.existsSync(imagePath)) {

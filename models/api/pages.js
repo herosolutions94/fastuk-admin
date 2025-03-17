@@ -47,10 +47,10 @@ class PageModel extends BaseModel {
             data.rider_price,
 
         ];
-        console.log("values:",values)
+        // console.log("values:",values)
     
         const result = await pool.query(query, values);
-        console.log("result:",result)
+        // console.log("result:",result)
         const insertId = result[0].insertId;
     
         // Generate unique booking_id

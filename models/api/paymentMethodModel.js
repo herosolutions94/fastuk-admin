@@ -19,9 +19,9 @@ class PaymentMethodModel extends BaseModel {
     async getPaymentMethodById(id) {
         // Your database query here
         const query = 'SELECT * FROM payment_methods WHERE id = ?';
-        console.log(query,"query")
+        // console.log(query,"query")
         const [rows] = await pool.query(query, [id]);
-        console.log(rows,"rows")
+        // console.log(rows,"rows")
         return rows?.length > 0 ? rows[0] : null;
     }
 
@@ -86,7 +86,7 @@ class PaymentMethodModel extends BaseModel {
             WHERE id = ?
         `;
         const [result] = await pool.query(query, [payment_method_id, payment_intent_id, payment_method, payment_intent, 1, id]);
-        console.log("result:",payment_method_id, payment_intent_id, payment_method, payment_intent)
+        // console.log("result:",payment_method_id, payment_intent_id, payment_method, payment_intent)
         return result;
     }
     

@@ -434,7 +434,7 @@ class PagesController extends BaseController {
   
 
   async getAddress(req, res) {
-    console.log(req.body); // Log the body to check if it's coming through correctly
+    // console.log(req.body); // Log the body to check if it's coming through correctly
 
     const { zip_code } = req.body;
 

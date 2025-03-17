@@ -83,7 +83,7 @@ class RiderModel extends BaseModel {
         WHERE request_id = ?
     `;
     const [rows] = await pool.query(query, [quoteId]);
-    console.log("vias rows:", rows)
+    // console.log("vias rows:", rows)
     return rows;
 };
 

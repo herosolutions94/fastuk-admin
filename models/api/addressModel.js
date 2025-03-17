@@ -33,7 +33,7 @@ class AddressModel extends BaseModel {
             (mem_id, first_name, last_name, phone_number, address, post_code, city, \`default\`)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?);
         `;
-        console.log(data);
+        // console.log(data);
         const values = [
             data.mem_id,
             data.first_name,
@@ -57,7 +57,7 @@ class AddressModel extends BaseModel {
         }
     }
     async updateData(address_id, data) {
-        console.log(data)
+        // console.log(data)
         try {
             // Validate that data is not empty
             if (Object.keys(data).length === 0) {
@@ -73,11 +73,11 @@ class AddressModel extends BaseModel {
     
             // Build the query dynamically
             const query = `UPDATE ${this.tableName} SET ${setClause} WHERE id = ?`;
-    console.log(query)
+    // console.log(query)
             // Execute the query, adding the address_id to the values array
             await pool.query(query, [...values, address_id]);
     
-            console.log('Address updated successfully'); // Optional: Logging for debugging
+            // console.log('Address updated successfully'); // Optional: Logging for debugging
     
         } catch (error) {
             console.error("Error in updateData:", error.message);
@@ -97,7 +97,7 @@ class AddressModel extends BaseModel {
     async resetDefaultStatusForUser(userId) {
         const query = `UPDATE ${this.tableName} SET \`default\` = 0 WHERE mem_id = ?`;
         const [result] = await pool.query(query, [userId]);
-        console.log(`resetDefaultStatusForUser: Updated rows: ${result.affectedRows}`);
+        // console.log(`resetDefaultStatusForUser: Updated rows: ${result.affectedRows}`);
     }
     
     async setAsDefaultAddress(address_id) {

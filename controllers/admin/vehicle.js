@@ -34,11 +34,11 @@ class VehicleController extends BaseController {
                 // remote_price,
                 status,
             } = req.body;
-            console.log("req.body",req.body);  // To check if name and description are being sent
+            // console.log("req.body",req.body);  // To check if name and description are being sent
 
 
             const vehicleImage = req.files && req.files["vehicle_image"] ? req.files["vehicle_image"][0].filename : '';
-            console.log("req.file:",req.file);  // To check if the file is being uploaded
+            // console.log("req.file:",req.file);  // To check if the file is being uploaded
 
 
             // Clean and trim data
@@ -51,7 +51,7 @@ class VehicleController extends BaseController {
                 vehicle_image: vehicleImage,  // Change this to match your DB column name
                 status: status || 0,
             };
-            console.log(cleanedData,"cleanedData")
+            // console.log(cleanedData,"cleanedData")
 
             // Validation for empty fields
             if (!validateRequiredFields(cleanedData)) {
@@ -59,12 +59,12 @@ class VehicleController extends BaseController {
             }
             // Create the rider
             const vehicleId = await this.vehicle.createVehicle(cleanedData);
-            console.log('Created Vehicle ID:', vehicleId); // Log the created rider ID
+            // console.log('Created Vehicle ID:', vehicleId); // Log the created rider ID
 
 
             // Verify OTP was stored properly
         const createdVehicle = await this.vehicle.findById(vehicleId);
-        console.log('Created vehicle:', createdVehicle); // Log the created rider
+        // console.log('Created vehicle:', createdVehicle); // Log the created rider
         res.json({
             status: 1,
             message: 'Vehicle added successfully!',
@@ -102,13 +102,13 @@ class VehicleController extends BaseController {
     async editVehicle(req, res) {
         try {
             const vehicleId = req.params.id;  // Get the rider ID from the request parameters
-            console.log('Fetching vehicle with ID:', vehicleId); // Log the ID
+            // console.log('Fetching vehicle with ID:', vehicleId); // Log the ID
     
             // Fetch the rider by ID
             const vehicle = (await Vehicle.getVehicleById(vehicleId))[0]; // Extract the first rider if it's returned as an array
-            console.log('Fetched vehicle:', vehicle); // Log fetched rider data
+            // console.log('Fetched vehicle:', vehicle); // Log fetched rider data
 
-            console.log('Vehicle data before rendering:', vehicle); // Log the rider data
+            // console.log('Vehicle data before rendering:', vehicle); // Log the rider data
 
     
             // Check if rider exists
@@ -139,13 +139,13 @@ class VehicleController extends BaseController {
             const currentVehicle = (await Vehicle.getVehicleById(vehicleId))[0];
     
             // Debugging output
-            console.log('Current Vehicle:', currentVehicle);
+            // console.log('Current Vehicle:', currentVehicle);
             
             // Check if a new image is uploaded
             const vehicleImage = req.files && req.files["vehicle_image"] ? req.files["vehicle_image"][0].filename : null;
     
             // Debugging output
-            console.log('New service image:', vehicleImage);
+            // console.log('New service image:', vehicleImage);
     
             // Handle image replacement
             if (vehicleImage) {
@@ -202,12 +202,12 @@ class VehicleController extends BaseController {
             }
 
             const vehicleImage = currentVehicle.vehicle_image; // Get the image filename
-            console.log('vehicle to delete:', currentVehicle); // Log rider details for debugging
+            // console.log('vehicle to delete:', currentVehicle); // Log rider details for debugging
 
             // Step 2: Check if the rider has an associated image
             if (vehicleImage) {
                 const imagePath = path.join(__dirname, '../../uploads/', vehicleImage);
-                console.log('Image Path:', imagePath); // Log the image path
+                // console.log('Image Path:', imagePath); // Log the image path
 
                 // Check if the image file exists before trying to delete
                 if (fs.existsSync(imagePath)) {

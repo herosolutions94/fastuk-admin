@@ -111,7 +111,7 @@ static async getStatesByCountryId(country_id) {
 static async findById(businessUserId) {
     const query = `SELECT * FROM members WHERE id = ?`;
     const [rows] = await pool.query(query, [businessUserId]);
-    console.log("Fetched user data from DB:", rows[0]); // Log the fetched data
+    // console.log("Fetched user data from DB:", rows[0]); // Log the fetched data
 return rows.length ? rows[0] : null; // Return the first result or null
 }
 
@@ -119,7 +119,7 @@ static async updateBusinessUserApprove(id, is_approved) {
     try {
         // Update is_approved status
         const updateQuery = `UPDATE members SET is_approved = ? WHERE id = ?`;
-        console.log("Executing query:", updateQuery, "Values:", is_approved, id);
+        // console.log("Executing query:", updateQuery, "Values:", is_approved, id);
         await pool.query(updateQuery, [is_approved, id]);
                 const createdDate = helpers.getUtcTimeInSeconds();
         

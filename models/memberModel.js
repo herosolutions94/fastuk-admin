@@ -385,6 +385,7 @@ WHERE n.user_id = ? AND n.mem_type = ?
   
     try {
       const [rows] = await pool.query(query, values);
+    //   console.log("Notification rows:",rows)
       return rows;
     } catch (error) {
       console.error('Error fetching notifications:', error.message);
@@ -487,7 +488,7 @@ async getTotalDebitCredits(userId) {
          WHERE user_id = ? AND e_type = 'debit'`,
         [userId]
     );
-    console.log("rows:",rows,userId)
+    // console.log("rows:",rows,userId)
 
 
     return rows[0].totalDebit || 0; // Return 0 if no debits found
@@ -513,7 +514,7 @@ async getTotalDebitCredits(userId) {
             "SELECT * FROM credit_invoices WHERE user_id = ? ORDER BY created_date DESC",
             [userId]
         );
-        console.log("invoices:",invoices)
+        // console.log("invoices:",invoices)
 
         return invoices;
     } catch (error) {

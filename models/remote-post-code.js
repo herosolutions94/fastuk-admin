@@ -19,7 +19,7 @@ class RemotePostCodeModel extends BaseModel {
     async findById(remotePostCodeId) {
         const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
         const [rows] = await pool.query(query, [remotePostCodeId]);
-        console.log(rows)
+        // console.log(rows)
     return rows.length ? rows[0] : null; // Return the first result or null
     }
 

@@ -54,7 +54,7 @@ router.post("/get-invoices", upload, (req, res) => memberController.getInvoices(
 
 
   router.post('/upload-profile-pic', upload, (req, res) => {
-    console.log("Multer processed request. req.files:", req.files);
+    // console.log("Multer processed request. req.files:", req.files);
     memberController.uploadProfileImage(req, res);
   });
   

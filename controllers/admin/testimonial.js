@@ -31,11 +31,11 @@ class TestimonialController extends BaseController {
                 description,
                 status,
             } = req.body;
-            console.log("req.body",req.body);  // To check if name and description are being sent
+            // console.log("req.body",req.body);  // To check if name and description are being sent
 
 
             const testimonialImage = req.files && req.files["testi_image"] ? req.files["testi_image"][0].filename : '';
-            console.log("req.file:",req.file);  // To check if the file is being uploaded
+            // console.log("req.file:",req.file);  // To check if the file is being uploaded
 
 
             // Clean and trim data
@@ -53,12 +53,12 @@ class TestimonialController extends BaseController {
             }
             // Create the rider
             const testimonialId = await this.testimonial.createTestimonial(cleanedData);
-            console.log('Created Testimonial ID:', testimonialId); // Log the created rider ID
+            // console.log('Created Testimonial ID:', testimonialId); // Log the created rider ID
 
 
             // Verify OTP was stored properly
         const createdTestimonial = await this.testimonial.findById(testimonialId);
-        console.log('Created Testimonial:', createdTestimonial); // Log the created rider
+        // console.log('Created Testimonial:', createdTestimonial); // Log the created rider
         res.json({
             status: 1,
             message: 'Testimonial added successfully!',
@@ -95,13 +95,13 @@ class TestimonialController extends BaseController {
     async editTestimonial(req, res) {
         try {
             const testimonialId = req.params.id;  // Get the rider ID from the request parameters
-            console.log('Fetching rider with ID:', testimonialId); // Log the ID
+            // console.log('Fetching rider with ID:', testimonialId); // Log the ID
     
             // Fetch the rider by ID
             const testimonial = (await Testimonial.getTestimonialById(testimonialId))[0]; // Extract the first rider if it's returned as an array
-            console.log('Fetched testimonial:', testimonial); // Log fetched rider data
+            // console.log('Fetched testimonial:', testimonial); // Log fetched rider data
 
-            console.log('Testimonial data before rendering:', testimonial); // Log the rider data
+            // console.log('Testimonial data before rendering:', testimonial); // Log the rider data
 
             
 
@@ -196,12 +196,12 @@ class TestimonialController extends BaseController {
             }
 
             const testimonialImage = currentTestimonial.testi_image; // Get the image filename
-            console.log('Testimonial to delete:', currentTestimonial); // Log rider details for debugging
+            // console.log('Testimonial to delete:', currentTestimonial); // Log rider details for debugging
 
             // Step 2: Check if the rider has an associated image
             if (testimonialImage) {
                 const imagePath = path.join(__dirname, '../../uploads/', testimonialImage);
-                console.log('Image Path:', imagePath); // Log the image path
+                // console.log('Image Path:', imagePath); // Log the image path
 
                 // Check if the image file exists before trying to delete
                 if (fs.existsSync(imagePath)) {

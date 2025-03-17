@@ -42,7 +42,7 @@ class MessageController extends BaseController {
 
             // Create the rider
             const messageId = await this.message.createMessage(cleanedData);
-            console.log('Created Message ID:', messageId); // Log the created rider ID
+            // console.log('Created Message ID:', messageId); // Log the created rider ID
 
 
             this.sendSuccess(res, { messageId }, 'Message sent successfully.');

@@ -35,10 +35,10 @@ class TeamController extends BaseController {
                 phone_number,
                 email_link
             } = req.body;
-            console.log("req.body",req.body);  // To check if name and description are being sent
+            // console.log("req.body",req.body);  // To check if name and description are being sent
 
             const teamMemberImage = req.files && req.files["team_mem_image"] ? req.files["team_mem_image"][0].filename : '';
-            console.log("req.file:",req.file);  // To check if the file is being uploaded
+            // console.log("req.file:",req.file);  // To check if the file is being uploaded
 
 
             // Clean and trim data
@@ -73,7 +73,7 @@ class TeamController extends BaseController {
 
 
         const createdTeamMember = await this.team.findById(teamMemId);
-        console.log('Created team:', createdTeamMember); // Log the created rider
+        // console.log('Created team:', createdTeamMember); // Log the created rider
 
 
         res.json({
@@ -110,13 +110,13 @@ class TeamController extends BaseController {
     async editTeamMember(req, res) {
         try {
             const teamMemId = req.params.id;  // Get the rider ID from the request parameters
-            console.log('Fetching team member with ID:', teamMemId); // Log the ID
+            // console.log('Fetching team member with ID:', teamMemId); // Log the ID
     
             // Fetch the rider by ID
             const teamMember = (await Team.getTeamMemberById(teamMemId))[0]; // Extract the first rider if it's returned as an array
-            console.log('Fetched team member:', teamMember); // Log fetched rider data
+            // console.log('Fetched team member:', teamMember); // Log fetched rider data
 
-            console.log('team member data before rendering:', teamMember); // Log the rider data
+            // console.log('team member data before rendering:', teamMember); // Log the rider data
 
     
             // Check if rider exists
@@ -147,13 +147,13 @@ class TeamController extends BaseController {
             const currentTeamMember = (await Team.getTeamMemberById(teamMemId))[0];
     
             // Debugging output
-            console.log('Current team member:', currentTeamMember);
+            // console.log('Current team member:', currentTeamMember);
     
             // Check if a new image is uploaded
             const teamMemberImage = req.files && req.files["team_mem_image"] ? req.files["team_mem_image"][0].filename : null;
     
             // Debugging output
-            console.log('New team member image:', teamMemberImage);
+            // console.log('New team member image:', teamMemberImage);
     
             // If a new image is uploaded, handle it
             if (teamMemberImage) {
@@ -210,12 +210,12 @@ class TeamController extends BaseController {
             }
 
             const teamMemberImage = currentTeamMember.team_mem_image; // Get the image filename
-            console.log('Team member to delete:', currentTeamMember); // Log rider details for debugging
+            // console.log('Team member to delete:', currentTeamMember); // Log rider details for debugging
 
             // Step 2: Check if the rider has an associated image
             if (teamMemberImage) {
                 const imagePath = path.join(__dirname, '../../uploads/', teamMemberImage);
-                console.log('Image Path:', imagePath); // Log the image path
+                // console.log('Image Path:', imagePath); // Log the image path
 
                 // Check if the image file exists before trying to delete
                 if (fs.existsSync(imagePath)) {

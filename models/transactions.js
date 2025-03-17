@@ -29,14 +29,14 @@ JOIN members m ON t.user_id = m.id
 ORDER BY t.created_time DESC;
 ;
           `);
-      console.log("Raw Query Result:", result);
+      // console.log("Raw Query Result:", result);
       const rows = result[0];
       if (!rows || rows.length === 0) {
-        console.log("No transactions found");
+        // console.log("No transactions found");
         return [];
       }
 
-      console.log("Transactions Found:", rows);
+      // console.log("Transactions Found:", rows);
       return rows;
     } catch (err) {
       console.error("Error fetching transactions:", err);
