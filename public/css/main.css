@@ -2323,7 +2323,6 @@ main h6 {
 
 #dashbaord .grids .flex {
   margin: 0 -20px;
-  justify-content: center;
 }
 
 .graph_chat .flex .col {
@@ -2866,8 +2865,8 @@ form .txtGrp .invalid-feedback {
 /* datatables */
 
 .dashTable table .image {
-  width: 42px;
-  height: 42px;
+  width: 28px;
+  height: 28px;
   margin: auto 0;
   border-radius: 50%;
   box-shadow: rgb(0 0 0 / 20%) 0 5px 10px 0;
@@ -2876,6 +2875,7 @@ form .txtGrp .invalid-feedback {
 }
 .dashTable table td .flex {
   align-items: center;
+  flex-wrap: nowrap;
 }
 .dashTable table td .image img {
   border-radius: 50%;
@@ -2885,6 +2885,7 @@ form .txtGrp .invalid-feedback {
   -moz-border-radius: 50%;
   -ms-border-radius: 50%;
   -o-border-radius: 50%;
+  object-fit: cover;
 }
 .dashTable .dataTables_length {
   margin-bottom: 30px;
@@ -3537,7 +3538,7 @@ div.dataTables_wrapper {
 }
 
 table.dataTable thead > tr > th p {
-  font-family: "Inter SemiBold" !important;
+  font-family: "Inter Medium" !important;
   color: #3a3f4f !important;
 }
 
@@ -4019,4 +4020,35 @@ label.switch {
   justify-content: space-between;
   width: 100%;
   align-items: center;
+}
+
+/* extra css */
+
+
+.dashTable p{
+  font-size: 14px;
+}
+
+.dashTable th, .dashTable td {
+  padding: 12px 8px !important; 
+}
+
+.dashTable th {
+  font-size: 12px !important;
+}
+
+.dashTable {
+  font-size: 12px !important;
+}
+
+.dropdown-menu > li > a:focus, .dropdown-menu > li > a:hover {
+  color: #262626 !important;
+  text-decoration: none;
+  background-color: #ffffff !important;
+}
+
+.info_block{
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 30px;
 }

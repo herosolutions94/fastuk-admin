@@ -41,12 +41,12 @@
   min-width: 158px;
 }
 .dashTable .details-group p {
-  display: flex;
+  /* display: flex; */
   justify-content: flex-start;
 }
 .dashTable .image-blog {
-  width: 55px;
-  height: 55px;
+  width: 28px;
+  height: 28px;
   margin: auto 0;
   border-radius: 50%;
   box-shadow: rgb(0 0 0 / 20%) 0 5px 10px 0;
