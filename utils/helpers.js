@@ -581,7 +581,7 @@ convertUtcToUKTime : function (utcTimeInSeconds) {
         senderInfo = userRows[0];
       } else if (mem_type === "rider") {
         const riderQuery = `SELECT id, full_name as sender_name, mem_image as sender_dp FROM members WHERE id = ?`;
-        console.log(riderQuery,sender);
+        // console.log(riderQuery,sender);
         const [riderRows] = await pool.query(riderQuery, [sender]);
         senderInfo = riderRows[0];
       }
@@ -604,7 +604,7 @@ convertUtcToUKTime : function (utcTimeInSeconds) {
 
       // Find all sockets associated with the user_id in the users array
       const userSockets = users.filter((user) => parseInt(user.user_id) === parseInt(user_id) && user?.mem_type===mem_type);
-      console.log(users,userSockets,'userSockets')
+      // console.log(users,userSockets,'userSockets')
       // Loop through each socket entry and emit the notification
       userSockets.forEach((userSocket) => {
         io.to(userSocket.socket).emit(
@@ -624,7 +624,7 @@ convertUtcToUKTime : function (utcTimeInSeconds) {
   // Helper function to get latitude and longitude from an address using Nominatim API
 getCoordinates : async function (address)  {
   try {
-    console.log("Querying address:", address); // Log the address
+    // console.log("Querying address:", address); // Log the address
 
     const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(address)}`;
     const response = await axios.get(url);
@@ -678,9 +678,9 @@ getDistance : async function (source, destination)  {
 
   try {
     const [result] = await pool.query(query, values);
-    console.log('Transaction Data:', transactionData); // Debugging
+    // console.log('Transaction Data:', transactionData); // Debugging
 
-    console.log(`Transaction stored successfully. Insert ID: ${result.insertId}`);
+    // console.log(`Transaction stored successfully. Insert ID: ${result.insertId}`);
   } catch (error) {
     console.error('Error storing transaction:', error.message);
     throw new Error('Database query failed.');
@@ -752,7 +752,7 @@ sendEmail : async function (to, subject, templateName, templateData) {
             adminData.logo = process.env.BASE_URL+this.getImage(adminData.logo_image);
         }
 
-        console.log('templateData',templateData)
+        // console.log('templateData',templateData)
         // Render the EJS template with dynamic data
         const htmlContent = await ejs.renderFile(templatePath, templateData);
       const info = await transporter.sendMail({
@@ -761,7 +761,7 @@ sendEmail : async function (to, subject, templateName, templateData) {
           subject, // Subject line
           html:htmlContent   // HTML body
       });
-      console.log("Email sent: ", info.messageId);
+      // console.log("Email sent: ", info.messageId);
       return { success: true, messageId: info.messageId };
   } catch (error) {
       console.error("Email sending failed: ", error);
@@ -779,7 +779,7 @@ hasAccess: async function (req, permissionId = 0) {
   let permissions = req.session.permissions || []; 
   permissions = permissions.map(p => parseInt(p, 10)).filter(Number.isInteger); 
 
-  console.log("Checking permission:", permissionId, "User permissions:", permissions);
+  // console.log("Checking permission:", permissionId, "User permissions:", permissions);
   return permissions.includes(permissionId);
 },
 
@@ -789,6 +789,16 @@ access: async function (req, permissionId) {
   const permissions = req.session.permissions || [];
   return permissions.includes(permissionId.toString()); 
 },
+// getCount: async function (table, whereCondition, values) {
+//   try {
+//       const query = `SELECT COUNT(*) AS count FROM ${table} WHERE ${whereCondition}`;
+//       const [result] = await pool.query(query, values);
+//       return result[0].count; 
+//   } catch (error) {
+//       console.error(`Error fetching count from ${table}:`, error);
+//       throw error;
+//   }
+// }
 
 
 

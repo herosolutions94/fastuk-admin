@@ -25,14 +25,14 @@ class ReviewsModel extends BaseModel {
             JOIN
               members ON request_reviews.user_id = members.id;
           `);
-      console.log("Raw Query Result:", result);
+      // console.log("Raw Query Result:", result);
       const rows = result[0];
       if (!rows || rows.length === 0) {
-        console.log("No reviews found");
+        // console.log("No reviews found");
         return [];
       }
 
-      console.log("Reviews Found:", rows);
+      // console.log("Reviews Found:", rows);
       return rows;
     } catch (err) {
       console.error("Error fetching reviews:", err);
@@ -54,7 +54,7 @@ class ReviewsModel extends BaseModel {
             `;
 
       const [rows] = await pool.query(query, [id]);
-      console.log("rows:", rows);
+      // console.log("rows:", rows);
 
 
 

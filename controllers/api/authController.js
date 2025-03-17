@@ -516,12 +516,12 @@ class MemberController extends BaseController {
         otp: newOtp, // Pass OTP
         adminData
       };
-      console.log("Admin Data:", res.locals.adminData);
+      // console.log("Admin Data:", res.locals.adminData);
 
 
-      console.log("Sending email to:", user.email);
-console.log("Email Subject:", subject);
-console.log("Template Data:", templateData);
+//       console.log("Sending email to:", user.email);
+// console.log("Email Subject:", subject);
+// console.log("Template Data:", templateData);
 
       const result = await helpers.sendEmail(
         user.email,
@@ -529,7 +529,7 @@ console.log("Template Data:", templateData);
         "email-verify",
         templateData
       );
-      console.log("Email Result:", result);
+      // console.log("Email Result:", result);
       } else {
         return res
           .status(200)
@@ -651,7 +651,7 @@ console.log("Template Data:", templateData);
       // }
 
       // Validate OTP from the database
-      console.log(cleanedOtp,memberData.otp)
+      // console.log(cleanedOtp,memberData.otp)
       if (parseInt(memberData.otp) !== cleanedOtp) {
         return res.status(200).json({
           status: 0,
@@ -690,7 +690,7 @@ console.log("Template Data:", templateData);
       } else if (mem_type == "user") {
         token_mem_type = "user";
       }
-      console.log(token_mem_type, "token_mem_type", mem_type);
+      // console.log(token_mem_type, "token_mem_type", mem_type);
       const resetToken = await this.storeAndReturnToken(
         userId,
         token_mem_type,
@@ -825,7 +825,7 @@ console.log("Template Data:", templateData);
 
       await helpers.sendEmail(existingMember.email, subject, "forget-password-email", templateData);
 
-      console.log(memType, "memType");
+      // console.log(memType, "memType");
       const userId = existingMember.id;
       let actualFingerprint =
         fingerprint || this.generatePseudoFingerprint(req); // Use let to allow reassignment
@@ -896,7 +896,7 @@ console.log("Template Data:", templateData);
       ) {
         mem_type = user_type;
       }
-      console.log(mem_type, "mem_type", memType);
+      // console.log(mem_type, "mem_type", memType);
       const userResponse = await this.validateTokenAndGetMember(
         token,
         mem_type

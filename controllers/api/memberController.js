@@ -831,7 +831,7 @@ class MemberController extends BaseController {
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
     const sig = req.headers["stripe-signature"];
     let event;
-    console.log("req body", req.body);
+    // console.log("req body", req.body);
     try {
       // Convert the raw Buffer to a string
       const rawBody = req.body.toString();
@@ -858,8 +858,8 @@ class MemberController extends BaseController {
       const orderId = paymentIntent.metadata.order_id;
       const paymentIntentId = paymentIntent.id;
 
-      console.log(`✅ Apple Pay Payment Successful for Order: ${orderId}`);
-      console.log(`💳 Payment Intent ID: ${paymentIntentId}`);
+      // console.log(`✅ Apple Pay Payment Successful for Order: ${orderId}`);
+      // console.log(`💳 Payment Intent ID: ${paymentIntentId}`);
 
       if (orderId) {
         try {
@@ -899,7 +899,7 @@ class MemberController extends BaseController {
   async webhookPaypalRequest(req, res) {
     try {
       const webhookEvent = req.body;
-      console.log("Received PayPal Webhook:", webhookEvent);
+      // console.log("Received PayPal Webhook:", webhookEvent);
 
       const eventType = webhookEvent.event_type;
       const orderID = webhookEvent.resource.id; // PayPal Order ID
@@ -999,9 +999,9 @@ class MemberController extends BaseController {
           if(user===null){
             return res.status(200).json({ status: 0, msg: "User not found." });
           }
-          console.log("user",user)
+          // console.log("user",user)
           const formattedAmount = helpers.formatAmount(parseFloat(credit_invoice_row?.amount));
-          console.log("formattedAmount",formattedAmount)
+          // console.log("formattedAmount",formattedAmount)
           await this.member.updateMemberData(userId, {
           total_credits:
             parseFloat(user?.total_credits) + parseFloat(formattedAmount)
@@ -1054,7 +1054,7 @@ class MemberController extends BaseController {
           if (!invoiceDetails) {
             return this.sendError(res, 'Invoice not found');
           }
-          console.log('invoiceDetails',invoiceDetails)
+          // console.log('invoiceDetails',invoiceDetails)
            const orderDetails = await RequestQuoteModel.getOrderDetailsById(invoiceDetails?.request_id);
           if (!orderDetails) {
             return this.sendError(res, 'Order not found');
@@ -1149,7 +1149,7 @@ class MemberController extends BaseController {
         saved_card_id,
         order_details
       } = req.body;
-      console.log("price:", price);
+      // console.log("price:", price);
 
       if (token) {
         if (!token) {
@@ -1767,10 +1767,10 @@ class MemberController extends BaseController {
 
       // Get the uploaded file and construct the file path
       const memImage = req.files["mem_image"][0].filename;
-      console.log("Extracted Filename:", memImage);
+      // console.log("Extracted Filename:", memImage);
 
       const imageUrl = `${memImage}`; // Adjust the path based on your frontend setup
-      console.log("imageUrl:", imageUrl);
+      // console.log("imageUrl:", imageUrl);
 
       // const imageUrl = `${memImage}`; // Customize the path based on your application structure if needed
 
@@ -1905,7 +1905,7 @@ class MemberController extends BaseController {
     try {
       const { token, first_name, last_name, mem_phone, address, bio, memType,vehicle_owner,vehicle_type,city,vehicle_registration_num,driving_license_num,dob } =
         req.body; // Assuming token and user data are sent in the request body
-        console.log(req.body)
+        // console.log(req.body)
       // If no token is provided
       if (!token) {
         return res.status(200).json({ status: 0, msg: "Token is required." });
@@ -2343,7 +2343,7 @@ class MemberController extends BaseController {
       // Fetch the order using the decoded ID and check if the rider_id matches the logged-in rider's ID
       let order = await this.member.getUserOrderDetailsByTrackingId({tracking_id: tracking_id});
 
-      console.log("Order from DB:", order); // Add this line to log the order fetched from the database
+      // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
 
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Order not found." });
@@ -2728,45 +2728,47 @@ class MemberController extends BaseController {
     try {
       // Extract the required details from the request
       const { token, memType } = req.body;
-
+  
       // Validate input
       if (!token || !memType) {
         return res
           .status(200)
           .json({ status: 0, msg: "Token and memType are required." });
       }
-
+  
       // Validate the token and retrieve the user data
       const validationResponse = await this.validateTokenAndGetMember(
         token,
         memType
       );
-
+  
       if (validationResponse.status === 0) {
         // Token validation failed
         return res.status(200).json(validationResponse);
       }
-
+  
       // Extract the user object and ID from validation response
       const user = validationResponse.user;
       const userId = user.id;
-
+  
       // Fetch notifications for the user and memType
       const notifications = await this.member.getNotifications(userId, memType);
-      const notificationsArr = [];
-
-      notifications.forEach((notificationObj) => {
-        if (notificationObj?.sender === 0) {
-          // Fetch sender info from site settings if sender is 0
-          const siteSettings = res.locals?.adminData;
-          if (siteSettings) {
-            notificationObj.sender_name = siteSettings.site_name;
-            notificationObj.sender_dp = siteSettings.logo_image;
-          }
-          notificationsArr.push(notificationObj);
+      const siteSettings = res.locals?.adminData;
+      
+      // Transform notifications array
+      const notificationsArr = notifications.map((notificationObj) => {
+        if (notificationObj?.sender === 0 && siteSettings) {
+          return {
+            ...notificationObj,
+            sender_name: siteSettings.site_name,
+            sender_dp: siteSettings.logo_image
+          };
         }
+        return notificationObj;
       });
-
+  
+      console.log("Final notificationsArr:", notificationsArr); // Debugging log
+  
       // Return the fetched notifications
       return res.status(200).json({
         status: 1,
@@ -2778,6 +2780,7 @@ class MemberController extends BaseController {
       return res.status(500).json({ status: 0, msg: "Internal Server Error" });
     }
   }
+  
 
   async deleteNotification(req, res) {
     try {
@@ -2801,9 +2804,9 @@ class MemberController extends BaseController {
       }
 
       const user = validationResponse.user;
-      console.log(req.params.id, "Notification ID");
-      console.log(req.body.token, "Token");
-      console.log(req.body.memType, "Member Type");
+      // console.log(req.params.id, "Notification ID");
+      // console.log(req.body.token, "Token");
+      // console.log(req.body.memType, "Member Type");
 
       // Verify if the notification exists and belongs to the user
       const notificationResult = await Member.getNotificationById(id);
@@ -2815,10 +2818,10 @@ class MemberController extends BaseController {
         notification.user_id !== user.id ||
         notification.mem_type !== memType
       ) {
-        console.log(notification, "Notification from DB");
-        console.log(user.id, "Validated User ID");
-        console.log(notification.user_id, "Notification User ID");
-        console.log(memType, "Provided Member Type");
+        // console.log(notification, "Notification from DB");
+        // console.log(user.id, "Validated User ID");
+        // console.log(notification.user_id, "Notification User ID");
+        // console.log(memType, "Provided Member Type");
         return res
           .status(200)
           .json({ status: 0, msg: "Notification not found or unauthorized." });
@@ -3143,13 +3146,25 @@ class MemberController extends BaseController {
         const userRow = await this.rider.findById(order.assigned_rider);
         const parcels = await this.rider.getParcelDetailsByQuoteId(requestId);
         const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
+        const orderDetailsLink = `/rider-dashboard/order-details/${helpers.doEncode(
+          requestId
+        )}`;
         let request_row=order;
          const requestRow = {
           ...request_row,  // Spread request properties into order
             parcels: parcels // Add parcels as an array inside order
           };
           if(parseFloat(dueAmount)<=0){
-            const result=await helpers.sendEmail(
+            const notificationText = `Invoice is paid by the user.Now mark the request as completed`;
+        await helpers.storeNotification(
+          order.assigned_rider, // The user ID from request_quote
+          "rider", // The user's member type
+          userId, // Use rider's ID as the sender
+          notificationText,
+          orderDetailsLink
+        );
+        console.log("Assigned Rider:", order?.assigned_rider, "User ID:", userId);
+        const result=await helpers.sendEmail(
               userRow.email,
               "Invoice paid for: "+order?.booking_id,
               "request-invoice-paid",
@@ -3499,7 +3514,7 @@ class MemberController extends BaseController {
           
         }
       }
-      console.log(insertedUsers,'insertedUsers')
+      // console.log(insertedUsers,'insertedUsers')
       if (insertedUsers.length === 0) {
         return res.json({
           message: "All users already have an entry for this month."
@@ -3565,7 +3580,7 @@ class MemberController extends BaseController {
       });
 
       const invoices = await this.member.getInvoicesByUserId(userId);
-      console.log("invoices:", invoices);
+      // console.log("invoices:", invoices);
       res.json({ invoices, siteSettings, paymentMethods:decodedPaymentMethods });
     } catch (error) {
       console.error("Error fetching invoices:", error);

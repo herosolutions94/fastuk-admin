@@ -34,7 +34,7 @@ class WithdrawaRequestController extends BaseController {
     async WithdrawalRequestDetail(req, res) {
         try {
           const withdrawalRequestId = req.params.id; // Log the ID
-          console.log('Withdrawal Request ID:', withdrawalRequestId);
+          // console.log('Withdrawal Request ID:', withdrawalRequestId);
       
           const withdrawalRequest = await WithdrawaRequestModel.getWithdrawalRequestById(withdrawalRequestId);
       
@@ -53,7 +53,7 @@ class WithdrawaRequestController extends BaseController {
     async deleteWithdrawalRequest(req, res) {
         try {
             const withdrawalRequestId = req.params.id; // Get the withdrawal request ID from the URL
-            console.log('Deleting withdrawal request with ID:', withdrawalRequestId);
+            // console.log('Deleting withdrawal request with ID:', withdrawalRequestId);
     
             const result = await WithdrawaRequestModel.deleteWithdrawalRequestById(withdrawalRequestId);
             if (result) {
@@ -78,7 +78,7 @@ class WithdrawaRequestController extends BaseController {
                 // console.log('withdrawalRequest',withdrawalRequest)
               if (result) {
                 const userRow = await this.riderModel.findById(withdrawalRequest?.rider_id);
-                console.log('userRow',userRow)
+                // console.log('userRow',userRow)
                   if (userRow) {
                       await helpers.sendEmail(
                           userRow.email,

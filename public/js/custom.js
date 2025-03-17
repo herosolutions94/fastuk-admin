@@ -12,7 +12,7 @@ $(document).on("change", "#report_filter", function (e) {
             showToast('Error submitting form. Please try again later.', 'error');
         },
         success: function (response) {
-            console.log("Response:", response);
+            // console.log("Response:", response);
             const completedOrders=response?.stats?.completedOrders
             const earnings=response?.stats?.earnings
             const transactions=response?.stats?.transactions
@@ -44,14 +44,14 @@ $(document).on("submit", ".frmAjax", function (e) {
         error: function (rs) {
             frmbtn.attr("disabled", false);
             frmIcon.addClass("hidden");
-            console.log(rs);
+            // console.log(rs);
             // Display an error message using a toaster or alert
             showToast('Error submitting form. Please try again later.', 'error');
         },
         success: function (response) {
             frmbtn.attr("disabled", false);
             frmIcon.addClass("hidden");
-            console.log("Response:", response);
+            // console.log("Response:", response);
             if (response.status == 1 || response.success == true) {
                 // Display success message using Toastr.js
                 showToast(response.message, 'success');
@@ -100,7 +100,7 @@ function showToast(message, type) {
     }
 }
 $(document).ready(function () {
-    console.log('Document is ready, script is running!');
+    // console.log('Document is ready, script is running!');
 
     $("#frmSetting").validate({
         rules: {

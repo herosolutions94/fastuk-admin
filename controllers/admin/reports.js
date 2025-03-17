@@ -60,6 +60,7 @@ class ReportsController extends BaseController {
 	    const earningsCount = earningsCountResult?.length > 0 ? earningsCountResult[0].earnings : 0;
 	    const transactionsCount = transactionsCountResult?.length > 0 ? transactionsCountResult[0].transactions : 0;
 	    const withdrawResult = withdrawAmountResult?.length > 0 ? withdrawAmountResult[0].amount : 0;
+		console.log("withdrawResult:",withdrawAmountResult)
 		return res.status(200).json({
 	        status: 1,
 	         stats: {

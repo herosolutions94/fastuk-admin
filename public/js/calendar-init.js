@@ -180,7 +180,7 @@ document.addEventListener("DOMContentLoaded", function () {
     events: calendarEventsList,
     select: calendarSelect,
     unselect: function () {
-      console.log("unselected");
+      // console.log("unselected");
     },
     customButtons: {
       addEventButton: {
@@ -262,7 +262,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document
     .getElementById("eventModal")
     .addEventListener("hidden.bs.modal", function (event) {
-      console.log(event);
+      // console.log(event);
       getModalTitleEl.value = "";
       getModalStartDateEl.value = "";
       getModalEndDateEl.value = "";

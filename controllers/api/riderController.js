@@ -232,7 +232,7 @@ class RiderController extends BaseController {
   async loginRider(req, res) {
     try {
       let { email, password, fingerprint } = req.body;
-      console.log(req.body);
+      // console.log(req.body);
       // Clean and trim data
       email = typeof email === "string" ? email.trim().toLowerCase() : "";
       password = typeof password === "string" ? password.trim() : "";
@@ -527,7 +527,7 @@ class RiderController extends BaseController {
           .json({ status: 0, msg: "Failed to assign rider to the request." });
       }
       let request_row = await this.rider.getRequestQuoteById(request_id);
-      console.log("request_row:",request_row)
+      // console.log("request_row:",request_row)
 
       if (request_row) {
         const user = await this.member.findById(request_row.user_id);
@@ -586,7 +586,7 @@ class RiderController extends BaseController {
         order: request_row,
         type: "user"
       };
-      console.log("templateData:",templateData)
+      // console.log("templateData:",templateData)
 
 
       return res.status(200).json({
@@ -1110,7 +1110,7 @@ class RiderController extends BaseController {
   updateRequestStatus = async (req, res) => {
     const { token, memType, encodedId, type, via_id } = req.body;
     // console.log(req.body,"encodediddd");return;
-    console.log(token);
+    // console.log(token);
     try {
       // Validate token and fetch rider details
       const rider = await this.validateTokenAndGetMember(token, memType);
@@ -1183,7 +1183,7 @@ class RiderController extends BaseController {
         order: requestRow,
         type: "user"
       };
-      console.log("order:",requestRow);
+      // console.log("order:",requestRow);
 
       } else if (type?.toLowerCase() === "via") {
         if (!via_id) {
@@ -1540,7 +1540,7 @@ class RiderController extends BaseController {
             invoice:formattedHandballCharges || formattedWaitingCharges ? 1 : 0
           }
         );
-        console.log("Creating invoice for destination charges");
+        // console.log("Creating invoice for destination charges");
       } else if (type === "destination") {
         // Handle destination type logic (similar to source)
         // Step 2: Create invoice entries for destination charges
@@ -1913,7 +1913,7 @@ class RiderController extends BaseController {
       const completedOrders = await this.rider.getCompletedOrdersByRider(
         riderId
       );
-      console.log(completedOrders);
+      // console.log(completedOrders);
       const ordersWithEncodedIds = completedOrders.map((order) => {
         const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string
         return { ...order, encodedId }; // Add encodedId to each order
@@ -1926,7 +1926,7 @@ class RiderController extends BaseController {
       const totalCompletedOrders = await this.rider.getTotalCompletedOrders(
         riderId
       );
-      console.log(completedOrders, totalOrders, totalCompletedOrders);
+      // console.log(completedOrders, totalOrders, totalCompletedOrders);
 
       // Return the response with the fetched orders and total order counts
       return res.status(200).json({
@@ -1969,13 +1969,13 @@ class RiderController extends BaseController {
 
       // Now, call the model's getRiderEarnings function to fetch the earnings
       const earningsData = await this.rider.getRiderEarnings(riderId);
-      console.log(
-        "net income:",
-        earningsData.netIncome,
-        "available balance:",
-        earningsData.availableBalance,
-        earningsData.totalWithdrawn
-      );
+      // console.log(
+      //   "net income:",
+      //   earningsData.netIncome,
+      //   "available balance:",
+      //   earningsData.availableBalance,
+      //   earningsData.totalWithdrawn
+      // );
 
       if (!earningsData) {
         return res
@@ -2000,7 +2000,7 @@ class RiderController extends BaseController {
         bank_payment_method={...bank_payment_method,state:state_name,country:'United Kingdom'}
         bank_payment_methods_arr.push(bank_payment_method)
       }
-      console.log('bank_payment_methods_arr',bank_payment_methods_arr)
+      // console.log('bank_payment_methods_arr',bank_payment_methods_arr)
       const paypal_payment_methods =
         await this.rider.getWithdrawalPamentMethods(riderId, "paypal");
 
@@ -2134,8 +2134,8 @@ class RiderController extends BaseController {
   async getRiderDocumentsApi(req, res) {
     try {
       const { token, memType } = req.body;
-      console.log("Received Token:", token);
-      console.log("Received Member Type:", memType);
+      // console.log("Received Token:", token);
+      // console.log("Received Member Type:", memType);
 
       // Validate token and memType
       if (!token) {
@@ -2148,18 +2148,18 @@ class RiderController extends BaseController {
 
       // Validate the token and get the rider details
       const userResponse = await this.validateTokenAndGetMember(token, memType);
-      console.log("User Response:", userResponse);
+      // console.log("User Response:", userResponse);
 
       if (userResponse.status === 0) {
         return res.status(200).json(userResponse);
       }
 
       const riderId = userResponse.user.id;
-      console.log("Fetching documents for Rider ID:", riderId);
+      // console.log("Fetching documents for Rider ID:", riderId);
 
       // Fetch the documents for the given rider_id
       const documents = await RiderModel.getDocuments(riderId);
-      console.log("Fetched Documents:", documents);
+      // console.log("Fetched Documents:", documents);
 
       // If no documents are found
       if (documents.length === 0) {
@@ -2183,8 +2183,8 @@ class RiderController extends BaseController {
         req.files && req.files["rider_document"]
           ? req.files["rider_document"][0].filename
           : "";
-      console.log("req.body", req.body); // Log body data
-      console.log(token, req_id, riderDocument, "all data");
+      // console.log("req.body", req.body); // Log body data
+      // console.log(token, req_id, riderDocument, "all data");
 
       // Validate request
       if (!token || !req_id || !riderDocument) {
@@ -2207,7 +2207,7 @@ class RiderController extends BaseController {
         req_id,
         riderId
       );
-      console.log("existingDoc:", existingDoc);
+      // console.log("existingDoc:", existingDoc);
 
       if (!existingDoc.length) {
         return res.status(200).json({ status: 0, msg: "Unauthorized access." });
@@ -2219,9 +2219,9 @@ class RiderController extends BaseController {
 
       // Update document record
       await RiderModel.updateDocumentNameAndStatus(encryptedFileName, req_id);
-      console.log(
-        await RiderModel.updateDocumentNameAndStatus(encryptedFileName, req_id)
-      );
+      // console.log(
+      //   await RiderModel.updateDocumentNameAndStatus(encryptedFileName, req_id)
+      // );
 
       res.status(200).json({
         status: 1,
