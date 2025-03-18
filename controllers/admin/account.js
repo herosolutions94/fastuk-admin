@@ -20,7 +20,7 @@ const indexView = async (req, res, next) => {
         const messagesCount = messagesCountResult[0].count;
 
 
-        console.log("session:",req.session)
+        // console.log("session:",req.session)
 
 
         // Render the admin dashboard with counts
