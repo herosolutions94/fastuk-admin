@@ -532,7 +532,7 @@ class MemberController extends BaseController {
         // if (address_id) {
           addressesData = await this.addressModel.getAddressesByUserId(member.id);
       // }
-      console.log("result:",address_id,member.id)
+      // console.log("result:",address_id,member.id)
 
 
         // Fetch payment methods for the user
@@ -611,7 +611,7 @@ class MemberController extends BaseController {
       order_details
     } = req.body;
 
-    console.log("req.body:",req.body);
+    // console.log("req.body:",req.body);
 
     const requiredFields = [
       "selectedVehicle",
@@ -1042,6 +1042,36 @@ class MemberController extends BaseController {
             };
 
             await this.pageModel.insertInCredits(creditEntry);
+
+            const dueAmount = await RequestQuoteModel.calculateDueAmount(userRow.id);
+            const orderDetailsLink = `/rider-dashboard/order-details/${helpers.doEncode(
+              requestId
+            )}`;
+
+            console.log("orderRow:",orderRow,"userRow:",userRow,dueAmount);
+
+
+            if(parseFloat(dueAmount)<=0){
+              const notificationText = `Invoice is paid by the user.Now mark the request as completed`;
+          await helpers.storeNotification(
+            userRow.assigned_rider, // The user ID from request_quote
+            "rider", // The user's member type
+            userRow?.user_id, // Use rider's ID as the sender
+            notificationText,
+            orderDetailsLink
+          );
+          // console.log("Assigned Rider:", userRow?.assigned_rider, "User ID:", userId);
+          const result=await helpers.sendEmail(
+                userRow.email,
+                "Invoice paid for: "+userRow?.booking_id,
+                "request-invoice-paid",
+                {
+                  adminData,
+                  order: orderRow,
+                  type: "user"
+                }
+              );
+            }
 
             return res.status(200).json({ status: 1, msg: "Credits added successfully." });
           }
@@ -2767,7 +2797,7 @@ class MemberController extends BaseController {
         return notificationObj;
       });
   
-      console.log("Final notificationsArr:", notificationsArr); // Debugging log
+      // console.log("Final notificationsArr:", notificationsArr); // Debugging log
   
       // Return the fetched notifications
       return res.status(200).json({
@@ -2786,6 +2816,7 @@ class MemberController extends BaseController {
     try {
       const { id } = req.params; // Notification ID to be deleted
       const { token, memType } = req.body; // Token and memType from the request body
+      // console.log("requset:",req.body);
 
       // Validate the token and memType
       if (!token || !memType) {
@@ -2809,10 +2840,10 @@ class MemberController extends BaseController {
       // console.log(req.body.memType, "Member Type");
 
       // Verify if the notification exists and belongs to the user
-      const notificationResult = await Member.getNotificationById(id);
-      const notification = notificationResult[0]; // Access the first object in the array
+      const notificationResult = await this.member.getNotificationById(id);
+      const notification = notificationResult; // Access the first object in the array
 
-      console.log(notification, "Notification from DB");
+      console.log( "Notification from DB", notification);
       if (
         !notification ||
         notification.user_id !== user.id ||

@@ -848,7 +848,7 @@ async getCompletedOrdersByRider(riderId) {
          WHERE user_id = ? AND status = 'cleared'`,
         [riderId]
       );
-      console.log("withdrawnAmountResult:",withdrawnAmountResult)
+      // console.log("withdrawnAmountResult:",withdrawnAmountResult)
       
   
       // Get all earnings data for the rider
@@ -895,7 +895,7 @@ async getCompletedOrdersByRider(riderId) {
       
   
       const [result] = await pool.query(query, values); // Assuming you're using a MySQL pool
-      console.log("result:",result,"values:",values)
+      // console.log("result:",result,"values:",values)
       return result; // Return the inserted row
     } catch (error) {
       console.error("Error inserting withdrawal request:", error);
