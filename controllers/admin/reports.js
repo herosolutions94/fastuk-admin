@@ -79,7 +79,7 @@ class ReportsController extends BaseController {
 	            'SELECT COUNT(*) AS count FROM request_quote WHERE status = ?',
 	            ['completed'] 
 	        );
-	        const [earningsCountResult] = await pool.query('SELECT SUM(amount) AS earnings FROM earnings WHERE status=?',['cleared']);
+	        const [earningsCountResult] = await pool.query('SELECT SUM(amount) AS earnings FROM earnings WHERE status=? AND type=?',['cleared','credit']);
 	        const [transactionsCountResult] = await pool.query(`
 	            SELECT SUM(t.amount) AS transactions 
 	            FROM transactions t 
