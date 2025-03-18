@@ -53,7 +53,7 @@ class ReportsController extends BaseController {
 		// Query for withdrawals
 		const [withdrawAmountResult] = await pool.query(
 		    `SELECT SUM(amount) AS amount FROM withdraw_requests WHERE status = ? AND ${dateConditionUnix}`,
-		    ['completed']
+		    ['cleared']
 		);
 
 		const completedOrdersCount = completedOrdersCountResult[0].count;
@@ -87,7 +87,7 @@ class ReportsController extends BaseController {
 	            AND t.transaction_id != 0 
 	            AND rq.status = 'completed'
 	        `);
-	        const [withdrawAmountResult] = await pool.query('SELECT SUM(amount) AS amount FROM withdraw_requests WHERE status=?',['completed']);
+	        const [withdrawAmountResult] = await pool.query('SELECT SUM(amount) AS amount FROM withdraw_requests WHERE status=?',['cleared']);
 
 
 	        // Extract counts
