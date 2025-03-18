@@ -2179,6 +2179,7 @@ class RiderController extends BaseController {
   async uploadRiderDocument(req, res) {
     try {
       const { req_id, memType, token } = req.body;
+
       const riderDocument =
         req.files && req.files["rider_document"]
           ? req.files["rider_document"][0].filename
@@ -2200,6 +2201,7 @@ class RiderController extends BaseController {
       }
 
       const riderId = userResponse.user.id;
+      const rider = userResponse.user;
 
       // Check if the document belongs to the logged-in user
 
@@ -2216,12 +2218,35 @@ class RiderController extends BaseController {
       // Encrypt filename and move file
 
       const encryptedFileName = riderDocument;
+      // console.log("encryptedFileName:", encryptedFileName);
+
 
       // Update document record
       await RiderModel.updateDocumentNameAndStatus(encryptedFileName, req_id);
-      // console.log(
-      //   await RiderModel.updateDocumentNameAndStatus(encryptedFileName, req_id)
-      // );
+
+      // const updatedDoc = await RiderModel.getDocumentById(req_id);
+
+      //   if (!updatedDoc) {
+      //       return res.status(200).json({ status: 0, msg: "Document not found after update." });
+      //   }
+
+      //   // Construct document URL
+      //   const documentUrl = `${process.env.ADMIN_BASE_URL}/uploads/${updatedDoc.document_name}`;
+
+
+      let adminData = res.locals.adminData; 
+                  const result=await helpers.sendEmail(
+                    adminData.receiving_site_email,
+                    "Document Uploaded: Rider has uploaded the document - FastUk",
+                    "document-uploaded",
+                    {
+                      adminData,
+                      rider,
+                      req_id
+                    }
+                  );
+      
+      
 
       res.status(200).json({
         status: 1,
