@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rider Document Uploaded</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 20px;
+      background-color: #f4f4f4;
+    "
+  >
+    <div
+      style="
+        max-width: 900px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #d4e0df;
+      "
+    >
+      <table style="width: 100%; border-spacing: 0;">
+        <tbody>
+          <tr>
+            <td style="padding: 0; text-align: center;">
+              <img src="<%= adminData.logo %>" alt="Logo" style="width: 100px;" />
+            </td>
+          </tr>
+        </tbody>
+      </table>
+
+      <table style="width: 100%; margin-top: 30px; border-collapse: collapse">
+        <tr>
+          <td style="padding: 10px">
+            <h2 style="color: #ed1c24; font-weight: 600"> Rider Document Uploaded</h2>
+            <p>
+            This Rider <%= rider.full_name %> has successfully uploaded their document for the request id <%= req_id %>. Please review the document and take the necessary actions.
+            </p>
+            <p>
+              <strong style="font-weight: 600">Rider Name:</strong> <%= rider.full_name %>
+            </p>
+            <p>
+              <strong style="font-weight: 600">Rider ID:</strong> <%= rider.id %>
+            </p>
+            
+          </td>
+        </tr>
+      </table>
+    </div>
+  </body>
+</html>

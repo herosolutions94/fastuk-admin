@@ -188,7 +188,7 @@ class RiderController extends BaseController {
 
             // Prepare notification for the rider
         const notificationText = `You have a new document request: ${title}`;
-        const link = `/admin/riders/documents/${rider_id}`; // Link to the documents page
+        const link = `/rider-dashboard/documents`; // Link to the documents page
 
         // Send notification to the rider
         await helpers.storeNotification(rider_id, 'rider', 0, notificationText, link);

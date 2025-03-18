@@ -31,7 +31,7 @@ class AdminController extends BaseController {
 
             // Check if admin exists in the database
             const admin = await Admin.findByUsername(user_name);
-            console.log('Admin:', admin);  // Check if admin is null or valid
+            // console.log('Admin:', admin);  // Check if admin is null or valid
 
             if (!admin) {
                 return this.sendError(res, 'Admin not found', 200);
@@ -39,7 +39,7 @@ class AdminController extends BaseController {
 
             // Compare the provided password with the hashed password stored in the database
             const isPasswordValid = await bcrypt.compare(password, admin.password);
-            console.log('Is password valid:', isPasswordValid); // Should be true or false
+            // console.log('Is password valid:', isPasswordValid); // Should be true or false
 
             if (!isPasswordValid) {
                 return this.sendError(res, 'Invalid email or password', 200);
@@ -59,7 +59,7 @@ class AdminController extends BaseController {
             return ;
           }
 
-          console.log("session:",req.session.admin)
+        //   console.log("session:",req.session.admin)
     
 
             // Store admin details in session
@@ -142,7 +142,7 @@ class AdminController extends BaseController {
         try {
             // Fetch the current settings from the database
             const settings = await this.admin.getSettings();
-            console.log(settings,'settings')
+            // console.log(settings,'settings')
 
             // Render the site settings page and pass the settings to the view
             return res.render('admin/site-settings', {
@@ -217,7 +217,7 @@ class AdminController extends BaseController {
     async checkPermissions(req, res, next) {
         try {
           const { admin } = req.session;
-          console.log("admin:",admin)
+        //   console.log("admin:",admin)
           if (!admin) {
             return res.redirect('/admin/login').send({ error: 'Session expired. Please log in again.' });
           }
