@@ -35,7 +35,7 @@ class ReportsController extends BaseController {
 		console.log(`SELECT COUNT(*) AS count FROM request_quote WHERE status = 'completed' AND ${dateConditionRequests.replace(/created_at/g, 'created_date')}`);
 		// Query for earnings
 		const [earningsCountResult] = await pool.query(
-		    `SELECT SUM(amount) AS earnings FROM earnings WHERE status = ? AND ${dateConditionUnix.replace(/created_at/g, 'created_time')}`,
+		    `SELECT SUM(amount) AS earnings FROM earnings WHERE type='credit' AND status = ? AND ${dateConditionUnix.replace(/created_at/g, 'created_time')}`,
 		    ['cleared']
 		);
 		console.log(`SELECT SUM(amount) AS earnings FROM earnings WHERE status = 'cleared' AND ${dateConditionUnix.replace(/created_at/g, 'created_time')}`);
