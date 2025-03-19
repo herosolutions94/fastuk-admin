@@ -1933,7 +1933,7 @@ class MemberController extends BaseController {
   };
   updateProfile = async (req, res) => {
     try {
-      const { token, first_name, last_name, mem_phone, address, bio, memType,vehicle_owner,vehicle_type,city,vehicle_registration_num,driving_license_num,dob } =
+      const { token, first_name, last_name, mem_phone, address, bio, memType,vehicle_owner,vehicle_type,city,vehicle_registration_num,driving_license_num,dob, designation, business_name, business_type,parcel_type,parcel_weight,shipment_volume,delivery_speed } =
         req.body; // Assuming token and user data are sent in the request body
         // console.log(req.body)
       // If no token is provided
@@ -1973,6 +1973,9 @@ class MemberController extends BaseController {
 
       // Check memType and update accordingly
       if (memType === "user" || memType === "business") {
+        if(memType==='business'){
+          updatedData={...updatedData,mem_city:city, designation:designation, business_name:business_name, business_type:business_type, parcel_type:parcel_type, parcel_weight:parcel_weight,shipment_volume:shipment_volume, delivery_speed:delivery_speed}
+        }
         await this.member.updateMemberData(userId, updatedData); // Update member data
       } else if (memType === "rider") {
         updatedData.vehicle_owner=vehicle_owner;
