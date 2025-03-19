@@ -543,11 +543,16 @@ class PagesController extends BaseController {
       try {
         const siteSettings = res.locals.adminData;
         // console.log(siteSettings,'siteSettings')
+
+        const cities = await helpers.getCities();
+
   
         // Combine the content and multi_text data
         const jsonResponse = {
           site_settings:siteSettings,
+          cities:cities
         };
+
   
         // Return data in JSON format
         res.json(jsonResponse);
