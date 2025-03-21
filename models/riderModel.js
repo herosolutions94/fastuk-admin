@@ -72,6 +72,7 @@ class RiderModel extends BaseModel {
             SELECT * FROM request_quote
             WHERE source_city = ? AND assigned_rider IS NULL ORDER BY id DESC;
         `;
+        console.log(query,city)
         const [rows] = await pool.query(query, [city]); // Using promise wrapper
         return rows;
     };
