@@ -1139,6 +1139,9 @@ class RiderController extends BaseController {
       if (!userRow) {
         return res.status(200).json({ status: 0, msg: "Error fetching user" });
       }
+
+      let notificationText = "";
+
       // Handle request update based on type
       if (type?.toLowerCase() === "source") {
         // Update picked time for source
@@ -1184,6 +1187,9 @@ class RiderController extends BaseController {
         type: "user"
       };
       // console.log("order:",requestRow);
+
+      notificationText = `Your request #${request_row.id} has been accepted by a rider at the source location: ${request_row?.source_address}.`;
+
 
       } else if (type?.toLowerCase() === "via") {
         if (!via_id) {
@@ -1231,6 +1237,9 @@ class RiderController extends BaseController {
             address:via?.address
           }
         );
+
+        notificationText = `Your request #${request_row.id} has been accepted by a rider at the via location: ${via?.address}.`;
+
       } else if (type?.toLowerCase() === "destination") {
         // Replicating source logic for destination update
         const deliveredTime = helpers.getUtcTimeInSeconds();
@@ -1268,6 +1277,8 @@ class RiderController extends BaseController {
             address:request_row?.dest_address
           }
         );
+        notificationText = `Your request #${request_row.id} has been accepted by a rider at the destination location${request_row?.dest_address}.`;
+
       } else {
         return res
           .status(200)
@@ -1315,7 +1326,7 @@ class RiderController extends BaseController {
 
       const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
 
-      const notificationText = `Your request #${order.id} has been accepted by a rider.`;
+      // const notificationText = `Your request #${order.id} has been accepted by a rider.`;
       await helpers.storeNotification(
         order.user_id, // The user ID from request_quote
         userRow?.mem_type, // The user's member type
@@ -1323,6 +1334,7 @@ class RiderController extends BaseController {
         notificationText,
         orderDetailsLink
       );
+      console.log("notificationText:",notificationText)
 
       return res.status(200).json({
         status: 1,
@@ -1372,6 +1384,10 @@ class RiderController extends BaseController {
       const member_row = await this.member.findById(request[0].user_id);
       const formattedHandballCharges = helpers.formatAmount(handball_charges);
       const formattedWaitingCharges = helpers.formatAmount(waiting_charges);
+
+
+      let notificationText = "";
+
 
       // Handle source type logic
       if (type === "source") {
@@ -1443,6 +1459,8 @@ class RiderController extends BaseController {
             invoice:formattedHandballCharges || formattedWaitingCharges ? 1 : 0
           }
         );
+        notificationText = `Your request #${request_row?.id} has been marked as completed at the source location: ${request_row?.source_address}.`;
+
       } else if (type === "via") {
         // Handle via type logic
         if (!via_id) {
@@ -1540,6 +1558,9 @@ class RiderController extends BaseController {
             invoice:formattedHandballCharges || formattedWaitingCharges ? 1 : 0
           }
         );
+
+        notificationText = `Your request #${request_row?.id} has been marked as completed at the via location: ${viaRow?.address}.`;
+
         // console.log("Creating invoice for destination charges");
       } else if (type === "destination") {
         // Handle destination type logic (similar to source)
@@ -1617,6 +1638,8 @@ class RiderController extends BaseController {
             invoice:formattedHandballCharges || formattedWaitingCharges ? 1 : 0
           }
         );
+        notificationText = `Your request #${request_row.id} has been marked as completed at the destination location: ${request_row?.dest_address}.`;
+
       } else {
         return res
           .status(200)
@@ -1674,7 +1697,7 @@ class RiderController extends BaseController {
 
       const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
 
-      const notificationText = `Your request #${order.id} has been marked as completed.`;
+      // const notificationText = `Your request #${order.id} has been marked as completed.`;
 
       await helpers.storeNotification(
         order.user_id, // The user ID from request_quote

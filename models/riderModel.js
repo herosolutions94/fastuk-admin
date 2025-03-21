@@ -837,9 +837,16 @@ async getCompletedOrdersByRider(riderId) {
   
       // Get available balance: sum of all 'credit' earnings - sum of all 'debit' earnings
       const [availableBalanceResult] = await pool.query(
-        `SELECT SUM(CASE WHEN type = 'credit' THEN amount ELSE 0 END) - SUM(CASE WHEN type = 'debit' THEN amount ELSE 0 END) as available_balance FROM earnings WHERE user_id = ? AND status = 'cleared'`,
+        `SELECT 
+          COALESCE(SUM(CASE WHEN type = 'credit' AND status = 'cleared' THEN amount ELSE 0 END), 0) 
+          - 
+          COALESCE(SUM(CASE WHEN type = 'debit' AND status = 'cleared' THEN amount ELSE 0 END), 0) 
+          AS available_balance 
+        FROM earnings 
+        WHERE user_id = ?`,
         [riderId]
       );
+      
 
       // Get total withdrawn amount from withdraw_requests table
       const [withdrawnAmountResult] = await pool.query(

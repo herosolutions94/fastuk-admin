@@ -2305,9 +2305,13 @@ class MemberController extends BaseController {
       // Calculate the paid amount and due amount
       const paidAmount = await RequestQuoteModel.totalPaidAmount(order.id);
       const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
+      // console.log("invoices:", invoices); // Add this line to log the decoded ID
+
 
       const formattedPaidAmount = helpers.formatAmount(paidAmount);
       const formattedDueAmount = helpers.formatAmount(dueAmount);
+      console.log("order:", order); // Add this line to log the decoded ID
+
 
       order = {
         ...order,
