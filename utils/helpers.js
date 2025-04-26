@@ -710,11 +710,17 @@ getDistance : async function (source, destination)  {
 },
 getTransaction: async function(user_id) {
   try {
-      const [rows] = await pool.query(`SELECT * FROM transactions WHERE user_id = ?`, [user_id]);
+      const [rows] = await pool.query(`SELECT * FROM transactions WHERE user_id = ? ORDER BY id DESC`, [user_id]);
       return rows; // Returns true if email exists, false otherwise
   } catch (error) {
       throw new Error(`Error getting transactions!`);
   }
+},
+generatePromoCode: async function () {
+  // Generate a 6-digit number between 100000 and 999999
+  const promoCode = crypto.randomInt(100000, 999999);
+  
+  return promoCode.toString(); // Return as a string
 },
 
  insertEarnings: async function(data) {

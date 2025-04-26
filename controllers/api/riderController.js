@@ -1277,7 +1277,7 @@ class RiderController extends BaseController {
             address:request_row?.dest_address
           }
         );
-        notificationText = `Your request #${request_row.id} has been accepted by a rider at the destination location${request_row?.dest_address}.`;
+        notificationText = `Your request #${request_row.id} has been accepted by a rider at the destination location: ${request_row?.dest_address}.`;
 
       } else {
         return res
@@ -1334,7 +1334,7 @@ class RiderController extends BaseController {
         notificationText,
         orderDetailsLink
       );
-      console.log("notificationText:",notificationText)
+      // console.log("notificationText:",notificationText)
 
       return res.status(200).json({
         status: 1,
