@@ -1,0 +1,114 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Add New Promo Code</h3>
+        <ul>
+          <li><a href="">Home</a></li>
+          <li class="active"><a href="">New Promo Code</a></li>
+        </ul>
+      </div>
+      <div class="text text2">
+        <a href="blog.php" class="webBtn mdBtn greenBtn"
+          ><i class="fa-regular fa-arrow-left"></i>Cancel</a
+        >
+      </div>
+    </div>
+    <div class="dashTable">
+      <div class="card editor_card">
+        <div class="card-header">
+          <h5>Promo Code Block</h5>
+        </div>
+        <div class="card-body full_width">
+          <form
+            id="addPromoCodeForm"
+            class="frmAjax"
+            action="/admin/add-promo-codes"
+            method="post"
+            enctype="multipart/form-data">
+            <div class="row">
+              <div class="col-md-9">
+                <div class="row switch-showcase">
+                  <div class="col-md-12">
+                    <div class="txtGrp media">
+                      <label class="form-label">Status</label>
+                      <div
+                        class="txtGrp-body text-end icon-state switch-outline">
+                        <select name="status" class="txtBox" required>
+                          <option value="1">Active</option>
+                          <option value="0">Inactive</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-12">
+                    <div class="txtGrp media">
+                      <label class="form-label">Promo Code Type</label>
+                      <div
+                        class="txtGrp-body text-end icon-state switch-outline">
+                        <select name="promo_code_type" class="form-control">
+                          <option value="">Select Promo Code Type</option>
+                          <option value="percentage">Percentage</option>
+                          <option value="amount">Amount</option>
+                        </select>
+                        
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >Promo Code<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="title"
+                        type="text"
+                        name="promo_code" 
+                        value="<%= promoCode %>"
+                        readonly/>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >Percentage Value<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="title"
+                        type="text"
+                        name="percentage_value" />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >Expiry Date<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input type="date" name="expiry_date" class="form-control">
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer text-end">
+              <button class="webBtn" type="submit">
+                Submit Content <i class="spinner hidden"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+        <hr />
+      </div>
+    </div>
+  </div>
+</section>

@@ -1076,7 +1076,7 @@ class MemberController extends BaseController {
             return res.status(200).json({ status: 1, msg: "Credits added successfully." });
           }
           else{
-            return res.status(500).json({ status: 0, msg: "Failed to update invoice." });
+            return res.status(200).json({ status: 0, msg: "Failed to update invoice." });
           }
         }
         else if(reference_id==='invoice'){
@@ -1120,6 +1120,17 @@ class MemberController extends BaseController {
             parcels: parcels // Add parcels as an array inside order
           };
           if(parseFloat(dueAmount)<=0){
+            const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
+            
+            const notificationText = `Invoice is paid by the user.Now mark the request as completed`;
+            await helpers.storeNotification(
+              userRow.id, // The user ID from request_quote
+              "rider", // The user's member type
+              request_row?.user_id, // Use rider's ID as the sender
+              notificationText,
+              orderDetailsLink
+            );
+            console.log(request_row?.user_id,userRow.id,"request_row:",request_row,"userRow:",userRow);
             const result=await helpers.sendEmail(
               userRow.email,
               "Invoice paid for: "+orderDetails?.booking_id,
@@ -1136,11 +1147,13 @@ class MemberController extends BaseController {
             response: `Paypal Payment Successful for Invoice: ${custom_id}`
           });
         }
+
+        
         
         return res.status(200).json({ message: "Webhook received successfully" });
       }
 
-      return res.status(400).json({ error: "Unhandled event type" });
+      return res.status(200).json({ error: "Unhandled event type" });
 
     } catch (error) {
       console.error("Webhook Error:", error);
@@ -2310,7 +2323,7 @@ class MemberController extends BaseController {
 
       const formattedPaidAmount = helpers.formatAmount(paidAmount);
       const formattedDueAmount = helpers.formatAmount(dueAmount);
-      console.log("order:", order); // Add this line to log the decoded ID
+      // console.log("order:", order); // Add this line to log the decoded ID
 
 
       order = {
