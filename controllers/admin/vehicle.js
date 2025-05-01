@@ -31,7 +31,8 @@ class VehicleController extends BaseController {
                 price,
                 business_user_price,
                 admin_price,
-                // remote_price,
+                weight,
+                distance,
                 status,
             } = req.body;
             // console.log("req.body",req.body);  // To check if name and description are being sent
@@ -47,6 +48,8 @@ class VehicleController extends BaseController {
                 price: typeof price === 'string' ? price.trim().toLowerCase() : '',
                 business_user_price: typeof business_user_price === 'string' ? business_user_price.trim().toLowerCase() : '',
                 admin_price: typeof admin_price === 'string' ? admin_price.trim().toLowerCase() : '',
+                weight: typeof weight === 'string' ? weight.trim().toLowerCase() : '',
+                distance: typeof distance === 'string' ? distance.trim().toLowerCase() : '',
                 // remote_price: typeof remote_price === 'string' ? remote_price.trim().toLowerCase() : '',
                 vehicle_image: vehicleImage,  // Change this to match your DB column name
                 status: status || 0,

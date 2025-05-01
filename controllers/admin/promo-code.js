@@ -96,11 +96,11 @@ class PromoCodeController extends BaseController {
     async editPromoCode(req, res) {
         try {
             const promoCodeId = req.params.id;  // Get the rider ID from the request parameters
-            console.log('Fetching vehicle with ID:', promoCodeId); // Log the ID
+            // console.log('Fetching vehicle with ID:', promoCodeId); // Log the ID
     
             // Fetch the rider by ID
             const promoCode = (await PromoCode.getPromoCodeById(promoCodeId))[0]; // Extract the first rider if it's returned as an array
-            console.log('Fetched remote Post Code:', promoCode); // Log fetched rider data
+            // console.log('Fetched remote Post Code:', promoCode); // Log fetched rider data
             // Assuming you have fetched the expiry_date from MySQL (e.g., '2025-04-25')
             let formattedExpiryDate = promoCode.expiry_date ? promoCode.expiry_date.toISOString().slice(0, 10) : ''; 
 
@@ -154,37 +154,37 @@ class PromoCodeController extends BaseController {
         }
     }
     
-    // async deleteRemotePostCode(req, res) {
-    //     const remotepostCodeId = req.params.id;
-    //     console.log(remotepostCodeId)
-    //     try {
-    //         // Step 1: Fetch the rider details to get the associated image filename
-    //         const currentRemotePostCode = (await RemotePostCode.getRemotePostCodeById(remotepostCodeId))[0]; // Fetch current rider details
-    //         if (!currentRemotePostCode) {
-    //             return this.sendError(res, 'Remote Post Code not found');
-    //         }
-    //         console.log(currentRemotePostCode)
+    async deletePromoCode(req, res) {
+        const promoCodeId = req.params.id;
+        console.log(promoCodeId)
+        try {
+            // Step 1: Fetch the rider details to get the associated image filename
+            const currentPromoCode = (await PromoCode.getPromoCodeById(promoCodeId))[0]; // Fetch current rider details
+            if (!currentPromoCode) {
+                return this.sendError(res, 'Promo Code not found');
+            }
+            console.log(currentPromoCode)
 
-    //         // Step 3: Delete the rider from the database
-    //         const result = await RemotePostCode.deleteRemotePostCodeById(remotepostCodeId);
-    //         if (result) {
-    //             // Redirect to the riders list after deletion
-    //             res.json({
-    //                 status: 1,
-    //                 message: 'Remote Post Code deleted successfully!',
-    //                 redirect_url: '/admin/remote-post-codes-list'
-    //             });            
-    //         } else {
-    //             this.sendError(res, 'Failed to delete Remote Post Code');
-    //         }
-    //     } catch (error) {
-    //         return res.status(200).json({ // Changed to status 500 for server errors
-    //             status: 0,
-    //             message: 'An error occurred while deleting Remote Post Code.',
-    //             error: error.message
-    //         });
-    //     }
-    // }
+            // Step 3: Delete the rider from the database
+            const result = await PromoCode.deletePromoCodeById(promoCodeId);
+            if (result) {
+                // Redirect to the riders list after deletion
+                res.json({
+                    status: 1,
+                    message: 'Promo Code deleted successfully!',
+                    redirect_url: '/admin/promo-codes-list'
+                });            
+            } else {
+                this.sendError(res, 'Failed to delete Promo Code');
+            }
+        } catch (error) {
+            return res.status(200).json({ // Changed to status 500 for server errors
+                status: 0,
+                message: 'An error occurred while deleting Promo Code.',
+                error: error.message
+            });
+        }
+    }
     
 }
 

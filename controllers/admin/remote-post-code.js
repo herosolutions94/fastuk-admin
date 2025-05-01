@@ -82,13 +82,13 @@ class RemotePostCodeController extends BaseController {
     async editRemotePostCode(req, res) {
         try {
             const remotePostCodeId = req.params.id;  // Get the rider ID from the request parameters
-            console.log('Fetching vehicle with ID:', remotePostCodeId); // Log the ID
+            // console.log('Fetching vehicle with ID:', remotePostCodeId); // Log the ID
     
             // Fetch the rider by ID
             const remotePostCode = (await RemotePostCode.getRemotePostCodeById(remotePostCodeId))[0]; // Extract the first rider if it's returned as an array
-            console.log('Fetched remote Post Code:', remotePostCode); // Log fetched rider data
+            // console.log('Fetched remote Post Code:', remotePostCode); // Log fetched rider data
 
-            console.log('remote Post Code data before rendering:', remotePostCode); // Log the rider data
+            // console.log('remote Post Code data before rendering:', remotePostCode); // Log the rider data
 
     
             // Check if rider exists
