@@ -23,11 +23,12 @@ class PromoCodeModel extends BaseModel {
     return rows.length ? rows[0] : null; // Return the first result or null
     }
 
-    async findByPromoCode(promo_code) {
-        const query = `SELECT * FROM ${this.tableName} WHERE promo_code = ?`;
-        const [rows] = await pool.query(query, [promo_code]);
-        // console.log(rows)
-    return rows.length ? rows[0] : null; // Return the first result or null
+    async findByCode(promoCode) {
+        const [rows] = await pool.query(
+            `SELECT * FROM promo_codes WHERE promo_code = ? LIMIT 1`,
+            [promoCode]
+        );
+        return rows[0] || null;
     }
 
     static async getAllPromoCodes() {
@@ -66,21 +67,28 @@ class PromoCodeModel extends BaseModel {
     
     static async updatePromoCode(id, promoCodeData) {
         const { promo_code_type, status, percentage_value, expiry_date } = promoCodeData;
-
+        
+        let adjustedExpiryDate = null;
+        if (expiry_date) {
+            adjustedExpiryDate = new Date(expiry_date);
+            adjustedExpiryDate.setHours(12); // Set to noon to avoid timezone shift
+        }
+    
         await pool.query(
             `UPDATE ${this.tableName} SET promo_code_type = ?, status = ?, percentage_value = ?, expiry_date = ? WHERE id = ?`,
-            [promo_code_type, status, percentage_value, expiry_date || null, id]
+            [promo_code_type, status, percentage_value, adjustedExpiryDate || null, id]
         );
     }
-    // static async deleteRemotePostCodeById(id) {
-    //     try {
-    //         const [result] = await pool.query(`DELETE FROM ${this.tableName} WHERE id = ?`, [id]);
-    //         return result.affectedRows > 0; // Returns true if a row was deleted
-    //     } catch (error) {
-    //         console.error('Database error:', error);
-    //         throw new Error('Failed to delete service');
-    //     }
-    // }
+    
+    static async deletePromoCodeById(id) {
+        try {
+            const [result] = await pool.query(`DELETE FROM ${this.tableName} WHERE id = ?`, [id]);
+            return result.affectedRows > 0; // Returns true if a row was deleted
+        } catch (error) {
+            console.error('Database error:', error);
+            throw new Error('Failed to delete promo code');
+        }
+    }
 
     
 }

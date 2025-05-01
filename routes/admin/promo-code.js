@@ -15,7 +15,7 @@ router.post('/add-promo-codes', upload, ensureAuthenticated, promoCodeController
 router.get('/promo-codes-list', ensureAuthenticated, promoCodeController.getPromoCodes.bind(promoCodeController));
 router.get('/promo-codes/edit/:id', ensureAuthenticated, upload, promoCodeController.editPromoCode.bind(promoCodeController)); // Edit form
 router.post('/promo-codes/update/:id', ensureAuthenticated, upload, promoCodeController.updatePromoCode.bind(promoCodeController)); // Update rider
-// router.delete('/remote-post-codes/delete/:id',checkAccessMiddleware(17), ensureAuthenticated, remotePostCodeController.deleteRemotePostCode.bind(remotePostCodeController));
+router.delete('/promo-codes/delete/:id', ensureAuthenticated, promoCodeController.deletePromoCode.bind(promoCodeController));
 
 
 
