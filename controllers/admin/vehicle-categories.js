@@ -3,53 +3,42 @@ const fs = require('fs'); // Import the file system module
 const path = require('path'); // For handling file paths
 
 const BaseController = require('../baseController');
-const PromoCode = require('../../models/promo-code');
+const VehicleCategories = require('../../models/vehicle-categories');
 const { validateRequiredFields } = require('../../utils/validators');
 const helpers = require('../../utils/helpers');
 
 
-class PromoCodeController extends BaseController {
+class VehicleCategoriesController extends BaseController {
     constructor() {
         super();
-        this.promoCode = new PromoCode();
+        this.vehicleCategories = new VehicleCategories();
     }
 
-    async renderAddPromoCodePage(req, res) {
+    async renderAddVehicleCategoryPage(req, res) {
         try {
-            const promoCode = await helpers.generatePromoCode()
             
-            res.render('admin/add-promo-code',{
-                promoCode
+            res.render('admin/add-vehicle-category',{
             }); // Render the add-testimonial.ejs file
         } catch (error) {
-            console.error('Error rendering add post code page:', error);
-            return this.sendError(res, 'Failed to load add post code page');
+            console.error('Error rendering add Vehicle Category page:', error);
+            return this.sendError(res, 'Failed to load add Vehicle Category page');
         }
     }
 
-    async addPromoCode(req, res) {
+    async addVehicleCategory(req, res) {
 
         try {
             const {
-                promo_code,
-                promo_code_type,
-                percentage_value,
-                expiry_date,
+                vehicle_name,
                 status
             } = req.body;
             console.log("req.body",req.body);  // To check if name and description are being sent
 
-            const validPromoTypes = ['percentage', 'amount'];
 
 
             // Clean and trim data
             const cleanedData = {
-                promo_code: typeof promo_code === 'string' ? promo_code.trim() : '',
-                promo_code_type: typeof promo_code_type === 'string' && validPromoTypes.includes(promo_code_type.trim())
-                ? promo_code_type.trim()
-                : null, // or default to one of the enum values, or throw an error
-                percentage_value: typeof percentage_value === 'string' ? percentage_value.trim() : '',
-                expiry_date : expiry_date ? new Date(expiry_date).toISOString().slice(0, 10) : null,
+                vehicle_name: typeof vehicle_name === 'string' ? vehicle_name.trim() : '',
                 status: status || 0,
             };
 
@@ -58,129 +47,123 @@ class PromoCodeController extends BaseController {
                 return res.status(200).json({ success: false, message: 'All fields are required.' });
             }
             // Create the rider
-            const promoCodeId = await this.promoCode.createPromoCode(cleanedData);
-            console.log('Created Post Code ID:', promoCodeId); // Log the created rider ID
+            const vehicleCategoryId = await this.vehicleCategories.createVehicleCategory(cleanedData);
+            console.log('Created Post Code ID:', vehicleCategoryId); // Log the created rider ID
 
 
             // Verify OTP was stored properly
-        const createdPromoCode = await this.promoCode.findById(promoCodeId);
-        console.log('Created Post Code:', createdPromoCode); // Log the created rider
+        const createdVehicleCategory = await this.vehicleCategories.findById(vehicleCategoryId);
+        console.log('Created Vehicle Category:', createdVehicleCategory); // Log the created rider
         res.json({
             status: 1,
-            message: 'Post Code added successfully!',
-            redirect_url: '/admin/promo-codes-list'
+            message: 'Vehicle Category added successfully!',
+            redirect_url: '/admin/vehicle-categories-list'
         });
 
 
         } catch (error) {
             return res.status(200).json({ // Changed to status 500 for server errors
                 status: 0,
-                message: 'An error occurred while adding Promo Code.',
+                message: 'An error occurred while adding Vehicle Category.',
                 error: error.message
             });
         }
     ;
     }
-    async getPromoCodes(req, res) {
+    async getVehicleCategories(req, res) {
         try {
-            const promoCodes = await PromoCode.getAllPromoCodes();
+            const vehicleCategories = await VehicleCategories.getAllVehicleCategories();
             // console.log('Fetched Riders:', riders); // Log the fetched riders
 
-            res.render('admin/promo-codes', { promoCodes: promoCodes || [] });
+            res.render('admin/vehicle-categories', { vehicleCategories: vehicleCategories || [] });
         } catch (error) {
-            console.error('Error fetching remote post codes:', error); // Log the error for debugging
-            this.sendError(res, 'Failed to fetch remote post codes');
+            console.error('Error fetching Vehicle Categories:', error); // Log the error for debugging
+            this.sendError(res, 'Failed to fetch Vehicle Categories');
         }
     }
 
-    async editPromoCode(req, res) {
+    async editVehicleCategory(req, res) {
         try {
-            const promoCodeId = req.params.id;  // Get the rider ID from the request parameters
+            const vehicleCategoryId = req.params.id;  // Get the rider ID from the request parameters
             // console.log('Fetching vehicle with ID:', promoCodeId); // Log the ID
     
             // Fetch the rider by ID
-            const promoCode = (await PromoCode.getPromoCodeById(promoCodeId))[0]; // Extract the first rider if it's returned as an array
-            // console.log('Fetched remote Post Code:', promoCode); // Log fetched rider data
-            // Assuming you have fetched the expiry_date from MySQL (e.g., '2025-04-25')
-            let formattedExpiryDate = promoCode.expiry_date ? promoCode.expiry_date.toISOString().slice(0, 10) : ''; 
-
+            const vehicleCategory = (await VehicleCategories.getVehicleCategoriesById(vehicleCategoryId))[0]; // Extract the first rider if it's returned as an array
     
             // Check if rider exists
-            if (promoCode) {
+            if (vehicleCategory) {
                 // Assuming `result` is defined properly, or you should use rider.rider_image
-                res.render('admin/edit-promo-code', {
-                    promoCode, 
-                    editPromoCodeId: promoCodeId, 
-                    status: promoCode.status, // Pass the status to the view
-                    promo_code_type: promoCode.promo_code_type ,
-                    formattedExpiryDate
+                res.render('admin/edit-vehicle-category', {
+                    vehicleCategory, 
+                    editVehicleCategoryId: vehicleCategoryId, 
+                    status: vehicleCategory.status, // Pass the status to the view
 
                 });
             } else {
-                this.sendError(res, 'Promo Code not found');
+                this.sendError(res, 'Vehicle Category not found');
             }
         } catch (error) {
-            console.error('Error fetching Promo Code:', error); // Log the error for debugging
-            this.sendError(res, 'Failed to fetch Promo Code');
+            console.error('Error fetching Vehicle Category:', error); // Log the error for debugging
+            this.sendError(res, 'Failed to fetch Vehicle Category');
         }
     }
 
-    async updatePromoCode(req, res) {
+    async updateVehicleCategory(req, res) {
         try {
-            const promoCodeId = req.params.id;
-            const promoCodeData = req.body;
+            const vehicleCategoryId = req.params.id;
+            const vehicleCategoryData = req.body;
     
             // Fetch the current testimonial details
-            const currentPromoCode = (await PromoCode.getPromoCodeById(promoCodeId))[0];
+            const currentVehicleCategory = (await VehicleCategories.getVehicleCategoriesById(vehicleCategoryId))[0];
     
             // Debugging output
-            console.log('Current Remote Post Code:', currentPromoCode);
+            console.log('Current Remote Post Code:', currentVehicleCategory);
     
             // Update the service in the database
-            await PromoCode.updatePromoCode(promoCodeId, promoCodeData);
+            await VehicleCategories.updateVehicleCategory(vehicleCategoryId, vehicleCategoryData);
     
             // Respond with success
             res.json({
                 status: 1,
-                message: 'Remote Promo Code updated successfully!',
-                redirect_url: '/admin/promo-codes-list'
+                message: 'Vehicle Category updated successfully!',
+                redirect_url: '/admin/vehicle-categories-list'
             });
         } catch (error) {
-            console.error('Failed to update Promo Code:', error);
+            console.error('Failed to update Vehicle Category:', error);
             res.status(200).json({
                 status: 0,
-                message: 'Failed to update Promo Code'
+                message: 'Failed to update Vehicle Category'
             });
         }
     }
     
-    async deletePromoCode(req, res) {
-        const promoCodeId = req.params.id;
-        console.log(promoCodeId)
+    async deleteVehicleCategory(req, res) {
+        const vehicleCategoryId = req.params.id;
+        console.log(vehicleCategoryId)
         try {
             // Step 1: Fetch the rider details to get the associated image filename
-            const currentPromoCode = (await PromoCode.getPromoCodeById(promoCodeId))[0]; // Fetch current rider details
-            if (!currentPromoCode) {
+            const currentVehicleCategory = (await VehicleCategories.getVehicleCategoriesById(vehicleCategoryId))[0]; // Fetch current rider details
+            if (!currentVehicleCategory) {
                 return this.sendError(res, 'Promo Code not found');
             }
-            console.log(currentPromoCode)
+            console.log(currentVehicleCategory)
 
             // Step 3: Delete the rider from the database
-            const result = await PromoCode.deletePromoCodeById(promoCodeId);
+            const result = await VehicleCategories.deleteVehicleCategoryById(vehicleCategoryId);
             if (result) {
                 // Redirect to the riders list after deletion
                 res.json({
                     status: 1,
-                    message: 'Promo Code deleted successfully!',
-                    redirect_url: '/admin/promo-codes-list'
+                    message: 'Vehicle Category deleted successfully!',
+                    redirect_url: '/admin/vehicle-categories-list'
                 });            
             } else {
-                this.sendError(res, 'Failed to delete Promo Code');
+                this.sendError(res, 'Failed to delete Vehicle Category');
             }
         } catch (error) {
             return res.status(200).json({ // Changed to status 500 for server errors
                 status: 0,
-                message: 'An error occurred while deleting Promo Code.',
+                message: 'An error occurred while deleting Vehicle Category.',
                 error: error.message
             });
         }
@@ -190,4 +173,4 @@ class PromoCodeController extends BaseController {
 
 
 
-module.exports = PromoCodeController;
+module.exports = VehicleCategoriesController;
