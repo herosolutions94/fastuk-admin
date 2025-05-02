@@ -127,6 +127,36 @@
                         name="admin_price"
                         value="<%= editVehicleId ? vehicle.admin_price : '' %>" />
                     </div>
+                    <div class="col-md-6">
+                      <div class="txtGrp">
+                        <label class="form-label" for="title"
+                          >Weight<abbr class="required" title="required"
+                            >*</abbr
+                          ></label
+                        >
+                        <input
+                          class="input"
+                          id="weight"
+                          type="text"
+                          name="weight"
+                          value="<%= editVehicleId ? vehicle.weight : '' %>" />
+                      </div>
+                    </div>
+                    <div class="col-md-6">
+                      <div class="txtGrp">
+                        <label class="form-label" for="title"
+                          >Distance<abbr class="required" title="required"
+                            >*</abbr
+                          ></label
+                        >
+                        <input
+                          class="input"
+                          id="distance"
+                          type="text"
+                          name="distance"
+                          value="<%= editVehicleId ? vehicle.distance : '' %>" />
+                      </div>
+                    </div>
                     
                   </div>
                 </div>

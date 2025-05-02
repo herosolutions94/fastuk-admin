@@ -72,7 +72,7 @@ class RiderModel extends BaseModel {
             SELECT * FROM request_quote
             WHERE source_city = ? AND assigned_rider IS NULL ORDER BY id DESC;
         `;
-        console.log(query,city)
+        // console.log(query,city)
         const [rows] = await pool.query(query, [city]); // Using promise wrapper
         return rows;
     };
@@ -166,6 +166,8 @@ async getOrdersByRiderAndStatus({ riderId, status }) {
                 rq.assigned_rider = ? AND rq.status = ?
             GROUP BY 
                 rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
+                ORDER BY 
+        rq.id DESC
         `;
         const values = [riderId, status];
         const [rows] = await pool.query(query, values);
@@ -860,7 +862,7 @@ async getCompletedOrdersByRider(riderId) {
       
   
       // Get all earnings data for the rider
-      const [earnings] = await pool.query('SELECT * FROM earnings WHERE user_id = ?', [riderId]);
+      const [earnings] = await pool.query('SELECT * FROM earnings WHERE user_id = ? ORDER BY id DESC', [riderId]);
   
       // Return the calculated values along with the earnings data
       return {
