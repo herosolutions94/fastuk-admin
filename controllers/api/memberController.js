@@ -654,6 +654,11 @@ class MemberController extends BaseController {
     // console.log(memType)
     try {
       const siteSettings = res.locals.adminData;
+      let order_amount_details=helpers.calculateOrderSummary(order_details,siteSettings);
+      const total_distance=order_amount_details?.totalDistance;
+      let total_amount=order_amount_details?.totalAmount;
+      let taxAmount=order_amount_details?.taxAmount;
+      let grandTotal=order_amount_details?.grandTotal;
       let parcel_price_obj = helpers.calculateParcelsPrice(
         order_details,
         siteSettings?.site_processing_fee
@@ -770,9 +775,9 @@ class MemberController extends BaseController {
       
       console.log("result:", result);
       if (
-        parcel_price_obj?.total == undefined ||
-        parcel_price_obj?.total == null ||
-        parseFloat(parcel_price_obj?.total) <= 5
+        grandTotal == undefined ||
+        grandTotal == null ||
+        parseFloat(grandTotal) <= 5
       ) {
         return res.status(200).json({
           status: 0,
@@ -783,21 +788,16 @@ class MemberController extends BaseController {
       let discount = 0;
 
 
-      let formattedTotalPrice = helpers.formatAmount(parcel_price_obj?.total);
+      let formattedTotalPrice = helpers.formatAmount(grandTotal);
 
 
-        const totalPrice = parseFloat(formattedTotalPrice || 0);
-        const subtotal = totalDistance * totalPrice;
-        const taxPercentage = parseFloat(siteSettings.site_processing_fee || 0);
-        const tax = taxPercentage / 100;
-        let total = subtotal + tax;
-        console.log(totalPrice,subtotal,taxPercentage,tax,total)
-
-      if (promo_code !== "" && promo_code !== null && promo_code !== "null") {
+       let subTotal=0; 
+       console.log(promo_code);
+      if (promo_code !== "" && promo_code !== null && promo_code !== "null" && promo_code!==undefined) {
         const promo = await this.promoCodeModel.findByCode(promo_code);
 
         if (!promo) {
-          return res.status(200).json({ error: "Invalid promo code." });
+          return res.status(200).json({ status:0,msg: "Invalid promo code." });
         }
 
         const currentDate = new Date();
@@ -808,16 +808,16 @@ class MemberController extends BaseController {
         
 
         if (promo.promo_code_type === "percentage") {
-          discount = (total * promo.percentage_value) / 100;
+          discount = (total_amount * promo.percentage_value) / 100;
         } else if (promo.promo_code_type === "amount") {
           discount = promo.percentage_value;
         } else {
           return res.status(200).json({ error: "Promo code has expired." });
         }
 
-        total = total - discount;
-        total = parseFloat(total.toFixed(2));
-        console.log("discounted total:", total)
+        formattedTotalPrice = total_amount - discount;
+        formattedTotalPrice = formattedTotalPrice + taxAmount;
+        formattedTotalPrice = parseFloat(formattedTotalPrice.toFixed(2));
 
       };
 
@@ -859,7 +859,7 @@ class MemberController extends BaseController {
         client_secret: paymentIntent.client_secret,
         authToken: token_arr?.authToken,
         mem_type: token_arr?.type,
-        finalAmount: total
+        finalAmount: formattedTotalPrice
       });
     } catch (error) {
       console.error("Error creating payment intent:", error);
@@ -1286,7 +1286,7 @@ class MemberController extends BaseController {
         promo_code,
         totalDistance
       } = req.body;
-      // console.log("price:", price);
+      // console.log("req.body:", req.body);return;
 
       if (token) {
         if (!token) {
@@ -1320,21 +1320,27 @@ class MemberController extends BaseController {
         if (vias) {
           viasArr = JSON.parse(vias);
         }
-        // console.log(parcelsArr)
+        // console.log(parcels);return;
         // Validate parcels
         if (!Array.isArray(parcelsArr)) {
           return res
             .status(200)
             .json({ status: 0, msg: "'parcels' must be an array" });
         }
-
+        const siteSettings = res.locals.adminData;
+        let order_amount_details=helpers.calculateOrderSummary(order_details,siteSettings);
+        let total_distance=order_amount_details?.totalDistance;
+        let total_amount=order_amount_details?.totalAmount;
+        let grandTotal=order_amount_details?.grandTotal;
+        let taxAmount=order_amount_details?.taxAmount;
+        // console.log(order_amount_details);return;
         const parsedStartDate = date ? new Date(date) : null;
         // if (!parsedStartDate || isNaN(parsedStartDate)) {
         //   return res
         //     .status(200)
         //     .json({ status: 0, msg: "Invalid start_date format" });
         // }
-        const siteSettings = res.locals.adminData;
+        
         let parcel_price_obj = helpers.calculateParcelsPrice(
           order_details,
           siteSettings?.site_processing_fee
@@ -1343,39 +1349,40 @@ class MemberController extends BaseController {
         const formattedRiderPrice = helpers.formatAmount(rider_price || 0);
         const formattedVehiclePrice = helpers.formatAmount(price || 0);
         let formattedTotalAmount = helpers.formatAmount(
-          parcel_price_obj?.total || 0
+          grandTotal || 0
         );
-        const formattedTax = helpers.formatAmount(parcel_price_obj?.tax || 0);
+        const formattedTax = helpers.formatAmount(taxAmount || 0);
 
         let discount = 0;
-        const totalPrice = parseFloat(price || 0);
-        const subtotal = totalDistance * totalPrice;
-        const taxPercentage = parseFloat(siteSettings.site_processing_fee || 0);
-        const tax = taxPercentage / 100;
-        let total = subtotal + tax;
+        
+        // console.log(formattedTotalAmount,formattedTax);return;
+         if (promo_code !== "" && promo_code !== null && promo_code !== "null" && promo_code!==undefined) {
+            const promo = await this.promoCodeModel.findByCode(promo_code);
 
-        if (promo_code !== "" && promo_code !== null && promo_code !== "null") {
-          const promo = await this.promoCodeModel.findByCode(promo_code);
+            if (!promo) {
+              return res.status(200).json({ status:0,msg: "Invalid promo code." });
+            }
 
-          if (!promo) {
-            return res.status(200).json({ error: "Invalid promo code." });
-          }
+            const currentDate = new Date();
+            if (promo.expiry_date && new Date(promo.expiry_date) < currentDate) {
+              return res.status(200).json({ error: "Promo code has expired." });
+            }
 
-          const currentDate = new Date();
-          if (promo.expiry_date && new Date(promo.expiry_date) < currentDate) {
-            return res.status(200).json({ error: "Promo code has expired." });
-          }
+            
 
-          if (promo.promo_code_type === "percentage") {
-            discount = (total * promo.percentage_value) / 100;
-          } else if (promo.promo_code_type === "amount") {
-            discount = promo.percentage_value;
-          } else {
-            return res.status(200).json({ error: "Promo code has expired." });
-          }
+            if (promo.promo_code_type === "percentage") {
+              discount = (total_amount * promo.percentage_value) / 100;
+            } else if (promo.promo_code_type === "amount") {
+              discount = promo.percentage_value;
+            } else {
+              return res.status(200).json({ error: "Promo code has expired." });
+            }
 
-          total = total - discount;
-        }
+            formattedTotalAmount = total_amount - discount;
+            formattedTotalAmount = formattedTotalAmount + taxAmount;
+            formattedTotalAmount = parseFloat(formattedTotalAmount.toFixed(2));
+
+          };
 
         // console.log("Remote price",formattedRemotePrice)
         // console.log("Remote price",remote_price)
@@ -1389,7 +1396,7 @@ class MemberController extends BaseController {
             selected_vehicle: selectedVehicle,
             rider_price: formattedRiderPrice,
             vehicle_price: formattedVehiclePrice,
-            total_amount: total,
+            total_amount: formattedTotalAmount,
             tax: formattedTax,
             payment_intent: payment_intent_customer_id,
             customer_id: payment_intent_customer_id,
@@ -1510,7 +1517,7 @@ class MemberController extends BaseController {
             selected_vehicle: selectedVehicle,
             rider_price: formattedRiderPrice,
             vehicle_price: formattedVehiclePrice,
-            total_amount: total,
+            total_amount: formattedTotalAmount,
             tax: formattedTax,
             payment_intent: paymentIntent.id, // Store the Payment Intent ID
             customer_id: stripePaymentMethod.customer, // Store the Customer ID
@@ -1553,7 +1560,7 @@ class MemberController extends BaseController {
             selected_vehicle: selectedVehicle,
             rider_price: formattedRiderPrice,
             vehicle_price: formattedVehiclePrice,
-            total_amount: total,
+            total_amount: formattedTotalAmount,
             tax: formattedTax,
             payment_intent: "", // Store the Payment Intent ID
             customer_id: "", // Store the Customer ID
@@ -1584,7 +1591,7 @@ class MemberController extends BaseController {
             selected_vehicle: selectedVehicle,
             rider_price: formattedRiderPrice,
             vehicle_price: formattedVehiclePrice,
-            total_amount: total,
+            total_amount: formattedTotalAmount,
             tax: formattedTax,
             payment_intent: "", // Store the Payment Intent ID
             customer_id: "", // Store the Customer ID
@@ -1617,7 +1624,7 @@ class MemberController extends BaseController {
               selected_vehicle: selectedVehicle,
               rider_price: formattedRiderPrice,
               vehicle_price: formattedVehiclePrice,
-              total_amount: total,
+              total_amount: formattedTotalAmount,
               tax: formattedTax,
               payment_intent: "", // Store the Payment Intent ID
               customer_id: "", // Store the Customer ID

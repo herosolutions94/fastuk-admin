@@ -63,6 +63,44 @@ module.exports = {
   //     throw error;
   //   }
   // },
+  calculateOrderSummary: function(order_details, siteSettings) {
+    try {
+      // Parse the input as an array
+      const parcelsArr = JSON.parse(order_details);
+      // console.log(parcelsArr);return;
+      // Parse each element inside the array
+      let totalDistance = 0;
+      let totalAmount = 0;
+
+      parcelsArr.forEach(parcel => {
+        const distance = parseFloat(parcel.distance) || 0;
+        const price = parseFloat(parcel.price) || 0;
+
+        totalDistance += distance;
+        totalAmount += distance * price;
+      });
+
+      const taxPercentage = parseFloat(siteSettings?.site_processing_fee || 0);
+      const taxAmount = (totalAmount * taxPercentage) / 100;
+      const grandTotal = totalAmount + taxAmount;
+
+      return {
+        totalDistance,
+        totalAmount,
+        taxAmount,
+        grandTotal
+      };
+    } catch (error) {
+        console.error("Error parsing order_details JSON:", error.message);
+        return {
+          error: "Invalid JSON format for order_details",
+          tax: 0,
+          total: 0,
+        };
+      }
+    
+  },
+
   getStatus: function (status) {
     if (parseInt(status) === 1) {
       return '<span class="status badge success">Active</span>';
