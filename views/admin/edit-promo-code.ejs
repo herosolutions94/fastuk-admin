@@ -1,0 +1,121 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Edit Promo Code</h3>
+        <ul>
+          <li><a href="">Home</a></li>
+          <li class="active"><a href="">Edit Promo Code</a></li>
+        </ul>
+      </div>
+      <div class="text text2">
+        <a href="blog.php" class="webBtn mdBtn greenBtn"
+          ><i class="fa-regular fa-arrow-left"></i>Cancel</a
+        >
+      </div>
+    </div>
+    <div class="dashTable">
+      <div class="card editor_card">
+        <div class="card-header">
+          <h5>Promo Code Block</h5>
+        </div>
+        <div class="card-body full_width">
+          <form
+            id="editPromoCodeForm"
+            class="frmAjax"
+            action="/admin/promo-codes/update/<%= promoCode.id %>"
+            method="post"
+            enctype="multipart/form-data">
+            <div class="row">
+              
+              <div class="col-md-9">
+                <div class="row switch-showcase">
+                  <div class="col-md-12">
+                    <div class="txtGrp media">
+                      <label class="form-label">Status</label>
+                      <div
+                        class="txtGrp-body text-end icon-state switch-outline">
+                        
+                        <select name="status">
+                          <option value="1" <%= promoCode.status == 1 ? 'selected' : '' %>>Active</option>
+                          <option value="0" <%= promoCode.status == 0 ? 'selected' : '' %>>Inactive</option>
+                      </select>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >Promo Code<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="title"
+                        type="text"
+                        name="promo_code"
+                        value="<%= editPromoCodeId ? promoCode.promo_code : '' %>" 
+                        readonly/>
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >Percentage Value<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="percentage_value"
+                        type="text"
+                        name="percentage_value"
+                        value="<%= editPromoCodeId ? promoCode.percentage_value : '' %>" />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >Expiry Date<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="expiry_date"
+                        type="date"
+                        name="expiry_date"
+                        value="<%= editPromoCodeId ? formattedExpiryDate : '' %>" />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title"
+                        >Promo Code Type<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <select name="promo_code_type">
+                        <option value="percentage" <%= promoCode.promo_code_type == "percentage" ? 'selected' : '' %>>Percentage</option>
+                        <option value="amount" <%= promoCode.promo_code_type == "amount" ? 'selected' : '' %>>Amount</option>
+                    </select>
+                    </div>
+                  </div>
+                  
+                </div>
+              </div>
+            </div>
+            <div class="card-footer text-end">
+              <button class="webBtn" type="submit">
+                Update Content <i class="spinner hidden"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+        <hr />
+      </div>
+    </div>
+  </div>
+</section>

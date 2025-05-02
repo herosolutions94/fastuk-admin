@@ -316,7 +316,16 @@
           <span class="hide-menu">Remote Post Codes</span></a
         >
       </li>
+      
       <% } %>
+      <li class="sidebar-item">
+        <a
+          href="/admin/promo-codes-list"
+          class="<%= currentPath === 'promo-codes-list' ? 'active sidebar-link' : 'sidebar-link' %>">
+          <i class="fa-light fa-address-book"></i>
+          <span class="hide-menu">Promo Codes</span></a
+        >
+      </li>
       <% if (sidebarPermissions[18]) { %>
 
 
