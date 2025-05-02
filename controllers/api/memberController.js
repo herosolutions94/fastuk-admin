@@ -820,7 +820,6 @@ class MemberController extends BaseController {
         formattedTotalPrice = parseFloat(formattedTotalPrice.toFixed(2));
 
       };
-
       // Handle payment logic
       const parsedAmount = parseFloat(formattedTotalPrice);
       if (isNaN(parsedAmount) || parsedAmount <= 0) {
