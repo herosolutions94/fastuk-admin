@@ -755,11 +755,17 @@ getTransaction: async function(user_id) {
   }
 },
 generatePromoCode: async function () {
-  // Generate a 6-digit number between 100000 and 999999
-  const promoCode = crypto.randomInt(100000, 999999);
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let promoCode = '';
   
-  return promoCode.toString(); // Return as a string
+  for (let i = 0; i < 6; i++) {
+    const randomIndex = crypto.randomInt(0, chars.length);
+    promoCode += chars[randomIndex];
+  }
+
+  return promoCode;
 },
+
 
  insertEarnings: async function(data) {
   try {
