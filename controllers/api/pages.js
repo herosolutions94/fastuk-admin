@@ -15,6 +15,7 @@ const SubscribersModel = require("../../models/api/subscribersModel");
 const TeamModel = require("../../models/api/teamModel");
 const FaqModel = require("../../models/api/faqModel");
 const VehicleModel = require("../../models/api/vehicleModel");
+const PromoCodeModel = require("../../models/promo-code");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 
@@ -45,6 +46,7 @@ class PagesController extends BaseController {
     this.tokenModel = new Token();
     this.memberModel = new MemberModel(); 
     this.contact_messages = new MessageModel(); 
+    this.promoCodeModel = new PromoCodeModel(); 
   }
   async getHomeData(req, res) {
     const testimonialModel = new TestimonialModel();
@@ -582,6 +584,57 @@ class PagesController extends BaseController {
         return res.status(200).json({ status: 0, msg: "Internal Server Error" });
       }
     }
+
+
+    async applyPromoCode(req, res) {
+       const { promoCode, amount } = req.body;
+
+       if (!promoCode || !amount) {
+        return res.status(200).json({ error: 'Promo code and amount are required.' });
+    }
+
+        const promo = await this.promoCodeModel.findByCode(promoCode);
+        console.log(promo,promoCode)
+
+        if (!promo) {
+          return res.status(200).json({ error: 'Invalid promo code.' });
+      }
+
+        const currentDate = new Date();
+        if (promo.expiry_date && new Date(promo.expiry_date) < currentDate) {
+          return res.status(200).json({ error: 'Promo code has expired.' });
+        }
+
+        let discount = 0;
+
+        if (promo.promo_code_type === 'percentage') {
+            discount = (amount * promo.percentage_value) / 100;
+        } else if (promo.promo_code_type === 'amount') {
+            discount = promo.percentage_value;
+        } else {
+          return res.status(200).json({ error: 'Promo code has expired.' });
+        }
+
+        // Cap discount to amount if needed
+        if (discount > amount) {
+            discount = amount;
+        }
+
+        const finalAmount = amount - discount;
+
+        return res.json({
+          discount: discount,
+          finalAmount: finalAmount
+      });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(200).json({ error: 'Something went wrong.' });
+  }
+    
+
+
+
     
 
 }

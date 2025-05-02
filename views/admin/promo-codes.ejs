@@ -1,0 +1,105 @@
+<section id="dashbaord">
+    <div class="contain-fluid">
+      <div class="heading">
+        <div class="text">
+          <h3>Promo Codes</h3>
+          <ul>
+            <li><a href="">Home</a></li>
+            <li class="active"><a href="">Promo Codes</a></li>
+          </ul>
+        </div>
+        <div class="text text2">
+          <a href="/admin/add-promo-code-form" class="webBtn mdBtn greenBtn"
+            ><i class="fa-light fa-plus"></i>Add New</a
+          >
+        </div>
+      </div>
+      <div class="dashTable">
+        <table class="dataTable display" id="basic-1">
+          <thead>
+            <tr class="table-scnd-row blog-table">
+              <th width="10%">
+                <p>Sr#</p>
+              </th>
+              <th width="20%">
+                <p>Promo Code</p>
+              </th>
+              <th width="20%">
+                <p>Percentage Value</p>
+              </th>
+              <th width="20%">
+                <p>Expiry Date</p>
+              </th>
+              <th width="15%">
+                <p>Status</p>
+              </th>
+              <th width="10%">
+                <p>Action</p>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <% if (promoCodes && promoCodes.length > 0) { %> <%
+                promoCodes.forEach((promoCode, index) => { %>
+            <tr class="bottom-cntnt" id="promoCode-<%= promoCode.id %>">
+              <td>
+                <p><%= index + 1 %></p>
+              </td>
+              <td>
+                <p><%= promoCode.promo_code %></p>
+              </td>
+              <td>
+                <p>£<%= promoCode.percentage_value %></p>
+              </td>
+              
+                <td>
+                    <p><%= helpers.formatDateToUK(promoCode.expiry_date) %></p>
+                  </td>
+                  <td>
+                <p>
+                  <% if (promoCode.status === 1) { %>
+                  <a href="#" class="status badge success">Active</a>
+                  <% } else { %>
+                  <a href="#" class="status badge warning">Inactive</a>
+                  <% } %>
+                </p>
+              </td>
+              <td>
+                <div class="btn-group">
+                  <button
+                    type="button"
+                    class="dropdown-toggle"
+                    data-toggle="dropdown">
+                    <i class="fa fa-ellipsis-h"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-primary" role="menu">
+                    <li>
+                      <a
+                        href="/admin/promo-codes/edit/<%= promoCode.id %>"
+                        ><i class="fa fa-pencil" aria-hidden="true"></i>Edit</a
+                      >
+                    </li>
+                    <li>
+                      <a
+                        href="#"
+                        class="delete-item"
+                        data-id="<%= promoCode.id %>"
+                        data-url="/admin/promo-codes/delete/<%= promoCode.id %>">
+                        <i class="fa fa-trash" aria-hidden="true"></i> Delete
+                      </a>
+                    </li>
+                  </ul>
+                </div>
+              </td>
+            </tr>
+            <% }) %> <% } else { %>
+            <tr>
+              <td colspan="8"><p>No Promo Code found.</p></td>
+            </tr>
+            <% } %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+  
