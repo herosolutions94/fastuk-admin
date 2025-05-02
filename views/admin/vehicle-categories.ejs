@@ -9,7 +9,7 @@
           </ul>
         </div>
         <div class="text text2">
-          <a href="/admin/add-promo-code-form" class="webBtn mdBtn greenBtn"
+          <a href="/admin/add-vehicle-category-form" class="webBtn mdBtn greenBtn"
             ><i class="fa-light fa-plus"></i>Add New</a
           >
         </div>
@@ -22,13 +22,7 @@
                 <p>Sr#</p>
               </th>
               <th width="20%">
-                <p>Promo Code</p>
-              </th>
-              <th width="20%">
-                <p>Percentage Value</p>
-              </th>
-              <th width="20%">
-                <p>Expiry Date</p>
+                <p>Vehicle name</p>
               </th>
               <th width="15%">
                 <p>Status</p>
@@ -39,32 +33,19 @@
             </tr>
           </thead>
           <tbody>
-            <% if (promoCodes && promoCodes.length > 0) { %> <%
-                promoCodes.forEach((promoCode, index) => { %>
-            <tr class="bottom-cntnt" id="promoCode-<%= promoCode.id %>">
+            <% if (vehicleCategories && vehicleCategories.length > 0) { %> <%
+              vehicleCategories.forEach((vehicleCategory, index) => { %>
+            <tr class="bottom-cntnt" id="vehicleCategory-<%= vehicleCategory.id %>">
               <td>
                 <p><%= index + 1 %></p>
               </td>
               <td>
-                <p><%= promoCode.promo_code %></p>
+                <p><%= vehicleCategory.vehicle_name %></p>
               </td>
-              <td>
-                <p>
-                  <% if (promoCode.promo_code_type === 'percentage') { %>
-                    <%= promoCode.percentage_value %>%
-                  <% } else { %>
-                    £<%= promoCode.percentage_value %>
-                  <% } %>
-                </p>
-              </td>
-              
-              
-                <td>
-                    <p><%= helpers.formatDateToUK(promoCode.expiry_date) %></p>
-                  </td>
+
                   <td>
                 <p>
-                  <% if (promoCode.status === 1) { %>
+                  <% if (vehicleCategory.status === 1) { %>
                   <a href="#" class="status badge success">Active</a>
                   <% } else { %>
                   <a href="#" class="status badge warning">Inactive</a>
@@ -82,7 +63,7 @@
                   <ul class="dropdown-menu dropdown-primary" role="menu">
                     <li>
                       <a
-                        href="/admin/promo-codes/edit/<%= promoCode.id %>"
+                        href="/admin/vehicle-categories/edit/<%= vehicleCategory.id %>"
                         ><i class="fa fa-pencil" aria-hidden="true"></i>Edit</a
                       >
                     </li>
@@ -90,8 +71,8 @@
                       <a
                         href="#"
                         class="delete-item"
-                        data-id="<%= promoCode.id %>"
-                        data-url="/admin/promo-codes/delete/<%= promoCode.id %>">
+                        data-id="<%= vehicleCategory.id %>"
+                        data-url="/admin/vehicle-categories/delete/<%= vehicleCategory.id %>">
                         <i class="fa fa-trash" aria-hidden="true"></i> Delete
                       </a>
                     </li>
@@ -101,7 +82,7 @@
             </tr>
             <% }) %> <% } else { %>
             <tr>
-              <td colspan="8"><p>No Promo Code found.</p></td>
+              <td colspan="8"><p>No Vehicle Category found.</p></td>
             </tr>
             <% } %>
           </tbody>

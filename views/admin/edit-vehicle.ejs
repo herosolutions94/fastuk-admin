@@ -157,6 +157,27 @@
                           value="<%= editVehicleId ? vehicle.distance : '' %>" />
                       </div>
                     </div>
+
+                    <div class="col-md-6">
+                      <div class="txtGrp">
+                        <label class="form-label" for="vehicle_category_id">
+                          Vehicle Category <abbr class="required" title="required">*</abbr>
+                        </label>
+                        <select name="vehicle_category_id" id="vehicle_category_id" class="txtBox" required>
+                          <% if (vehicleCategories && vehicleCategories.length) { %>
+                            <% vehicleCategories.forEach(category => { %>
+                              <option value="<%= category.id %>" 
+                                <%= vehicle.vehicle_category_id === category.id ? 'selected' : '' %>>
+                                <%= category.vehicle_name %>
+                              </option>
+                            <% }); %>
+                          <% } else { %>
+                            <option value="">No categories found</option>
+                          <% } %>
+                        </select>
+                      </div>
+                    </div>
+                    
                     
                   </div>
                 </div>
