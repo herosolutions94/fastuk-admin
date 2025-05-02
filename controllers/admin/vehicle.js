@@ -6,17 +6,25 @@ const BaseController = require('../baseController');
 const Vehicle = require('../../models/vehicle');
 const { validateRequiredFields } = require('../../utils/validators');
 const message = require('./message');
+const VehicleCategories = require('../../models/vehicle-categories');
+
 
 
 class VehicleController extends BaseController {
     constructor() {
         super();
         this.vehicle = new Vehicle();
+        this.vehicleCategories = new VehicleCategories();
     }
 
-    renderAddVehiclePage(req, res) {
+    async renderAddVehiclePage (req, res) {
         try {
-            res.render('admin/add-vehicle'); // Render the add-testimonial.ejs file
+            const vehicleCategories = await VehicleCategories.getAllVehicleCategories();
+            console.log("vehicleCategories:",vehicleCategories)
+
+            res.render('admin/add-vehicle',{
+                vehicleCategories
+            }); // Render the add-testimonial.ejs file
         } catch (error) {
             console.error('Error rendering add vehicle page:', error);
             return this.sendError(res, 'Failed to load add vehicle page');
@@ -34,8 +42,9 @@ class VehicleController extends BaseController {
                 weight,
                 distance,
                 status,
+                vehicle_category_id
             } = req.body;
-            // console.log("req.body",req.body);  // To check if name and description are being sent
+            console.log("req.body",req.body);  // To check if name and description are being sent
 
 
             const vehicleImage = req.files && req.files["vehicle_image"] ? req.files["vehicle_image"][0].filename : '';
@@ -53,6 +62,8 @@ class VehicleController extends BaseController {
                 // remote_price: typeof remote_price === 'string' ? remote_price.trim().toLowerCase() : '',
                 vehicle_image: vehicleImage,  // Change this to match your DB column name
                 status: status || 0,
+                vehicle_category_id: parseInt(vehicle_category_id) || null, // <- ensure it's an integer
+
             };
             // console.log(cleanedData,"cleanedData")
 
@@ -111,6 +122,9 @@ class VehicleController extends BaseController {
             const vehicle = (await Vehicle.getVehicleById(vehicleId))[0]; // Extract the first rider if it's returned as an array
             // console.log('Fetched vehicle:', vehicle); // Log fetched rider data
 
+            const vehicleCategories = await VehicleCategories.getAllVehicleCategories(); // ✅ Get categories
+
+
             // console.log('Vehicle data before rendering:', vehicle); // Log the rider data
 
     
@@ -119,6 +133,7 @@ class VehicleController extends BaseController {
                 // Assuming `result` is defined properly, or you should use rider.rider_image
                 res.render('admin/edit-vehicle', {
                     vehicle, 
+                    vehicleCategories,
                     editVehicleId: vehicleId, 
                     imageFilenames: [vehicle.vehicle_image], // Make sure to access the rider image correctly
                     status: vehicle.status // Pass the status to the view
