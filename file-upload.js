@@ -112,6 +112,7 @@ const upload = multer({
   { name: 'vehicle_image', maxCount: 1 },
   { name: 'rider_document', maxCount: 1 },
   { name: 'vehicle_category_image', maxCount: 1 },
+  { name: 'rider_license', maxCount: 1 },
 
 
 
