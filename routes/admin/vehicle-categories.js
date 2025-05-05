@@ -11,7 +11,7 @@ const  checkAccessMiddleware  = require('../../middleware/checkAccessMiddleware'
 
 router.get('/add-vehicle-category-form', vehicleCategoryController.renderAddVehicleCategoryPage.bind(vehicleCategoryController));
 
-router.post('/add-vehicle-categories', upload, ensureAuthenticated, vehicleCategoryController.addVehicleCategory.bind(vehicleCategoryController));
+router.post('/add-vehicle-categories', ensureAuthenticated, upload, vehicleCategoryController.addVehicleCategory.bind(vehicleCategoryController));
 router.get('/vehicle-categories-list', ensureAuthenticated, vehicleCategoryController.getVehicleCategories.bind(vehicleCategoryController));
 router.get('/vehicle-categories/edit/:id', ensureAuthenticated, upload, vehicleCategoryController.editVehicleCategory.bind(vehicleCategoryController)); // Edit form
 router.post('/vehicle-categories/update/:id', ensureAuthenticated, upload, vehicleCategoryController.updateVehicleCategory.bind(vehicleCategoryController)); // Update rider

@@ -65,15 +65,15 @@ class VehicleModel extends BaseModel {
         }
     }
 
-    // static async getVehicleById(vehicleId) {
-    //     try {
-    //         const [rows] = await pool.query("SELECT * FROM vehicles WHERE id = ?", [vehicleId]);
-    //         return rows.length > 0 ? rows[0] : null;
-    //     } catch (error) {
-    //       console.error("Error fetching vehicle details:", error);
-    //       throw error;
-    //     }
-    //   }
+    static async getVehicleByVehicleCategoryId(vehicleCategoryId) {
+        try {
+            const [rows] = await pool.query("SELECT * FROM vehicles WHERE vehicle_category_id = ?", [vehicleCategoryId]);
+            return rows;
+        } catch (error) {
+          console.error("Error fetching vehicle details:", error);
+          throw error;
+        }
+      }
 
     
 }
