@@ -31,6 +31,8 @@ router.post('/site-settings', upload, (req, res) => pagesController.getSiteSetti
 router.post('/search-cities', upload, (req, res) => pagesController.searchCities(req, res));
 router.post('/apply-promo', upload, (req, res) => pagesController.applyPromoCode(req, res));
 router.post('/vehicles/by-category/:categoryId', upload, (req, res) => pagesController.getVehiclesByCategoryId(req, res));
+router.post('/upload-license', upload, (req, res) => pagesController.uploadLicense(req, res));
+
 
 
 
