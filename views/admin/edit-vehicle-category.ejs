@@ -30,7 +30,7 @@
               
               <div class="col-md-9">
                 <div class="row switch-showcase">
-                  <div class="col-md-3">
+                  <div class="col-md-6">
                     <div class="card">
                       <div class="card-body preview">
                         <h5 class="card-title">Image</h5>
@@ -57,12 +57,12 @@
                     </div>
                   </div>
                   <div class="col-md-12">
-                    <div class="txtGrp media">
+                    <div class="txtGrp media st_sp">
                       <label class="form-label">Status</label>
                       <div
                         class="txtGrp-body text-end icon-state switch-outline">
                         
-                        <select name="status">
+                        <select name="status" class="input">
                           <option value="1" <%= vehicleCategory.status == 1 ? 'selected' : '' %>>Active</option>
                           <option value="0" <%= vehicleCategory.status == 0 ? 'selected' : '' %>>Inactive</option>
                       </select>
