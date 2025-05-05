@@ -662,6 +662,37 @@ class PagesController extends BaseController {
       res.status(500).json({ success: false, message: 'Internal server error' });
     }
   };
+
+    async uploadLicense (req, res) {
+      if (
+        !req.files ||
+        !req.files["rider_license"] ||
+        req.files["rider_license"].length === 0
+      ) {
+        return res.status(200).json({ status: 0, msg: "No file uploaded." });
+      }
+
+      // Get the uploaded file and construct the file path
+      const riderLicense = req.files["rider_license"][0].filename;
+      // console.log("Extracted Filename:", memImage);
+
+      const imageUrl = `${riderLicense}`;
+      return res.status(200).json({
+        status: 1,
+        msg: "Image uploaded successfully.",
+        rider_license: imageUrl
+      });
+    } catch (error) {
+      console.error("Error uploading profile image:", error.message);
+      return res.status(500).json({
+        status: 0,
+        msg: "Server error.",
+        details: error.message
+      });
+      };
+
+
+
     
 
 

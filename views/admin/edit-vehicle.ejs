@@ -56,15 +56,15 @@
               <div class="col-md-9">
                 <div class="row switch-showcase">
                   <div class="col-md-12">
-                    <div class="txtGrp media">
+                    <div class="txtGrp media st_sp">
                       <label class="form-label">Status</label>
                       <div
                         class="txtGrp-body text-end icon-state switch-outline">
-                        <label class="switch">
+                        <!-- <label class="switch">
                           <span
                             class="switch-state bg-primary"></span>
-                        </label>
-                        <select name="status">
+                        </label> -->
+                        <select name="status" class="input">
                           <option value="1" <%= vehicle.status == 1 ? 'selected' : '' %>>Active</option>
                           <option value="0" <%= vehicle.status == 0 ? 'selected' : '' %>>Inactive</option>
                       </select>
@@ -101,6 +101,8 @@
                         name="price"
                         value="<%= editVehicleId ? vehicle.price : '' %>" />
                     </div>
+                  </div>
+                  <div class="col-md-12">
                     <div class="txtGrp">
                       <label class="form-label" for="detail"
                         >Business User Price<abbr class="required" title="required"
@@ -114,6 +116,8 @@
                         name="business_user_price"
                         value="<%= editVehicleId ? vehicle.business_user_price : '' %>" />
                     </div>
+                  </div>
+                    <div class="col-md-12">
                     <div class="txtGrp">
                       <label class="form-label" for="detail"
                         >Rider Price<abbr class="required" title="required"
@@ -126,6 +130,7 @@
                         type="text"
                         name="admin_price"
                         value="<%= editVehicleId ? vehicle.admin_price : '' %>" />
+                    </div>
                     </div>
                     <div class="col-md-6">
                       <div class="txtGrp">
@@ -163,7 +168,7 @@
                         <label class="form-label" for="vehicle_category_id">
                           Vehicle Category <abbr class="required" title="required">*</abbr>
                         </label>
-                        <select name="vehicle_category_id" id="vehicle_category_id" class="txtBox" required>
+                        <select name="vehicle_category_id" id="vehicle_category_id" class="input" required>
                           <% if (vehicleCategories && vehicleCategories.length) { %>
                             <% vehicleCategories.forEach(category => { %>
                               <option value="<%= category.id %>" 

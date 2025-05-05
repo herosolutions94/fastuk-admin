@@ -518,3 +518,8 @@ button.Bt-btn {
   width: 100%;
   background: transparent;
 }
+
+.st_sp{
+  justify-content: unset !important;
+  gap: 20px;
+}

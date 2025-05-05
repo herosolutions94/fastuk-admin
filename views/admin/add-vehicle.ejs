@@ -52,15 +52,15 @@
               <div class="col-md-9">
                 <div class="row switch-showcase">
                   <div class="col-md-12">
-                    <div class="txtGrp media">
+                    <div class="txtGrp media st_sp">
                       <label class="form-label">Status</label>
                       <div
                         class="txtGrp-body text-end icon-state switch-outline">
-                        <label class="switch">
+                        <!-- <label class="switch">
                           <span
                             class="switch-state bg-primary"></span>
-                        </label>
-                        <select name="status" class="txtBox" required>
+                        </label> -->
+                        <select name="status" class="txtBox input" required>
                           <option value="1">Active</option>
                           <option value="0">Inactive</option>
                         </select>
@@ -87,7 +87,7 @@
                       <label class="form-label" for="vehicle_category_id">
                         Vehicle Category <abbr class="required" title="required">*</abbr>
                       </label>
-                      <select name="vehicle_category_id" id="vehicle_category_id" class="txtBox" required>
+                      <select name="vehicle_category_id" id="vehicle_category_id" class="input" required>
                         <% if (vehicleCategories && vehicleCategories.length) { %>
                           <% vehicleCategories.forEach(category => { %>
                             <option value="<%= category.id %>"><%= category.vehicle_name %></option>
