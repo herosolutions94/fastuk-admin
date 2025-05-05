@@ -42,8 +42,8 @@ class VehicleCategoriesModel extends BaseModel {
     }
     
     static async getVehicleCategoriesById(id) {
-        const [promoCode] = await pool.query(`SELECT * FROM ${this.tableName} WHERE id = ?`, [id]);
-        return promoCode; // This should be an object, not an array
+        const [vehicleCategory] = await pool.query(`SELECT * FROM ${this.tableName} WHERE id = ?`, [id]);
+        return vehicleCategory; // This should be an object, not an array
     }
     // static async getRemotePostCodesInArray() {
     //     try {
@@ -66,13 +66,24 @@ class VehicleCategoriesModel extends BaseModel {
     // }
     
     static async updateVehicleCategory(id, vehicleCategoryData) {
-        const { vehicle_name, status } = vehicleCategoryData;
+        const { vehicle_name, status, vehicle_category_image } = vehicleCategoryData;
 
     
         await pool.query(
-            `UPDATE ${this.tableName} SET vehicle_name = ?, status = ? WHERE id = ?`,
-            [vehicle_name, status, id]
+            `UPDATE ${this.tableName} SET vehicle_name = ?, status = ?, vehicle_category_image = ? WHERE id = ?`,
+            [vehicle_name, status, vehicle_category_image, id]
         );
+    }
+
+    static async getActiveVehicleCategories() {
+        try {
+            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE status=1`); // Only take the first result
+            // console.log('Riders fetched successfully:', rows); // Log the data (only the rows)
+            return rows; // Return the fetched rows
+        } catch (error) {
+            console.error('Error fetching vehicle category:', error);
+            throw error;
+        }
     }
     
     static async deleteVehicleCategoryById(id) {

@@ -2,7 +2,7 @@
     <div class="contain-fluid">
       <div class="heading">
         <div class="text">
-          <h3>Promo Codes</h3>
+          <h3>Vehicle Categories</h3>
           <ul>
             <li><a href="">Home</a></li>
             <li class="active"><a href="">Promo Codes</a></li>
@@ -21,6 +21,9 @@
               <th width="10%">
                 <p>Sr#</p>
               </th>
+              <th width="15%">
+                <p>Image</p>
+              </th>
               <th width="20%">
                 <p>Vehicle name</p>
               </th>
@@ -38,6 +41,11 @@
             <tr class="bottom-cntnt" id="vehicleCategory-<%= vehicleCategory.id %>">
               <td>
                 <p><%= index + 1 %></p>
+              </td>
+              <td>
+                <div class="image-blog">
+                  <img src="<%= helpers.getImage(vehicleCategory.vehicle_category_image) %>" />
+                </div>
               </td>
               <td>
                 <p><%= vehicleCategory.vehicle_name %></p>

@@ -3,6 +3,7 @@ const BaseController = require("../baseController");
 const Member = require("../../models/memberModel");
 const Rider = require("../../models/riderModel");
 const VehicleModel = require("../../models/api/vehicleModel");
+const VehicleCategoryModel = require("../../models/vehicle-categories");
 const PageModel = require("../../models/api/pages"); // Assuming you have this model
 const PaymentMethodModel = require("../../models/api/paymentMethodModel"); // Assuming you have this model
 const RequestQuoteModel = require("../../models/request-quote"); // Assuming you have this model
@@ -490,6 +491,7 @@ class MemberController extends BaseController {
 
   async requestQuote(req, res) {
     const vehicleModel = new VehicleModel();
+    const vehicleCategoryModel = new VehicleCategoryModel();
     const { token, memType, address_id } = req.body;
 
     try {
@@ -497,6 +499,8 @@ class MemberController extends BaseController {
 
       // Get the main page content
       const vehiclesData = await vehicleModel.findFeatured();
+      const vehicleCategoriesData = await VehicleCategoryModel.getActiveVehicleCategories();
+      // console.log("vehicleCategoriesData:",vehicleCategoriesData)
 
       let member = null;
       let paymentMethods = [];
@@ -556,10 +560,13 @@ class MemberController extends BaseController {
         addressesData,
         siteSettings,
         vehicles: vehiclesData,
+        vehicleCategories: vehicleCategoriesData,
         member, // Null if no token was provided
         paymentMethods, // Simplified payment methods
         remotePostCodes // Add the remote post codes
       };
+            console.log("jsonResponse:",jsonResponse)
+
 
       // Return data in JSON format
       res.json(jsonResponse);

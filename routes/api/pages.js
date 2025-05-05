@@ -30,6 +30,8 @@ router.post('/save-contact-message', upload, (req, res) => pagesController.save_
 router.post('/site-settings', upload, (req, res) => pagesController.getSiteSettingsData(req, res));
 router.post('/search-cities', upload, (req, res) => pagesController.searchCities(req, res));
 router.post('/apply-promo', upload, (req, res) => pagesController.applyPromoCode(req, res));
+router.post('/vehicles/by-category/:categoryId', upload, (req, res) => pagesController.getVehiclesByCategoryId(req, res));
+
 
 
 

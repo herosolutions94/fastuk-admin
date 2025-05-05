@@ -15,6 +15,8 @@ const SubscribersModel = require("../../models/api/subscribersModel");
 const TeamModel = require("../../models/api/teamModel");
 const FaqModel = require("../../models/api/faqModel");
 const VehicleModel = require("../../models/api/vehicleModel");
+const VehicleAdminModel = require("../../models/vehicle");
+const VehicleCategoryModel = require("../../models/vehicle-categories");
 const PromoCodeModel = require("../../models/promo-code");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
@@ -631,6 +633,35 @@ class PagesController extends BaseController {
       console.error(error);
       return res.status(200).json({ error: 'Something went wrong.' });
   }
+
+  async getVehiclesByCategoryId (req, res) {
+    const { categoryId } = req.params;
+        const vehicleCategoryModel = new VehicleCategoryModel();
+        const vehicleAdminModel = new VehicleAdminModel();
+    
+  
+    try {
+      // Step 1: Check if category exists
+      const categoryResult = await VehicleCategoryModel.getVehicleCategoriesById(categoryId)
+  
+      if (categoryResult.length === 0) {
+        return res.status(404).json({ status: 0, msg: 'Vehicle category not found' });
+      }
+  
+      // Step 2: Fetch vehicles by category ID
+      const vehiclesResult = await VehicleAdminModel.getVehicleByVehicleCategoryId(categoryId)
+      console.log("vehiclesResult:",vehiclesResult)
+  
+      return res.status(200).json({
+        status: 1,
+        category: categoryResult[0],
+        vehicles: vehiclesResult,
+      });
+    } catch (error) {
+      console.error('Error fetching vehicles by category ID:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
+  };
     
 
 
