@@ -29,10 +29,13 @@ class RequestQuoteController extends BaseController {
 
             const requestQuotesWithMembers = await RequestQuote.getRequestQuotesWithMembers(["rq.status = 'completed'"]);
             
-            console.log('Completed Request Quotes:', requestQuotesWithMembers);
+            // console.log('Completed Request Quotes:', requestQuotesWithMembers);
 
     
-            res.render('admin/request-quotes', { requestQuotes: requestQuotesWithMembers });
+            res.render('admin/request-quotes', { 
+                requestQuotes: requestQuotesWithMembers,   
+                pageHeading: 'Completed Request Quotes'
+            });
         } catch (error) {
             console.error('Error fetching request quotes with members:', error);
             this.sendError(res, 'Failed to fetch request quotes');
@@ -47,7 +50,12 @@ class RequestQuoteController extends BaseController {
             // console.log('Request Quotes:', requestQuotesWithMembers);
 
     
-            res.render('admin/request-quotes', { requestQuotes: requestQuotesWithMembers });
+            res.render('admin/request-quotes', { 
+                requestQuotes: requestQuotesWithMembers,
+                pageHeading: 'In Progress Request Quotes'
+
+
+             });
         } catch (error) {
             console.error('Error fetching request quotes with members:', error);
             this.sendError(res, 'Failed to fetch request quotes');
@@ -62,7 +70,11 @@ class RequestQuoteController extends BaseController {
             // console.log('Request Quotes:', requestQuotesWithMembers);
 
     
-            res.render('admin/request-quotes', { requestQuotes: requestQuotesWithMembers });
+            res.render('admin/request-quotes', { 
+                requestQuotes: requestQuotesWithMembers,
+                pageHeading: 'Upcoming Request Quotes'
+
+            });
         } catch (error) {
             console.error('Error fetching request quotes with members:', error);
             this.sendError(res, 'Failed to fetch request quotes');
@@ -98,11 +110,12 @@ class RequestQuoteController extends BaseController {
                 // invoices: invoices,
                 reviews: reviews
             };
-         console.log("orderDetails:",order)
+        //  console.log("orderDetails:",order)
+
             
     
             res.render('admin/order-details', { 
-                order,
+                order
             });
     
         } catch (error) {

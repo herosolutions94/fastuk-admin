@@ -18,6 +18,8 @@ const VehicleModel = require("../../models/api/vehicleModel");
 const VehicleAdminModel = require("../../models/vehicle");
 const VehicleCategoryModel = require("../../models/vehicle-categories");
 const PromoCodeModel = require("../../models/promo-code");
+const Rider = require("../../models/riderModel");
+
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 
@@ -49,6 +51,8 @@ class PagesController extends BaseController {
     this.memberModel = new MemberModel(); 
     this.contact_messages = new MessageModel(); 
     this.promoCodeModel = new PromoCodeModel(); 
+    this.rider = new Rider();
+
   }
   async getHomeData(req, res) {
     const testimonialModel = new TestimonialModel();
@@ -139,6 +143,30 @@ class PagesController extends BaseController {
 
       // Get the main page content
       const pageContent = await this.pageModel.findByKey("privacy-policy");
+      const formData = pageContent
+        ? JSON.parse(pageContent.content || "{}")
+        : {};
+
+      // Combine the content and multi_text data
+      const jsonResponse = {
+        siteSettings,
+        content: formData,
+      };
+
+      // Return data in JSON format
+      res.json(jsonResponse);
+    } catch (err) {
+      console.error("Error:", err);
+      res.status(200).json({ error: "Internal Server Error" });
+    }
+  }
+
+  async getChargeAggreementData(req, res) {
+    try {
+      const siteSettings = res.locals.adminData;
+
+      // Get the main page content
+      const pageContent = await this.pageModel.findByKey("charge-aggreement");
       const formData = pageContent
         ? JSON.parse(pageContent.content || "{}")
         : {};
@@ -338,6 +366,10 @@ class PagesController extends BaseController {
 
   async getRiderProfileData(req, res) {
     try {
+      const { token, memType } = req.body;
+      // console.log("req.body:",req.body)
+
+
       const siteSettings = res.locals.adminData;
 
       const pageContent = await this.pageModel.findByKey("rider-signup");
@@ -350,12 +382,40 @@ class PagesController extends BaseController {
 
       const vehicleModel = new VehicleModel();
       const vehicles = await vehicleModel.getActiveVehicles();
+      // console.log("vehicles:",vehicles)
+
+
+      if (!token) {
+        return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
+
+      // Call the method from BaseController to get user data
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse);
+      }
+
+      const riderId = userResponse?.user?.id; // Assuming user ID is in `userResponse.user.id`
+      console.log("riderId:",riderId)
+
+
+      if (!riderId) {
+        return res.status(200).json({ status: 0, msg: "User ID not found." });
+      }
+
+    let attachments = [];
+    if (riderId) {
+      attachments = await this.rider.getRiderAttachments(riderId);
+    }
+    console.log("attachments:",attachments)
       // Combine the content and multi_text data
       const jsonResponse = {
         siteSettings,
         vehicles: vehicles,
         content: formData,
-        cities
+        cities,
+        attachments
       };
 
       // Return data in JSON format

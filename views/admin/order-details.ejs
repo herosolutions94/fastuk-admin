@@ -177,8 +177,22 @@
               <tbody>
                 <% order?.parcels.forEach(parcel => { %>
                 <tr>
-                  <td><%= parcel.parcel_number %><br /><%= parcel.parcel_type %><br /><%= parcel.length %>cm × <%= parcel.width %>cm × <%=
-                    parcel.height %>cm<br /><%= parcel.weight %>kg</td>
+                  <td>
+                    <%= parcel.parcel_number %><br />
+                    <%= parcel.parcel_type %><br />
+                    <% if (parcel.length || parcel.width || parcel.height) { %>
+                      <%= parcel.length ? parcel.length + 'cm' : '' %>
+                      <%= parcel.width ? ' × ' + parcel.width + 'cm' : '' %>
+                      <%= parcel.height ? ' × ' + parcel.height + 'cm' : '' %><br />
+                    <% } %>
+                    <% if (parcel.weight) { %>
+                      <%= parcel.weight %>kg<br />
+                    <% } %>
+                    <% if (parcel.quantity) { %>
+                      Qty: <%= parcel.quantity %>
+                    <% } %>
+                  </td>
+                  
                   <td>£<%= parcel.price %></td>
                   <td><%= parcel.source_address %></td>
                   <td><%= parcel.destination_address %></td>

@@ -21,6 +21,8 @@ router.get('/pages/privacy-policy', ensureAuthenticated, checkAccessMiddleware(1
 router.post('/pages/privacy-policy-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.privacyPolicyForm.bind(pagesController));
 router.get('/pages/terms-conditions', ensureAuthenticated, checkAccessMiddleware(10), pagesController.termsConditionsView.bind(pagesController));
 router.post('/pages/terms-conditions-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.termsConditionsForm.bind(pagesController));
+router.get('/pages/charge-aggreement', ensureAuthenticated, checkAccessMiddleware(10), pagesController.chargeAggreementView.bind(pagesController));
+router.post('/pages/charge-aggreement-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.chargeAggreementForm.bind(pagesController));
 router.get('/pages/help-support', ensureAuthenticated, checkAccessMiddleware(10), pagesController.helpSupportView.bind(pagesController));
 router.post('/pages/help-support-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.helpSupportForm.bind(pagesController));
 router.get('/pages/faq', ensureAuthenticated,checkAccessMiddleware(10), pagesController.faqView.bind(pagesController));
