@@ -49,11 +49,18 @@ class RiderController extends BaseController {
         mem_verified,
         vehicle_registration_num,
         driving_license_num,
+        // driving_license,
+
         driving_license,
+        address_proof,
+        passport_pic,
+        national_insurance,
+        company_certificate,
+        pictures,
 
         fingerprint // Keep fingerprint as a parameter
       } = req.body;
-      // console.log(req.body)
+      console.log("req.body:",req.body)
 
       const is_approved = "pending";
 
@@ -79,8 +86,8 @@ class RiderController extends BaseController {
           typeof driving_license_num === "string"
             ? driving_license_num.trim()
             : "",
-        driving_license:
-          typeof driving_license === "string" ? driving_license.trim() : "",
+        // driving_license:
+        //   typeof driving_license === "string" ? driving_license.trim() : "",
         created_date: new Date(),
         status: 1,
         mem_verified: mem_verified || 0,
@@ -163,6 +170,62 @@ class RiderController extends BaseController {
       // Create the rider
       const riderId = await this.rider.createRider(cleanedData);
       // console.log('Created Rider ID:', riderId); // Log the created rider ID
+
+      // Save attachments
+      const documents = JSON.parse(req.body.documents || "{}");
+      const attachments = [];
+
+      if (driving_license) {
+        attachments.push({ rider_id: riderId, filename: driving_license, type: 'driving_license' });
+      }
+      if (address_proof) {
+        attachments.push({ rider_id: riderId, filename: address_proof, type: 'address_proof' });
+      }
+      if (passport_pic) {
+        attachments.push({ rider_id: riderId, filename: passport_pic, type: 'passport_pic' });
+      }
+      if (national_insurance) {
+        attachments.push({ rider_id: riderId, filename: national_insurance, type: 'national_insurance' });
+      }
+      if (company_certificate) {
+        attachments.push({ rider_id: riderId, filename: company_certificate, type: 'company_certificate' });
+      }
+      
+
+      // Handle single file fields
+      [
+        "driving_license",
+        "address_proof",
+        "passport_pic",
+        "national_insurance",
+        "company_certificate"
+      ].forEach((type) => {
+        if (documents[type]) {
+          attachments.push({
+            rider_id: riderId,
+            filename: documents[type],
+            type: type
+          });
+        }
+      });
+
+      // Handle pictures array
+      if (Array.isArray(documents.pictures)) {
+        documents.pictures.forEach(pic => {
+          attachments.push({ rider_id: riderId, filename: pic, type: 'pictures' });
+        });
+      }
+      
+
+      console.log('Attachments:', attachments);
+console.log('Type of attachments:', typeof attachments);
+console.log('Is array:', Array.isArray(attachments));
+
+
+      // Insert all attachments into the sub-table
+      for (const attachment of attachments) {
+        await this.rider.insertRiderAttachment(attachment);
+      };
 
       // Verify OTP was stored properly
       const createdRider = await this.rider.findById(riderId);
@@ -520,7 +583,7 @@ class RiderController extends BaseController {
         request_id
       );
       // console.log("updateStatus:", updateStatus);
-      
+
       if (updateStatus.affectedRows === 0) {
         return res
           .status(200)
@@ -544,7 +607,7 @@ class RiderController extends BaseController {
             vias: vias,
             parcels: parcels,
             rider_name: loggedInUser?.full_name,
-            start_date:helpers.formatDateToUK(request_row?.start_date)
+            start_date: helpers.formatDateToUK(request_row?.start_date)
           };
         }
       }
@@ -556,7 +619,7 @@ class RiderController extends BaseController {
       // console.log(orderDetailsLink);return;
       // Step 6: Send notification to the user
       const notificationText = `Your request #${request_id} has been assigned to a rider.`;
-      
+
       await helpers.storeNotification(
         request_row.user_id, // The user ID from request_quote
         userRow?.mem_type, // The user's member type
@@ -567,7 +630,6 @@ class RiderController extends BaseController {
 
       let adminData = res.locals.adminData;
       const user = await this.member.findById(request_row.user_id);
-
 
       await helpers.sendEmail(
         user.email,
@@ -587,7 +649,6 @@ class RiderController extends BaseController {
         type: "user"
       };
       // console.log("templateData:",templateData)
-
 
       return res.status(200).json({
         status: 1,
@@ -965,46 +1026,43 @@ class RiderController extends BaseController {
     }
   }
   async getThreeDaysBeforeEarnings(req, res) {
-      try {
-          const rows = await this.rider.getEarningsBefore3Days();
-          let adminData = res.locals.adminData;
-          // Extract unique user IDs
-          const uniqueUserIds = [...new Set(rows.map(row => row.user_id))];
+    try {
+      const rows = await this.rider.getEarningsBefore3Days();
+      let adminData = res.locals.adminData;
+      // Extract unique user IDs
+      const uniqueUserIds = [...new Set(rows.map((row) => row.user_id))];
 
-          
-
-          // Update earning statuses to "cleared" in a single batch process
-          for (const row of rows) {
-              await this.rider.updateEarningStatusToCleared(row.id);
-          }
-          for (const userId of uniqueUserIds) {
-              const userRow = await this.rider.findById(userId);
-              
-              if (userRow) {
-                  await helpers.sendEmail(
-                      userRow.email,
-                      `Your Earnings Have Been Added – Ready for Withdrawal!`,
-                      "earnings",
-                      {
-                          username: userRow?.full_name,
-                          adminData,
-                      }
-                  );
-              }
-          }
-          return res.status(200).json({
-              status: 1,
-              msg: "Emails sent successfully and earnings updated."
-          });
-
-      } catch (error) {
-          console.error("Error in getThreeDaysBeforeEarnings:", error);
-          return res.status(500).json({
-              status: 0,
-              msg: "Internal server error.",
-              error: error.message
-          });
+      // Update earning statuses to "cleared" in a single batch process
+      for (const row of rows) {
+        await this.rider.updateEarningStatusToCleared(row.id);
       }
+      for (const userId of uniqueUserIds) {
+        const userRow = await this.rider.findById(userId);
+
+        if (userRow) {
+          await helpers.sendEmail(
+            userRow.email,
+            `Your Earnings Have Been Added – Ready for Withdrawal!`,
+            "earnings",
+            {
+              username: userRow?.full_name,
+              adminData
+            }
+          );
+        }
+      }
+      return res.status(200).json({
+        status: 1,
+        msg: "Emails sent successfully and earnings updated."
+      });
+    } catch (error) {
+      console.error("Error in getThreeDaysBeforeEarnings:", error);
+      return res.status(500).json({
+        status: 0,
+        msg: "Internal server error.",
+        error: error.message
+      });
+    }
   }
 
   async getOrderDetailsByEncodedId(req, res) {
@@ -1131,7 +1189,6 @@ class RiderController extends BaseController {
       const request = await this.rider.getRequestById(requestId, rider.user.id);
       const parcels = await this.rider.getParcelDetailsByQuoteId(requestId);
 
-
       if (!request) {
         return res.status(200).json({ status: 0, msg: "Request not found." });
       }
@@ -1160,37 +1217,33 @@ class RiderController extends BaseController {
             .json({ status: 0, msg: "Error updating request status." });
         }
         let adminData = res.locals.adminData;
-        let request_row=request[0];
+        let request_row = request[0];
         const requestRow = {
-          ...request_row,  // Spread request properties into order
+          ...request_row, // Spread request properties into order
           parcels: parcels // Add parcels as an array inside order
         };
 
+        await helpers.sendEmail(
+          userRow.email,
+          "Order picked from source",
+          "source-picked-email",
+          {
+            adminData,
+            order: requestRow,
+            type: "user",
+            address: request_row?.source_address
+          }
+        );
 
-
-      await helpers.sendEmail(
-        userRow.email,
-        "Order picked from source",
-        "source-picked-email",
-        {
+        const templateData = {
+          username: userRow.full_name, // Pass username
           adminData,
           order: requestRow,
-          type: "user",
-          address:request_row?.source_address
-        }
-      );
+          type: "user"
+        };
+        // console.log("order:",requestRow);
 
-      const templateData = {
-        username: userRow.full_name, // Pass username
-        adminData,
-        order: requestRow,
-        type: "user"
-      };
-      // console.log("order:",requestRow);
-
-      notificationText = `Your request #${request_row.id} has been accepted by a rider at the source location: ${request_row?.source_address}.`;
-
-
+        notificationText = `Your request #${request_row.id} has been accepted by a rider at the source location: ${request_row?.source_address}.`;
       } else if (type?.toLowerCase() === "via") {
         if (!via_id) {
           return res
@@ -1218,28 +1271,25 @@ class RiderController extends BaseController {
             .json({ status: 0, msg: "Error updating via status." });
         }
         let adminData = res.locals.adminData;
-        let request_row=request[0];
-          const requestRow = {
-            ...request_row,  // Spread request properties into order
-            parcels: parcels // Add parcels as an array inside order
-          };
-
-
+        let request_row = request[0];
+        const requestRow = {
+          ...request_row, // Spread request properties into order
+          parcels: parcels // Add parcels as an array inside order
+        };
 
         await helpers.sendEmail(
           userRow.email,
-          "Rider reached at: "+via?.address,
+          "Rider reached at: " + via?.address,
           "source-picked-email",
           {
             adminData,
             order: requestRow,
             type: "user",
-            address:via?.address
+            address: via?.address
           }
         );
 
         notificationText = `Your request #${request_row.id} has been accepted by a rider at the via location: ${via?.address}.`;
-
       } else if (type?.toLowerCase() === "destination") {
         // Replicating source logic for destination update
         const deliveredTime = helpers.getUtcTimeInSeconds();
@@ -1258,27 +1308,24 @@ class RiderController extends BaseController {
             .json({ status: 0, msg: "Error updating destination status." });
         }
         let adminData = res.locals.adminData;
-        let request_row=request[0];
-          const requestRow = {
-            ...request_row,  // Spread request properties into order
-            parcels: parcels // Add parcels as an array inside order
-          };
-
-
+        let request_row = request[0];
+        const requestRow = {
+          ...request_row, // Spread request properties into order
+          parcels: parcels // Add parcels as an array inside order
+        };
 
         await helpers.sendEmail(
           userRow.email,
-          "Rider reached at: "+request_row?.dest_address,
+          "Rider reached at: " + request_row?.dest_address,
           "source-picked-email",
           {
             adminData,
             order: requestRow,
             type: "user",
-            address:request_row?.dest_address
+            address: request_row?.dest_address
           }
         );
         notificationText = `Your request #${request_row.id} has been accepted by a rider at the destination location: ${request_row?.dest_address}.`;
-
       } else {
         return res
           .status(200)
@@ -1379,18 +1426,18 @@ class RiderController extends BaseController {
         decodedRequestId,
         rider.user.id
       );
-      
+
       if (!request) {
         return res.status(200).json({ status: 0, msg: "Request not found." });
       }
-      const parcels_arr = await this.rider.getParcelDetailsByQuoteId(decodedRequestId);
+      const parcels_arr = await this.rider.getParcelDetailsByQuoteId(
+        decodedRequestId
+      );
       const member_row = await this.member.findById(request[0].user_id);
       const formattedHandballCharges = helpers.formatAmount(handball_charges);
       const formattedWaitingCharges = helpers.formatAmount(waiting_charges);
 
-
       let notificationText = "";
-
 
       // Handle source type logic
       if (type === "source") {
@@ -1452,28 +1499,25 @@ class RiderController extends BaseController {
           }
         }
         let adminData = res.locals.adminData;
-        let request_row=request[0];
-          const requestRow = {
-            ...request_row,  // Spread request properties into order
-            parcels: parcels_arr // Add parcels as an array inside order
-          };
-
-
+        let request_row = request[0];
+        const requestRow = {
+          ...request_row, // Spread request properties into order
+          parcels: parcels_arr // Add parcels as an array inside order
+        };
 
         await helpers.sendEmail(
           member_row.email,
-          "Rider completed at: "+request_row?.source_address,
+          "Rider completed at: " + request_row?.source_address,
           "request-mark-as-completed",
           {
             adminData,
             order: requestRow,
             type: "user",
-            address:request_row?.source_address,
-            invoice:formattedHandballCharges || formattedWaitingCharges ? 1 : 0
+            address: request_row?.source_address,
+            invoice: formattedHandballCharges || formattedWaitingCharges ? 1 : 0
           }
         );
         notificationText = `Your request #${request_row?.id} has been marked as completed at the source location: ${request_row?.source_address}.`;
-
       } else if (type === "via") {
         // Handle via type logic
         if (!via_id) {
@@ -1562,24 +1606,22 @@ class RiderController extends BaseController {
           }
         }
         let adminData = res.locals.adminData;
-        let request_row=request[0];
-          const requestRow = {
-            ...request_row,  // Spread request properties into order
-            parcels: parcels_arr // Add parcels as an array inside order
-          };
-
-
+        let request_row = request[0];
+        const requestRow = {
+          ...request_row, // Spread request properties into order
+          parcels: parcels_arr // Add parcels as an array inside order
+        };
 
         await helpers.sendEmail(
           member_row.email,
-          "Rider completed at: "+viaRow?.address,
+          "Rider completed at: " + viaRow?.address,
           "request-mark-as-completed",
           {
             adminData,
             order: requestRow,
             type: "user",
-            address:viaRow?.address,
-            invoice:formattedHandballCharges || formattedWaitingCharges ? 1 : 0
+            address: viaRow?.address,
+            invoice: formattedHandballCharges || formattedWaitingCharges ? 1 : 0
           }
         );
 
@@ -1642,11 +1684,11 @@ class RiderController extends BaseController {
           });
         }
         let adminData = res.locals.adminData;
-        let request_row=request[0];
-          const requestRow = {
-            ...request_row,  // Spread request properties into order
-            parcels: parcels_arr // Add parcels as an array inside order
-          };
+        let request_row = request[0];
+        const requestRow = {
+          ...request_row, // Spread request properties into order
+          parcels: parcels_arr // Add parcels as an array inside order
+        };
         if(attachments_arr?.length > 0){
           for (let attachment of attachments_arr) {
             await helpers.insertData('request_quote_attachments', {
@@ -1661,18 +1703,17 @@ class RiderController extends BaseController {
 
         await helpers.sendEmail(
           member_row.email,
-          "Rider completed at: "+request_row?.dest_address,
+          "Rider completed at: " + request_row?.dest_address,
           "request-mark-as-completed",
           {
             adminData,
             order: requestRow,
             type: "user",
-            address:request_row?.dest_address,
-            invoice:formattedHandballCharges || formattedWaitingCharges ? 1 : 0
+            address: request_row?.dest_address,
+            invoice: formattedHandballCharges || formattedWaitingCharges ? 1 : 0
           }
         );
         notificationText = `Your request #${request_row.id} has been marked as completed at the destination location: ${request_row?.dest_address}.`;
-
       } else {
         return res
           .status(200)
@@ -1854,24 +1895,26 @@ class RiderController extends BaseController {
       if (!userRow) {
         return res.status(200).json({ status: 0, msg: "Error fetching user" });
       }
-      let adminData = res.locals.adminData; 
-        // const request = await this.rider.getRequestById(54, 9);
-        const parcels = await this.rider.getParcelDetailsByQuoteId(decodedRequestId);
-        let request_row=request[0];
-         const requestRow = {
-          ...request_row,  // Spread request properties into order
-            parcels: parcels // Add parcels as an array inside order
-          };
-            const result=await helpers.sendEmail(
-              userRow.email,
-              "Order is completed - share your Review",
-              "request-completed",
-              {
-                adminData,
-                order: requestRow,
-                type: "user"
-              }
-            );
+      let adminData = res.locals.adminData;
+      // const request = await this.rider.getRequestById(54, 9);
+      const parcels = await this.rider.getParcelDetailsByQuoteId(
+        decodedRequestId
+      );
+      let request_row = request[0];
+      const requestRow = {
+        ...request_row, // Spread request properties into order
+        parcels: parcels // Add parcels as an array inside order
+      };
+      const result = await helpers.sendEmail(
+        userRow.email,
+        "Order is completed - share your Review",
+        "request-completed",
+        {
+          adminData,
+          order: requestRow,
+          type: "user"
+        }
+      );
       // console.log("request:",request);return;
 
       // Update the status using the model
@@ -2050,11 +2093,17 @@ class RiderController extends BaseController {
         riderId,
         "bank-account"
       );
-      let bank_payment_methods_arr=[]
+      let bank_payment_methods_arr = [];
       for (let bank_payment_method of bank_payment_methods) {
-        let state_name=await helpers.getStateNameByStateId(bank_payment_method.state)
-        bank_payment_method={...bank_payment_method,state:state_name,country:'United Kingdom'}
-        bank_payment_methods_arr.push(bank_payment_method)
+        let state_name = await helpers.getStateNameByStateId(
+          bank_payment_method.state
+        );
+        bank_payment_method = {
+          ...bank_payment_method,
+          state: state_name,
+          country: "United Kingdom"
+        };
+        bank_payment_methods_arr.push(bank_payment_method);
       }
       // console.log('bank_payment_methods_arr',bank_payment_methods_arr)
       const paypal_payment_methods =
@@ -2276,7 +2325,6 @@ class RiderController extends BaseController {
       const encryptedFileName = riderDocument;
       // console.log("encryptedFileName:", encryptedFileName);
 
-
       // Update document record
       await RiderModel.updateDocumentNameAndStatus(encryptedFileName, req_id);
 
@@ -2289,20 +2337,17 @@ class RiderController extends BaseController {
       //   // Construct document URL
       //   const documentUrl = `${process.env.ADMIN_BASE_URL}/uploads/${updatedDoc.document_name}`;
 
-
-      let adminData = res.locals.adminData; 
-                  const result=await helpers.sendEmail(
-                    adminData.receiving_site_email,
-                    "Document Uploaded: Rider has uploaded the document - FastUk",
-                    "document-uploaded",
-                    {
-                      adminData,
-                      rider,
-                      req_id
-                    }
-                  );
-      
-      
+      let adminData = res.locals.adminData;
+      const result = await helpers.sendEmail(
+        adminData.receiving_site_email,
+        "Document Uploaded: Rider has uploaded the document - FastUk",
+        "document-uploaded",
+        {
+          adminData,
+          rider,
+          req_id
+        }
+      );
 
       res.status(200).json({
         status: 1,

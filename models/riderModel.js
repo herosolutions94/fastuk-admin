@@ -944,6 +944,48 @@ async getCompletedOrdersByRider(riderId) {
       throw new Error("Failed to create withdraw detail.");
     }
   }
+
+  async insertRiderAttachment({ rider_id, filename, type }) {
+    const query = `
+      INSERT INTO rider_attachments (rider_id, filename, type)
+      VALUES (?, ?, ?)
+    `;
+    const values = [rider_id, filename, type];
+    console.log("values:",values)
+    await pool.query(query, values);
+  }
+
+  async createAttachments(attachments) {
+    const values = attachments.map(att => `('${att.rider_id}', '${att.filename}', '${att.type}')`).join(',');
+    const query = `INSERT INTO rider_attachments (rider_id, filename, type) VALUES ${values}`;
+    console.log("values:",values)
+    await pool.query(query);
+  }
+
+
+  async getRiderAttachments(riderId) {
+    const query = `SELECT * FROM rider_attachments WHERE rider_id = ?`;
+    const values = [riderId];
+    console.log("riderId:",riderId)
+    const [rows] = await pool.query(query, values); // Destructure only the rows
+    console.log("rows:", rows); // This should now log actual data
+    return rows;
+  }
+
+  async deleteAttachments(riderId) {
+    const query = "DELETE FROM rider_attachments WHERE rider_id = ?";
+    await pool.query(query, [riderId]);
+  }
+  
+  async insertAttachment(riderId, filename, type) {
+    const query = "INSERT INTO rider_attachments (rider_id, filename, type) VALUES (?, ?, ?)";
+    await pool.query(query, [riderId, filename, type]);
+  }
+  
+  
+  
+  
+  
   
   
   

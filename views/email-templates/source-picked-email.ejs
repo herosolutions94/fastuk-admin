@@ -89,7 +89,7 @@
           <% order.parcels.forEach(parcel => { %>
             <% totalDistance += parcel.distance; subtotal +=parseFloat(parcel.distance) * parseFloat(parcel.price) %>
               <tr>
-                <td style="padding: 13px"><%= parcel.parcel_number %><br /><%=parcel?.length%> x <%=parcel?.width%> x <%=parcel?.height%> x <%=parcel?.weight%></td>
+                <td style="padding: 13px"><%= parcel.parcel_number %><br /><%=parcel?.length%> x <%=parcel?.width%> x <%=parcel?.height%> x <%=parcel?.weight%>x <%=parcel?.quantity%></td>
                 <td style="padding: 13px"><%= parcel.source_address %></td>
                 <td style="padding: 13px"><%= parcel.destination_address %></td>
                 <td style="padding: 13px"><%= parcel.distance %> miles</td>

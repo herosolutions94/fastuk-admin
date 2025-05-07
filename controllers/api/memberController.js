@@ -2188,6 +2188,20 @@ class MemberController extends BaseController {
         updatedData.driving_license_num = driving_license_num;
         updatedData.dob = dob;
         await this.rider.updateRiderData(userId, updatedData); // Update rider data
+
+        // 🔽 NEW: Handle attachments
+  const { attachments } = req.body;
+  if (Array.isArray(attachments) && attachments.length > 0) {
+    // Optional: Delete old attachments
+    await this.rider.deleteAttachments(userId);
+
+    // Insert new attachments
+    for (const file of attachments) {
+      if (file.filename && file.type) {
+        await this.rider.insertAttachment(userId, file.filename, file.type);
+      }
+    }
+  }
       } else {
         return res
           .status(200)
