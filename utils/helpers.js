@@ -570,7 +570,16 @@ convertUtcToUKTime : function (utcTimeInSeconds) {
     return parseFloat(numericAmount.toFixed(2)); // e.g., 10.123 → 10.12
   },
   
+  insertData: async function(table, data) {
+    const columns = Object.keys(data);
+    const values = Object.values(data);
+    const placeholders = columns.map(() => '?').join(', ');
 
+    const sql = `INSERT INTO \`${table}\` (${columns.map(col => `\`${col}\``).join(', ')}) VALUES (${placeholders})`;
+
+    const [result] = await pool.execute(sql, values);
+    return result;
+  },
   storeNotification: async function (user_id, mem_type, sender, text, link = null) {
     // console.log("hi",users)
     try {
