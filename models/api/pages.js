@@ -75,16 +75,17 @@ class PageModel extends BaseModel {
             width,
             height,
             weight,
+            quantity,
             destination,
             source,
             parcel_number,
             distance,
             parcel_type)
-            VALUES(?,?,?,?,?,?,?,?,?,?)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?)
             
         `;
         for (const parcel of parcels) {
-            const values = [parcel.request_id, parcel.length, parcel.width, parcel.height, parcel.weight, parcel.destination, parcel.source, parcel.parcelNumber, parcel.distance, parcel.parcelType];
+            const values = [parcel.request_id, parcel.length, parcel.width, parcel.height, parcel.weight, parcel.quantity, parcel.destination, parcel.source, parcel.parcelNumber, parcel.distance, parcel.parcelType];
             // console.log('Inserting values:', values);
 
             const [result] = await pool.query(query, values);
@@ -115,7 +116,7 @@ class PageModel extends BaseModel {
     async insertOrderDetails(detailsArray) {
         const query = `
             INSERT INTO order_details 
-            (order_id, source_address, destination_address, distance, height, length, width, weight, parcel_number, parcel_type, price,source_lat,source_lng,destination_lat,destination_lng) 
+            (order_id, source_address, destination_address, distance, height, length, width, weight, quantity, parcel_number, parcel_type, price,source_lat,source_lng,destination_lat,destination_lng) 
             VALUES ?
         `;
     
@@ -129,6 +130,7 @@ class PageModel extends BaseModel {
         detail.length,
         detail.width,
         detail.weight,
+        detail.quantity,
         detail.parcel_number,
         detail.parcel_type,
         detail.price,
@@ -173,6 +175,19 @@ class PageModel extends BaseModel {
           throw error;
         }
       }
+
+       
+      async insertLicense ({ request_id, file_name, type, via_id, created_time }) {
+          const query = `
+            INSERT INTO request_quote_attachments (request_id, file_name, type, via_id, created_time)
+            VALUES (?, ?, ?, ?, ?)
+            `;
+          const values = [request_id, file_name, type, via_id, created_time];
+      
+          const result = await pool.query(query, values);
+          return result;
+        }
+      
     
     
 
