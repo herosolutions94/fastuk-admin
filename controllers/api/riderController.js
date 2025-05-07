@@ -1354,11 +1354,14 @@ class RiderController extends BaseController {
       encodedId,
       handball_charges,
       waiting_charges,
-      via_id
+      via_id,
+      attachments
     } = req.body;
     // console.log(req.body, "req.body");return;
 
     try {
+      let attachments_arr=attachments!==null && attachments!==undefined && attachments!=='' ? JSON.parse(attachments) : [];
+      // console.log(attachments_arr);return;
       // Step 1: Validate token and fetch rider
       const rider = await this.validateTokenAndGetMember(token, "rider");
       if (!rider) {
@@ -1437,6 +1440,16 @@ class RiderController extends BaseController {
             status: 0,
             msg: "Error updating source completion status"
           });
+        }
+        if(attachments_arr?.length > 0){
+          for (let attachment of attachments_arr) {
+            await helpers.insertData('request_quote_attachments', {
+              request_id: decodedRequestId,
+              file_name: attachment,
+              type: 'source',
+              created_time:helpers.getUtcTimeInSeconds()
+            });
+          }
         }
         let adminData = res.locals.adminData;
         let request_row=request[0];
@@ -1537,6 +1550,17 @@ class RiderController extends BaseController {
             msg: "Error updating updated_time in request_quote"
           });
         }
+         if(attachments_arr?.length > 0){
+          for (let attachment of attachments_arr) {
+            await helpers.insertData('request_quote_attachments', {
+              request_id: decodedRequestId,
+              file_name: attachment,
+              type: 'via',
+              via_id:via_id,
+              created_time:helpers.getUtcTimeInSeconds()
+            });
+          }
+        }
         let adminData = res.locals.adminData;
         let request_row=request[0];
           const requestRow = {
@@ -1623,7 +1647,16 @@ class RiderController extends BaseController {
             ...request_row,  // Spread request properties into order
             parcels: parcels_arr // Add parcels as an array inside order
           };
-
+        if(attachments_arr?.length > 0){
+          for (let attachment of attachments_arr) {
+            await helpers.insertData('request_quote_attachments', {
+              request_id: decodedRequestId,
+              file_name: attachment,
+              type: 'destination',
+              created_time:helpers.getUtcTimeInSeconds()
+            });
+          }
+        }
 
 
         await helpers.sendEmail(
