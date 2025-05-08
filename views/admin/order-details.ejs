@@ -122,6 +122,13 @@
                   <div class="list-group-item">
                     <div class="d-flex w-100">
                       <p>
+                        <strong>End Date: </strong><%= helpers.formatDateToUK(order.end_date) %>
+                      </p>
+                    </div>
+                  </div>
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <p>
                         <strong>Notes: </strong><%= order.notes %>
                       </p>
                     </div>
@@ -238,6 +245,13 @@
                                   <strong style="margin-left:3px;margin-left:3px"><%=helpers.convertUtcToUkFormat(order?.picked_time)%></strong>
                                 </p>
                           <% } %>
+                          <% if (order.source_attachments && order.source_attachments.length) { %>
+                            <div class="attachments">
+                              <% order.source_attachments.forEach(file => { %>
+                                <img src="/uploads/<%= file.file_name %>" alt="Source Attachment" class="img-thumbnail" style="max-width: 150px; margin-right: 10px;">
+                              <% }); %>
+                            </div>
+                          <% } %>
                           <% if (order?.source_completed ==1) { %>
                             <p>
                                   Package has been picked
@@ -246,6 +260,7 @@
                     </div>
                   </div>
                 </div>
+                
                 <div class="list-group-item">
                    <% order?.vias.forEach((via, index) => { 
                         let formattedTime = via.picked_time 
@@ -266,6 +281,14 @@
                                             <%= message %><br />
                                         <% }); %>
                                     </p>
+                                    <% if (via.attachments && via.attachments.length) { %>
+                                      <div class="attachments">
+                                        <% via.attachments.forEach(file => { %>
+                                          <img src="/uploads/<%= file.file_name %>" alt="Via Attachment" class="img-thumbnail" style="max-width: 150px; margin-right: 10px;">
+                                        <% }); %>
+                                      </div>
+                                    <% } %>
+                                    
                                     <% if (via.is_picked === 1) { %>
                                         <div class="time_block">
                                             <p>Rider have reached <strong><%= via.address %></strong> at <strong><%= formattedTime %></strong></p>
@@ -303,6 +326,13 @@
                                   <strong style="margin-left:3px;margin-right:3px"><%=order?.dest_address%></strong> at 
                                   <strong style="margin-left:3px;margin-left:3px"><%=helpers.convertUtcToUkFormat(order?.delivered_time)%></strong>
                                 </p>
+                          <% } %>
+                          <% if (order.destination_attachments && order.destination_attachments.length) { %>
+                            <div class="attachments">
+                              <% order.destination_attachments.forEach(file => { %>
+                                <img src="/uploads/<%= file.file_name %>" alt="Destination Attachment" class="img-thumbnail" style="max-width: 150px; margin-right: 10px;">
+                              <% }); %>
+                            </div>
                           <% } %>
                           <% if (order?.finished ==1) { %>
                             <p>

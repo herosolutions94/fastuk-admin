@@ -125,6 +125,7 @@ async assignRiderAndUpdateStatus(riderId, requestId) {
     // Get current date in YYYY-MM-DD format
     const assignedDate = new Date().toISOString().split('T')[0];
     const updatedTime = helpers.getUtcTimeInSeconds();
+    const endTime = helpers.addTwoDaysToDate();
 
 
     const query = `
@@ -132,13 +133,14 @@ async assignRiderAndUpdateStatus(riderId, requestId) {
         SET 
             assigned_rider = ?, 
             assigned_date = ?, 
+            end_date = ?, 
             status = 'accepted',
             updated_time = ?  
         WHERE 
             id = ?`; // Ensure the current status is 'paid'
 
-    const [result] = await pool.query(query, [riderId, assignedDate,updatedTime, requestId]);
-    // console.log("result:", result)
+    const [result] = await pool.query(query, [riderId, assignedDate, endTime, updatedTime, requestId]);
+    console.log("endTime:", endTime)
     return result; // Contains affectedRows and other info
 }
 
