@@ -607,7 +607,7 @@ console.log('Is array:', Array.isArray(attachments));
             vias: vias,
             parcels: parcels,
             rider_name: loggedInUser?.full_name,
-            start_date: helpers.formatDateToUK(request_row?.start_date)
+            start_date: helpers.formatDateToUK(request_row?.start_date),
           };
         }
       }
@@ -1100,7 +1100,7 @@ console.log('Is array:', Array.isArray(attachments));
         requestId: decodedId
       });
       // console.log(rider.id, decodedId)
-      // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
+      console.log("Order from DB:", order); // Add this line to log the order fetched from the database
 
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Order not found." });
@@ -1133,9 +1133,22 @@ console.log('Is array:', Array.isArray(attachments));
       const formattedPaidAmount = helpers.formatAmount(paidAmount);
       const formattedDueAmount = helpers.formatAmount(dueAmount);
 
+      const source_attachments = await helpers.getDataFromDB('request_quote_attachments', { request_id: order.id,type:'source' });
+      const destination_attachments = await helpers.getDataFromDB('request_quote_attachments', { request_id: order.id,type:'destination' });
+      for (let via of vias) {
+        const via_attachments = await helpers.getDataFromDB('request_quote_attachments', {
+          request_id: order.id,
+          type: 'via',
+          via_id: via?.id
+        });
+      
+        via.attachments = via_attachments; // Add attachments array to each via
+      }
+
       order = {
         ...order,
         formatted_start_date: helpers.formatDateToUK(order?.start_date),
+        formatted_end_date: helpers.formatDateToUK(order?.end_date),
         encodedId: encodedId,
         parcels: parcels,
         vias: vias,
@@ -1145,10 +1158,14 @@ console.log('Is array:', Array.isArray(attachments));
         formattedDueAmount,
         reviews: reviews,
         dueAmount: dueAmount,
-        vehicle
+        vehicle,
+        source_attachments:source_attachments,
+        destination_attachments:destination_attachments
       };
       // Fetch parcels and vias based on the quoteId from the order
       // Assuming order.quote_id is the relevant field
+
+      // console.log("order:",order)
 
       // Return the order details along with parcels and vias
       return res.status(200).json({
@@ -1408,6 +1425,8 @@ console.log('Is array:', Array.isArray(attachments));
 
     try {
       let attachments_arr=attachments!==null && attachments!==undefined && attachments!=='' ? JSON.parse(attachments) : [];
+      let sourceAttachments = []; // <- declare here
+
       // console.log(attachments_arr);return;
       // Step 1: Validate token and fetch rider
       const rider = await this.validateTokenAndGetMember(token, "rider");
@@ -1441,6 +1460,10 @@ console.log('Is array:', Array.isArray(attachments));
 
       // Handle source type logic
       if (type === "source") {
+
+        
+
+
         // Step 2: Create invoice entries for source charges
         if (formattedHandballCharges) {
           const handballInvoice = await this.rider.createInvoiceEntry(
@@ -1498,11 +1521,13 @@ console.log('Is array:', Array.isArray(attachments));
             });
           }
         }
+
+
         let adminData = res.locals.adminData;
         let request_row = request[0];
         const requestRow = {
           ...request_row, // Spread request properties into order
-          parcels: parcels_arr // Add parcels as an array inside order
+          parcels: parcels_arr, // Add parcels as an array inside order
         };
 
         await helpers.sendEmail(
@@ -1754,7 +1779,18 @@ console.log('Is array:', Array.isArray(attachments));
 
       const formattedPaidAmount = helpers.formatAmount(paidAmount);
       const formattedDueAmount = helpers.formatAmount(dueAmount);
-
+      const source_attachments = await helpers.getDataFromDB('request_quote_attachments', { request_id: order.id,type:'source' });
+      const destination_attachments = await helpers.getDataFromDB('request_quote_attachments', { request_id: order.id,type:'destination' });
+      for (let via of vias) {
+        const via_attachments = await helpers.getDataFromDB('request_quote_attachments', {
+          request_id: order.id,
+          type: 'via',
+          via_id: via?.id
+        });
+      
+        via.attachments = via_attachments; // Add attachments array to each via
+      }
+      
       const formattedOrder = {
         ...order,
         encodedId,
@@ -1765,9 +1801,12 @@ console.log('Is array:', Array.isArray(attachments));
         viasCount,
         formattedPaidAmount,
         formattedDueAmount,
-        dueAmount: dueAmount
+        dueAmount: dueAmount,
+        sourceAttachments:sourceAttachments,
+        source_attachments:source_attachments,
+        destination_attachments:destination_attachments
       };
-      // console.log(formattedOrder)
+      // console.log("formattedOrder:",formattedOrder)
 
       const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
 
