@@ -489,8 +489,12 @@ getStateNameByStateId:async function(state_id) {
 
     return ukFormattedDate;
 },
-
-
+addTwoDaysToDate: function () {
+  const currentDate = new Date();
+  currentDate.setDate(currentDate.getDate() + 2);
+  console.log("currentDate:",currentDate)
+  return currentDate;
+},
 
 
 convertUtcToUKTime : function (utcTimeInSeconds) {
@@ -848,6 +852,22 @@ access: async function (req, permissionId) {
   const permissions = req.session.permissions || [];
   return permissions.includes(permissionId.toString()); 
 },
+getDataFromDB: async function (table, conditions) {
+  try {
+    const keys = Object.keys(conditions);
+    const values = Object.values(conditions);
+
+    const whereClause = keys.map(key => `${key} = ?`).join(' AND ');
+    const query = `SELECT * FROM ${table} WHERE ${whereClause}`;
+
+    const [rows] = await pool.query(query, values);
+    return rows;
+  } catch (err) {
+    console.error('DB Error:', err);
+    return [];
+  }
+},
+
 // getCount: async function (table, whereCondition, values) {
 //   try {
 //       const query = `SELECT COUNT(*) AS count FROM ${table} WHERE ${whereCondition}`;
@@ -858,6 +878,19 @@ access: async function (req, permissionId) {
 //       throw error;
 //   }
 // }
+
+getSourceAttachments: async function(request_id) {
+  const query = `
+    SELECT * 
+    FROM request_quote_attachments 
+    WHERE request_id = ? AND type = 'source' 
+    ORDER BY id ASC
+  `;
+  const [rows] = await pool.query(query, [request_id]);
+  return rows;
+}
+
+
 
 
 
