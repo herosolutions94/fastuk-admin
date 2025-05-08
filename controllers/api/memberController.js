@@ -499,7 +499,8 @@ class MemberController extends BaseController {
 
       // Get the main page content
       const vehiclesData = await vehicleModel.findFeatured();
-      const vehicleCategoriesData = await VehicleCategoryModel.getActiveVehicleCategories();
+      const vehicleCategoriesData =
+        await VehicleCategoryModel.getActiveVehicleCategories();
       // console.log("vehicleCategoriesData:",vehicleCategoriesData)
 
       let member = null;
@@ -565,8 +566,7 @@ class MemberController extends BaseController {
         paymentMethods, // Simplified payment methods
         remotePostCodes // Add the remote post codes
       };
-            console.log("jsonResponse:",jsonResponse)
-
+      console.log("jsonResponse:", jsonResponse);
 
       // Return data in JSON format
       res.json(jsonResponse);
@@ -637,7 +637,6 @@ class MemberController extends BaseController {
       "dest_city",
       "source_full_address",
       "dest_full_address",
-      "charge_agreement",
       "card_holder_name",
       "confirm",
       "totalAmount",
@@ -661,11 +660,14 @@ class MemberController extends BaseController {
     // console.log(memType)
     try {
       const siteSettings = res.locals.adminData;
-      let order_amount_details=helpers.calculateOrderSummary(order_details,siteSettings);
-      const total_distance=order_amount_details?.totalDistance;
-      let total_amount=order_amount_details?.totalAmount;
-      let taxAmount=order_amount_details?.taxAmount;
-      let grandTotal=order_amount_details?.grandTotal;
+      let order_amount_details = helpers.calculateOrderSummary(
+        order_details,
+        siteSettings
+      );
+      const total_distance = order_amount_details?.totalDistance;
+      let total_amount = order_amount_details?.totalAmount;
+      let taxAmount = order_amount_details?.taxAmount;
+      let grandTotal = order_amount_details?.grandTotal;
       let parcel_price_obj = helpers.calculateParcelsPrice(
         order_details,
         siteSettings?.site_processing_fee
@@ -779,7 +781,7 @@ class MemberController extends BaseController {
         "email-verify",
         templateData
       );
-      
+
       console.log("result:", result);
       if (
         grandTotal == undefined ||
@@ -794,25 +796,28 @@ class MemberController extends BaseController {
 
       let discount = 0;
 
-
       let formattedTotalPrice = helpers.formatAmount(grandTotal);
 
-
-       let subTotal=0; 
-       console.log(promo_code);
-      if (promo_code !== "" && promo_code !== null && promo_code !== "null" && promo_code!==undefined) {
+      let subTotal = 0;
+      console.log(promo_code);
+      if (
+        promo_code !== "" &&
+        promo_code !== null &&
+        promo_code !== "null" &&
+        promo_code !== undefined
+      ) {
         const promo = await this.promoCodeModel.findByCode(promo_code);
 
         if (!promo) {
-          return res.status(200).json({ status:0,msg: "Invalid promo code." });
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Invalid promo code." });
         }
 
         const currentDate = new Date();
         if (promo.expiry_date && new Date(promo.expiry_date) < currentDate) {
           return res.status(200).json({ error: "Promo code has expired." });
         }
-
-        
 
         if (promo.promo_code_type === "percentage") {
           discount = (total_amount * promo.percentage_value) / 100;
@@ -825,8 +830,7 @@ class MemberController extends BaseController {
         formattedTotalPrice = total_amount - discount;
         formattedTotalPrice = formattedTotalPrice + taxAmount;
         formattedTotalPrice = parseFloat(formattedTotalPrice.toFixed(2));
-
-      };
+      }
       // Handle payment logic
       const parsedAmount = parseFloat(formattedTotalPrice);
       if (isNaN(parsedAmount) || parsedAmount <= 0) {
@@ -997,7 +1001,7 @@ class MemberController extends BaseController {
               const orderRow = {
                 ...orderDetails,
                 parcels: parcelsArray,
-                start_date: helpers.formatDateToUK(orderDetails.start_date)
+                start_date: helpers.formatDateToUK(orderDetails.start_date),
               };
               await helpers.sendEmail(
                 rider.email,
@@ -1036,7 +1040,7 @@ class MemberController extends BaseController {
           const orderRow = {
             ...orderDetails,
             parcels: parcelsArray,
-            start_date: helpers.formatDateToUK(orderDetails.start_date)
+            start_date: helpers.formatDateToUK(orderDetails.start_date),
           };
 
           const templateData = {
@@ -1334,19 +1338,23 @@ class MemberController extends BaseController {
             .json({ status: 0, msg: "'parcels' must be an array" });
         }
         const siteSettings = res.locals.adminData;
-        let order_amount_details=helpers.calculateOrderSummary(order_details,siteSettings);
-        let total_distance=order_amount_details?.totalDistance;
-        let total_amount=order_amount_details?.totalAmount;
-        let grandTotal=order_amount_details?.grandTotal;
-        let taxAmount=order_amount_details?.taxAmount;
+        let order_amount_details = helpers.calculateOrderSummary(
+          order_details,
+          siteSettings
+        );
+        let total_distance = order_amount_details?.totalDistance;
+        let total_amount = order_amount_details?.totalAmount;
+        let grandTotal = order_amount_details?.grandTotal;
+        let taxAmount = order_amount_details?.taxAmount;
         // console.log(order_amount_details);return;
         const parsedStartDate = date ? new Date(date) : null;
+        
         // if (!parsedStartDate || isNaN(parsedStartDate)) {
         //   return res
         //     .status(200)
         //     .json({ status: 0, msg: "Invalid start_date format" });
         // }
-        
+
         let parcel_price_obj = helpers.calculateParcelsPrice(
           order_details,
           siteSettings?.site_processing_fee
@@ -1354,41 +1362,43 @@ class MemberController extends BaseController {
 
         const formattedRiderPrice = helpers.formatAmount(rider_price || 0);
         const formattedVehiclePrice = helpers.formatAmount(price || 0);
-        let formattedTotalAmount = helpers.formatAmount(
-          grandTotal || 0
-        );
+        let formattedTotalAmount = helpers.formatAmount(grandTotal || 0);
         const formattedTax = helpers.formatAmount(taxAmount || 0);
 
         let discount = 0;
-        
+
         // console.log(formattedTotalAmount,formattedTax);return;
-         if (promo_code !== "" && promo_code !== null && promo_code !== "null" && promo_code!==undefined) {
-            const promo = await this.promoCodeModel.findByCode(promo_code);
+        if (
+          promo_code !== "" &&
+          promo_code !== null &&
+          promo_code !== "null" &&
+          promo_code !== undefined
+        ) {
+          const promo = await this.promoCodeModel.findByCode(promo_code);
 
-            if (!promo) {
-              return res.status(200).json({ status:0,msg: "Invalid promo code." });
-            }
+          if (!promo) {
+            return res
+              .status(200)
+              .json({ status: 0, msg: "Invalid promo code." });
+          }
 
-            const currentDate = new Date();
-            if (promo.expiry_date && new Date(promo.expiry_date) < currentDate) {
-              return res.status(200).json({ error: "Promo code has expired." });
-            }
+          const currentDate = new Date();
+          if (promo.expiry_date && new Date(promo.expiry_date) < currentDate) {
+            return res.status(200).json({ error: "Promo code has expired." });
+          }
 
-            
+          if (promo.promo_code_type === "percentage") {
+            discount = (total_amount * promo.percentage_value) / 100;
+          } else if (promo.promo_code_type === "amount") {
+            discount = promo.percentage_value;
+          } else {
+            return res.status(200).json({ error: "Promo code has expired." });
+          }
 
-            if (promo.promo_code_type === "percentage") {
-              discount = (total_amount * promo.percentage_value) / 100;
-            } else if (promo.promo_code_type === "amount") {
-              discount = promo.percentage_value;
-            } else {
-              return res.status(200).json({ error: "Promo code has expired." });
-            }
-
-            formattedTotalAmount = total_amount - discount;
-            formattedTotalAmount = formattedTotalAmount + taxAmount;
-            formattedTotalAmount = parseFloat(formattedTotalAmount.toFixed(2));
-
-          };
+          formattedTotalAmount = total_amount - discount;
+          formattedTotalAmount = formattedTotalAmount + taxAmount;
+          formattedTotalAmount = parseFloat(formattedTotalAmount.toFixed(2));
+        }
 
         // console.log("Remote price",formattedRemotePrice)
         // console.log("Remote price",remote_price)
@@ -1721,7 +1731,7 @@ class MemberController extends BaseController {
           length: detail.length,
           width: detail.width,
           weight: detail.weight || null,
-          quantity: detail.quantity || null,          
+          quantity: detail.quantity || null,
           parcel_number: detail.parcelNumber,
           parcel_type: detail.parcelType,
           price: helpers.formatAmount(detail?.price),
@@ -1806,7 +1816,7 @@ class MemberController extends BaseController {
               orderRow = {
                 ...orderRow,
                 parcels: parcelsArray,
-                start_date: helpers.formatDateToUK(orderRow.start_date)
+                start_date: helpers.formatDateToUK(orderRow.start_date),
               };
               await helpers.sendEmail(
                 rider.email,
@@ -1844,7 +1854,7 @@ class MemberController extends BaseController {
           orderRow = {
             ...orderRow,
             parcels: parcelsArray,
-            start_date: helpers.formatDateToUK(orderRow.start_date)
+            start_date: helpers.formatDateToUK(orderRow.start_date),
           };
           // console.log("order:",orderRow)
 
@@ -2190,18 +2200,22 @@ class MemberController extends BaseController {
         await this.rider.updateRiderData(userId, updatedData); // Update rider data
 
         // 🔽 NEW: Handle attachments
-  const { attachments } = req.body;
-  if (Array.isArray(attachments) && attachments.length > 0) {
-    // Optional: Delete old attachments
-    await this.rider.deleteAttachments(userId);
+        const { attachments } = req.body;
+        if (Array.isArray(attachments) && attachments.length > 0) {
+          // Optional: Delete old attachments
+          await this.rider.deleteAttachments(userId);
 
-    // Insert new attachments
-    for (const file of attachments) {
-      if (file.filename && file.type) {
-        await this.rider.insertAttachment(userId, file.filename, file.type);
-      }
-    }
-  }
+          // Insert new attachments
+          for (const file of attachments) {
+            if (file.filename && file.type) {
+              await this.rider.insertAttachment(
+                userId,
+                file.filename,
+                file.type
+              );
+            }
+          }
+        }
       } else {
         return res
           .status(200)
@@ -2528,6 +2542,27 @@ class MemberController extends BaseController {
       const formattedDueAmount = helpers.formatAmount(dueAmount);
       // console.log("order:", order); // Add this line to log the decoded ID
 
+      const source_attachments = await helpers.getDataFromDB(
+        "request_quote_attachments",
+        { request_id: order.id, type: "source" }
+      );
+      const destination_attachments = await helpers.getDataFromDB(
+        "request_quote_attachments",
+        { request_id: order.id, type: "destination" }
+      );
+      for (let via of vias) {
+        const via_attachments = await helpers.getDataFromDB(
+          "request_quote_attachments",
+          {
+            request_id: order.id,
+            type: "via",
+            via_id: via?.id
+          }
+        );
+
+        via.attachments = via_attachments; // Add attachments array to each via
+      }
+
       order = {
         ...order,
         formatted_start_date: helpers.formatDateToUK(order?.start_date),
@@ -2538,7 +2573,9 @@ class MemberController extends BaseController {
         dueAmount: formattedDueAmount,
         paidAmount: formattedPaidAmount,
         viasCount: viasCount,
-        reviews: reviews
+        reviews: reviews,
+        source_attachments: source_attachments,
+        destination_attachments: destination_attachments
       };
       // Fetch parcels and vias based on the quoteId from the order
       // Assuming order.quote_id is the relevant field
@@ -3650,13 +3687,11 @@ class MemberController extends BaseController {
 
           await this.pageModel.insertInCredits(creditEntry);
 
-          return res
-            .status(200)
-            .json({
-              status: 1,
-              msg: "Credits added successfully.",
-              invoiceId: result.insertId
-            });
+          return res.status(200).json({
+            status: 1,
+            msg: "Credits added successfully.",
+            invoiceId: result.insertId
+          });
         } else {
           return res
             .status(500)
