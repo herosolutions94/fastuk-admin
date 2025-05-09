@@ -1432,7 +1432,8 @@ class MemberController extends BaseController {
             start_date: parsedStartDate,
             notes: notes,
             promo_code: promo_code,
-            discount: discount
+            discount: discount,
+            request_status:'active'
             // Pass start_date from the frontend
           });
         } else if (payment_method === "saved-card") {
@@ -1554,7 +1555,8 @@ class MemberController extends BaseController {
             start_date: new Date(date),
             notes: notes,
             promo_code: promo_code,
-            discount: discount
+            discount: discount,
+            request_status:'active'
           });
         } else if (payment_method === "credits") {
           if (member?.total_credits <= 0) {
@@ -1596,7 +1598,8 @@ class MemberController extends BaseController {
             start_date: new Date(date),
             notes: notes,
             promo_code: promo_code,
-            discount: discount
+            discount: discount,
+            request_status:'active'
           });
         } else if (payment_method === "paypal") {
           payment_intent_id = "";
@@ -1628,7 +1631,8 @@ class MemberController extends BaseController {
             notes: notes,
             status: "pending",
             promo_code: promo_code,
-            discount: discount
+            discount: discount,
+            request_status:'active'
           });
         } else if (payment_method === "apple-pay") {
           try {
@@ -1660,7 +1664,8 @@ class MemberController extends BaseController {
               start_date: new Date(date),
               notes: notes,
               promo_code: promo_code,
-              discount: discount
+              discount: discount,
+              request_status:'active'
             });
           } catch (error) {
             console.error("Stripe Error:", error);
@@ -1678,8 +1683,8 @@ class MemberController extends BaseController {
         const parcelRecords = parcelsArr.map((parcel) => ({
           request_id: requestQuoteId,
           length: parcel.length,
-          width: parcel.width,
-          height: parcel.height,
+          width: parcel.width ? parcel.width : null,
+          height: parcel.height ? parcel.height : null,
           weight: parcel.weight || null,
           quantity: parcel.quantity || null,
           destination: parcel.destination,
@@ -1727,9 +1732,9 @@ class MemberController extends BaseController {
           source_address: detail.source,
           destination_address: detail.destination,
           distance: detail.distance,
-          height: detail.height,
-          length: detail.length,
-          width: detail.width,
+          height: detail.height || null,
+          length: detail.length || null,
+          width: detail.width || null,
           weight: detail.weight || null,
           quantity: detail.quantity || null,
           parcel_number: detail.parcelNumber,
