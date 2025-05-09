@@ -80,15 +80,7 @@
                         <strong>Status: </strong><p>
                
             </p>
-             <% if (order && order.status === 'completed') { %>
-                    <a href="#" class="status badge success">Completed</a>
-                <% } else if (order && order.status === 'accepted') { %>
-                    <a href="#" class="status badge warning">In Progress</a>
-                <% } else if (order && order.status === 'paid') { %>
-                    <a href="#" class="status badge success">Paid</a>
-                <% } else { %>
-                    <a href="#" class="status badge warning">Unknown Status</a>
-                <% } %>
+             <%- helpers.getRequestOrderStatus(order.request_status) %>
                     </div>
                   </div>
                   <div class="list-group-item">
