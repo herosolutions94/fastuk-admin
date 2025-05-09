@@ -2571,6 +2571,7 @@ class MemberController extends BaseController {
       order = {
         ...order,
         formatted_start_date: helpers.formatDateToUK(order?.start_date),
+        formatted_end_date: helpers.formatDateToUK(order?.end_date),
         encodedId: encodedId,
         parcels: parcels,
         vias: vias,
