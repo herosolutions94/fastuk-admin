@@ -63,6 +63,23 @@ module.exports = {
   //     throw error;
   //   }
   // },
+  getRequestOrderStatus: function(status) {
+    if (status === 'accepted') {
+      return 'Accepted';
+    } else if (status === 'on-way-pickup') {
+      return 'On way to (Collection/pickup)';
+    } else if (status === 'on-site-pickup') {
+      return 'On site (collection/pickup)';
+    } else if (status === 'loaded') {
+      return 'Loaded';
+    } else if (status === 'on-site-delivery') {
+      return 'On site (delivery/destination)';
+    } else if (status === 'delivered') {
+      return 'Delivered';
+    } else {
+      return 'Active';
+    }
+  },
   calculateOrderSummary: function(order_details, siteSettings) {
     try {
       // Parse the input as an array

@@ -33,6 +33,7 @@ router.get('/update-rider-earnings-status', riderController.getThreeDaysBeforeEa
 router.post('/get-rider-document-requests', upload, riderController.getRiderDocumentsApi.bind(riderController));
 router.post('/upload-rider-document', upload, riderController.uploadRiderDocument.bind(riderController));
 router.post('/delete-rider-document', upload, riderController.deleteRiderDocument.bind(riderController));
+router.post('/change-order-request-status', upload, riderController.changeOrderRequestStatus.bind(riderController));
 
 
 
