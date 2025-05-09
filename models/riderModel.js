@@ -135,6 +135,7 @@ async assignRiderAndUpdateStatus(riderId, requestId) {
             assigned_date = ?, 
             end_date = ?, 
             status = 'accepted',
+            request_status = 'accepted',
             updated_time = ?  
         WHERE 
             id = ?`; // Ensure the current status is 'paid'
@@ -142,6 +143,25 @@ async assignRiderAndUpdateStatus(riderId, requestId) {
     const [result] = await pool.query(query, [riderId, assignedDate, endTime, updatedTime, requestId]);
     console.log("endTime:", endTime)
     return result; // Contains affectedRows and other info
+}
+async UpdateOrderStatus(riderId, requestId,request_status) {
+    // console.log(requestId,riderId)
+    // Get current date in YYYY-MM-DD format
+    const status_date = new Date().toISOString().split('T')[0];
+    const updatedTime = helpers.getUtcTimeInSeconds();
+
+
+    const query = `
+        UPDATE request_quote 
+        SET 
+            status_date = ?, 
+            request_status = ?,
+            updated_time = ?  
+        WHERE 
+            id = ?`;
+
+    const [result] = await pool.query(query, [status_date, request_status,updatedTime, requestId]);
+    return result; 
 }
 
 async getOrdersByRiderAndStatus({ riderId, status }) {

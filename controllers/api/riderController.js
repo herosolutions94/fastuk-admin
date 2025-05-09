@@ -529,6 +529,96 @@ console.log('Is array:', Array.isArray(attachments));
     }
   }
 
+  async changeOrderRequestStatus(req, res) {
+    try {
+      const { token, memType, encodedId,status } = req.body;
+
+      if (!token || !memType || !encodedId) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Token, memType, and requestId are required."
+        });
+      }
+      const request_id = helpers.doDecode(encodedId);
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse); // Return error from token validation
+      }
+
+      const loggedInUser = userResponse.user;
+      const requestQuote = await this.rider.getRequestQuoteById(request_id);
+      if (!requestQuote) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Request quote not found." });
+      }
+      const userRow = await this.member.findById(requestQuote.user_id);
+      if (!userRow) {
+        return res.status(200).json({ status: 0, msg: "Error fetching user" });
+      }
+      const updateStatus = await this.rider.UpdateOrderStatus(
+        loggedInUser.id,
+        request_id,
+        status
+      );
+      // console.log("updateStatus:", updateStatus);
+
+      if (updateStatus.affectedRows === 0) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Failed to assign rider to the request." });
+      }
+      let request_row = await this.getCompleteOrderObject(loggedInUser.id,request_id,encodedId);
+
+
+      const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
+
+      const requestStatusText=helpers.getRequestOrderStatus(status);
+      const notificationText = `Your request #${request_id} is updated to ${requestStatusText}.`;
+
+      await helpers.storeNotification(
+        request_row.user_id, // The user ID from request_quote
+        userRow?.mem_type, // The user's member type
+        loggedInUser.id,
+        notificationText,
+        orderDetailsLink
+      );
+
+      let adminData = res.locals.adminData;
+      const user = await this.member.findById(request_row.user_id);
+
+      await helpers.sendEmail(
+        user.email,
+        "Order Status is: "+requestStatusText,
+        "rider-status-update-email",
+        {
+          adminData,
+          order: request_row,
+          type: "user"
+        }
+      );
+      request_row={...request_row,request_status_text:requestStatusText,rider_name: loggedInUser?.full_name,}
+      const templateData = {
+        username: user.full_name, // Pass username
+        adminData,
+        order: request_row,
+        type: "user",
+      };
+      // console.log("templateData:",templateData)
+
+      return res.status(200).json({
+        status: 1,
+        msg: "status updated successfully.",
+        order: request_row
+      });
+    }
+    catch (error) {
+      console.error("Error assigning rider:", error.message);
+      return res
+        .status(200)
+        .json({ status: 0, msg: "An error occurred.", error: error.message });
+    }
+  }
   async assignRiderToRequest(req, res) {
     try {
       const { token, memType, request_id } = req.body;
@@ -1065,6 +1155,64 @@ console.log('Is array:', Array.isArray(attachments));
     }
   }
 
+  async getCompleteOrderObject(rider_id,order_id,encodedId) {
+    let order = await this.rider.getOrderDetailsById({
+        assignedRiderId: rider_id,
+        requestId: order_id
+      });
+      // console.log(rider.id, decodedId)
+      console.log("Order from DB:", order); // Add this line to log the order fetched from the database
+
+      if (!order) {
+        return res.status(200).json({ status: 0, msg: "Order not found." });
+      }
+      const viasCount = await this.rider.countViasBySourceCompleted(order.id);
+
+      // const parcels = await this.rider.getParcelsByQuoteId(order.id); // Assuming order.quote_id is the relevant field
+      const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
+      const vias = await this.rider.getViasByQuoteId(order.id);
+      const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
+      const paidAmount = await RequestQuoteModel.totalPaidAmount(order.id);
+      const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
+      const reviews = await this.rider.getOrderReviews(order.id);
+      // console.log(paidAmount,dueAmount)
+
+      const formattedPaidAmount = helpers.formatAmount(paidAmount);
+      const formattedDueAmount = helpers.formatAmount(dueAmount);
+
+      const source_attachments = await helpers.getDataFromDB('request_quote_attachments', { request_id: order.id,type:'source' });
+      const destination_attachments = await helpers.getDataFromDB('request_quote_attachments', { request_id: order.id,type:'destination' });
+      for (let via of vias) {
+        const via_attachments = await helpers.getDataFromDB('request_quote_attachments', {
+          request_id: order.id,
+          type: 'via',
+          via_id: via?.id
+        });
+      
+        via.attachments = via_attachments; // Add attachments array to each via
+      }
+let vehicle = order.selected_vehicle
+        ? await VehicleModel.getVehicleById(order.selected_vehicle)
+        : null;
+      order = {
+        ...order,
+        formatted_start_date: helpers.formatDateToUK(order?.start_date),
+        formatted_end_date: helpers.formatDateToUK(order?.end_date),
+        encodedId: encodedId,
+        parcels: parcels,
+        vias: vias,
+        invoices: invoices,
+        viasCount: viasCount,
+        formattedPaidAmount,
+        formattedDueAmount,
+        reviews: reviews,
+        dueAmount: dueAmount,
+        vehicle,
+        source_attachments:source_attachments,
+        destination_attachments:destination_attachments
+      };
+      return order;
+  }
   async getOrderDetailsByEncodedId(req, res) {
     try {
       const { token } = req.body;
