@@ -87,17 +87,7 @@
               <p>£<%= requestQuote.total_amount %></p>
             </td>
             <td>
-              <p>
-                <% if (requestQuote && requestQuote.status === 'completed') { %>
-                    <a href="#" class="status badge success">Completed</a>
-                <% } else if (requestQuote && requestQuote.status === 'accepted') { %>
-                    <a href="#" class="status badge warning">In Progress</a>
-                <% } else if (requestQuote && requestQuote.status === 'paid') { %>
-                    <a href="#" class="status badge success">Paid</a>
-                <% } else { %>
-                    <a href="#" class="status badge warning">Unknown Status</a>
-                <% } %>
-            </p>
+               <p><%- helpers.getRequestOrderStatus(requestQuote.request_status) %></p>
             
             </td>
             <td>
