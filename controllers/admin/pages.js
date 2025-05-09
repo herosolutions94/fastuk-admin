@@ -319,6 +319,74 @@ class PagesController extends BaseController {
             next(error);
         }
     }
+
+    async refundPolicyView(req, res, next) {
+        try {
+            let pageData = await this.pages.findByKey('refund-policy');
+
+            if (!pageData) {
+                await this.pages.createPage('refund-policy');
+                pageData = { key: 'refund-policy', content: null }; // Placeholder for new entry
+            }
+
+            let contentData = {};
+
+            // Try parsing the content from the database
+            if (pageData.content) {
+                try {
+                    contentData = JSON.parse(pageData.content);
+                } catch (err) {
+                    console.error('Error parsing JSON from database:', err);
+                    // Handle error - maybe set default values
+                    contentData = { error: 'Failed to load content.' };
+                }
+            }
+
+            res.render('admin/pages/refund-policy', { jsonContent: req.body, contentData });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async refundPolicyForm(req, res, next) {
+        try {
+            if (!req.body || Object.keys(req.body).length === 0) {
+                console.log("No data received, not executing form logic.");
+                return res.status(400).json({
+                    status: 0,
+                    message: 'No data provided.'
+                });
+            }
+
+            // Step 1: Fetch existing content to retain previous image paths
+            const pageData = await this.pages.findByKey('refund-policy');
+            let existingContent = {};
+
+            if (pageData && pageData.content) {
+                try {
+                    existingContent = JSON.parse(pageData.content);
+                } catch (err) {
+                    console.error('Error parsing existing JSON content:', err);
+                }
+            }
+
+            // Initialize formData with existing content
+            const formData = { ...existingContent, ...helpers.sanitizeData(req.body) };
+
+            // Step 3: Convert updated data to JSON
+            const jsonContent = JSON.stringify(formData);
+            console.log("json content", jsonContent);
+
+            // Step 4: Update the database with the new JSON value for "home" key
+            await this.pages.updatePageContent('refund-policy', jsonContent);
+
+            this.sendSuccess(res, {}, 'Data added successfully!', 200, '/admin/pages/refund-policy');
+        } catch (error) {
+            console.error('Failed to add data:', error);
+            this.sendError(res, 'Failed to add data');
+            next(error);
+        }
+    }
     async termsConditionsView(req, res, next) {
         try {
             let pageData = await this.pages.findByKey('terms-conditions');
