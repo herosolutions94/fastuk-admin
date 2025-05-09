@@ -19,6 +19,8 @@ router.get('/pages/contact', ensureAuthenticated, checkAccessMiddleware(10), pag
 router.post('/pages/contact-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.contactForm.bind(pagesController));
 router.get('/pages/privacy-policy', ensureAuthenticated, checkAccessMiddleware(10), pagesController.privacyPolicyView.bind(pagesController));
 router.post('/pages/privacy-policy-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.privacyPolicyForm.bind(pagesController));
+router.get('/pages/refund-policy', ensureAuthenticated, checkAccessMiddleware(10), pagesController.refundPolicyView.bind(pagesController));
+router.post('/pages/refund-policy-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.refundPolicyForm.bind(pagesController));
 router.get('/pages/terms-conditions', ensureAuthenticated, checkAccessMiddleware(10), pagesController.termsConditionsView.bind(pagesController));
 router.post('/pages/terms-conditions-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.termsConditionsForm.bind(pagesController));
 router.get('/pages/charge-aggreement', ensureAuthenticated, checkAccessMiddleware(10), pagesController.chargeAggreementView.bind(pagesController));
