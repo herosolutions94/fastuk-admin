@@ -35,8 +35,8 @@
           </tr>
         </thead>
         <tbody>
-          <% if (reviews && reviews.length > 0) { %> <%
-            reviews.forEach((review, index) => { %>
+          <% if (reviews && reviews.length > 0) { %> <% reviews.forEach((review,
+          index) => { %>
           <tr class="bottom-cntnt" id="review-<%= review.id %>">
             <td>
               <p><%= index + 1 %></p>
@@ -46,14 +46,19 @@
               <p><%= review.member_name %></p>
             </td>
             <td>
-                <p class="rateYo"></p>
-
-                          </td>
+              <div
+                class="rateYo"
+                data-rateyo-rating="<%= review.rating %>"></div>
+            </td>
             <td>
               <p><%= helpers.convertUtcToUkFormat(review.created_at) %></p>
             </td>
             <td>
-              <p><a href="/admin/order-detail/<%= review.request_id %>">Request</a></p>
+              <p>
+                <a href="/admin/order-detail/<%= review.request_id %>"
+                  >Request</a
+                >
+              </p>
             </td>
             <td>
               <div class="btn-group">

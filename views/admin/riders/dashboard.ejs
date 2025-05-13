@@ -8,7 +8,6 @@
           <li class="active"><a href="">Rider</a></li>
         </ul>
       </div>
-      
     </div>
     <div class="dashTable">
       <table class="dataTable display" id="basic-1">
@@ -52,7 +51,7 @@
               <div class="flex">
                 <div class="image">
                   <img
-                    src="<%= helpers.getImage(rider.driving_license) %>"
+                    src="<%= helpers.getImage(rider.mem_image) %>"
                     alt="Driving License" />
                 </div>
                 <div class="custm-cntnt">
@@ -65,7 +64,9 @@
             </td>
             <td><p><%= rider.city %></p></td>
             <td><p><%= rider.otp %></p></td>
-            <td><p>£<%= helpers.formatAmount(rider.available_balance) %></p></td>
+            <td>
+              <p>£<%= helpers.formatAmount(rider.available_balance) %></p>
+            </td>
 
             <td>
               <div class="btn-group">
@@ -76,15 +77,19 @@
                   <i class="fa fa-ellipsis-h"></i>
                 </button>
                 <ul class="dropdown-menu dropdown-primary" role="menu">
-                <% if (rider.is_approved!=='approved') { %>
+                  <% if (rider.is_approved!=='approved') { %>
                   <li>
-                    <a href="/admin/riders/update-status/<%= rider.id %>?is_approved=approved" class="btn btn-success">
+                    <a
+                      href="/admin/riders/update-status/<%= rider.id %>?is_approved=approved"
+                      class="btn btn-success">
                       Approve
                     </a>
                   </li>
                   <% } %>
                   <li>
-                    <a href="/admin/riders/update-status/<%= rider.id %>?is_approved=rejected" class="btn btn-danger">
+                    <a
+                      href="/admin/riders/update-status/<%= rider.id %>?is_approved=rejected"
+                      class="btn btn-danger">
                       Reject
                     </a>
                   </li>
@@ -95,7 +100,8 @@
                   </li>
                   <li>
                     <a href="/admin/riders/documents/<%= rider.id %>"
-                      ><i class="fa fa-file" aria-hidden="true"></i>Add Document</a
+                      ><i class="fa fa-file" aria-hidden="true"></i>Add
+                      Document</a
                     >
                   </li>
                   <li>

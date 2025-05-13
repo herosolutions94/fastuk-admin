@@ -25,7 +25,7 @@ class ReviewsModel extends BaseModel {
             JOIN
               members ON request_reviews.user_id = members.id;
           `);
-      // console.log("Raw Query Result:", result);
+      console.log("Raw Query Result:", result);
       const rows = result[0];
       if (!rows || rows.length === 0) {
         // console.log("No reviews found");

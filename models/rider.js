@@ -17,6 +17,15 @@ class Rider {
         return rider; // This should be an object, not an array
     }
 
+    // Rider.js model
+// Rider.js model
+static async getRiderAttachments(riderId) {
+  const [rows] = await pool.query('SELECT * FROM rider_attachments WHERE rider_id = ?', [riderId]);
+  return rows;
+}
+
+
+
     // Add a method to update rider info
     static async updateRider(id, riderData) {
         const { full_name, email, mem_phone, dob, mem_address1, city, vehicle_owner, vehicle_type, vehicle_registration_num, driving_license_num, status, driving_license } = riderData;
@@ -25,6 +34,37 @@ class Rider {
             [full_name, email, mem_phone, dob, mem_address1, city, vehicle_owner, vehicle_type, vehicle_registration_num, driving_license_num, status, driving_license, id]
         );
     }
+
+     static async updateRiderAttachments(riderId, attachments) {
+          // First, delete all old attachments for this rider
+          await pool.query('DELETE FROM rider_attachments WHERE rider_id = ?', [riderId]);
+
+          const entries = [];
+
+          // Single attachment types
+          const singleTypes = ['address_proof', 'self_picture', 'passport_pic', 'national_insurance', 'company_certificate'];
+          for (const type of singleTypes) {
+              const filename = attachments[type];
+              if (filename) {
+                  entries.push([riderId, filename, type]);
+              }
+          }
+
+          // Multiple pictures
+          if (Array.isArray(attachments.pictures)) {
+              for (const filename of attachments.pictures) {
+                  entries.push([riderId, filename, 'pictures']);
+              }
+          }
+
+          // Insert all attachments
+          if (entries.length > 0) {
+              await pool.query(
+                  'INSERT INTO rider_attachments (rider_id, filename, type) VALUES ?',
+                  [entries]
+              );
+          }
+      }
     static async getRiderAttachments(riderId) {
       const [rows] = await pool.query('SELECT * FROM rider_attachments WHERE rider_id = ?', [riderId]);
       return rows;

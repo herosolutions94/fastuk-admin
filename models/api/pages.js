@@ -13,6 +13,7 @@ class PageModel extends BaseModel {
 
 
 
+
     async createRequestQuote(data) {
         const query = `
             INSERT INTO request_quote(user_id, selected_vehicle, vehicle_price, total_amount,tax, payment_intent, customer_id, source_postcode, source_address,
