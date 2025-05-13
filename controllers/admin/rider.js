@@ -51,23 +51,32 @@ class RiderController extends BaseController {
     
             // Check if rider exists
             if (rider) {
-
+      
                 const attachments = await Rider.getRiderAttachments(riderId); // Add this method in your model
+              // Organize attachments by type for easier access in EJS
+              const attachmentMap = {};
+              let pictures=[];
+              attachments.forEach((att) => {
+                
+                if(att?.type==='pictures'){
+                    pictures.push(att.filename);
+                }
+                else{
+                    attachmentMap[att.type] = att.filename;
+                }
+                
+              });
+              attachmentMap['pictures']=pictures;
+              console.log("attachmentMap:",attachmentMap)
 
-      // Organize attachments by type for easier access in EJS
-      const attachmentMap = {};
-      attachments.forEach((att) => {
-        attachmentMap[att.type] = att.filename;
-      });
-      console.log("attachmentMap:",attachmentMap)
                 // Assuming `result` is defined properly, or you should use rider.rider_image
                 res.render('admin/riders/edit-rider', { 
                     rider, 
                     editRiderId: riderId, 
-                    imageFilenames: [rider.mem_image], // Make sure to access the rider image correctly
-                            attachments: attachmentMap,
+                    imageFilenames: [rider.driving_license], // Make sure to access the rider image correctly
+                    status: rider.status,
+                    attachments: attachmentMap,
 
-                    status: rider.status // Pass the status to the view
 
                 });
             } else {
@@ -82,15 +91,61 @@ class RiderController extends BaseController {
 
     // Method to handle updating rider information
     async updateRider(req, res) {
-        try {
-            const riderId = req.params.id;
-            const riderData = req.body; // Get the updated data from the form
-    
-            // Fetch the current rider details, including the current image
-            const currentRider = (await Rider.getRiderById(riderId))[0];
-            
-            // If a new image is uploaded
-            const drivingLicense = req.files && req.files["driving_license"] ? req.files["driving_license"][0].filename : null;
+    try {
+        const riderId = req.params.id;
+        const riderData = req.body;
+
+        const currentRider = (await Rider.getRiderById(riderId))[0];
+        const currentAttachments = await Rider.getRiderAttachments(riderId); // Fetch existing attachments
+
+        // Helper: update a single image file (delete old if replaced)
+        const handleSingleAttachment = async (fieldName) => {
+  const newFile = req.files?.[fieldName]?.[0]?.filename;
+
+  // Find the old file from attachments where type = fieldName
+  const oldAttachment = currentAttachments.find(att => att.type === fieldName);
+  const oldFile = oldAttachment?.filename;
+
+  if (newFile && oldFile) {
+    const oldFilePath = path.join(__dirname, '../../uploads/', oldFile);
+    if (fs.existsSync(oldFilePath)) fs.unlinkSync(oldFilePath);
+  }
+
+  return newFile || oldFile || null;
+};
+
+
+        // Helper: handle multiple images like front/back/side
+        const handleMultipleAttachments = async () => {
+  const newFiles = req.files?.["pictures"]?.map(f => f.filename) || [];
+
+  const oldPictures = currentAttachments
+    .filter(att => att.type === 'pictures')
+    .map(att => att.filename);
+
+  if (newFiles.length > 0 && oldPictures.length > 0) {
+    oldPictures.forEach(file => {
+      const filePath = path.join(__dirname, '../../uploads/', file);
+      if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+    });
+  }
+
+  return newFiles.length > 0 ? newFiles : oldPictures;
+};
+
+
+        // Attachments to update
+        const updatedAttachments = {
+            address_proof: await handleSingleAttachment("address_proof"),
+            self_picture: await handleSingleAttachment("self_picture"),
+            passport_pic: await handleSingleAttachment("passport_pic"),
+            national_insurance: await handleSingleAttachment("national_insurance"),
+            company_certificate: await handleSingleAttachment("company_certificate"),
+            pictures: await handleMultipleAttachments()
+        };
+
+        // Update rider info
+const drivingLicense = req.files && req.files["driving_license"] ? req.files["driving_license"][0].filename : null;
             console.log('New riderDrivingLicense:', drivingLicense);
     
             // Check if there's an old image to delete
@@ -120,17 +175,19 @@ class RiderController extends BaseController {
                 // If no new image is uploaded, retain the old image
                 riderData.driving_license = currentRider.driving_license;
             }
-    
-            // Update the rider in the database
-            await Rider.updateRider(riderId, riderData);
-    
-            // Redirect to the riders list with a success message
-            this.sendSuccess(res, {}, 'Updated Successfully!', 200, '/admin/riders')
-        } catch (error) {
-            console.error('Failed to update rider:', error);
-            this.sendError(res, 'Failed to update rider');
-        }
+
+
+        await Rider.updateRider(riderId, riderData);
+        await Rider.updateRiderAttachments(riderId, updatedAttachments); // new function for attachments
+
+        this.sendSuccess(res, {}, 'Updated Successfully!', 200, '/admin/riders');
+
+    } catch (error) {
+        console.error('Failed to update rider:', error);
+        this.sendError(res, 'Failed to update rider');
     }
+}
+
 
     async deleteRider(req, res) {
         const riderId = req.params.id;

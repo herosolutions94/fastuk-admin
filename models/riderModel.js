@@ -455,7 +455,7 @@ WHERE created_time <= UNIX_TIMESTAMP(UTC_TIMESTAMP()) - (3 * 24 * 60 * 60) AND s
 };
 getAllEarnings = async () => {
   const query = `
-    SELECT 
+    SELECT
     e.id AS id,
     e.user_id,
     e.amount,
