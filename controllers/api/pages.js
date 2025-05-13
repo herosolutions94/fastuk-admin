@@ -422,10 +422,12 @@ class PagesController extends BaseController {
       const riderId = userResponse?.user?.id; // Assuming user ID is in `userResponse.user.id`
       console.log("riderId:",riderId)
 
-
       if (!riderId) {
         return res.status(200).json({ status: 0, msg: "User ID not found." });
       }
+
+      const drivingLicense = await this.rider.getRiderLicenseById(riderId);
+
 
     let attachments = [];
     if (riderId) {
@@ -438,7 +440,8 @@ class PagesController extends BaseController {
         vehicles: vehicles,
         content: formData,
         cities,
-        attachments
+        attachments,
+        drivingLicense:drivingLicense
       };
 
       // Return data in JSON format
@@ -747,23 +750,28 @@ class PagesController extends BaseController {
   };
 
     async uploadLicense (req, res) {
+          const riderId = req.body.rider_id;
+
       if (
         !req.files ||
-        !req.files["rider_license"] ||
-        req.files["rider_license"].length === 0
+        !req.files["driving_license"] ||
+        req.files["driving_license"].length === 0
       ) {
         return res.status(200).json({ status: 0, msg: "No file uploaded." });
       }
 
       // Get the uploaded file and construct the file path
-      const riderLicense = req.files["rider_license"][0].filename;
+      const riderLicense = req.files["driving_license"][0].filename;
+
+          await this.rider.updateDrivingLicense(riderId, riderLicense);
+
       // console.log("Extracted Filename:", memImage);
 
-      const imageUrl = `${riderLicense}`;
+      // const imageUrl = `${riderLicense}`;
       return res.status(200).json({
         status: 1,
         msg: "Image uploaded successfully.",
-        rider_license: imageUrl
+        rider_license: riderLicense
       });
     } catch (error) {
       console.error("Error uploading profile image:", error.message);
