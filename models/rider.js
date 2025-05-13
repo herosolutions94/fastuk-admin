@@ -17,12 +17,21 @@ class Rider {
         return rider; // This should be an object, not an array
     }
 
+    // Rider.js model
+// Rider.js model
+static async getRiderAttachments(riderId) {
+  const [rows] = await pool.query('SELECT * FROM rider_attachments WHERE rider_id = ?', [riderId]);
+  return rows;
+}
+
+
+
     // Add a method to update rider info
     static async updateRider(id, riderData) {
-        const { full_name, email, mem_phone, dob, mem_address1, city, vehicle_owner, vehicle_type, vehicle_registration_num, driving_license_num, status, driving_license } = riderData;
+        const { full_name, email, mem_phone, dob, mem_address1, city, vehicle_owner, vehicle_type, vehicle_registration_num, driving_license_num, status, mem_image } = riderData;
         await pool.query(
-            'UPDATE riders SET full_name = ?, email = ?, mem_phone = ?, dob = ?, mem_address1 = ?, city = ?, vehicle_owner = ?, vehicle_type = ?, vehicle_registration_num = ?, driving_license_num = ?, status = ?, driving_license = ? WHERE id = ?',
-            [full_name, email, mem_phone, dob, mem_address1, city, vehicle_owner, vehicle_type, vehicle_registration_num, driving_license_num, status, driving_license, id]
+            'UPDATE riders SET full_name = ?, email = ?, mem_phone = ?, dob = ?, mem_address1 = ?, city = ?, vehicle_owner = ?, vehicle_type = ?, vehicle_registration_num = ?, driving_license_num = ?, status = ?, mem_image = ? WHERE id = ?',
+            [full_name, email, mem_phone, dob, mem_address1, city, vehicle_owner, vehicle_type, vehicle_registration_num, driving_license_num, status, mem_image, id]
         );
     }
     // models/rider.js

@@ -13,7 +13,6 @@
           ><i class="fa-regular fa-arrow-left"></i>Cancel</a
         >
       </div>
-      
     </div>
     <div class="dashTable">
       <div class="card editor_card">
@@ -21,20 +20,31 @@
           <h5>Vehicle Block</h5>
         </div>
         <div class="card-body full_width">
-          <form action="/admin/manage-permissions/<%= subAdminId %>" method="POST" class="frmAjax">
-            <input type="hidden" name="sub_admin_id" value="<%= subAdminId %>">
+          <form
+            action="/admin/manage-permissions/<%= subAdminId %>"
+            method="POST"
+            class="frmAjax">
+            <input
+              type="hidden"
+              name="sub_admin_id"
+              value="<%= subAdminId %>" />
 
-            
-            <% permissions.forEach(permission => {  console.log(assignedPermissions.includes(permission.id)) %>
-              <label>
-                <input type="checkbox" name="permission" value="<%= permission.id %>"
-                  <% if (assignedPermissions.includes(permission.id)) { %> checked <% } %> >
-                <%= permission.permission %>
-              </label>
-              <br>
+            <% permissions.forEach(permission => {
+            console.log(assignedPermissions.includes(permission.id)) %>
+            <label>
+              <input
+                type="checkbox"
+                name="permission"
+                value="<%= permission.id %>"
+                <%
+                if
+                (assignedPermissions.includes(permission.id))
+                {
+                % />
+              checked <% } %> > <%= permission.permission %>
+            </label>
+            <br />
             <% }); %>
-            
-          
 
             <button type="submit">Update Permissions</button>
           </form>
@@ -43,4 +53,3 @@
     </div>
   </div>
 </section>
-

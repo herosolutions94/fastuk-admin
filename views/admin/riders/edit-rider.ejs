@@ -168,11 +168,71 @@
               <button type="button" class="uploadImg">
                 <i class="fa-regular fa-image"></i>choose another image
               </button>
-              <input type="file" class="uploadFile" name="driving_license"                         
-              value="<%= editRiderId ? rider.driving_license : '' %>"
+              <input type="file" class="uploadFile" name="mem_image"                         
+              value="<%= editRiderId ? rider.mem_image : '' %>"
               />
             </div>
           </div>
+          <div class="col-md-6">
+  <div class="txtGrp">
+    <label class="form-label">Proof of Address (Driving Bill or Bank Statement):</label>
+    <% if (attachments.address_proof) { %>
+      <img src="/uploads/<%= attachments.address_proof %>" width="150" />
+    <% } %> 
+    <input type="file" class="uploadFile" name="attachments[address_proof]" class="input" />
+  </div>
+</div>
+
+<div class="col-md-6">
+  <div class="txtGrp">
+    <label class="form-label">Self Picture:</label>
+    <% if (attachments.self_picture) { %>
+      <img src="/uploads/<%= attachments.self_picture %>" width="150" />
+    <% } %>
+    <input type="file" name="attachments[self_picture]" class="input" />
+  </div>
+</div>
+<div class="col-md-6">
+  <div class="txtGrp">
+    <label class="form-label">Passport Picture:</label>
+    <% if (attachments.passport_pic) { %>
+      <img src="/uploads/<%= attachments.passport_pic %>" width="150" />
+    <% } %>
+    <input type="file" name="attachments[passport_pic]" class="input" />
+  </div>
+</div>
+
+<div class="col-md-6">
+  <div class="txtGrp">
+    <label class="form-label">National Insurance or UTR Number Letter:</label>
+    <% if (attachments.national_insurance) { %>
+      <img src="/uploads/<%= attachments.national_insurance %>" width="150" />
+    <% } %>
+    <input type="file" name="attachments[national_insurance]" class="input" />
+  </div>
+</div>
+
+<div class="col-md-6">
+  <div class="txtGrp">
+    <label class="form-label">Company (U/K) Certificate:</label>
+    <% if (attachments.company_certificate) { %>
+      <img src="/uploads/<%= attachments.company_certificate %>" width="150" />
+    <% } %>
+    <input type="file" name="attachments[company_certificate]" class="input" />
+  </div>
+</div>
+
+<div class="col-md-6">
+  <div class="txtGrp">
+    <label class="form-label">View Front/Back and Side Pictures:</label>
+    <% if (attachments.pictures) { %>
+      <img src="/uploads/<%= attachments.pictures %>" width="150" />
+    <% } %>
+    <input type="file" name="attachments[pictures]" class="input" />
+  </div>
+</div>
+
+
           <hr />
           <div class="card-footer text-end">
             <button class="webBtn" type="submit">

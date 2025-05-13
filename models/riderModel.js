@@ -462,11 +462,11 @@ getAllEarnings = async () => {
     e.type,
     e.status,
     e.created_time,
-    m.id AS member_id,
-    m.full_name AS member_name,
-    m.mem_image AS mem_image
+    r.id AS rider_id,
+    r.full_name AS rider_name,
+    r.mem_image AS mem_image
 FROM earnings e
-JOIN members m ON e.user_id = m.id
+JOIN riders r ON e.user_id = r.id
 ORDER BY e.created_time DESC;
   `;
 
