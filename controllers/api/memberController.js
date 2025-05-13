@@ -2205,7 +2205,34 @@ class MemberController extends BaseController {
         await this.rider.updateRiderData(userId, updatedData); // Update rider data
 
         // 🔽 NEW: Handle attachments
-        const { attachments } = req.body;
+        let { documents } = req.body;
+        let attachments_ob = documents!==null && documents!==undefined && documents!=='' && documents!=='null' ? JSON.parse(documents) : {};
+        const attachments = [];
+
+        if (attachments_ob?.driving_license) {
+          attachments.push({ rider_id: userId, filename: attachments_ob?.driving_license, type: 'driving_license' });
+        }
+        if (attachments_ob?.address_proof) {
+          attachments.push({ rider_id: userId, filename: attachments_ob?.address_proof, type: 'address_proof' });
+        }
+        if (attachments_ob?.self_picture) {
+          attachments.push({ rider_id: userId, filename: attachments_ob?.self_picture, type: 'self_picture' });
+        }
+        if (attachments_ob?.passport_pic) {
+          attachments.push({ rider_id: userId, filename: attachments_ob?.passport_pic, type: 'passport_pic' });
+        }
+        if (attachments_ob?.national_insurance) {
+          attachments.push({ rider_id: userId, filename: attachments_ob?.national_insurance, type: 'national_insurance' });
+        }
+        if (attachments_ob?.company_certificate) {
+          attachments.push({ rider_id: userId, filename: attachments_ob?.company_certificate, type: 'company_certificate' });
+        }
+        if (Array.isArray(attachments_ob.pictures)) {
+            attachments_ob.pictures.forEach(pic => {
+              attachments.push({ rider_id: userId, filename: pic, type: 'pictures' });
+            });
+          }
+        // console.log(attachments);return;
         if (Array.isArray(attachments) && attachments.length > 0) {
           // Optional: Delete old attachments
           await this.rider.deleteAttachments(userId);
@@ -2221,6 +2248,7 @@ class MemberController extends BaseController {
             }
           }
         }
+         
       } else {
         return res
           .status(200)

@@ -12,6 +12,7 @@ router.get('/home', (req, res) => pagesController.getHomeData(req, res));
 router.get('/about', (req, res) => pagesController.getAboutData(req, res));
 router.get('/contact', (req, res) => pagesController.getContactData(req, res));
 router.get('/privacy-policy', (req, res) => pagesController.getPrivacyPolicyData(req, res));
+router.get('/refund-policy', (req, res) => pagesController.getRefundPolicyData(req, res));
 router.get('/terms-condition', (req, res) => pagesController.getTermsConditionsData(req, res));
 router.get('/charge-aggreement', (req, res) => pagesController.getChargeAggreementData(req, res));
 router.get('/help-support', (req, res) => pagesController.getHelpSupportData(req, res));

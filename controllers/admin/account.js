@@ -4,8 +4,9 @@ const pool  = require("../../config/db-connection");
 const indexView = async (req, res, next) => {
     try {
         // Execute queries to fetch counts
-        const [ridersCountResult] = await pool.query('SELECT COUNT(*) AS count FROM riders');
-        const [membersCountResult] = await pool.query('SELECT COUNT(*) AS count FROM members');
+        const [ridersCountResult] = await pool.query('SELECT COUNT(*) AS count FROM riders WHERE is_deleted=0');
+        const [membersCountResult] = await pool.query('SELECT COUNT(*) AS count FROM members WHERE is_deleted=0 AND mem_type="user"');
+        const [businessCountResult] = await pool.query('SELECT COUNT(*) AS count FROM members WHERE is_deleted=0 AND mem_type="business"');
         const [messagesCountResult] = await pool.query('SELECT COUNT(*) AS count FROM messages');
         
 
@@ -17,6 +18,7 @@ const indexView = async (req, res, next) => {
         // Extract counts
         const ridersCount = ridersCountResult[0].count;
         const membersCount = membersCountResult[0].count;
+        const businessCount = businessCountResult[0].count;
         const messagesCount = messagesCountResult[0].count;
 
 
@@ -30,6 +32,7 @@ const indexView = async (req, res, next) => {
             stats: {
                 riders: ridersCount,
                 members: membersCount,
+                business: businessCount,
                 messages: messagesCount,
                 
             }
