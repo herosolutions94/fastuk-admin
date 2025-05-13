@@ -2640,7 +2640,7 @@ class MemberController extends BaseController {
         paymentMethods
       });
     } catch (error) {
-      console.error("Error in getOrderDetailsByEncodedId:", error);
+      console.error("Error in :", error);
       return res.status(200).json({
         status: 0,
         msg: "Internal server error.",

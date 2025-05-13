@@ -13,7 +13,6 @@
           ><i class="fa-regular fa-arrow-left"></i>Cancel</a
         >
       </div>
-      
     </div>
     <div class="dashTable">
       <div class="card editor_card">
@@ -21,9 +20,14 @@
           <h5>Permissions Block</h5>
         </div>
         <div class="card-body full_width">
-          <form action="/admin/manage-permissions/<%= subAdminId %>" method="POST" class="frmAjax">
-            <input type="hidden" name="sub_admin_id" value="<%= subAdminId %>">
-
+          <form
+            action="/admin/manage-permissions/<%= subAdminId %>"
+            method="POST"
+            class="frmAjax">
+            <input
+              type="hidden"
+              name="sub_admin_id"
+              value="<%= subAdminId %>" />
             <div class="row">
             <% permissions.forEach(permission => {  console.log(assignedPermissions.includes(permission.id)) %>
               <div class="col-md-3">
@@ -45,4 +49,3 @@
     </div>
   </div>
 </section>
-

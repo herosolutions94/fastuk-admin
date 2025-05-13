@@ -952,6 +952,17 @@ async getCompletedOrdersByRider(riderId) {
     }
   }
 
+  async updateDrivingLicense  (riderId, filename) {
+    const sql = "UPDATE riders SET driving_license = ? WHERE id = ?";
+    return pool.query(sql, [filename, riderId]);
+  }
+
+  async getRiderLicenseById(riderId) {
+  const [rows] = await pool.query("SELECT driving_license FROM riders WHERE id = ?", [riderId]);
+  return rows.length ? rows[0] : null;
+}
+
+
   async createWithdrawDetail(withdrawalId, earningId, created_at, updated_at) {
     const query = `
       INSERT INTO withdraw_details (w_id, earning_id, created_at, updated_at)
