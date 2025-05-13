@@ -5,12 +5,14 @@ const BusinessUser = require('../../models/member');
 const MemberModel = require('../../models/memberModel');
 const BaseController = require('../baseController');
 const helpers = require('../../utils/helpers');
+const Addresses = require("../../models/api/addressModel");
 
 class BusinessUserController extends BaseController {
 
     constructor() {
         super();
         this.memberModel = new MemberModel();
+        this.addressModel = new Addresses();
         
     }
     // Method to get the riders and render them in the view
@@ -36,7 +38,7 @@ class BusinessUserController extends BaseController {
             console.log('Fetched business-user:', businessUser); // Log fetched rider data
 
             console.log('business-user data before rendering:', businessUser); // Log the rider data
-
+            const addresses = await this.addressModel.getAddressesByUserId(businessUserId);
     
             // Check if rider exists
             if (businessUser) {
@@ -44,6 +46,7 @@ class BusinessUserController extends BaseController {
                 res.render('admin/business_users/edit-business-user', { 
                     businessUser, 
                     editBusinessUserId: businessUserId, 
+                    addresses:addresses,
                     imageFilenames: [businessUser.mem_image], // Make sure to access the rider image correctly
                     status: businessUser.status // Pass the status to the view
 
