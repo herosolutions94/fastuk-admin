@@ -53,6 +53,7 @@ class RiderController extends BaseController {
 
         driving_license,
         address_proof,
+        self_picture,
         passport_pic,
         national_insurance,
         company_certificate,
@@ -78,14 +79,14 @@ class RiderController extends BaseController {
         vehicle_owner: vehicle_owner || 0,
         // vehicle_type:
         //   typeof vehicle_type === "string" ? vehicle_type.trim() : "",
-        vehicle_registration_num:
-          typeof vehicle_registration_num === "string"
-            ? vehicle_registration_num.trim()
-            : "",
-        driving_license_num:
-          typeof driving_license_num === "string"
-            ? driving_license_num.trim()
-            : "",
+        // vehicle_registration_num:
+        //   typeof vehicle_registration_num === "string"
+        //     ? vehicle_registration_num.trim()
+        //     : "",
+        // driving_license_num:
+        //   typeof driving_license_num === "string"
+        //     ? driving_license_num.trim()
+        //     : "",
         // driving_license:
         //   typeof driving_license === "string" ? driving_license.trim() : "",
         created_date: new Date(),
@@ -93,7 +94,7 @@ class RiderController extends BaseController {
         mem_verified: mem_verified || 0,
         is_approved: is_approved
       };
-      // console.log(validateRequiredFields(cleanedData))
+      console.log(validateRequiredFields(cleanedData))
       // Validation for empty fields
       if (!validateRequiredFields(cleanedData)) {
         return res
@@ -181,6 +182,9 @@ class RiderController extends BaseController {
       if (address_proof) {
         attachments.push({ rider_id: riderId, filename: address_proof, type: 'address_proof' });
       }
+      if (self_picture) {
+        attachments.push({ rider_id: riderId, filename: self_picture, type: 'self_picture' });
+      }
       if (passport_pic) {
         attachments.push({ rider_id: riderId, filename: passport_pic, type: 'passport_pic' });
       }
@@ -196,6 +200,7 @@ class RiderController extends BaseController {
       [
         "driving_license",
         "address_proof",
+        "self_picture",
         "passport_pic",
         "national_insurance",
         "company_certificate"
@@ -1524,7 +1529,17 @@ let vehicle = order.selected_vehicle
 
       const formattedPaidAmount = helpers.formatAmount(paidAmount);
       const formattedDueAmount = helpers.formatAmount(dueAmount);
-
+      const source_attachments = await helpers.getDataFromDB('request_quote_attachments', { request_id: order.id,type:'source' });
+      const destination_attachments = await helpers.getDataFromDB('request_quote_attachments', { request_id: order.id,type:'destination' });
+      for (let via of vias) {
+        const via_attachments = await helpers.getDataFromDB('request_quote_attachments', {
+          request_id: order.id,
+          type: 'via',
+          via_id: via?.id
+        });
+      
+        via.attachments = via_attachments; // Add attachments array to each via
+      }
       const completeOrder = {
         ...order,
         encodedId,
@@ -1533,7 +1548,10 @@ let vehicle = order.selected_vehicle
         invoices,
         viasCount,
         formattedPaidAmount,
-        formattedDueAmount
+        formattedDueAmount,
+        dueAmount:dueAmount,
+        source_attachments:source_attachments,
+        destination_attachments:destination_attachments
       };
 
       const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
@@ -1547,10 +1565,10 @@ let vehicle = order.selected_vehicle
         orderDetailsLink
       );
       // console.log("notificationText:",notificationText)
-
+      let completeOrderNew = await this.getCompleteOrderObject(rider.user.id,requestId,encodedId);
       return res.status(200).json({
         status: 1,
-        order: completeOrder
+        order: completeOrderNew
       });
     } catch (error) {
       console.error("Error in updateRequestStatus:", error);

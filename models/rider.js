@@ -3,7 +3,7 @@ const pool = require('../config/db-connection'); // Ensure this is promise-based
 class Rider {
     static async getAllRiders() {
         try {
-            const [rows] = await pool.query('SELECT * FROM riders WHERE is_deleted!=1'); // Only take the first result
+            const [rows] = await pool.query('SELECT * FROM riders WHERE is_deleted!=1 ORDER BY id DESC'); // Only take the first result
             // console.log('Riders fetched successfully:', rows); // Log the data (only the rows)
             return rows; // Return the fetched rows
         } catch (error) {
@@ -24,6 +24,10 @@ class Rider {
             'UPDATE riders SET full_name = ?, email = ?, mem_phone = ?, dob = ?, mem_address1 = ?, city = ?, vehicle_owner = ?, vehicle_type = ?, vehicle_registration_num = ?, driving_license_num = ?, status = ?, driving_license = ? WHERE id = ?',
             [full_name, email, mem_phone, dob, mem_address1, city, vehicle_owner, vehicle_type, vehicle_registration_num, driving_license_num, status, driving_license, id]
         );
+    }
+    static async getRiderAttachments(riderId) {
+      const [rows] = await pool.query('SELECT * FROM rider_attachments WHERE rider_id = ?', [riderId]);
+      return rows;
     }
     // models/rider.js
 static async deleteRiderById(id) {

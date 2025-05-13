@@ -4,8 +4,14 @@ const path = require('path'); // For handling file paths
 const Member = require('../../models/member');
 const BaseController = require('../baseController');
 const helpers = require("../../utils/helpers");
+const Addresses = require("../../models/api/addressModel");
 
 class MemberController extends BaseController {
+    constructor() {
+    super();
+    this.addressModel = new Addresses();
+    
+  }
     
     // Method to get the riders and render them in the view
     async getMembers(req, res) {
@@ -34,12 +40,12 @@ class MemberController extends BaseController {
             const members = await Member.getMemberById(memberId); // Expecting an array from the model
             const member = members[0]; // Get the first member if it exists
             const states = await Member.getStatesByCountryId(230); // Fetch states for country_id = 230
-
-            // console.log('Member:', member); // Log the rider data
+            const addresses = await this.addressModel.getAddressesByUserId(memberId);
+            console.log('Member:', addresses); // Log the rider data
 
             if (member) {
                 res.render('admin/members/edit-member', {
-                    member, editMemberId: memberId, states,
+                    member, editMemberId: memberId, states,addresses,
                     imageFilenames: [member.mem_image],
                     mem_status: member.mem_status // Pass the status to the view
 
@@ -48,6 +54,7 @@ class MemberController extends BaseController {
                 this.sendError(res, 'Member not found');
             }
         } catch (error) {
+            console.log(error)
             this.sendError(res, 'Failed to fetch rider');
         }
     }

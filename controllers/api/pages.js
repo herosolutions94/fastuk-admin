@@ -160,6 +160,29 @@ class PagesController extends BaseController {
       res.status(200).json({ error: "Internal Server Error" });
     }
   }
+  async getRefundPolicyData(req, res) {
+    try {
+      const siteSettings = res.locals.adminData;
+
+      // Get the main page content
+      const pageContent = await this.pageModel.findByKey("refund-policy");
+      const formData = pageContent
+        ? JSON.parse(pageContent.content || "{}")
+        : {};
+
+      // Combine the content and multi_text data
+      const jsonResponse = {
+        siteSettings,
+        content: formData,
+      };
+
+      // Return data in JSON format
+      res.json(jsonResponse);
+    } catch (err) {
+      console.error("Error:", err);
+      res.status(200).json({ error: "Internal Server Error" });
+    }
+  }
 
   async getChargeAggreementData(req, res) {
     try {

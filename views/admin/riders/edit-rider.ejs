@@ -152,34 +152,214 @@
             </div>
           </div>
         </div>
-        <div class="card">
-          <div class="card-body preview">
-            <h5 class="card-title">Image</h5>
-            <div class="blog_img">
-              <% if (imageFilenames && imageFilenames[0]) { %>
-              <img
-                src="<%= helpers.getImage(imageFilenames[0]) %>"
-                alt="Main Image"
-                class="card-img-top" />
+        <div class="row">
+          <div class="col-md-4">
+              <div class="card">
+                  <div class="card-body preview">
+                    <div class="row">
+                        <div class="col-md-12">
+                          <h5 class="card-title">Image</h5>
+                          <div class="blog_img">
+                            <% if (imageFilenames && imageFilenames[0]) { %>
+                            <img
+                              src="<%= helpers.getImage(imageFilenames[0]) %>"
+                              alt="Main Image"
+                              class="card-img-top" />
 
-              <% } %>
-            </div>
-            <div class="in-upload">
-              <button type="button" class="uploadImg">
-                <i class="fa-regular fa-image"></i>choose another image
-              </button>
-              <input type="file" class="uploadFile" name="driving_license"                         
-              value="<%= editRiderId ? rider.driving_license : '' %>"
-              />
-            </div>
+                            <% } %>
+                          </div>
+                          <div class="in-upload">
+                            <button type="button" class="uploadImg">
+                              <i class="fa-regular fa-image"></i>choose another image
+                            </button>
+                            <input type="file" class="uploadFile" name="driving_license"                         
+                            value="<%= editRiderId ? rider.driving_license : '' %>"
+                            />
+                          </div>
+                        </div>
+                    </div>
+                </div>
+              </div>
           </div>
-          <hr />
-          <div class="card-footer text-end">
-            <button class="webBtn" type="submit">
-              Update <i class="spinner hidden"></i>
-            </button>
+          <div class="col-md-4">
+              <div class="card">
+                  <div class="card-body preview">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <h5 class="card-title">Address Proof</h5>
+                        <div class="blog_img">
+                          <% if (attachments.address_proof) { %>
+                          <img
+                            src="<%= helpers.getImage(attachments.address_proof) %>"
+                            alt="Main Image"
+                            class="card-img-top" />
+
+                          <% } %>
+                        </div>
+                        <div class="in-upload">
+                          <button type="button" class="uploadImg">
+                            <i class="fa-regular fa-image"></i>choose Address Proof
+                          </button>
+                          <input type="file" class="uploadFile" name="address_proof"                         
+                          value="<%= attachments.address_proof ? attachments.address_proof : '' %>"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                </div>
+              </div>
+          </div>
+          <div class="col-md-4">
+              <div class="card">
+                  <div class="card-body preview">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <h5 class="card-title">Self Picture</h5>
+                        <div class="blog_img">
+                          <% if (attachments.self_picture) { %>
+                          <img
+                            src="<%= helpers.getImage(attachments.self_picture) %>"
+                            alt="Main Image"
+                            class="card-img-top" />
+
+                          <% } %>
+                        </div>
+                        <div class="in-upload">
+                          <button type="button" class="uploadImg">
+                            <i class="fa-regular fa-image"></i>choose Self Picture
+                          </button>
+                          <input type="file" class="uploadFile" name="self_picture"                         
+                          value="<%= attachments.self_picture ? attachments.self_picture : '' %>"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                </div>
+              </div>
           </div>
         </div>
+        <div class="clearfix"></div>
+        <div class="row">
+          <div class="col-md-4">
+              <div class="card">
+                  <div class="card-body preview">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <h5 class="card-title">Passport Picture</h5>
+                        <div class="blog_img">
+                          <% if (attachments.passport_pic) { %>
+                          <img
+                            src="<%= helpers.getImage(attachments.passport_pic) %>"
+                            alt="Main Image"
+                            class="card-img-top" />
+
+                          <% } %>
+                        </div>
+                        <div class="in-upload">
+                          <button type="button" class="uploadImg">
+                            <i class="fa-regular fa-image"></i>choose Passport Picture
+                          </button>
+                          <input type="file" class="uploadFile" name="passport_pic"                         
+                          value="<%= attachments.passport_pic ? attachments.passport_pic : '' %>"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                </div>
+              </div>
+          </div>
+          <div class="col-md-4">
+              <div class="card">
+                  <div class="card-body preview">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <h5 class="card-title">National Insurance</h5>
+                        <div class="blog_img">
+                          <% if (attachments.national_insurance) { %>
+                          <img
+                            src="<%= helpers.getImage(attachments.national_insurance) %>"
+                            alt="Main Image"
+                            class="card-img-top" />
+
+                          <% } %>
+                        </div>
+                        <div class="in-upload">
+                          <button type="button" class="uploadImg">
+                            <i class="fa-regular fa-image"></i>choose National Insurance
+                          </button>
+                          <input type="file" class="uploadFile" name="national_insurance"                         
+                          value="<%= attachments.national_insurance ? attachments.national_insurance : '' %>"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                </div>
+              </div>
+          </div>
+          <div class="col-md-4">
+              <div class="card">
+                  <div class="card-body preview">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <h5 class="card-title">Company Certificate</h5>
+                        <div class="blog_img">
+                          <% if (attachments.company_certificate) { %>
+                          <img
+                            src="<%= helpers.getImage(attachments.company_certificate) %>"
+                            alt="Main Image"
+                            class="card-img-top" />
+
+                          <% } %>
+                        </div>
+                        <div class="in-upload">
+                          <button type="button" class="uploadImg">
+                            <i class="fa-regular fa-image"></i>choose Company Certificate
+                          </button>
+                          <input type="file" class="uploadFile" name="company_certificate"                         
+                          value="<%= attachments.company_certificate ? attachments.company_certificate : '' %>"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                </div>
+              </div>
+          </div>
+        </div>
+        <div class="clearfix"></div>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card">
+                <div class="card-body preview">
+                    <div class="row">
+                        <div class="col-md-12">
+                          <h5 class="card-title">Front/Back and Side Pictures</h5>
+                          <div class="blog_img">
+                            <% if (Array.isArray(attachments.pictures)) { %>
+                              <% attachments.pictures.forEach((att_pic,index) => { %>
+                              <img src="/uploads/<%= att_pic %>" width="150" />
+                              <% }) %>
+                            <% } %>
+                          </div>
+                          <div class="in-upload">
+                            <button type="button" class="uploadImg">
+                              <i class="fa-regular fa-image"></i>choose multiple Front/Back and Side Pictures
+                            </button>
+                            <input type="file" class="uploadFile" name="company_certificate"                         
+                            value="<%= attachments.company_certificate ? attachments.company_certificate : '' %>"
+                            />
+                          </div>
+                        </div>
+                    </div>
+                </div>
+                <hr />
+                <div class="card-footer text-end">
+                  <button class="webBtn" type="submit">
+                    Update <i class="spinner hidden"></i>
+                  </button>
+                </div>
+            </div>
+          </div>
+        </div>          
       </form>
     </div>
   </div>
