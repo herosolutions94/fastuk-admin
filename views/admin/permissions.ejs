@@ -18,25 +18,27 @@
     <div class="dashTable">
       <div class="card editor_card">
         <div class="card-header">
-          <h5>Vehicle Block</h5>
+          <h5>Permissions Block</h5>
         </div>
         <div class="card-body full_width">
           <form action="/admin/manage-permissions/<%= subAdminId %>" method="POST" class="frmAjax">
             <input type="hidden" name="sub_admin_id" value="<%= subAdminId %>">
 
-            
+            <div class="row">
             <% permissions.forEach(permission => {  console.log(assignedPermissions.includes(permission.id)) %>
+              <div class="col-md-3">
               <label>
                 <input type="checkbox" name="permission" value="<%= permission.id %>"
                   <% if (assignedPermissions.includes(permission.id)) { %> checked <% } %> >
                 <%= permission.permission %>
               </label>
-              <br>
+              </div>
             <% }); %>
-            
+            </div>
+            <hr />
           
 
-            <button type="submit">Update Permissions</button>
+            <button type="submit" class="webBtn site_btn">Update Permissions</button>
           </form>
         </div>
       </div>

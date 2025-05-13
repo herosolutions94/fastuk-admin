@@ -51,12 +51,29 @@ class RiderController extends BaseController {
     
             // Check if rider exists
             if (rider) {
+                const attachments = await Rider.getRiderAttachments(riderId); // Add this method in your model
+              // Organize attachments by type for easier access in EJS
+              const attachmentMap = {};
+              let pictures=[];
+              attachments.forEach((att) => {
+                
+                if(att?.type==='pictures'){
+                    pictures.push(att.filename);
+                }
+                else{
+                    attachmentMap[att.type] = att.filename;
+                }
+                
+              });
+              attachmentMap['pictures']=pictures;
+              console.log("attachmentMap:",attachmentMap)
                 // Assuming `result` is defined properly, or you should use rider.rider_image
                 res.render('admin/riders/edit-rider', { 
                     rider, 
                     editRiderId: riderId, 
                     imageFilenames: [rider.driving_license], // Make sure to access the rider image correctly
-                    status: rider.status // Pass the status to the view
+                    status: rider.status,
+                    attachments: attachmentMap,
 
                 });
             } else {

@@ -231,3 +231,39 @@
     </div>
   </div>
 </section>
+    <% if (addresses && addresses.length > 0) { %>
+    <hr />
+    <div class="dashTable">
+         <div class="card">
+            <div class="card-header">
+              <h5>General Details</h5>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tr>
+                        <td>Sr.</td>
+                        <td>Name</td>
+                        <td>Phone</td>
+                        <td>Postal Code</td>
+                        <td>Address</td>
+                        <td>City</td>
+                        <td>Default</td>
+                    </tr>
+                    <tr>
+                      <% addresses.forEach((address,index) => { %>
+                        <tr>
+                          <td><p><%= index + 1 %></p></td>
+                          <td><p><%= address.first_name+" "+address.last_name %></p></td>
+                          <td><p><%= address.phone_number %></p></td>
+                          <td><p><%= address.post_code %></p></td>
+                          <td><p><%= address.address %></p></td>
+                          <td><p><%= address.city %></p></td>
+                          <td><p><%= address.default==1 ? 'Yes' : 'No' %></p></td>
+                        </tr>
+                      <% }) %>
+                    </tr>
+                </table>
+            </div>
+        </div>
+    </div>
+    <% } %>
