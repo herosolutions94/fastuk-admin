@@ -28,27 +28,21 @@
               type="hidden"
               name="sub_admin_id"
               value="<%= subAdminId %>" />
-
-            <% permissions.forEach(permission => {
-            console.log(assignedPermissions.includes(permission.id)) %>
-            <label>
-              <input
-                type="checkbox"
-                name="permission"
-                value="<%= permission.id %>"
-                <%
-                if
-                (assignedPermissions.includes(permission.id))
-                {
-                % />
-              checked <% } %> > <%= permission.permission %>
-            </label>
-            <br />
+            <div class="row">
+            <% permissions.forEach(permission => {  console.log(assignedPermissions.includes(permission.id)) %>
+              <div class="col-md-3">
+              <label>
+                <input type="checkbox" name="permission" value="<%= permission.id %>"
+                  <% if (assignedPermissions.includes(permission.id)) { %> checked <% } %> >
+                <%= permission.permission %>
+              </label>
+              </div>
             <% }); %>
+            </div>
+            <hr />
+          
 
-            <button type="submit" class="webBtn site_btn">
-              Update Permissions
-            </button>
+            <button type="submit" class="webBtn site_btn">Update Permissions</button>
           </form>
         </div>
       </div>

@@ -3,7 +3,7 @@ const pool = require('../config/db-connection'); // Ensure this is promise-based
 class Rider {
     static async getAllRiders() {
         try {
-            const [rows] = await pool.query('SELECT * FROM riders WHERE is_deleted!=1'); // Only take the first result
+            const [rows] = await pool.query('SELECT * FROM riders WHERE is_deleted!=1 ORDER BY id DESC'); // Only take the first result
             // console.log('Riders fetched successfully:', rows); // Log the data (only the rows)
             return rows; // Return the fetched rows
         } catch (error) {
@@ -36,36 +36,39 @@ static async getRiderAttachments(riderId) {
     }
 
      static async updateRiderAttachments(riderId, attachments) {
-    // First, delete all old attachments for this rider
-    await pool.query('DELETE FROM rider_attachments WHERE rider_id = ?', [riderId]);
+          // First, delete all old attachments for this rider
+          await pool.query('DELETE FROM rider_attachments WHERE rider_id = ?', [riderId]);
 
-    const entries = [];
+          const entries = [];
 
-    // Single attachment types
-    const singleTypes = ['address_proof', 'self_picture', 'passport_pic', 'national_insurance', 'company_certificate'];
-    for (const type of singleTypes) {
-        const filename = attachments[type];
-        if (filename) {
-            entries.push([riderId, filename, type]);
-        }
+          // Single attachment types
+          const singleTypes = ['address_proof', 'self_picture', 'passport_pic', 'national_insurance', 'company_certificate'];
+          for (const type of singleTypes) {
+              const filename = attachments[type];
+              if (filename) {
+                  entries.push([riderId, filename, type]);
+              }
+          }
+
+          // Multiple pictures
+          if (Array.isArray(attachments.pictures)) {
+              for (const filename of attachments.pictures) {
+                  entries.push([riderId, filename, 'pictures']);
+              }
+          }
+
+          // Insert all attachments
+          if (entries.length > 0) {
+              await pool.query(
+                  'INSERT INTO rider_attachments (rider_id, filename, type) VALUES ?',
+                  [entries]
+              );
+          }
+      }
+    static async getRiderAttachments(riderId) {
+      const [rows] = await pool.query('SELECT * FROM rider_attachments WHERE rider_id = ?', [riderId]);
+      return rows;
     }
-
-    // Multiple pictures
-    if (Array.isArray(attachments.pictures)) {
-        for (const filename of attachments.pictures) {
-            entries.push([riderId, filename, 'pictures']);
-        }
-    }
-
-    // Insert all attachments
-    if (entries.length > 0) {
-        await pool.query(
-            'INSERT INTO rider_attachments (rider_id, filename, type) VALUES ?',
-            [entries]
-        );
-    }
-}
-
     // models/rider.js
 static async deleteRiderById(id) {
     try {

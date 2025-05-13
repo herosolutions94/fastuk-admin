@@ -1529,10 +1529,6 @@ let vehicle = order.selected_vehicle
 
       const formattedPaidAmount = helpers.formatAmount(paidAmount);
       const formattedDueAmount = helpers.formatAmount(dueAmount);
-
-      
-
-
       const source_attachments = await helpers.getDataFromDB('request_quote_attachments', { request_id: order.id,type:'source' });
       const destination_attachments = await helpers.getDataFromDB('request_quote_attachments', { request_id: order.id,type:'destination' });
       for (let via of vias) {
@@ -1544,7 +1540,6 @@ let vehicle = order.selected_vehicle
       
         via.attachments = via_attachments; // Add attachments array to each via
       }
-
       const completeOrder = {
         ...order,
         encodedId,
