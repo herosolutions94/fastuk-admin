@@ -44,18 +44,29 @@ class RiderController extends BaseController {
     
             // Fetch the rider by ID
             const rider = (await Rider.getRiderById(riderId))[0]; // Extract the first rider if it's returned as an array
-            console.log('Fetched rider:', rider); // Log fetched rider data
+            // console.log('Fetched rider:', rider); // Log fetched rider data
 
-            console.log('Rider data before rendering:', rider); // Log the rider data
+            // console.log('Rider data before rendering:', rider); // Log the rider data
 
     
             // Check if rider exists
             if (rider) {
+
+                const attachments = await Rider.getRiderAttachments(riderId); // Add this method in your model
+
+      // Organize attachments by type for easier access in EJS
+      const attachmentMap = {};
+      attachments.forEach((att) => {
+        attachmentMap[att.type] = att.filename;
+      });
+      console.log("attachmentMap:",attachmentMap)
                 // Assuming `result` is defined properly, or you should use rider.rider_image
                 res.render('admin/riders/edit-rider', { 
                     rider, 
                     editRiderId: riderId, 
-                    imageFilenames: [rider.driving_license], // Make sure to access the rider image correctly
+                    imageFilenames: [rider.mem_image], // Make sure to access the rider image correctly
+                            attachments: attachmentMap,
+
                     status: rider.status // Pass the status to the view
 
                 });

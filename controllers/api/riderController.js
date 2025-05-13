@@ -1524,6 +1524,7 @@ let vehicle = order.selected_vehicle
 
       const formattedPaidAmount = helpers.formatAmount(paidAmount);
       const formattedDueAmount = helpers.formatAmount(dueAmount);
+      
 
       const completeOrder = {
         ...order,
