@@ -51,7 +51,6 @@ class RiderController extends BaseController {
     
             // Check if rider exists
             if (rider) {
-      
                 const attachments = await Rider.getRiderAttachments(riderId); // Add this method in your model
               // Organize attachments by type for easier access in EJS
               const attachmentMap = {};
@@ -68,7 +67,6 @@ class RiderController extends BaseController {
               });
               attachmentMap['pictures']=pictures;
               console.log("attachmentMap:",attachmentMap)
-
                 // Assuming `result` is defined properly, or you should use rider.rider_image
                 res.render('admin/riders/edit-rider', { 
                     rider, 
@@ -76,8 +74,6 @@ class RiderController extends BaseController {
                     imageFilenames: [rider.driving_license], // Make sure to access the rider image correctly
                     status: rider.status,
                     attachments: attachmentMap,
-
-
                 });
             } else {
                 this.sendError(res, 'Rider not found');
