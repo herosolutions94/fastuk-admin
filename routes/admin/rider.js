@@ -11,6 +11,8 @@ const { ensureAuthenticated } = require('../../middleware/authMiddleware');
 router.get('/riders', ensureAuthenticated, RiderController.getRiders.bind(RiderController));
 router.get('/riders/edit/:id', ensureAuthenticated, upload, RiderController.editRider.bind(RiderController)); // Edit form
 router.post('/riders/update/:id', ensureAuthenticated, upload, RiderController.updateRider.bind(RiderController)); // Update rider
+router.get("/delete-image/:id/:rider_id", ensureAuthenticated, RiderController.deleteRiderPicture.bind(RiderController));
+
 router.delete('/riders/delete/:id', ensureAuthenticated, RiderController.deleteRider.bind(RiderController));
 router.get('/riders/documents/create/:rider_id', ensureAuthenticated, RiderController.renderCreateDocumentForm.bind(RiderController));
 
