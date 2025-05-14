@@ -284,6 +284,8 @@ $(document).ready(function () {
 
 
 
+
+
   // Select all preview blocks
   document.querySelectorAll('.card-body.preview').forEach((previewBlock) => {
     const fileInput = previewBlock.querySelector('.uploadFile'); // Get the file input in this block
@@ -306,6 +308,42 @@ $(document).ready(function () {
       }
     });
   });
+
+  $(document).on('click','.deleteServerImage',function(e){
+    e.preventDefault();
+
+    let id=$(this).data('id')
+    var rider_id =$(this).data('rider_id');
+    let current_image=$(this)
+    console.log("id,rider_id:",id,rider_id)
+
+    if (confirm('Are you sure you want to delete this image?')) {
+        
+        $.ajax({
+            type: "GET",
+            url: '/admin/delete-image/' + id + "/" + rider_id,
+            dataType:"JSON",
+            success: function(response) {
+                current_image.parent().remove()
+
+                // Handle success response
+                if (response.status == 1) {
+                    // Remove the images from the DOM
+                    showToast(response.message, 'success');
+                    console.log(response);
+
+                } else {
+                    // Handle error response
+                    showToast(response.message, 'error');
+                }
+            },
+            error: function() {
+                // Handle AJAX error
+                alert('Failed to delete images!');
+            }
+        });
+    }
+    });
 
   
 

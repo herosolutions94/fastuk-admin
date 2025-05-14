@@ -77,16 +77,16 @@ class RiderController extends BaseController {
           typeof mem_address1 === "string" ? mem_address1.trim() : "",
         city: typeof city === "string" ? city.trim() : "",
         vehicle_owner: vehicle_owner || 0,
-        // vehicle_type:
-        //   typeof vehicle_type === "string" ? vehicle_type.trim() : "",
-        // vehicle_registration_num:
-        //   typeof vehicle_registration_num === "string"
-        //     ? vehicle_registration_num.trim()
-        //     : "",
-        // driving_license_num:
-        //   typeof driving_license_num === "string"
-        //     ? driving_license_num.trim()
-        //     : "",
+        vehicle_type:
+          typeof vehicle_type === "string" ? vehicle_type.trim() : "",
+        vehicle_registration_num:
+          typeof vehicle_registration_num === "string"
+            ? vehicle_registration_num.trim()
+            : "",
+        driving_license_num:
+          typeof driving_license_num === "string"
+            ? driving_license_num.trim()
+            : "",
         // driving_license:
         //   typeof driving_license === "string" ? driving_license.trim() : "",
         created_date: new Date(),
