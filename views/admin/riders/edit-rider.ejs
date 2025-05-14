@@ -329,11 +329,11 @@
         <div class="row">
           <div class="col-md-12">
             <div class="card">
-                <div class="card-body preview">
+                <div class="card-body">
                     <div class="row">
                         <div class="col-md-12">
                           <h5 class="card-title">Front/Back and Side Pictures</h5>
-                          <div class="blog_img">
+                          <div class="blog_img multiple_rider_attachments">
                             <% if (Array.isArray(attachments.pictures)) { %>
                               <% attachments.pictures.forEach((att_pic,index) => { %>
                               <img src="/uploads/<%= att_pic %>" width="150" />
@@ -341,12 +341,9 @@
                             <% } %>
                           </div>
                           <div class="in-upload">
-                            <button type="button" class="uploadImg">
-                              <i class="fa-regular fa-image"></i>choose multiple Front/Back and Side Pictures
-                            </button>
-                            <input type="file" class="uploadFile" name="company_certificate"                         
-                            value="<%= attachments.company_certificate ? attachments.company_certificate : '' %>"
-                            />
+                            
+                            <input type="file" id="rider_pictures" class="" multiple accept="image/*" />
+                            <div id="uploadLoader"></div>
                           </div>
                         </div>
                     </div>

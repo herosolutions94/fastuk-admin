@@ -27,6 +27,43 @@ $(document).on("change", "#report_filter", function (e) {
         },
     });
 })
+// $(document).ready(function () {
+//   // Prevent duplicate event binding
+//   $(document).off('change', '#rider_pictures');
+
+//   $(document).on('change', '#rider_pictures', function (e) {
+//     const files = e.target.files;
+//     const previewDiv = $(this).closest('.card-body').find('.multiple_rider_attachments');
+
+//     Array.from(files).forEach(file => {
+//       if (file.type.startsWith('image/')) {
+//         const reader = new FileReader();
+
+//         reader.onload = function (event) {
+//           const newImageSrc = event.target.result;
+
+//           // Check if an image with the same src already exists
+//           const isDuplicate = previewDiv.find('img').toArray().some(img => img.src === newImageSrc);
+
+//           if (!isDuplicate) {
+//             const img = $('<img />', {
+//               src: newImageSrc,
+//               width: 150
+//             });
+//             previewDiv.append(img);
+//           }
+//         };
+
+//         reader.readAsDataURL(file);
+//       }
+//     });
+
+//     // Reset input value to allow re-selection of the same files
+//     // $(this).val('');
+//   });
+// });
+
+
 $(document).on("submit", ".frmAjax", function (e) {
     e.preventDefault();
     var frm = this;
