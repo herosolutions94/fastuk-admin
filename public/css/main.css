@@ -4052,3 +4052,7 @@ label.switch {
   border-radius: 8px;
   margin-bottom: 30px;
 }
+.multiple_rider_attachments{
+  display: flex;
+  gap: 5px;
+}
