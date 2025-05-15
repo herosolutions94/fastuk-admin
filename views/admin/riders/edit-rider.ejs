@@ -142,8 +142,8 @@
                       class="switch-state bg-primary"></span>
                   </label>
                   <select name="vehicle_owner">
-                    <option value="1" <%= rider.vehicle_owner == 1 ? 'selected' : '' %>>Yes</option>
-                    <option value="0" <%= rider.vehicle_owner == 0 ? 'selected' : '' %>>No</option>
+                    <option value="yes" <%= rider.vehicle_owner == "yes" ? 'selected' : '' %>>Yes</option>
+                    <option value="no" <%= rider.vehicle_owner == "no" ? 'selected' : '' %>>No</option>
                 </select>
                 </div>
               </div>
@@ -158,11 +158,11 @@
                   <div class="card-body preview">
                     <div class="row">
                         <div class="col-md-12">
-                          <h5 class="card-title">Image</h5>
+                          <h5 class="card-title">Driving License</h5>
                           <div class="blog_img">
-                            <% if (imageFilenames && imageFilenames[0]) { %>
+                            <% if (attachments.driving_license) { %>
                             <img
-                              src="<%= helpers.getImage(imageFilenames[0]) %>"
+                              src="<%= helpers.getImage(attachments.driving_license) %>"
                               alt="Main Image"
                               class="card-img-top" />
 
@@ -173,7 +173,7 @@
                               <i class="fa-regular fa-image"></i>choose another image
                             </button>
                             <input type="file" class="uploadFile" name="driving_license"                         
-                            value="<%= editRiderId ? rider.driving_license : '' %>"
+                            value="<%= attachments.driving_license ? attachments.driving_license : '' %>"
                             />
                           </div>
                         </div>

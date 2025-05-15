@@ -771,7 +771,7 @@ class PagesController extends BaseController {
       return res.status(200).json({
         status: 1,
         msg: "Image uploaded successfully.",
-        rider_license: riderLicense
+        driving_license: riderLicense
       });
     } catch (error) {
       console.error("Error uploading profile image:", error.message);
