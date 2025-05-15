@@ -50,20 +50,19 @@ class RiderController extends BaseController {
         // Organize attachments by type for easier access in EJS
         const attachmentMap = {};
         const pictures = [];
-attachments.forEach((att) => {
-  if (att?.type === "pictures") {
-    pictures.push(att); // 👈 Push full object, not just filename
-  } else {
-    attachmentMap[att.type] = att.filename;
-  }
-});
-attachmentMap["pictures"] = pictures;
-          console.log("attachmentMap:",attachmentMap)
+        attachments.forEach((att) => {
+          if (att?.type === "pictures") {
+            pictures.push(att); // 👈 Push full object, not just filename
+          } else {
+            attachmentMap[att.type] = att.filename;
+          }
+        });
+        attachmentMap["pictures"] = pictures;
+        console.log("attachmentMap:", attachmentMap);
         // Assuming `result` is defined properly, or you should use rider.rider_image
         res.render("admin/riders/edit-rider", {
           rider,
           editRiderId: riderId,
-          imageFilenames: [rider.driving_license], // Make sure to access the rider image correctly
           status: rider.status,
           attachments: attachmentMap,
         });
@@ -182,44 +181,49 @@ attachmentMap["pictures"] = pictures;
     }
   }
 
+  async deleteRiderPicture(req, res) {
+    const { id, rider_id } = req.params;
+    console.log("id,rider_id:", id, rider_id);
 
-  async deleteRiderPicture (req, res) {
-  const { id, rider_id } = req.params;
-  console.log("id,rider_id:",id,rider_id)
+    try {
+      const result = await Rider.getRiderAttachmentById(id, rider_id);
 
+      if (!result || result.length === 0) {
+        return res
+          .status(200)
+          .json({ status: 0, message: "Image doesn't exist" });
+      }
 
-  try {
-const result = await Rider.getRiderAttachmentById(id, rider_id);
+      const filename = result[0].filename;
+      const imagePath = path.join(__dirname, "../../uploads/", filename);
 
-    if (!result || result.length === 0) {
-      return res.status(200).json({ status: 0, message: "Image doesn't exist" });
+      fs.unlink(imagePath, async (err) => {
+        if (err) {
+          console.error("Error deleting image file:", err);
+          return res
+            .status(200)
+            .json({ status: 0, message: "Error deleting image file" });
+        }
+
+        try {
+          await Rider.deleteAttachmentById(id, rider_id, "pictures");
+          return res
+            .status(200)
+            .json({ status: 1, message: "Image deleted successfully" });
+        } catch (error) {
+          console.error("Error deleting image from DB:", error);
+          return res
+            .status(200)
+            .json({ status: 0, message: "Error deleting image from database" });
+        }
+      });
+    } catch (error) {
+      console.error("Error fetching image from DB:", error);
+      return res
+        .status(200)
+        .json({ status: 0, message: "Error fetching image from database" });
     }
-
-    const filename = result[0].filename;
-    const imagePath = path.join(__dirname, '../../uploads/', filename);
-
-    fs.unlink(imagePath, async (err) => {
-      if (err) {
-        console.error("Error deleting image file:", err);
-        return res.status(200).json({ status: 0, message: "Error deleting image file" });
-      }
-
-      try {
-        await Rider.deleteAttachmentById(id, rider_id, 'pictures');
-        return res.status(200).json({ status: 1, message: "Image deleted successfully" });
-      } catch (error) {
-        console.error("Error deleting image from DB:", error);
-        return res.status(200).json({ status: 0, message: "Error deleting image from database" });
-      }
-    });
-
-  } catch (error) {
-    console.error("Error fetching image from DB:", error);
-    return res.status(200).json({ status: 0, message: "Error fetching image from database" });
   }
-};
-
-
 
   async deleteRider(req, res) {
     const riderId = req.params.id;
