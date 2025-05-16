@@ -736,7 +736,7 @@ class PagesController extends BaseController {
   
       // Step 2: Fetch vehicles by category ID
       const vehiclesResult = await VehicleAdminModel.getVehicleByVehicleCategoryId(categoryId)
-      console.log("vehiclesResult:",vehiclesResult)
+      // console.log("vehiclesResult:",vehiclesResult)
   
       return res.status(200).json({
         status: 1,

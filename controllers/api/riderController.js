@@ -1183,7 +1183,7 @@ class RiderController extends BaseController {
         requestId: order_id
       });
       // console.log(rider.id, decodedId)
-      console.log("Order from DB:", order); // Add this line to log the order fetched from the database
+      // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
 
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Order not found." });
@@ -1270,7 +1270,7 @@ let vehicle = order.selected_vehicle
         requestId: decodedId
       });
       // console.log(rider.id, decodedId)
-      console.log("Order from DB:", order); // Add this line to log the order fetched from the database
+      // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
 
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Order not found." });

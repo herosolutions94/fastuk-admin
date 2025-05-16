@@ -48,7 +48,7 @@ class RemotePostCodeModel extends BaseModel {
                 remote_price: row.remote_price
             }));
     
-            console.log("postCodes:", postCodes); // Optional: For debugging
+            // console.log("postCodes:", postCodes); // Optional: For debugging
             
             return postCodes; // Return the array of post codes and their prices
         } catch (error) {
