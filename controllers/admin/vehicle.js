@@ -20,7 +20,7 @@ class VehicleController extends BaseController {
     async renderAddVehiclePage (req, res) {
         try {
             const vehicleCategories = await VehicleCategories.getAllVehicleCategories();
-            console.log("vehicleCategories:",vehicleCategories)
+            // console.log("vehicleCategories:",vehicleCategories)
 
             res.render('admin/add-vehicle',{
                 vehicleCategories

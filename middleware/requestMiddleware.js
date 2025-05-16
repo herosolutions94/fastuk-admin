@@ -8,7 +8,7 @@ module.exports = async (req, res, next) => {
     if (req.session.admin && req.session.admin.type === 'admin') {
         // ✅ Admin gets all permissions
         res.locals.sidebarPermissions = Object.fromEntries(
-            Array.from({ length: 20 }, (_, i) => [i + 1, true])
+            Array.from({ length: 22 }, (_, i) => [i + 1, true])
         );
     } else if (req.session.permissions) {
         // ✅ Sub-admin gets specific permissions
