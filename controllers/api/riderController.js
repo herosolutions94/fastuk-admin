@@ -61,7 +61,7 @@ class RiderController extends BaseController {
 
         fingerprint // Keep fingerprint as a parameter
       } = req.body;
-      console.log("req.body:",req.body)
+      // console.log("req.body:",req.body)
 
       const is_approved = "pending";
 
@@ -77,18 +77,7 @@ class RiderController extends BaseController {
           typeof mem_address1 === "string" ? mem_address1.trim() : "",
         city: typeof city === "string" ? city.trim() : "",
         vehicle_owner: vehicle_owner || 0,
-        // vehicle_type:
-        //   typeof vehicle_type === "string" ? vehicle_type.trim() : "",
-        // vehicle_registration_num:
-        //   typeof vehicle_registration_num === "string"
-        //     ? vehicle_registration_num.trim()
-        //     : "",
-        // driving_license_num:
-        //   typeof driving_license_num === "string"
-        //     ? driving_license_num.trim()
-        //     : "",
-        // driving_license:
-        //   typeof driving_license === "string" ? driving_license.trim() : "",
+        
         created_date: new Date(),
         status: 1,
         mem_verified: mem_verified || 0,
@@ -101,6 +90,34 @@ class RiderController extends BaseController {
           .status(200)
           .json({ status: 0, msg: "All fields are required." });
       }
+
+      if (vehicle_owner === "yes") {
+
+      const vehicleData = {
+        vehicle_type:
+          typeof vehicle_type === "string" ? vehicle_type.trim() : "",
+        vehicle_registration_num:
+          typeof vehicle_registration_num === "string"
+            ? vehicle_registration_num.trim()
+            : "",
+        driving_license_num:
+          typeof driving_license_num === "string"
+            ? driving_license_num.trim()
+            : "",
+        // driving_license:
+        //   typeof driving_license === "string" ? driving_license.trim() : "",
+      }
+
+
+      if (!validateRequiredFields(vehicleData)) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "All vehicle related fields are required for vehicle." });
+      }
+
+        Object.assign(cleanedData, vehicleData);
+
+    }
 
       if (cleanedData.password !== cleanedData.confirm_password) {
         return res
@@ -222,9 +239,9 @@ class RiderController extends BaseController {
       }
       
 
-      console.log('Attachments:', attachments);
-console.log('Type of attachments:', typeof attachments);
-console.log('Is array:', Array.isArray(attachments));
+//       console.log('Attachments:', attachments);
+// console.log('Type of attachments:', typeof attachments);
+// console.log('Is array:', Array.isArray(attachments));
 
 
       // Insert all attachments into the sub-table
@@ -1166,7 +1183,7 @@ console.log('Is array:', Array.isArray(attachments));
         requestId: order_id
       });
       // console.log(rider.id, decodedId)
-      console.log("Order from DB:", order); // Add this line to log the order fetched from the database
+      // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
 
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Order not found." });
@@ -1253,7 +1270,7 @@ let vehicle = order.selected_vehicle
         requestId: decodedId
       });
       // console.log(rider.id, decodedId)
-      console.log("Order from DB:", order); // Add this line to log the order fetched from the database
+      // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
 
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Order not found." });

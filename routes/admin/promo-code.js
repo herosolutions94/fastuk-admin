@@ -11,11 +11,11 @@ const  checkAccessMiddleware  = require('../../middleware/checkAccessMiddleware'
 
 router.get('/add-promo-code-form', promoCodeController.renderAddPromoCodePage.bind(promoCodeController));
 
-router.post('/add-promo-codes', upload, ensureAuthenticated, promoCodeController.addPromoCode.bind(promoCodeController));
-router.get('/promo-codes-list', ensureAuthenticated, promoCodeController.getPromoCodes.bind(promoCodeController));
-router.get('/promo-codes/edit/:id', ensureAuthenticated, upload, promoCodeController.editPromoCode.bind(promoCodeController)); // Edit form
-router.post('/promo-codes/update/:id', ensureAuthenticated, upload, promoCodeController.updatePromoCode.bind(promoCodeController)); // Update rider
-router.delete('/promo-codes/delete/:id', ensureAuthenticated, promoCodeController.deletePromoCode.bind(promoCodeController));
+router.post('/add-promo-codes', upload, ensureAuthenticated,checkAccessMiddleware(20), promoCodeController.addPromoCode.bind(promoCodeController));
+router.get('/promo-codes-list', ensureAuthenticated, checkAccessMiddleware(20), promoCodeController.getPromoCodes.bind(promoCodeController));
+router.get('/promo-codes/edit/:id', ensureAuthenticated, checkAccessMiddleware(20), upload, promoCodeController.editPromoCode.bind(promoCodeController)); // Edit form
+router.post('/promo-codes/update/:id', ensureAuthenticated, checkAccessMiddleware(20), upload, promoCodeController.updatePromoCode.bind(promoCodeController)); // Update rider
+router.delete('/promo-codes/delete/:id', ensureAuthenticated, checkAccessMiddleware(20), promoCodeController.deletePromoCode.bind(promoCodeController));
 
 
 

@@ -80,29 +80,18 @@ module.exports = {
       return 'Active';
     }
   },
-  getRequestOrderStatus: function(status) {
-    if(status==='accepted'){
-      return '<span class="badge-blue badge purple_active">Accepted</span>';
-    }
-    else if(status==='on-way-pickup'){
-      return '<span class="badge-yellow badge purple_active">On way to (Collection/pickup)</span>';
-    }
-    else if(status==='on-site-pickup'){
-      return '<span class="badge-orange badge purple_active">On site (collection/pickup)</span>';
-    }
-    else if(status==='loaded'){
-      return '<span class="badge-purple badge purple_active">Loaded</span>';
-    }
-    else if(status==='on-site-delivery'){
-      return '<span class="badge-pink badge purple_active">On site (delivery/destination)</span>';
-    }
-    else if(status==='delivered'){
-      return '<span class="badge-green badge purple_active">Delivered</span>';
-    }
-    else{
-      return '<span class="badge-gray badge purple_active">Active</span>';
-    }
-  },
+ getRequestOrderStatusText: function(status) {
+  switch (status) {
+    case 'accepted': return 'Accepted';
+    case 'on-way-pickup': return 'On way to (Collection/pickup)';
+    case 'on-site-pickup': return 'On site (collection/pickup)';
+    case 'loaded': return 'Loaded';
+    case 'on-site-delivery': return 'On site (delivery/destination)';
+    case 'delivered': return 'Delivered';
+    default: return 'Active';
+  }
+}
+,
   calculateOrderSummary: function(order_details, siteSettings) {
     try {
       // Parse the input as an array
