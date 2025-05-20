@@ -566,7 +566,7 @@ class MemberController extends BaseController {
         paymentMethods, // Simplified payment methods
         remotePostCodes // Add the remote post codes
       };
-      console.log("jsonResponse:", jsonResponse);
+      // console.log("jsonResponse:", jsonResponse);
 
       // Return data in JSON format
       res.json(jsonResponse);

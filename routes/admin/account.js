@@ -16,9 +16,9 @@ const upload = require('../../file-upload');
 
 
 
-router.get('/completed-reports', ensureAuthenticated, ReportsController.completedReportsView);
-router.get('/inprogress-reports', ensureAuthenticated, ReportsController.inprogressReportsView);
-router.post('/filter-completed-reports', ensureAuthenticated,upload, ReportsController.filterCompletedReportsView);
+router.get('/completed-reports', ensureAuthenticated, checkAccessMiddleware(22), ReportsController.completedReportsView);
+router.get('/inprogress-reports', ensureAuthenticated, checkAccessMiddleware(22), ReportsController.inprogressReportsView);
+router.post('/filter-completed-reports', ensureAuthenticated, checkAccessMiddleware(22),upload, ReportsController.filterCompletedReportsView);
 
 router.get('/home', accountController.homeView);
 router.get('/message', accountController.messageView);

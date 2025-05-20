@@ -41,7 +41,7 @@ class MemberController extends BaseController {
             const member = members[0]; // Get the first member if it exists
             const states = await Member.getStatesByCountryId(230); // Fetch states for country_id = 230
             const addresses = await this.addressModel.getAddressesByUserId(memberId);
-            console.log('Member:', addresses); // Log the rider data
+            // console.log('Member:', addresses); // Log the rider data
 
             if (member) {
                 res.render('admin/members/edit-member', {

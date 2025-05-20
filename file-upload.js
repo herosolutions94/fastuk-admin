@@ -33,7 +33,7 @@ const upload = multer({
     if (allowedExtensions.includes(extname)) {
       return cb(null, true);
     } else {
-      return cb(new Error('Only .jpg, .jpeg, .png, .gif, .svg, .mp4, .mov, .avi .mp3 .ogg .wav files are allowed!'));
+      return cb(new Error('Only .webp, .jpg, .jpeg, .png, .gif, .svg, .mp4, .mov, .avi .mp3 .ogg .wav files are allowed!'));
     }
   },
   limits: {
