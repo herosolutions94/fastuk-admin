@@ -1,0 +1,18 @@
+<form method="POST" class="frmAjax"
+action="/admin/rider/category/<%= rider_id %>/update/<%= category_id %>">
+  <label>Main Category</label>
+  <select disabled>
+    <% mainCategories.forEach(cat => { %>
+      <option value="<%= cat.id %>" <%= cat.id == parentCategoryId ? 'selected' : '' %>><%= cat.vehicle_name %></option>
+    <% }); %>
+  </select>
+
+  <label>Sub Category</label>
+  <select name="new_category_id" required>
+    <% subCategories.forEach(cat => { %>
+      <option value="<%= cat.id %>" <%= cat.id == selectedId ? 'selected' : '' %>><%= cat.vehicle_name %></option>
+    <% }); %>
+  </select>
+
+  <button type="submit">Update</button>
+</form>

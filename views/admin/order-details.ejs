@@ -445,7 +445,9 @@
                 <tr>
                   <td><%= review.review %></td>
                   <td>
-                    <p class="rateYo"></p>
+                    <div
+                class="rateYo"
+                data-rateyo-rating="<%= review.rating %>"></div>
                   </td>
                   <td>
                     <%= helpers.convertUtcToUkFormat(review.created_at) %>
