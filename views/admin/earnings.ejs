@@ -22,26 +22,29 @@
           </tr>
         </thead>
         <tbody>
-          <% if (earnings && earnings.length > 0) { %> 
-          <% earnings.forEach((earning, index) => { %>
+          <% if (earnings && earnings.length > 0) { %> <%
+          earnings.forEach((earning, index) => { %>
           <tr class="bottom-cntnt" id="earning-<%= earning.id %>">
             <td><p><%= index + 1 %></p></td>
             <td>
               <div class="flex">
-              <div class="image-blog">
-                <img src="<%= helpers.getImage(earning.mem_image) %>" alt="User Image" class="img-responsive"/>
+                <div class="image-blog">
+                  <img
+                    src="<%= helpers.getImage(earning.mem_image) %>"
+                    alt="User Image"
+                    class="img-responsive" />
+                </div>
+                <p><%= earning.rider_name %></p>
               </div>
-              <p><%= earning.member_name %></p>
-            </div>
             </td>
             <td><p>£<%= earning.amount %></p></td>
             <td><p><%= earning.type %></p></td>
             <td><p><%- helpers.getEarningStatus(earning.status) %></p></td>
-            <td><p><%= helpers.convertUtcToUkFormat(earning.created_time) %></p></td>
-            
+            <td>
+              <p><%= helpers.convertUtcToUkFormat(earning.created_time) %></p>
+            </td>
           </tr>
-          <% }) %> 
-          <% } else { %>
+          <% }) %> <% } else { %>
           <tr>
             <td colspan="8"><p>No earnings found.</p></td>
           </tr>

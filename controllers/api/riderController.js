@@ -2290,13 +2290,13 @@ let vehicle = order.selected_vehicle
 
       // Now, call the model's getRiderEarnings function to fetch the earnings
       const earningsData = await this.rider.getRiderEarnings(riderId);
-      // console.log(
-      //   "net income:",
-      //   earningsData.netIncome,
-      //   "available balance:",
-      //   earningsData.availableBalance,
-      //   earningsData.totalWithdrawn
-      // );
+      console.log(
+        "net income:",
+        earningsData.netIncome,
+        "available balance:",
+        earningsData.availableBalance,
+        earningsData.totalWithdrawn
+      );
 
       if (!earningsData) {
         return res

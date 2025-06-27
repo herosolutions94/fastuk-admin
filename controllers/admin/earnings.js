@@ -18,6 +18,7 @@ class EarningsController extends BaseController {
     async getEarnings(req, res) {
         try {
           const earnings = await this.rider.getAllEarnings();
+          console.log("earnings:",earnings)
       
           res.render('admin/earnings', { earnings: earnings });
         } catch (error) {
