@@ -1,18 +1,82 @@
-<form method="POST" class="frmAjax"
-action="/admin/rider/category/<%= rider_id %>/update/<%= category_id %>">
-  <label>Main Category</label>
-  <select disabled>
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Edit Category</h3>
+        <ul>
+          <li><a href="">Home</a></li>
+          <li class="active"><a href="">New Category</a></li>
+        </ul>
+      </div>
+      <div class="text text2">
+        <a href="blog.php" class="webBtn mdBtn greenBtn"
+          ><i class="fa-regular fa-arrow-left"></i>Cancel</a
+        >
+      </div>
+    </div>
+    <div class="dashTable">
+      <div class="card editor_card">
+        <div class="card-header">
+          <h5>Category Block</h5>
+        </div>
+        <div class="card-body full_width">
+          <form id="addCategoryForm" 
+          action="/admin/rider/category/update/<%= rider_id %>/<%= category_id %>" 
+          method="POST"
+>
+            <div class="row">
+              <div class="col-md-12">
+                <input type="hidden" id="riderId" value="<%= rider_id %>" />
+
+                <div class="row switch-showcase">
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label>Main Category</label>
+                     <select id="parent_id">
     <% mainCategories.forEach(cat => { %>
-      <option value="<%= cat.id %>" <%= cat.id == parentCategoryId ? 'selected' : '' %>><%= cat.vehicle_name %></option>
+      <option value="<%= cat.id %>" <%= cat.id == parentCategoryId ? 'selected' : '' %>><%= cat.title %></option>
     <% }); %>
   </select>
+                    </div>
+                  </div>
 
-  <label>Sub Category</label>
-  <select name="new_category_id" required>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label>Sub Category</label>
+                      <select id="category_id" name="category_id" required>
     <% subCategories.forEach(cat => { %>
       <option value="<%= cat.id %>" <%= cat.id == selectedId ? 'selected' : '' %>><%= cat.vehicle_name %></option>
     <% }); %>
   </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer text-end">
+              <button class="webBtn" type="submit">
+                Update Category <i class="spinner hidden"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+        <hr />
+      </div>
+    </div>
+  </div>
+</section>
 
-  <button type="submit">Update</button>
-</form>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

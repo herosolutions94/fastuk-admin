@@ -19,8 +19,13 @@
             <th width="10%">
               <p>Sr#</p>
             </th>
+
             <th width="20%">
-              <p>Name</p>
+              <p>Main Category</p>
+            </th>
+
+            <th width="20%">
+              <p>Sub Category</p>
             </th>
 
             <th width="10%">
@@ -37,7 +42,11 @@
             </td>
 
             <td>
-              <p><%= category.vehicle_name %></p>
+              <p><%= category.main_category_name %></p>
+            </td>
+
+            <td>
+              <p><%= category.sub_category_name %></p>
             </td>
             <td>
               <div class="btn-group">
@@ -50,7 +59,7 @@
                 <ul class="dropdown-menu dropdown-primary" role="menu">
                   <li>
                     <a
-                      href="/admin/rider/category/edit/<%= rider_id %>/<%= category.id %>">
+                      href="/admin/rider/category/edit/<%= rider_id %>/<%= category.rider_category_id %>">
                       <i class="fa fa-pencil" aria-hidden="true"></i> Edit
                     </a>
                   </li>
@@ -59,7 +68,7 @@
                       href="#"
                       class="delete-item"
                       data-id="<%= category.id %>"
-                      data-url="/admin/rider/category/delete/<%= rider_id %>/<%= category.id %>">
+                      data-url="/admin/rider/category/delete/<%= rider_id %>/<%= category.rider_category_id %>">
                       <i class="fa fa-trash" aria-hidden="true"></i> Delete
                     </a>
                   </li>

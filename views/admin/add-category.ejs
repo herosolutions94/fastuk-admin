@@ -22,8 +22,7 @@
         <div class="card-body full_width">
           <form
             id="addCategoryForm"
-            class="frmAjax"
-            action="/rider/category/add-category-form/<%= rider_id %>"
+            action="/admin/rider/category/add-category-form/<%= rider_id %>"
             method="post">
             <div class="row">
               <div class="col-md-12">
@@ -33,15 +32,10 @@
                   <div class="col-md-6">
                     <div class="txtGrp">
                       <label>Main Category</label>
-                      <select
-                        id="mainCategory"
-                        name="main_category"
-                        class="input">
+                      <select id="parent_id" name="parent_id">
                         <option value="">-- Select Main Category --</option>
                         <% mainCategories.forEach(cat => { %>
-                        <option value="<%= cat.id %>">
-                          <%= cat.vehicle_name %>
-                        </option>
+                        <option value="<%= cat.id %>"><%= cat.title %></option>
                         <% }); %>
                       </select>
                     </div>
@@ -50,10 +44,7 @@
                   <div class="col-md-6">
                     <div class="txtGrp">
                       <label>Sub Category</label>
-                      <select
-                        id="subCategory"
-                        name="sub_category"
-                        class="input">
+                      <select id="category_id" name="category_id">
                         <option value="">-- Select Sub Category --</option>
                       </select>
                     </div>
@@ -63,7 +54,7 @@
             </div>
             <div class="card-footer text-end">
               <button class="webBtn" type="submit">
-                Update Content <i class="spinner hidden"></i>
+                Assign Category <i class="spinner hidden"></i>
               </button>
             </div>
           </form>

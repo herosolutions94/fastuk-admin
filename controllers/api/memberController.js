@@ -3,6 +3,7 @@ const BaseController = require("../baseController");
 const Member = require("../../models/memberModel");
 const Rider = require("../../models/riderModel");
 const VehicleModel = require("../../models/api/vehicleModel");
+const Vehicle = require("../../models/vehicle");
 const VehicleCategoryModel = require("../../models/vehicle-categories");
 const PageModel = require("../../models/api/pages"); // Assuming you have this model
 const PaymentMethodModel = require("../../models/api/paymentMethodModel"); // Assuming you have this model
@@ -18,7 +19,7 @@ const {
   validateEmail,
   validatePhoneNumber,
   validateRequiredFields,
-  validateFields
+  validateFields,
 } = require("../../utils/validators");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
@@ -64,14 +65,14 @@ class MemberController extends BaseController {
       // Return the array of addresses
       return res.status(200).json({
         status: 1,
-        addresses: addresses?.length <= 0 ? [] : addresses
+        addresses: addresses?.length <= 0 ? [] : addresses,
       });
     } catch (error) {
       console.error("Error fetching addresses:", error.message);
       return res.status(200).json({
         status: 0,
         msg: "Server error.",
-        details: error.message
+        details: error.message,
       });
     }
   }
@@ -86,7 +87,7 @@ class MemberController extends BaseController {
       if (memType === "rider") {
         return res.status(200).json({
           status: 0,
-          msg: "Invalid member type. Only users can access this endpoint."
+          msg: "Invalid member type. Only users can access this endpoint.",
         });
       }
 
@@ -104,7 +105,7 @@ class MemberController extends BaseController {
         rating: rating.trim(),
         created_at: created_at,
         user_id: user?.id,
-        request_id: request_id
+        request_id: request_id,
       };
 
       // console.log(validateRequiredFields(cleanedData))
@@ -134,7 +135,7 @@ class MemberController extends BaseController {
             adminData,
             order: requestQuote,
             type: "user",
-            review: cleanedData
+            review: cleanedData,
           }
         );
         const notificationText = `You've received a review from user.`;
@@ -147,20 +148,20 @@ class MemberController extends BaseController {
         );
         return res.status(200).json({
           status: 1,
-          msg: "Review Posted Successfully!"
+          msg: "Review Posted Successfully!",
         });
       }
 
       return res.status(200).json({
         status: 1,
-        states: states
+        states: states,
       });
     } catch (error) {
       console.error("Error in posting review:", error);
       return res.status(200).json({
         status: 0,
         msg: "Internal server error.",
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -174,7 +175,7 @@ class MemberController extends BaseController {
         address,
         post_code,
         city,
-        memType
+        memType,
       } = req.body;
       // console.log(memType)
 
@@ -202,7 +203,7 @@ class MemberController extends BaseController {
       ) {
         return res.status(400).json({
           status: 0,
-          msg: "Address  city, and postcode are required."
+          msg: "Address  city, and postcode are required.",
         });
       }
 
@@ -223,7 +224,7 @@ class MemberController extends BaseController {
         address,
         post_code,
         city,
-        default: isDefault
+        default: isDefault,
       };
       // console.log(newAddress)
       const insertedAddress = await this.addressModel.insertAddress(newAddress);
@@ -234,14 +235,14 @@ class MemberController extends BaseController {
       return res.status(200).json({
         status: 1,
         msg: "Address added successfully.",
-        addresses: addresses
+        addresses: addresses,
       });
     } catch (error) {
       console.error("Error in getAndInsertAddress:", error.message);
       return res.status(500).json({
         status: 0,
         msg: "Server error.",
-        details: error.message
+        details: error.message,
       });
     }
   }
@@ -256,20 +257,20 @@ class MemberController extends BaseController {
         post_code,
         city,
         address_id,
-        memType
+        memType,
       } = req.body;
 
       // Validate token
       if (!token) {
         return res.status(200).json({
           status: 0,
-          msg: "Token is required."
+          msg: "Token is required.",
         });
       }
       if (!address_id) {
         return res.status(200).json({
           status: 0,
-          msg: "Address is required."
+          msg: "Address is required.",
         });
       }
       if (!token) {
@@ -295,7 +296,7 @@ class MemberController extends BaseController {
       ) {
         return res.status(400).json({
           status: 0,
-          msg: "Address  city, and postcode are required."
+          msg: "Address  city, and postcode are required.",
         });
       }
       const address_row = await this.addressModel.getAddressById(
@@ -305,7 +306,7 @@ class MemberController extends BaseController {
       if (!address_row) {
         return res.status(200).json({
           status: 0,
-          msg: "Address is required."
+          msg: "Address is required.",
         });
       }
       // Insert the address into the database
@@ -315,7 +316,7 @@ class MemberController extends BaseController {
         phone_number,
         address,
         post_code,
-        city
+        city,
       };
       // console.log(newAddress)
       const insertedAddress = await this.addressModel.updateData(
@@ -329,14 +330,14 @@ class MemberController extends BaseController {
       return res.status(200).json({
         status: 1,
         msg: "Address updated successfully.",
-        addresses: addresses
+        addresses: addresses,
       });
     } catch (error) {
       console.error("Error in getAndInsertAddress:", error.message);
       return res.status(500).json({
         status: 0,
         msg: "Server error.",
-        details: error.message
+        details: error.message,
       });
     }
   }
@@ -348,13 +349,13 @@ class MemberController extends BaseController {
       if (!token) {
         return res.status(200).json({
           status: 0,
-          msg: "Token is required."
+          msg: "Token is required.",
         });
       }
       if (!address_id) {
         return res.status(200).json({
           status: 0,
-          msg: "Address is required."
+          msg: "Address is required.",
         });
       }
 
@@ -377,7 +378,7 @@ class MemberController extends BaseController {
       if (!address_row) {
         return res.status(200).json({
           status: 0,
-          msg: "Address is required."
+          msg: "Address is required.",
         });
       }
 
@@ -389,14 +390,14 @@ class MemberController extends BaseController {
       return res.status(200).json({
         status: 1,
         msg: "Address deleted successfully.",
-        addresses: addresses
+        addresses: addresses,
       });
     } catch (error) {
       console.error("Error in getAndInsertAddress:", error.message);
       return res.status(500).json({
         status: 0,
         msg: "Server error.",
-        details: error.message
+        details: error.message,
       });
     }
   }
@@ -409,19 +410,19 @@ class MemberController extends BaseController {
       if (!token) {
         return res.status(200).json({
           status: 0,
-          msg: "Token is required."
+          msg: "Token is required.",
         });
       }
       if (!memType) {
         return res.status(200).json({
           status: 0,
-          msg: "memType is required."
+          msg: "memType is required.",
         });
       }
       if (!address_id) {
         return res.status(200).json({
           status: 0,
-          msg: "Address ID is required."
+          msg: "Address ID is required.",
         });
       }
 
@@ -445,7 +446,7 @@ class MemberController extends BaseController {
       if (!address_row) {
         return res.status(200).json({
           status: 0,
-          msg: "Address not found or does not belong to the user."
+          msg: "Address not found or does not belong to the user.",
         });
       }
 
@@ -460,7 +461,7 @@ class MemberController extends BaseController {
       if (!isDefaultSet) {
         return res.status(500).json({
           status: 0,
-          msg: "Failed to set address as default."
+          msg: "Failed to set address as default.",
         });
       }
       // console.log(`Address ${address_id} set as default`);
@@ -470,111 +471,99 @@ class MemberController extends BaseController {
       if (!addresses || addresses.length === 0) {
         return res.status(200).json({
           status: 0,
-          msg: "No addresses found."
+          msg: "No addresses found.",
         });
       }
 
       return res.status(200).json({
         status: 1,
         msg: "Address set as default successfully.",
-        addresses: addresses
+        addresses: addresses,
       });
     } catch (error) {
       console.error("Error in setAsDefaultAddress:", error.message);
       return res.status(500).json({
         status: 0,
         msg: "Server error.",
-        details: error.message
+        details: error.message,
       });
     }
   }
 
   async requestQuote(req, res) {
-    const vehicleModel = new VehicleModel();
-    const vehicleCategoryModel = new VehicleCategoryModel();
-    const { token, memType, address_id } = req.body;
+  const vehicleModel = new VehicleModel();
+  const vehicleCategoryModel = new VehicleCategoryModel();
+  const { token, memType, address_id, id } = req.body;
 
-    try {
-      const siteSettings = res.locals.adminData;
+  let quoteDetails = null;
+  let member = null;
+  let paymentMethods = [];
+  let addressesData = [];
 
-      // Get the main page content
-      const vehiclesData = await vehicleModel.findFeatured();
-      const vehicleCategoriesData =
-        await VehicleCategoryModel.getActiveVehicleCategories();
-      // console.log("vehicleCategoriesData:",vehicleCategoriesData)
+  try {
+    const siteSettings = res.locals.adminData;
 
-      let member = null;
-      let paymentMethods = [];
-      let addressesData = []; // Initialize an empty array
+    // Fetch featured vehicles and categories
+    const vehiclesData = await vehicleModel.findFeatured();
+    const vehicleCategoriesData = await VehicleCategoryModel.getActiveVehicleCategories();
+    const remotePostCodes = await RemotePostCodeModel.getRemotePostCodesInArray();
 
-      const remotePostCodes =
-        await RemotePostCodeModel.getRemotePostCodesInArray();
+    // Token check
+    if (token && token !== "null") {
+      if (memType === "rider") {
+        return res.status(200).json({ status: 0, msg: "Rider account cannot create request!" });
+      }
 
-      // If a token is provided, decrypt it and fetch user details
-      if (token && token !== "null") {
-        // Validate memType
-        if (memType === "rider") {
-          return res
-            .status(200)
-            .json({ status: 0, msg: "Rider account cannot create request!" });
-        }
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse);
+      }
 
-        // Validate token and get member details
-        const userResponse = await this.validateTokenAndGetMember(
-          token,
-          memType
-        );
+      member = userResponse.user;
+      if (!member) {
+        return res.status(200).json({ status: 0, msg: "Member not found." });
+      }
 
-        if (userResponse.status === 0) {
-          return res.status(200).json(userResponse); // Return error if token validation fails
-        }
+      // Fetch user addresses
+      addressesData = await this.addressModel.getAddressesByUserId(member.id);
 
-        member = userResponse.user;
-
-        if (!member) {
-          return res.status(200).json({ status: 0, msg: "Member not found." });
-        }
-
-        // if (address_id) {
-        addressesData = await this.addressModel.getAddressesByUserId(member.id);
-        // }
-        // console.log("result:",address_id,member.id)
-
-        // Fetch payment methods for the user
-        const fetchedPaymentMethods =
-          await this.paymentMethodModel.getPaymentMethodsByUserId(
-            member.id,
-            memType
-          );
-        // console.log(fetchedPaymentMethods)
-
-        if (fetchedPaymentMethods && fetchedPaymentMethods.length > 0) {
-          paymentMethods = fetchedPaymentMethods.map((method) => ({
-            encoded_id: helpers.doEncode(method.id),
-            card_number: helpers.doDecode(method.card_number)
-          }));
+      // Decode ID (quote ID) and fetch quote details
+      let decodedId = id ? helpers.doDecode(id) : null;
+      if (decodedId) {
+        quoteDetails = await RequestQuoteModel.getRequestQuoteDetailsById(decodedId);
+        if (!quoteDetails) {
+          return res.status(200).json({ status: 0, msg: "Quote not found." });
         }
       }
 
-      // Combine the content and multi_text data
-      const jsonResponse = {
-        addressesData,
-        siteSettings,
-        vehicles: vehiclesData,
-        vehicleCategories: vehicleCategoriesData,
-        member, // Null if no token was provided
-        paymentMethods, // Simplified payment methods
-        remotePostCodes // Add the remote post codes
-      };
-      // console.log("jsonResponse:", jsonResponse);
-
-      // Return data in JSON format
-      res.json(jsonResponse);
-    } catch (err) {
-      console.error("Error:", err);
-      res.status(200).json({ error: "Internal Server Error" });
+      // Fetch and format payment methods
+      const fetchedPaymentMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(member.id, memType);
+      if (fetchedPaymentMethods?.length > 0) {
+        paymentMethods = fetchedPaymentMethods.map((method) => ({
+          encoded_id: helpers.doEncode(method.id),
+          card_number: helpers.doDecode(method.card_number),
+        }));
+      }
     }
+
+    // Final JSON response
+    res.json({
+      addressesData,
+      siteSettings,
+      vehicles: vehiclesData,
+      vehicleCategories: vehicleCategoriesData,
+      member,
+      paymentMethods,
+      remotePostCodes,
+      quoteDetails,
+    });
+
+  } catch (err) {
+    console.error("Error:", err);
+    res.status(200).json({ error: "Internal Server Error" });
   }
+}
+
 
   generatePseudoFingerprint(req) {
     const userAgent = req.headers["user-agent"] || "";
@@ -617,7 +606,7 @@ class MemberController extends BaseController {
       memType,
       order_details,
       promo_code,
-      totalDistance
+      totalDistance,
     } = req.body;
 
     // console.log("req.body:",req.body);
@@ -641,7 +630,7 @@ class MemberController extends BaseController {
       "confirm",
       "totalAmount",
       "payment_method",
-      "payment_method_id"
+      "payment_method_id",
     ];
     // If no token is provided, validate additional fields
     if (!token) {
@@ -654,7 +643,7 @@ class MemberController extends BaseController {
       return res.status(200).json({
         status: 0,
         msg: "Validation failed",
-        errors
+        errors,
       });
     }
     // console.log(memType)
@@ -733,7 +722,7 @@ class MemberController extends BaseController {
           password: hashedPassword,
           mem_status: 1,
           created_at: helpers.create_current_date(),
-          otp
+          otp,
         });
 
         // console.log("User created with ID:", userId);
@@ -772,7 +761,7 @@ class MemberController extends BaseController {
       const templateData = {
         username: full_name, // Pass username
         otp: otp, // Pass OTP
-        adminData
+        adminData,
       };
 
       const result = await helpers.sendEmail(
@@ -790,7 +779,7 @@ class MemberController extends BaseController {
       ) {
         return res.status(200).json({
           status: 0,
-          message: "Price should be greater than 5"
+          message: "Price should be greater than 5",
         });
       }
 
@@ -842,7 +831,7 @@ class MemberController extends BaseController {
       // Create customer on Stripe
       const stripeCustomer = await stripe.customers.create({
         name: full_name,
-        email: email
+        email: email,
       });
 
       // Retrieve payment method
@@ -857,7 +846,7 @@ class MemberController extends BaseController {
         currency: "usd",
         payment_method: payment_method_id,
         customer: stripeCustomer.id,
-        setup_future_usage: "off_session"
+        setup_future_usage: "off_session",
       });
 
       // Respond with payment details
@@ -869,14 +858,14 @@ class MemberController extends BaseController {
         client_secret: paymentIntent.client_secret,
         authToken: token_arr?.authToken,
         mem_type: token_arr?.type,
-        finalAmount: formattedTotalPrice
+        finalAmount: formattedTotalPrice,
       });
     } catch (error) {
       console.error("Error creating payment intent:", error);
       return res.status(200).json({
         status: 0,
         message: "Failed to create payment intent",
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -894,12 +883,12 @@ class MemberController extends BaseController {
 
       await helpers.storeWebHookData({
         type: "event created",
-        response: JSON.stringify(event)
+        response: JSON.stringify(event),
       });
     } catch (err) {
       await helpers.storeWebHookData({
         type: "⚠️ Webhook signature verification failed:",
-        response: JSON.stringify(err)
+        response: JSON.stringify(err),
       });
       console.error("⚠️ Webhook signature verification failed:", err.message);
       return res.status(400).send(`Webhook Error: ${err.message}`);
@@ -917,18 +906,18 @@ class MemberController extends BaseController {
       if (orderId) {
         try {
           let order = await this.member.getUserOrderDetailsById({
-            requestId: orderId
+            requestId: orderId,
           });
           if (!order) {
             return res.status(200).json({ status: 0, msg: "Order not found." });
           }
           await this.member.updateRequestData(order.id, {
             status: "paid",
-            payment_intent: paymentIntentId
+            payment_intent: paymentIntentId,
           });
           await helpers.storeWebHookData({
             type: `💳 Payment Intent ID: ${paymentIntentId}`,
-            response: `✅ Apple Pay Payment Successful for Order: ${orderId}`
+            response: `✅ Apple Pay Payment Successful for Order: ${orderId}`,
           });
 
           // console.log(`📦 Order ${orderId} updated to PAID`);
@@ -972,7 +961,7 @@ class MemberController extends BaseController {
           }
           await this.member.updateRequestQuoteData(orderDetails.id, {
             status: "paid",
-            payment_intent: payerID
+            payment_intent: payerID,
           });
           const source_city = orderDetails?.source_city;
           const orderDetailsLink = `/rider-dashboard/jobs`;
@@ -1010,7 +999,7 @@ class MemberController extends BaseController {
                 {
                   adminData: siteSettings,
                   order: orderRow,
-                  type: "rider"
+                  type: "rider",
                 }
               );
             }
@@ -1029,7 +1018,7 @@ class MemberController extends BaseController {
             created_time: created_time,
             payment_intent_id: payerID,
             payment_method_id: "",
-            type: "Request Quote"
+            type: "Request Quote",
           });
 
           const userRow = await this.member.findById(orderDetails.user_id);
@@ -1047,7 +1036,7 @@ class MemberController extends BaseController {
             username: userRow.full_name, // Pass username
             adminData: siteSettings,
             order: orderRow,
-            type: "user"
+            type: "user",
           };
           // console.log("templateData:", templateData)
 
@@ -1059,7 +1048,7 @@ class MemberController extends BaseController {
           );
           await helpers.storeWebHookData({
             type: `Paypal Payer ID: ${payerID}`,
-            response: `Paypal Payment Successful for Order: ${custom_id}`
+            response: `Paypal Payment Successful for Order: ${custom_id}`,
           });
         } else if (reference_id === "credit_invoice") {
           let credit_invoice_row = await this.member.getCreditInvoicesById(
@@ -1082,7 +1071,7 @@ class MemberController extends BaseController {
           // console.log("formattedAmount",formattedAmount)
           await this.member.updateMemberData(userId, {
             total_credits:
-              parseFloat(user?.total_credits) + parseFloat(formattedAmount)
+              parseFloat(user?.total_credits) + parseFloat(formattedAmount),
           });
 
           const invoice = await this.paymentMethodModel.getInvoiceById(
@@ -1103,7 +1092,7 @@ class MemberController extends BaseController {
                 payment_intent_id: payerID,
                 payment_method_id: "",
                 payment_intent: payerID,
-                payment_method: "paypal"
+                payment_method: "paypal",
               }
             );
           if (updateResult.affectedRows > 0) {
@@ -1115,7 +1104,7 @@ class MemberController extends BaseController {
               created_time: helpers.getUtcTimeInSeconds(),
               payment_intent_id: payerID,
               payment_method_id: "",
-              type: "credits"
+              type: "credits",
             });
             const createdDate = helpers.getUtcTimeInSeconds();
             const creditEntry = {
@@ -1123,7 +1112,7 @@ class MemberController extends BaseController {
               type: "admin", // Change type to 'user' as per requirement
               credits: formattedAmount, // Credits used by the user
               created_date: createdDate,
-              e_type: "credit" // Debit type entry
+              e_type: "credit", // Debit type entry
             };
 
             await this.pageModel.insertInCredits(creditEntry);
@@ -1154,7 +1143,7 @@ class MemberController extends BaseController {
                 {
                   adminData,
                   order: orderRow,
-                  type: "user"
+                  type: "user",
                 }
               );
             }
@@ -1181,7 +1170,7 @@ class MemberController extends BaseController {
           }
           await this.rider.updateRequestInvoice(invoiceDetails.id, {
             status: 1,
-            payment_intent_id: payerID
+            payment_intent_id: payerID,
           });
 
           const formattedTotalAmount = helpers.formatAmount(
@@ -1196,7 +1185,7 @@ class MemberController extends BaseController {
             created_time: created_time,
             payment_intent_id: payerID,
             payment_method_id: "",
-            type: "Invoice"
+            type: "Invoice",
           });
 
           let adminData = res.locals.adminData;
@@ -1213,7 +1202,7 @@ class MemberController extends BaseController {
           let request_row = orderDetails;
           const requestRow = {
             ...request_row, // Spread request properties into order
-            parcels: parcels // Add parcels as an array inside order
+            parcels: parcels, // Add parcels as an array inside order
           };
           if (parseFloat(dueAmount) <= 0) {
             const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
@@ -1241,13 +1230,13 @@ class MemberController extends BaseController {
               {
                 adminData,
                 order: requestRow,
-                type: "user"
+                type: "user",
               }
             );
           }
           await helpers.storeWebHookData({
             type: `Paypal Payer ID for Invoice: ${payerID}`,
-            response: `Paypal Payment Successful for Invoice: ${custom_id}`
+            response: `Paypal Payment Successful for Invoice: ${custom_id}`,
           });
         }
 
@@ -1294,9 +1283,35 @@ class MemberController extends BaseController {
         saved_card_id,
         order_details,
         promo_code,
-        totalDistance
+        totalDistance,
+        pickup_time_option,
+        pickup_start_date,
+        pickup_start_time,
+        pickup_end_date,
+        pickup_end_time,
+        delivery_time_option,
+        delivery_start_date,
+        delivery_start_time,
+        delivery_end_date,
+        delivery_end_time,
+        pickup_time,
+        pickup_date,
+        delivery_time,
+        delivery_date,
+        via_pickup_time_option,
+        via_pickup_time,
+        via_pickup_date,
+        via_pickup_start_date,
+        via_pickup_end_date,
       } = req.body;
-      // console.log("req.body:", req.body);return;
+      console.log(
+        "req.body:",
+        pickup_end_date,
+        pickup_end_time,
+        delivery_end_date,
+        delivery_end_time,
+        req.body
+      );
 
       if (token) {
         if (!token) {
@@ -1348,7 +1363,7 @@ class MemberController extends BaseController {
         let taxAmount = order_amount_details?.taxAmount;
         // console.log(order_amount_details);return;
         const parsedStartDate = date ? new Date(date) : null;
-        
+
         // if (!parsedStartDate || isNaN(parsedStartDate)) {
         //   return res
         //     .status(200)
@@ -1406,8 +1421,9 @@ class MemberController extends BaseController {
         let payment_intent_id = payment_intent_customer_id;
         let payment_methodid = payment_method_id;
         let requestQuoteId = "";
+
         if (payment_method === "credit-card") {
-          requestQuoteId = await this.pageModel.createRequestQuote({
+          let requestData = {
             user_id: userId, // Save the userId in the request
             selected_vehicle: selectedVehicle,
             rider_price: formattedRiderPrice,
@@ -1433,9 +1449,65 @@ class MemberController extends BaseController {
             notes: notes,
             promo_code: promo_code,
             discount: discount,
-            request_status:'active'
+            request_status: "active",
+            pickup_time_option,
+            delivery_time_option,
+
             // Pass start_date from the frontend
-          });
+          };
+
+          if (pickup_time_option === "at" || pickup_time_option === "before") {
+            requestData = {
+              ...requestData,
+              pickup_date: helpers.convertToPostgresDate(pickup_date),
+              pickup_time: helpers.convertToPostgresTime(
+                pickup_time,
+                pickup_date
+              ),
+            };
+          } else if (pickup_time_option === "between") {
+            requestData = {
+              ...requestData,
+              pickup_start_date:
+                helpers.convertToPostgresDate(pickup_start_date),
+              pickup_start_time: helpers.convertToPostgresTime(
+                pickup_start_time,
+                pickup_start_date
+              ),
+              pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
+              pickup_end_time: helpers.convertToPostgresTime(
+                pickup_end_time,
+                pickup_end_date
+              ),
+            };
+          }
+          if (delivery_time_option === "at" || delivery_time_option === "by") {
+            requestData = {
+              ...requestData,
+              delivery_time: helpers.convertToPostgresTime(
+                delivery_time,
+                delivery_date
+              ),
+              delivery_date: helpers.convertToPostgresDate(delivery_date),
+            };
+          } else if (delivery_time_option === "between") {
+            requestData = {
+              ...requestData,
+              delivery_start_date:
+                helpers.convertToPostgresDate(delivery_start_date),
+              delivery_start_time: helpers.convertToPostgresTime(
+                delivery_start_time,
+                delivery_start_date
+              ),
+              delivery_end_date:
+                helpers.convertToPostgresDate(delivery_end_date),
+              delivery_end_time: helpers.convertToPostgresTime(
+                delivery_end_time,
+                delivery_end_date
+              ),
+            };
+          }
+          requestQuoteId = await this.pageModel.createRequestQuote(requestData);
         } else if (payment_method === "saved-card") {
           if (!saved_card_id) {
             return res
@@ -1481,7 +1553,7 @@ class MemberController extends BaseController {
             return res.status(200).json({
               status: 0,
               msg: "Error retrieving Stripe payment method.",
-              error: error.message
+              error: error.message,
             });
           }
 
@@ -1489,7 +1561,7 @@ class MemberController extends BaseController {
           if (!stripePaymentMethod || !stripePaymentMethod.customer) {
             return res.status(200).json({
               status: 0,
-              msg: "Payment method is not linked to a customer."
+              msg: "Payment method is not linked to a customer.",
             });
           }
 
@@ -1505,16 +1577,16 @@ class MemberController extends BaseController {
               use_stripe_sdk: true,
               automatic_payment_methods: {
                 enabled: true,
-                allow_redirects: "never"
+                allow_redirects: "never",
               },
-              metadata: { user_id: userId }
+              metadata: { user_id: userId },
             });
           } catch (error) {
             console.error("Stripe Error:", error);
             return res.status(200).json({
               status: 0,
               msg: "Error creating payment intent.",
-              error: error.message
+              error: error.message,
             });
           }
 
@@ -1523,13 +1595,14 @@ class MemberController extends BaseController {
             return res.status(200).json({
               status: 0,
               msg: "Payment failed.",
-              paymentStatus: paymentIntent.status
+              paymentStatus: paymentIntent.status,
             });
           }
           payment_intent_id = paymentIntent.id;
           payment_methodid = stripe_payment_method_id;
           // Prepare the object for requestQuoteId insertion
-          requestQuoteId = await this.pageModel.createRequestQuote({
+
+          let requestData = {
             user_id: userId,
             selected_vehicle: selectedVehicle,
             rider_price: formattedRiderPrice,
@@ -1556,8 +1629,64 @@ class MemberController extends BaseController {
             notes: notes,
             promo_code: promo_code,
             discount: discount,
-            request_status:'active'
-          });
+            request_status: "active",
+            pickup_time_option,
+
+            delivery_time_option,
+          };
+          if (pickup_time_option === "at" || pickup_time_option === "before") {
+            console.log("pickup_time,pickup_date", pickup_time, pickup_date);
+            requestData = {
+              ...requestData,
+              pickup_date: helpers.convertToPostgresDate(pickup_date),
+              pickup_time: helpers.convertToPostgresTime(
+                pickup_time,
+                pickup_date
+              ),
+            };
+          } else if (pickup_time_option === "between") {
+            requestData = {
+              ...requestData,
+              pickup_start_date:
+                helpers.convertToPostgresDate(pickup_start_date),
+              pickup_start_time: helpers.convertToPostgresTime(
+                pickup_start_time,
+                pickup_start_date
+              ),
+              pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
+              pickup_end_time: helpers.convertToPostgresTime(
+                pickup_end_time,
+                pickup_end_date
+              ),
+            };
+          }
+          if (delivery_time_option === "at" || delivery_time_option === "by") {
+            requestData = {
+              ...requestData,
+              delivery_time: helpers.convertToPostgresTime(
+                delivery_time,
+                delivery_date
+              ),
+              delivery_date: helpers.convertToPostgresDate(delivery_date),
+            };
+          } else if (delivery_time_option === "between") {
+            requestData = {
+              ...requestData,
+              delivery_start_date:
+                helpers.convertToPostgresDate(delivery_start_date),
+              delivery_start_time: helpers.convertToPostgresTime(
+                delivery_start_time,
+                delivery_start_date
+              ),
+              delivery_end_date:
+                helpers.convertToPostgresDate(delivery_end_date),
+              delivery_end_time: helpers.convertToPostgresTime(
+                delivery_end_time,
+                delivery_end_date
+              ),
+            };
+          }
+          requestQuoteId = await this.pageModel.createRequestQuote(requestData);
         } else if (payment_method === "credits") {
           if (member?.total_credits <= 0) {
             return res
@@ -1573,7 +1702,7 @@ class MemberController extends BaseController {
           payment_intent_id = "";
           payment_methodid = "";
           // Prepare the object for requestQuoteId insertion
-          requestQuoteId = await this.pageModel.createRequestQuote({
+          let requestData = {
             user_id: userId,
             selected_vehicle: selectedVehicle,
             rider_price: formattedRiderPrice,
@@ -1599,13 +1728,69 @@ class MemberController extends BaseController {
             notes: notes,
             promo_code: promo_code,
             discount: discount,
-            request_status:'active'
-          });
+            request_status: "active",
+            pickup_time_option,
+
+            delivery_time_option,
+          };
+
+          if (pickup_time_option === "at" || pickup_time_option === "before") {
+            requestData = {
+              ...requestData,
+              pickup_date: helpers.convertToPostgresDate(pickup_date),
+              pickup_time: helpers.convertToPostgresDate(
+                pickup_time,
+                pickup_date
+              ),
+            };
+          } else if (pickup_time_option === "between") {
+            requestData = {
+              ...requestData,
+              pickup_start_date:
+                helpers.convertToPostgresDate(pickup_start_date),
+              pickup_start_time: helpers.convertToPostgresTime(
+                pickup_start_time,
+                pickup_start_date
+              ),
+              pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
+              pickup_end_time: helpers.convertToPostgresTime(
+                pickup_end_time,
+                pickup_end_date
+              ),
+            };
+          }
+          if (delivery_time_option === "at" || delivery_time_option === "by") {
+            requestData = {
+              ...requestData,
+              delivery_time: helpers.convertToPostgresTime(
+                delivery_time,
+                delivery_date
+              ),
+              delivery_date: helpers.convertToPostgresDate(delivery_date),
+            };
+          } else if (delivery_time_option === "between") {
+            requestData = {
+              ...requestData,
+              delivery_start_date:
+                helpers.convertToPostgresDate(delivery_start_date),
+              delivery_start_time: helpers.convertToPostgresTime(
+                delivery_start_time,
+                delivery_start_date
+              ),
+              delivery_end_date:
+                helpers.convertToPostgresDate(delivery_end_date),
+              delivery_end_time: helpers.convertToPostgresTime(
+                delivery_end_time,
+                delivery_end_date
+              ),
+            };
+          }
+          requestQuoteId = await this.pageModel.createRequestQuote(requestData);
         } else if (payment_method === "paypal") {
           payment_intent_id = "";
           payment_methodid = "";
           // Prepare the object for requestQuoteId insertion
-          requestQuoteId = await this.pageModel.createRequestQuote({
+          let requestData = {
             user_id: userId,
             selected_vehicle: selectedVehicle,
             rider_price: formattedRiderPrice,
@@ -1632,14 +1817,69 @@ class MemberController extends BaseController {
             status: "pending",
             promo_code: promo_code,
             discount: discount,
-            request_status:'active'
-          });
+            request_status: "active",
+            pickup_time_option,
+
+            delivery_time_option,
+          };
+          if (pickup_time_option === "at" || pickup_time_option === "before") {
+            requestData = {
+              ...requestData,
+              pickup_date: helpers.convertToPostgresDate(pickup_date),
+              pickup_time: helpers.convertToPostgresDate(
+                pickup_time,
+                pickup_date
+              ),
+            };
+          } else if (pickup_time_option === "between") {
+            requestData = {
+              ...requestData,
+              pickup_start_date:
+                helpers.convertToPostgresDate(pickup_start_date),
+              pickup_start_time: helpers.convertToPostgresTime(
+                pickup_start_time,
+                pickup_start_date
+              ),
+              pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
+              pickup_end_time: helpers.convertToPostgresTime(
+                pickup_end_time,
+                pickup_end_date
+              ),
+            };
+          }
+          if (delivery_time_option === "at" || delivery_time_option === "by") {
+            requestData = {
+              ...requestData,
+              delivery_time: helpers.convertToPostgresTime(
+                delivery_time,
+                delivery_date
+              ),
+              delivery_date: helpers.convertToPostgresDate(delivery_date),
+            };
+          } else if (delivery_time_option === "between") {
+            requestData = {
+              ...requestData,
+              delivery_start_date:
+                helpers.convertToPostgresDate(delivery_start_date),
+              delivery_start_time: helpers.convertToPostgresTime(
+                delivery_start_time,
+                delivery_start_date
+              ),
+              delivery_end_date:
+                helpers.convertToPostgresDate(delivery_end_date),
+              delivery_end_time: helpers.convertToPostgresTime(
+                delivery_end_time,
+                delivery_end_date
+              ),
+            };
+          }
+          requestQuoteId = await this.pageModel.createRequestQuote(requestData);
         } else if (payment_method === "apple-pay") {
           try {
             payment_intent_id = "";
             payment_methodid = "";
             // Prepare the object for requestQuoteId insertion
-            requestQuoteId = await this.pageModel.createRequestQuote({
+            let requestData = {
               user_id: userId,
               selected_vehicle: selectedVehicle,
               rider_price: formattedRiderPrice,
@@ -1665,14 +1905,77 @@ class MemberController extends BaseController {
               notes: notes,
               promo_code: promo_code,
               discount: discount,
-              request_status:'active'
-            });
+              request_status: "active",
+              pickup_time_option,
+
+              delivery_time_option,
+            };
+            if (
+              pickup_time_option === "at" ||
+              pickup_time_option === "before"
+            ) {
+              requestData = {
+                ...requestData,
+                pickup_date: helpers.convertToPostgresDate(pickup_date),
+                pickup_time: helpers.convertToPostgresDate(
+                  pickup_time,
+                  pickup_date
+                ),
+              };
+            } else if (pickup_time_option === "between") {
+              requestData = {
+                ...requestData,
+                pickup_start_date:
+                  helpers.convertToPostgresDate(pickup_start_date),
+                pickup_start_time: helpers.convertToPostgresTime(
+                  pickup_start_time,
+                  pickup_start_date
+                ),
+                pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
+                pickup_end_time: helpers.convertToPostgresTime(
+                  pickup_end_time,
+                  pickup_end_date
+                ),
+              };
+            }
+            if (
+              delivery_time_option === "at" ||
+              delivery_time_option === "by"
+            ) {
+              requestData = {
+                ...requestData,
+                delivery_time: helpers.convertToPostgresTime(
+                  delivery_time,
+                  delivery_date
+                ),
+                delivery_date: helpers.convertToPostgresDate(delivery_date),
+              };
+            } else if (delivery_time_option === "between") {
+              requestData = {
+                ...requestData,
+                delivery_start_date:
+                  helpers.convertToPostgresDate(delivery_start_date),
+                delivery_start_time: helpers.convertToPostgresTime(
+                  delivery_start_time,
+                  delivery_start_date
+                ),
+                delivery_end_date:
+                  helpers.convertToPostgresDate(delivery_end_date),
+                delivery_end_time: helpers.convertToPostgresTime(
+                  delivery_end_time,
+                  delivery_end_date
+                ),
+              };
+            }
+            requestQuoteId = await this.pageModel.createRequestQuote(
+              requestData
+            );
           } catch (error) {
             console.error("Stripe Error:", error);
             return res.status(200).json({
               status: 0,
               msg: "Error creating payment intent.",
-              error: error.message
+              error: error.message,
             });
           }
         }
@@ -1691,20 +1994,80 @@ class MemberController extends BaseController {
           source: parcel.source,
           parcelNumber: parcel.parcelNumber,
           distance: parcel.distance,
-          parcelType: parcel.parcelType
+          parcelType: parcel.parcelType,
+          postcode: parcel.postcode,
         }));
 
         // Insert parcels into the database
         await this.pageModel.insertParcels(parcelRecords);
 
-        const viaRecords = viasArr.map((via) => ({
-          request_id: requestQuoteId,
-          full_name: via.full_name,
-          phone_number: via.phone_number,
-          post_code: via.post_code,
-          address: via.address,
-          city: via.city
-        }));
+        const viaRecords = viasArr.map((via) => {
+          const commonFields = {
+            request_id: requestQuoteId,
+            full_name: via.full_name,
+            phone_number: via.phone_number,
+            post_code: via.post_code,
+            address: via.address,
+            city: via.city,
+            via_pickup_time_option: via.via_pickup_time_option,
+          };
+
+          // Condition for "at" or "before"
+          if (["at", "before"].includes(via.via_pickup_time_option)) {
+            return {
+              ...commonFields,
+              via_pickup_date: helpers.convertToPostgresDate(
+                via.via_pickup_date
+              ),
+              via_pickup_time: helpers.convertToPostgresTime(
+                via.via_pickup_time,
+                via.via_pickup_date
+              ),
+
+              // These fields will be null
+              via_pickup_start_date: null,
+              via_pickup_start_time: null,
+              via_pickup_end_date: null,
+              via_pickup_end_time: null,
+            };
+          }
+
+          // Condition for "between"
+          if (via.via_pickup_time_option === "between") {
+            return {
+              ...commonFields,
+              via_pickup_date: null,
+              via_pickup_time: null,
+
+              via_pickup_start_date: helpers.convertToPostgresDate(
+                via.via_pickup_start_date
+              ),
+              via_pickup_start_time: helpers.convertToPostgresTime(
+                via.via_pickup_start_time,
+                via.via_pickup_start_date
+              ),
+              via_pickup_end_date: helpers.convertToPostgresDate(
+                via.via_pickup_end_date
+              ),
+              via_pickup_end_time: helpers.convertToPostgresTime(
+                via.via_pickup_end_time,
+                via.via_pickup_end_date
+              ),
+            };
+          }
+
+          // Default fallback (if time_option is unrecognized)
+          return {
+            ...commonFields,
+            via_pickup_date: null,
+            via_pickup_time: null,
+            via_pickup_start_date: null,
+            via_pickup_start_time: null,
+            via_pickup_end_date: null,
+            via_pickup_end_time: null,
+          };
+        });
+        console.log("requestData:", "requestData");
 
         // Insert parcels into the database
         await this.pageModel.insertVias(viaRecords);
@@ -1743,7 +2106,7 @@ class MemberController extends BaseController {
           source_lat: detail?.source_lat,
           source_lng: detail?.source_lng,
           destination_lat: detail?.destination_lat,
-          destination_lng: detail?.destination_lng
+          destination_lng: detail?.destination_lng,
         }));
 
         // Insert order details into the database
@@ -1754,7 +2117,7 @@ class MemberController extends BaseController {
           await this.member.updateMemberData(member?.id, {
             total_credits:
               parseFloat(member?.total_credits) -
-              parseFloat(formattedTotalAmount)
+              parseFloat(formattedTotalAmount),
           });
           const createdDate = helpers.getUtcTimeInSeconds();
 
@@ -1763,7 +2126,7 @@ class MemberController extends BaseController {
             type: "user", // Change type to 'user' as per requirement
             credits: formattedTotalAmount, // Credits used by the user
             created_date: createdDate,
-            e_type: "debit" // Debit type entry
+            e_type: "debit", // Debit type entry
           };
 
           await this.pageModel.insertInCredits(creditEntry);
@@ -1779,15 +2142,15 @@ class MemberController extends BaseController {
             amount: Math.round(formattedTotalAmount * 100), // Convert amount to cents (for Stripe)
             currency: "gbp",
             metadata: {
-              order_id: requestQuoteId // Pass the order_id from your database
+              order_id: requestQuoteId, // Pass the order_id from your database
             },
-            payment_method_types: ["card"]
+            payment_method_types: ["card"],
           });
           clientSecret = paymentIntent?.client_secret;
           apple_obj = {
             clientSecret: clientSecret,
             order_id: requestQuoteId,
-            amount: parseFloat(formattedTotalAmount)
+            amount: parseFloat(formattedTotalAmount),
           };
         } else if (payment_method != "paypal") {
           const orderDetailsLink = `/rider-dashboard/jobs`;
@@ -1812,7 +2175,7 @@ class MemberController extends BaseController {
 
               let orderRow = await this.member.getUserOrderDetailsById({
                 userId: userId,
-                requestId: requestQuoteId
+                requestId: requestQuoteId,
               });
 
               const parcelsArray = await this.rider.getParcelDetailsByQuoteId(
@@ -1830,7 +2193,7 @@ class MemberController extends BaseController {
                 {
                   adminData: siteSettings,
                   order: orderRow,
-                  type: "rider"
+                  type: "rider",
                 }
               );
             }
@@ -1847,7 +2210,7 @@ class MemberController extends BaseController {
             created_time: created_time,
             payment_intent_id: payment_intent_id,
             payment_method_id: payment_methodid,
-            type: "Request Quote"
+            type: "Request Quote",
           });
           let orderRow = await RequestQuoteModel.getOrderDetailsById(
             requestQuoteId
@@ -1867,7 +2230,7 @@ class MemberController extends BaseController {
             username: member.full_name, // Pass username
             adminData: siteSettings,
             order: orderRow,
-            type: "user"
+            type: "user",
           };
           // console.log("templateData:", templateData)
 
@@ -1880,7 +2243,7 @@ class MemberController extends BaseController {
         }
         // console.log("Successfully CREATED REQUEST", requestQuoteId);
 
-        // console.log("result:", result,member.email)
+        // console.log("result:", result,member.email);
 
         // Send success response
         res.status(200).json({
@@ -1892,19 +2255,19 @@ class MemberController extends BaseController {
               ? "Request Quote created, now you'll be redirected to apple pay for transaction!"
               : "Request Quote, Parcels and vias created successfully",
           data: {
-            requestId: helpers.doEncode(requestQuoteId)
-          }
+            requestId: helpers.doEncode(requestQuoteId),
+          },
         });
       } else {
         return res.status(200).json({
-          error: "Token is required"
+          error: "Token is required",
         });
       }
     } catch (error) {
       console.error("Error in createRequestQuote:", error);
       res.status(200).json({
         error: "Internal server error",
-        details: error.message
+        details: error.message,
       });
     }
   }
@@ -1940,21 +2303,21 @@ class MemberController extends BaseController {
 
       const memberData = {
         ...userResponse?.user, // Spread existing user data
-        latest_notifications: latestNotifications
+        latest_notifications: latestNotifications,
       };
       // console.log("latestNotifications:",memberData?.latest_notifications)
 
       return res.status(200).json({
         status: 1,
         member: memberData,
-        notifications_count: unreadCount
+        notifications_count: unreadCount,
       });
     } catch (error) {
       console.error("Error in getMemberFromToken:", error);
       return res.status(200).json({
         status: 0,
         msg: "An error occurred while processing the request.",
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -1999,11 +2362,11 @@ class MemberController extends BaseController {
       // Update the profile image in the database based on memType
       if (memType === "user" || memType === "business") {
         await this.member.updateMemberData(member.id, {
-          mem_image: imageUrl
+          mem_image: imageUrl,
         });
       } else if (memType === "rider") {
         await this.rider.updateRiderData(member.id, {
-          mem_image: imageUrl
+          mem_image: imageUrl,
         });
       } else {
         return res
@@ -2015,14 +2378,14 @@ class MemberController extends BaseController {
       return res.status(200).json({
         status: 1,
         msg: "Image uploaded successfully.",
-        mem_image: imageUrl
+        mem_image: imageUrl,
       });
     } catch (error) {
       console.error("Error uploading profile image:", error.message);
       return res.status(500).json({
         status: 0,
         msg: "Server error.",
-        details: error.message
+        details: error.message,
       });
     }
   };
@@ -2044,7 +2407,7 @@ class MemberController extends BaseController {
       if (!mem_phone) {
         return res.status(200).json({
           status: 0,
-          msg: "Phone required."
+          msg: "Phone required.",
         });
       }
       let existingPhone = await this.member.findByPhone(mem_phone);
@@ -2056,7 +2419,7 @@ class MemberController extends BaseController {
           .json({ status: 0, msg: "Phone already exists." });
       }
       let updatedData = {
-        mem_phone
+        mem_phone,
       };
       const newExpireTime = new Date();
       newExpireTime.setMinutes(newExpireTime.getMinutes() + 3);
@@ -2070,14 +2433,14 @@ class MemberController extends BaseController {
         status: 1,
         msg: "Phone updated successfully.",
         expire_time: updatedData.phone_expire_time,
-        mem_phone: mem_phone
+        mem_phone: mem_phone,
       });
     } catch (error) {
       console.error("Error updating profile:", error.message);
       return res.status(500).json({
         status: 0,
         msg: "Server error.",
-        details: error.message
+        details: error.message,
       });
     }
   };
@@ -2108,14 +2471,14 @@ class MemberController extends BaseController {
       return res.status(200).json({
         status: 1,
         msg: "Code sent successfully.",
-        expire_time: updatedData.phone_expire_time
+        expire_time: updatedData.phone_expire_time,
       });
     } catch (error) {
       console.error("Error updating profile:", error.message);
       return res.status(500).json({
         status: 0,
         msg: "Server error.",
-        details: error.message
+        details: error.message,
       });
     }
   };
@@ -2141,7 +2504,7 @@ class MemberController extends BaseController {
         parcel_type,
         parcel_weight,
         shipment_volume,
-        delivery_speed
+        delivery_speed,
       } = req.body; // Assuming token and user data are sent in the request body
       // console.log(req.body)
       // If no token is provided
@@ -2160,7 +2523,7 @@ class MemberController extends BaseController {
       if (!first_name || !last_name || !mem_phone || !address) {
         return res.status(200).json({
           status: 0,
-          msg: "First name, last name, phone number, and address are required."
+          msg: "First name, last name, phone number, and address are required.",
         });
       }
       let existingPhone = await this.member.findByPhone(mem_phone);
@@ -2176,7 +2539,7 @@ class MemberController extends BaseController {
         full_name: first_name + " " + last_name,
         mem_phone,
         mem_address1: address,
-        mem_bio: bio || "" // If bio is provided, use it; otherwise, set it to an empty string
+        mem_bio: bio || "", // If bio is provided, use it; otherwise, set it to an empty string
       };
 
       // Check memType and update accordingly
@@ -2191,7 +2554,7 @@ class MemberController extends BaseController {
             parcel_type: parcel_type,
             parcel_weight: parcel_weight,
             shipment_volume: shipment_volume,
-            delivery_speed: delivery_speed
+            delivery_speed: delivery_speed,
           };
         }
         await this.member.updateMemberData(userId, updatedData); // Update member data
@@ -2206,32 +2569,66 @@ class MemberController extends BaseController {
 
         // 🔽 NEW: Handle attachments
         let { documents } = req.body;
-        let attachments_ob = documents!==null && documents!==undefined && documents!=='' && documents!=='null' ? JSON.parse(documents) : {};
+        let attachments_ob =
+          documents !== null &&
+          documents !== undefined &&
+          documents !== "" &&
+          documents !== "null"
+            ? JSON.parse(documents)
+            : {};
         const attachments = [];
 
         if (attachments_ob?.driving_license) {
-          attachments.push({ rider_id: userId, filename: attachments_ob?.driving_license, type: 'driving_license' });
+          attachments.push({
+            rider_id: userId,
+            filename: attachments_ob?.driving_license,
+            type: "driving_license",
+          });
         }
         if (attachments_ob?.address_proof) {
-          attachments.push({ rider_id: userId, filename: attachments_ob?.address_proof, type: 'address_proof' });
+          attachments.push({
+            rider_id: userId,
+            filename: attachments_ob?.address_proof,
+            type: "address_proof",
+          });
         }
         if (attachments_ob?.self_picture) {
-          attachments.push({ rider_id: userId, filename: attachments_ob?.self_picture, type: 'self_picture' });
+          attachments.push({
+            rider_id: userId,
+            filename: attachments_ob?.self_picture,
+            type: "self_picture",
+          });
         }
         if (attachments_ob?.passport_pic) {
-          attachments.push({ rider_id: userId, filename: attachments_ob?.passport_pic, type: 'passport_pic' });
+          attachments.push({
+            rider_id: userId,
+            filename: attachments_ob?.passport_pic,
+            type: "passport_pic",
+          });
         }
         if (attachments_ob?.national_insurance) {
-          attachments.push({ rider_id: userId, filename: attachments_ob?.national_insurance, type: 'national_insurance' });
+          attachments.push({
+            rider_id: userId,
+            filename: attachments_ob?.national_insurance,
+            type: "national_insurance",
+          });
         }
         if (attachments_ob?.company_certificate) {
-          attachments.push({ rider_id: userId, filename: attachments_ob?.company_certificate, type: 'company_certificate' });
+          attachments.push({
+            rider_id: userId,
+            filename: attachments_ob?.company_certificate,
+            type: "company_certificate",
+          });
         }
         if (Array.isArray(attachments_ob.pictures)) {
-            attachments_ob.pictures.forEach(pic => {
-              attachments.push({ rider_id: userId, filename: pic, type: 'pictures' });
+          attachments_ob.pictures.forEach((pic) => {
+            attachments.push({
+              rider_id: userId,
+              filename: pic,
+              type: "pictures",
             });
-          }
+          });
+        }
         // console.log(attachments);return;
         if (Array.isArray(attachments) && attachments.length > 0) {
           // Optional: Delete old attachments
@@ -2248,7 +2645,6 @@ class MemberController extends BaseController {
             }
           }
         }
-         
       } else {
         return res
           .status(200)
@@ -2258,14 +2654,14 @@ class MemberController extends BaseController {
       return res.status(200).json({
         status: 1,
         msg: "Profile updated successfully.",
-        mem_name: first_name + " " + last_name
+        mem_name: first_name + " " + last_name,
       });
     } catch (error) {
       console.error("Error updating profile:", error.message);
       return res.status(500).json({
         status: 0,
         msg: "Server error.",
-        details: error.message
+        details: error.message,
       });
     }
   };
@@ -2277,14 +2673,14 @@ class MemberController extends BaseController {
         current_password,
         new_password,
         confirm_password,
-        memType
+        memType,
       } = req.body;
 
       // Check if all fields are provided
       if (!token || !current_password || !new_password || !confirm_password) {
         return res.status(200).json({
           status: 0,
-          msg: "All fields are required."
+          msg: "All fields are required.",
         });
       }
 
@@ -2292,7 +2688,7 @@ class MemberController extends BaseController {
       if (new_password !== confirm_password) {
         return res.status(200).json({
           status: 0,
-          msg: "New password and confirm password do not match."
+          msg: "New password and confirm password do not match.",
         });
       }
 
@@ -2316,7 +2712,7 @@ class MemberController extends BaseController {
       if (!isCurrentPasswordValid) {
         return res.status(200).json({
           status: 0,
-          msg: "Current password is incorrect."
+          msg: "Current password is incorrect.",
         });
       }
 
@@ -2325,7 +2721,7 @@ class MemberController extends BaseController {
 
       // Update the user's password in the database
       const updatedData = {
-        password: hashedPassword
+        password: hashedPassword,
       };
 
       if (memType === "user" || memType === "business") {
@@ -2337,20 +2733,20 @@ class MemberController extends BaseController {
       } else {
         return res.status(200).json({
           status: 0,
-          msg: "Invalid member type."
+          msg: "Invalid member type.",
         });
       }
 
       return res.status(200).json({
         status: 1,
-        msg: "Password updated successfully."
+        msg: "Password updated successfully.",
       });
     } catch (error) {
       console.error("Error changing password:", error.message);
       return res.status(200).json({
         status: 0,
         msg: "Server error.",
-        details: error.message
+        details: error.message,
       });
     }
   };
@@ -2380,16 +2776,16 @@ class MemberController extends BaseController {
       const memberOrders = await this.member.getOrdersByUserAndStatus({
         userId: member.id,
         status: "accepted",
-        limit: 3
+        limit: 3,
       });
       const memberTotalOrders = await this.member.getOrdersByUserAndStatus({
-        userId: member.id
+        userId: member.id,
       });
       const userInvoices = await this.member.getUserInvoices(member.id);
       const memberTotalAcceptedOrders =
         await this.member.getOrdersByUserAndStatus({
           userId: member.id,
-          status: "accepted"
+          status: "accepted",
         });
 
       // console.log("User Orders before encoding:", memberOrders);
@@ -2409,20 +2805,20 @@ class MemberController extends BaseController {
         orders: ordersWithEncodedIds,
         total_active_orders: memberTotalAcceptedOrders?.length,
         total_orders: memberTotalOrders?.length,
-        total_invoices: userInvoices?.length
+        total_invoices: userInvoices?.length,
       });
     } catch (error) {
       console.error("Error in getRiderOrders:", error);
       return res.status(200).json({
         status: 0,
         msg: "Internal server error.",
-        error: error.message
+        error: error.message,
       });
     }
   };
   getUserOrders = async (req, res) => {
     try {
-      const { token, memType } = req.body;
+      const { token, memType, status } = req.body;
       // console.log(req.body)
 
       if (!token) {
@@ -2444,8 +2840,11 @@ class MemberController extends BaseController {
 
       // Fetch requests for which the assigned rider is this user and status is 'accepted'
       const memberOrders = await this.member.getOrdersByUserAndStatus({
-        userId: member.id
+        userId: member.id,
+        status: status,
       });
+      console.log("status:", status);
+      console.log("memberOrders:", memberOrders);
 
       // console.log("User Orders before encoding:", memberOrders);
 
@@ -2461,14 +2860,14 @@ class MemberController extends BaseController {
       return res.status(200).json({
         status: 1,
         msg: "Orders fetched successfully.",
-        orders: ordersWithEncodedIds
+        orders: ordersWithEncodedIds,
       });
     } catch (error) {
       console.error("Error in getRiderOrders:", error);
       return res.status(200).json({
         status: 0,
         msg: "Internal server error.",
-        error: error.message
+        error: error.message,
       });
     }
   };
@@ -2503,7 +2902,7 @@ class MemberController extends BaseController {
       // Return the response with the fetched orders and total order counts
       return res.status(200).json({
         status: 1,
-        transactions
+        transactions,
       });
     } catch (error) {
       console.error("Error fetching rider dashboard orders:", error.message);
@@ -2544,7 +2943,7 @@ class MemberController extends BaseController {
       // Fetch the order using the decoded ID and check if the rider_id matches the logged-in rider's ID
       let order = await this.member.getUserOrderDetailsById({
         userId: member.id,
-        requestId: decodedId
+        requestId: decodedId,
       });
 
       // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
@@ -2559,6 +2958,13 @@ class MemberController extends BaseController {
           .status(200)
           .json({ status: 0, msg: "This order does not belong to the user." });
       }
+
+      const categoryInfo = order.selected_vehicle
+            ? await Vehicle.getCategoryAndMainCategoryById(order.selected_vehicle)
+            : null;
+      
+            console.log("categoryInfo:",categoryInfo)
+
       const viasCount = await this.rider.countViasBySourceCompleted(order.id);
       const parcels = await this.rider.getParcelDetailsByQuoteId(order.id); // Assuming order.quote_id is the relevant field
       const vias = await this.rider.getViasByQuoteId(order.id);
@@ -2589,7 +2995,7 @@ class MemberController extends BaseController {
           {
             request_id: order.id,
             type: "via",
-            via_id: via?.id
+            via_id: via?.id,
           }
         );
 
@@ -2609,7 +3015,9 @@ class MemberController extends BaseController {
         viasCount: viasCount,
         reviews: reviews,
         source_attachments: source_attachments,
-        destination_attachments: destination_attachments
+        destination_attachments: destination_attachments,
+        category_name: categoryInfo?.category_name || null,
+      main_category_name: categoryInfo?.main_category_name || null
       };
       // Fetch parcels and vias based on the quoteId from the order
       // Assuming order.quote_id is the relevant field
@@ -2625,7 +3033,7 @@ class MemberController extends BaseController {
       if (fetchedPaymentMethods && fetchedPaymentMethods.length > 0) {
         paymentMethods = fetchedPaymentMethods.map((method) => ({
           encoded_id: helpers.doEncode(method.id),
-          card_number: helpers.doDecode(method.card_number)
+          card_number: helpers.doDecode(method.card_number),
         }));
       }
 
@@ -2637,14 +3045,14 @@ class MemberController extends BaseController {
         msg: "Order details fetched successfully.",
         order, // Add vias to the response
         siteSettings,
-        paymentMethods
+        paymentMethods,
       });
     } catch (error) {
       console.error("Error in :", error);
       return res.status(200).json({
         status: 0,
         msg: "Internal server error.",
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -2665,7 +3073,7 @@ class MemberController extends BaseController {
 
       // Fetch the order using the decoded ID and check if the rider_id matches the logged-in rider's ID
       let order = await this.member.getUserOrderDetailsByTrackingId({
-        tracking_id: tracking_id
+        tracking_id: tracking_id,
       });
 
       // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
@@ -2686,7 +3094,7 @@ class MemberController extends BaseController {
         vias: vias,
         invoices: invoices,
         viasCount: viasCount,
-        reviews: reviews
+        reviews: reviews,
       };
 
       const siteSettings = res.locals.adminData;
@@ -2697,14 +3105,14 @@ class MemberController extends BaseController {
         msg: "Order details fetched successfully.",
         orders: order, // Add vias to the response
         siteSettings,
-        paymentMethods
+        paymentMethods,
       });
     } catch (error) {
       console.error("Error in getOrderDetailsByEncodedId:", error);
       return res.status(200).json({
         status: 0,
         msg: "Internal server error.",
-        error: error.message
+        error: error.message,
       });
     }
   }
@@ -2758,7 +3166,7 @@ class MemberController extends BaseController {
           brand: helpers.doDecode(method.brand),
           is_default: method.is_default, // Assuming is_default does not need decoding
           created_date: method.created_date,
-          encoded_id: helpers.doEncode(method.id)
+          encoded_id: helpers.doEncode(method.id),
         };
       });
 
@@ -2771,7 +3179,7 @@ class MemberController extends BaseController {
         msg: "Payment methods fetched successfully.",
         member,
         siteSettings,
-        paymentMethods: decodedPaymentMethods
+        paymentMethods: decodedPaymentMethods,
       };
 
       // Return the combined JSON response
@@ -2790,7 +3198,7 @@ class MemberController extends BaseController {
         card_exp_year,
         card_number,
         token,
-        memType
+        memType,
       } = req.body;
 
       // Validate input fields
@@ -2862,12 +3270,12 @@ class MemberController extends BaseController {
 
       // Attach the payment method to the customer in Stripe
       await stripe.paymentMethods.attach(payment_method_id, {
-        customer: member.customer_id
+        customer: member.customer_id,
       });
 
       // Set the payment method as the default payment method for the customer
       await stripe.customers.update(member.customer_id, {
-        invoice_settings: { default_payment_method: payment_method_id }
+        invoice_settings: { default_payment_method: payment_method_id },
       });
 
       // Check if the user already has a payment method
@@ -2887,7 +3295,7 @@ class MemberController extends BaseController {
         exp_month: helpers.doEncode(paymentMethod.card.exp_month),
         exp_year: helpers.doEncode(paymentMethod.card.exp_year),
         brand: helpers.doEncode(paymentMethod.card.brand),
-        is_default: isDefault
+        is_default: isDefault,
       };
       const insertedPaymentMethod =
         await this.paymentMethodModel.addPaymentMethod(newPaymentMethod);
@@ -2895,7 +3303,7 @@ class MemberController extends BaseController {
       return res.status(200).json({
         status: 1,
         msg: "Payment method added successfully.",
-        paymentMethod: insertedPaymentMethod
+        paymentMethod: insertedPaymentMethod,
       });
     } catch (err) {
       console.error("Error adding payment method:", err.message);
@@ -3036,12 +3444,12 @@ class MemberController extends BaseController {
         paymentMethodRow?.payment_method_id
       ); // Convert to string
       await stripe.customers.update(member.customer_id, {
-        invoice_settings: { default_payment_method: paymentMethodId }
+        invoice_settings: { default_payment_method: paymentMethodId },
       });
 
       return res.status(200).json({
         status: 1,
-        msg: "Payment method marked as default successfully."
+        msg: "Payment method marked as default successfully.",
       });
     } catch (error) {
       console.error("Error marking payment method as default:", error.message);
@@ -3086,7 +3494,7 @@ class MemberController extends BaseController {
           return {
             ...notificationObj,
             sender_name: siteSettings.site_name,
-            sender_dp: siteSettings.logo_image
+            sender_dp: siteSettings.logo_image,
           };
         }
         return notificationObj;
@@ -3098,7 +3506,7 @@ class MemberController extends BaseController {
       return res.status(200).json({
         status: 1,
         msg: "Notifications fetched successfully.",
-        notifications: notificationsArr
+        notifications: notificationsArr,
       });
     } catch (error) {
       console.error("Failed to fetch notifications:", error.message);
@@ -3185,7 +3593,7 @@ class MemberController extends BaseController {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert amount to cents (for Stripe)
         currency: "gbp",
-        automatic_payment_methods: { enabled: true } // Simplify configuration
+        automatic_payment_methods: { enabled: true }, // Simplify configuration
       });
 
       res.status(200).json({ paymentIntentId: paymentIntent.id, status: 1 });
@@ -3207,7 +3615,7 @@ class MemberController extends BaseController {
       const paymentIntent = await stripe.paymentIntents.create({
         amount: Math.round(amount * 100), // Convert amount to cents (for Stripe)
         currency: "gbp",
-        payment_method_types: ["card"]
+        payment_method_types: ["card"],
       });
 
       res
@@ -3230,7 +3638,7 @@ class MemberController extends BaseController {
         payment_method,
         token,
         memType,
-        saved_card_id
+        saved_card_id,
       } = req.body;
       // console.log(req.body,'req.body')
       // Validate the required fields
@@ -3274,7 +3682,7 @@ class MemberController extends BaseController {
       const userId = user.id;
       let order = await this.member.getUserOrderDetailsById({
         userId: userId,
-        requestId: requestId
+        requestId: requestId,
       });
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Invalid request!" });
@@ -3333,7 +3741,7 @@ class MemberController extends BaseController {
         );
         invoice_id = result.insertId;
         await this.member.updateMemberData(userId, {
-          total_credits: parseFloat(user?.total_credits) - parseFloat(charges)
+          total_credits: parseFloat(user?.total_credits) - parseFloat(charges),
         });
       } else if (payment_method === "paypal") {
         let payment_intent_id = "";
@@ -3389,7 +3797,7 @@ class MemberController extends BaseController {
           return res.status(200).json({
             status: 0,
             msg: "Error retrieving Stripe payment method.",
-            error: error.message
+            error: error.message,
           });
         }
 
@@ -3397,7 +3805,7 @@ class MemberController extends BaseController {
         if (!stripePaymentMethod || !stripePaymentMethod.customer) {
           return res.status(200).json({
             status: 0,
-            msg: "Payment method is not linked to a customer."
+            msg: "Payment method is not linked to a customer.",
           });
         }
 
@@ -3413,16 +3821,16 @@ class MemberController extends BaseController {
             use_stripe_sdk: true,
             automatic_payment_methods: {
               enabled: true,
-              allow_redirects: "never"
+              allow_redirects: "never",
             },
-            metadata: { user_id: userId }
+            metadata: { user_id: userId },
           });
         } catch (error) {
           console.error("Stripe Error:", error);
           return res.status(200).json({
             status: 0,
             msg: "Error creating payment intent.",
-            error: error.message
+            error: error.message,
           });
         }
 
@@ -3431,7 +3839,7 @@ class MemberController extends BaseController {
           return res.status(200).json({
             status: 0,
             msg: "Payment failed.",
-            paymentStatus: paymentIntent.status
+            paymentStatus: paymentIntent.status,
           });
         }
         let payment_intent_id = paymentIntent.id;
@@ -3460,7 +3868,7 @@ class MemberController extends BaseController {
           created_time: created_time,
           payment_intent_id: payment_intent_id,
           payment_method_id: payment_method_id,
-          type: "Invoice"
+          type: "Invoice",
         });
         let adminData = res.locals.adminData;
         // const request = await this.rider.getRequestById(54, 9);
@@ -3473,7 +3881,7 @@ class MemberController extends BaseController {
         let request_row = order;
         const requestRow = {
           ...request_row, // Spread request properties into order
-          parcels: parcels // Add parcels as an array inside order
+          parcels: parcels, // Add parcels as an array inside order
         };
         if (parseFloat(dueAmount) <= 0) {
           const notificationText = `Invoice is paid by the user.Now mark the request as completed`;
@@ -3497,7 +3905,7 @@ class MemberController extends BaseController {
             {
               adminData,
               order: requestRow,
-              type: "user"
+              type: "user",
             }
           );
         }
@@ -3508,7 +3916,7 @@ class MemberController extends BaseController {
       if (result) {
         return res.status(200).json({
           message: "Invoice created successfully.",
-          invoiceId: invoice_id
+          invoiceId: invoice_id,
         });
       } else {
         return res.status(200).json({ error: "Failed to create invoice." });
@@ -3529,7 +3937,7 @@ class MemberController extends BaseController {
         payment_method,
         token,
         memType,
-        saved_card_id
+        saved_card_id,
       } = req.body;
       // Validate the required fields
       if (payment_method == "credit-card") {
@@ -3624,7 +4032,7 @@ class MemberController extends BaseController {
           return res.status(200).json({
             status: 0,
             msg: "Error retrieving Stripe payment method.",
-            error: error.message
+            error: error.message,
           });
         }
 
@@ -3632,7 +4040,7 @@ class MemberController extends BaseController {
         if (!stripePaymentMethod || !stripePaymentMethod.customer) {
           return res.status(200).json({
             status: 0,
-            msg: "Payment method is not linked to a customer."
+            msg: "Payment method is not linked to a customer.",
           });
         }
 
@@ -3648,16 +4056,16 @@ class MemberController extends BaseController {
             use_stripe_sdk: true,
             automatic_payment_methods: {
               enabled: true,
-              allow_redirects: "never"
+              allow_redirects: "never",
             },
-            metadata: { user_id: userId }
+            metadata: { user_id: userId },
           });
         } catch (error) {
           console.error("Stripe Error:", error);
           return res.status(200).json({
             status: 0,
             msg: "Error creating payment intent.",
-            error: error.message
+            error: error.message,
           });
         }
 
@@ -3666,7 +4074,7 @@ class MemberController extends BaseController {
           return res.status(200).json({
             status: 0,
             msg: "Payment failed.",
-            paymentStatus: paymentIntent.status
+            paymentStatus: paymentIntent.status,
           });
         }
         let payment_intent_id = paymentIntent.id;
@@ -3677,7 +4085,7 @@ class MemberController extends BaseController {
       if (payment_method != "paypal") {
         await this.member.updateMemberData(userId, {
           total_credits:
-            parseFloat(user?.total_credits) + parseFloat(formattedAmount)
+            parseFloat(user?.total_credits) + parseFloat(formattedAmount),
         });
 
         const invoice = await this.paymentMethodModel.getInvoiceById(
@@ -3696,7 +4104,7 @@ class MemberController extends BaseController {
               payment_intent_id: payment_intent,
               payment_method_id: payment_methodid,
               payment_intent: payment_intent,
-              payment_method
+              payment_method,
             }
           );
         if (updateResult.affectedRows > 0) {
@@ -3708,7 +4116,7 @@ class MemberController extends BaseController {
             created_time: helpers.getUtcTimeInSeconds(),
             payment_intent_id: payment_intent,
             payment_method_id: payment_methodid,
-            type: "credits"
+            type: "credits",
           });
           const createdDate = helpers.getUtcTimeInSeconds();
           const creditEntry = {
@@ -3716,7 +4124,7 @@ class MemberController extends BaseController {
             type: "admin", // Change type to 'user' as per requirement
             credits: formattedAmount, // Credits used by the user
             created_date: createdDate,
-            e_type: "credit" // Debit type entry
+            e_type: "credit", // Debit type entry
           };
 
           await this.pageModel.insertInCredits(creditEntry);
@@ -3724,7 +4132,7 @@ class MemberController extends BaseController {
           return res.status(200).json({
             status: 1,
             msg: "Credits added successfully.",
-            invoiceId: result.insertId
+            invoiceId: result.insertId,
           });
         } else {
           return res
@@ -3760,7 +4168,7 @@ class MemberController extends BaseController {
       );
       distanceResults.push({
         ...detail,
-        distance: distance
+        distance: distance,
       });
     }
 
@@ -3771,7 +4179,7 @@ class MemberController extends BaseController {
     return res.status(200).json({
       status: 1,
       msg: "Sorted order details based on shortest to longest path",
-      data: distanceResults
+      data: distanceResults,
     });
   }
 
@@ -3793,7 +4201,7 @@ class MemberController extends BaseController {
 
       return res.status(200).json({
         message: "Review submitted successfully",
-        review: newReview
+        review: newReview,
       });
     } catch (error) {
       return res.status(500).json({ message: "Failed to submit review" });
@@ -3813,7 +4221,7 @@ class MemberController extends BaseController {
       let insertedUsers = [];
       const currentDate = new Date();
       const currentMonth = currentDate.toLocaleString("default", {
-        month: "long"
+        month: "long",
       });
       const currentYear = currentDate.getFullYear();
       const previousMonthDate = new Date(
@@ -3822,7 +4230,7 @@ class MemberController extends BaseController {
         1
       );
       const previousMonth = previousMonthDate.toLocaleString("default", {
-        month: "long"
+        month: "long",
       });
       // console.log(businessUsers);return;
       for (const user of businessUsers) {
@@ -3853,7 +4261,7 @@ class MemberController extends BaseController {
                 credits: totalDebitAmount,
                 amount: helpers.formatAmount(totalDebitAmount),
                 previousMonth,
-                currentMonth
+                currentMonth,
               }
             );
           }
@@ -3862,13 +4270,13 @@ class MemberController extends BaseController {
       // console.log(insertedUsers,'insertedUsers')
       if (insertedUsers.length === 0) {
         return res.json({
-          message: "All users already have an entry for this month."
+          message: "All users already have an entry for this month.",
         });
       } else {
         res.json({
           message:
             "Entries added successfully for users without an entry this month.",
-          users: insertedUsers
+          users: insertedUsers,
         });
       }
     } catch (error) {
@@ -3917,7 +4325,7 @@ class MemberController extends BaseController {
           brand: helpers.doDecode(method.brand),
           is_default: method.is_default, // Assuming is_default does not need decoding
           created_date: method.created_date,
-          encoded_id: helpers.doEncode(method.id)
+          encoded_id: helpers.doEncode(method.id),
         };
       });
 
@@ -3926,7 +4334,7 @@ class MemberController extends BaseController {
       res.json({
         invoices,
         siteSettings,
-        paymentMethods: decodedPaymentMethods
+        paymentMethods: decodedPaymentMethods,
       });
     } catch (error) {
       console.error("Error fetching invoices:", error);
@@ -3965,7 +4373,7 @@ class MemberController extends BaseController {
     //   }
     let order = await this.member.getUserOrderDetailsById({
       userId: 13,
-      requestId: 54
+      requestId: 54,
     });
     // const request = await this.rider.getRequestById(54, 9);
     const userRow = await this.member.findById(order.user_id);
@@ -3974,7 +4382,7 @@ class MemberController extends BaseController {
     let request_row = order;
     const requestRow = {
       ...request_row, // Spread request properties into order
-      parcels: parcels // Add parcels as an array inside order
+      parcels: parcels, // Add parcels as an array inside order
     };
     if (parseFloat(dueAmount) <= 0) {
       const result = await helpers.sendEmail(
@@ -3984,7 +4392,7 @@ class MemberController extends BaseController {
         {
           adminData,
           order: requestRow,
-          type: "user"
+          type: "user",
         }
       );
     }

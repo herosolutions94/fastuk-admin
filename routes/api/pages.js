@@ -34,8 +34,7 @@ router.post('/search-cities', upload, (req, res) => pagesController.searchCities
 router.post('/apply-promo', upload, (req, res) => pagesController.applyPromoCode(req, res));
 router.post('/vehicles/by-category/:categoryId', upload, (req, res) => pagesController.getVehiclesByCategoryId(req, res));
 router.post('/upload-license', upload, (req, res) => pagesController.uploadLicense(req, res));
-
-
+// router.post('/orders', upload, (req, res) => pagesController.getOrders(req, res));
 
 
 

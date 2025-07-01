@@ -661,6 +661,17 @@ class RiderController extends BaseController {
       const loggedInUser = userResponse.user;
       // console.log(loggedInUser);return;
 
+      const assignedSubCategories = await this.rider.getSubCategoriesByRiderId(loggedInUser.id);
+      // console.log("assignedSubCategories:",assignedSubCategories);return;
+
+      if (!assignedSubCategories || assignedSubCategories.length === 0) {
+  return res.status(200).json({
+    status: 0,
+    msg: "You are not assigned any vehicle category."
+  });
+}
+
+
       // Step 2: Fetch the request quote by ID
       const requestQuote = await this.rider.getRequestQuoteById(request_id);
       if (!requestQuote) {
@@ -669,6 +680,17 @@ class RiderController extends BaseController {
           .json({ status: 0, msg: "Request quote not found." });
       }
       // console.log(requestQuote)
+
+      const selectedVehicle = requestQuote.selected_vehicle;
+
+      // Check if selected vehicle is among assigned categories
+if (!assignedSubCategories.includes(selectedVehicle)) {
+  return res.status(200).json({
+    status: 0,
+    msg: "You are not assigned to the selected vehicle category for this request."
+  });
+}
+
 
       // Step 3: Check if a rider is already assigned
       if (requestQuote.assigned_rider) {
@@ -720,6 +742,8 @@ class RiderController extends BaseController {
             parcels: parcels,
             rider_name: loggedInUser?.full_name,
             start_date: helpers.formatDateToUK(request_row?.start_date),
+            assigned_sub_categories : assignedSubCategories
+
           };
         }
       }
@@ -777,7 +801,7 @@ class RiderController extends BaseController {
 
   async getRiderOrders(req, res) {
     try {
-      const { token, memType } = req.body;
+      const { token, memType, status } = req.body;
 
       if (!token) {
         return res.status(200).json({ status: 0, msg: "Token is required." });
@@ -802,8 +826,11 @@ class RiderController extends BaseController {
       // Fetch requests for which the assigned rider is this user and status is 'accepted'
       const riderOrders = await this.rider.getOrdersByRiderAndStatus({
         riderId: rider.id,
-        status: "accepted"
+        status: status
       });
+
+            console.log("riderOrders:",riderOrders)
+
 
       // Encode the `id` for each order
       const ordersWithEncodedIds = riderOrders.map((order) => {
@@ -1285,9 +1312,14 @@ let vehicle = order.selected_vehicle
       }
       // console.log(order,"order")
 
-      let vehicle = order.selected_vehicle
-        ? await VehicleModel.getVehicleById(order.selected_vehicle)
-        : null;
+
+        const vehicle = order.selected_vehicle
+      ? await VehicleModel.getVehicleById(order.selected_vehicle)
+      : null;
+
+    const categoryInfo = order.selected_vehicle
+      ? await VehicleModel.getCategoryAndMainCategoryById(order.selected_vehicle)
+      : null;
 
       const viasCount = await this.rider.countViasBySourceCompleted(order.id);
 
@@ -1330,7 +1362,9 @@ let vehicle = order.selected_vehicle
         dueAmount: dueAmount,
         vehicle,
         source_attachments:source_attachments,
-        destination_attachments:destination_attachments
+        destination_attachments:destination_attachments,
+         category_name: categoryInfo?.category_name || null,
+      main_category_name: categoryInfo?.main_category_name || null
       };
       // Fetch parcels and vias based on the quoteId from the order
       // Assuming order.quote_id is the relevant field
