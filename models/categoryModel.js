@@ -12,17 +12,6 @@ class VehicleCategoriesModel extends BaseModel {
 
 
     // Method to create a new rider with validation
-    
-
-    static async getMainCategories () {
-try {
-            const [rows] = await pool.query(`SELECT id, vehicle_name FROM ${this.tableName} WHERE status = 1`);
-            return rows;
-        } catch (error) {
-            console.error('Error fetching vehicle:', error);
-            throw error;
-        }  
-    }
 
   static async getSubCategoriesByParentId(parentId) {
   try {
@@ -47,16 +36,29 @@ try {
   );
 }
 
+static async getMainCategories() {
+  try {
+    const [rows] = await pool.query(`SELECT id, title FROM vehicles WHERE status = 1`);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching main vehicle categories:', error);
+    throw error;
+  }
+}
+
+
 static async getCategoriesByRiderId(riderId) {
   try {
     const [rows] = await pool.query(`
-      SELECT vc.id, vc.vehicle_name
+      SELECT 
+        rvc.id AS rider_category_id,
+        vc.vehicle_name AS sub_category_name,
+        v.title AS main_category_name
       FROM rider_vehicle_categories rvc
       INNER JOIN vehicle_categories vc ON rvc.category_id = vc.id
+      LEFT JOIN vehicles v ON vc.parent_id = v.id
       WHERE rvc.rider_id = ?
     `, [riderId]);
-
-    console.log("rows:",rows)
 
     return rows;
   } catch (error) {
@@ -65,15 +67,30 @@ static async getCategoriesByRiderId(riderId) {
   }
 }
 
+
+
 static async saveRiderCategory(riderId, categoryId) {
   return pool.query(`
     INSERT INTO rider_vehicle_categories (rider_id, category_id)
     VALUES (?, ?)`, [riderId, categoryId]);
 }
 
-static async deleteCategoriesByRiderId(riderId) {
-  return pool.query(`DELETE FROM rider_vehicle_categories WHERE rider_id = ?`, [riderId]);
+static async deleteRiderCategoryById(id) {
+  const [result] = await pool.query(
+    `DELETE FROM rider_vehicle_categories WHERE id = ?`,
+    [id]
+  );
+  return result;
 }
+
+static async getRiderCategoryById(riderCategoryId) {
+  const [rows] = await pool.query(`
+    SELECT * FROM rider_vehicle_categories WHERE id = ? LIMIT 1
+  `, [riderCategoryId]);
+  return rows[0] || null;
+}
+
+
 
 static async getCategoryById(categoryId) {
   const [rows] = await pool.query(`
@@ -89,6 +106,19 @@ static async updateRiderCategory(riderId, oldCategoryId, newCategoryId) {
     WHERE rider_id = ? AND category_id = ?
   `, [newCategoryId, riderId, oldCategoryId]);
 }
+
+
+static async updateRiderCategoryById(riderCategoryId, newCategoryId) {
+  const [result] = await pool.query(`
+    UPDATE rider_vehicle_categories
+    SET category_id = ?
+    WHERE id = ?
+  `, [newCategoryId, riderCategoryId]);
+
+  return result;
+}
+
+
 
 static async deleteRiderCategory(riderId, categoryId) {
   return pool.query(`

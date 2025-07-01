@@ -230,6 +230,39 @@ static async updateRequestStatus(id, status) {
         }
 }
 
+static async getRequestQuoteDetailsById(id) {
+  try {
+    // 1. Fetch the main request_quote row
+    const quoteQuery = `SELECT * FROM request_quote WHERE id = ? LIMIT 1`;
+    const [quoteRows] = await pool.query(quoteQuery, [id]);
+
+    if (quoteRows.length === 0) {
+      return null;
+    }
+
+    const quote = quoteRows[0];
+
+    // 2. Fetch related vias
+    const viasQuery = `SELECT * FROM vias WHERE request_id = ? ORDER BY id ASC`;
+    const [vias] = await pool.query(viasQuery, [id]);
+
+    // 3. Fetch related parcels
+    const parcelsQuery = `SELECT * FROM request_parcels WHERE request_id = ? ORDER BY id ASC`;
+    const [parcels] = await pool.query(parcelsQuery, [id]);
+
+    // 4. Combine everything
+    return {
+      ...quote,
+      vias,
+      parcels,
+    };
+  } catch (err) {
+    console.error("getRequestQuoteDetailsById error:", err);
+    throw err;
+  }
+}
+
+
 
     
 }

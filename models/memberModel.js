@@ -1,129 +1,147 @@
 // models/RiderModel.js
-const pool = require('../config/db-connection');
-const helpers = require('../utils/helpers');
-const BaseModel = require('./baseModel');
-const moment = require('moment');
-
+const pool = require("../config/db-connection");
+const helpers = require("../utils/helpers");
+const BaseModel = require("./baseModel");
+const moment = require("moment");
 
 class MemberModel extends BaseModel {
-    constructor() {
-        super('members'); // Pass the table name to the BaseModel constructor
+  constructor() {
+    super("members"); // Pass the table name to the BaseModel constructor
+  }
+
+  // Method to check if an email exists (find by email)
+  async findByEmail(email) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT * FROM ${this.tableName} WHERE is_deleted != 1 AND email = ?`,
+        [email]
+      );
+      return rows.length ? rows[0] : null; // Return the first result or null
+    } catch (error) {
+      throw new Error(
+        `Error fetching member by email from ${this.tableName}: ${error.message}`
+      );
+    }
+  }
+  async findByPhone(mem_phone) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT * FROM ${this.tableName} WHERE is_deleted != 1 AND mem_phone = ?`,
+        [mem_phone]
+      );
+      return rows.length ? rows[0] : null; // Return the first result or null
+    } catch (error) {
+      throw new Error(
+        `Error fetching member by phone from ${this.tableName}: ${error.message}`
+      );
+    }
+  }
+
+  async findByOtp(otp) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT * FROM ${this.tableName} WHERE otp = ?`,
+        [otp]
+      );
+      return rows.length ? rows[0] : null; // Return the first result or null
+    } catch (error) {
+      throw new Error(
+        `Error fetching member by otp from ${this.tableName}: ${error.message}`
+      );
+    }
+  }
+
+  // Method to check if an email already exists
+  async emailExists(email) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT * FROM ${this.tableName} WHERE email = ?`,
+        [email]
+      );
+      return rows.length > 0; // Returns true if email exists, false otherwise
+    } catch (error) {
+      throw new Error(
+        `Error checking if email exists in ${this.tableName}: ${error.message}`
+      );
+    }
+  }
+
+  // Method to create a new rider with validation
+  async createMember(data) {
+    // console.log('Attempting to insert user:', data); // Log the data to insert
+
+    if (await this.findByEmail(data.email)) {
+      throw new Error(`Email ${data.email} is already in use.`);
     }
 
-    // Method to check if an email exists (find by email)
-    async findByEmail(email) {
-        try {
-            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE is_deleted != 1 AND email = ?`, [email]);
-            return rows.length ? rows[0] : null; // Return the first result or null
-        } catch (error) {
-            throw new Error(`Error fetching member by email from ${this.tableName}: ${error.message}`);
-        }
+    try {
+      const userId = await this.create(data); // Call the BaseModel's create method
+      // console.log('Inserted user ID:', userId); // Log the inserted ID
+      return userId;
+    } catch (error) {
+      console.error("Error creating member:", error.message); // Log the error
+      throw error;
     }
-    async findByPhone(mem_phone) {
-        try {
-            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE is_deleted != 1 AND mem_phone = ?`, [mem_phone]);
-            return rows.length ? rows[0] : null; // Return the first result or null
-        } catch (error) {
-            throw new Error(`Error fetching member by phone from ${this.tableName}: ${error.message}`);
-        }
-    }
+  }
 
-    async findByOtp(otp) {
-        try {
-            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE otp = ?`, [otp]);
-            return rows.length ? rows[0] : null; // Return the first result or null
-        } catch (error) {
-            throw new Error(`Error fetching member by otp from ${this.tableName}: ${error.message}`);
-        }
-    }
+  async findById(memberId) {
+    const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
+    const [rows] = await pool.query(query, [memberId]);
+    // console.log(rows)
+    return rows.length ? rows[0] : null; // Return the first result or null
+  }
 
-    // Method to check if an email already exists
-    async emailExists(email) {
-        try {
-            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE email = ?`, [email]);
-            return rows.length > 0; // Returns true if email exists, false otherwise
-        } catch (error) {
-            throw new Error(`Error checking if email exists in ${this.tableName}: ${error.message}`);
-        }
-    }
+  // Function to update rider's verified status and set OTP to null
+  async updateMemberVerification(memberId) {
+    const query = `UPDATE members SET mem_verified = 1, otp = NULL WHERE id = ?`;
+    await pool.query(query, [memberId]);
+  }
+  async updateMemberData(memberId, data) {
+    // Extract keys and values from the data object
+    const keys = Object.keys(data); // ['otp', 'expire_time']
+    const values = Object.values(data); // [newOtp, newExpireTime]
 
-    // Method to create a new rider with validation
-    async createMember(data) {
-        // console.log('Attempting to insert user:', data); // Log the data to insert
+    // Construct the SET clause dynamically
+    const setClause = keys.map((key) => `${key} = ?`).join(", "); // e.g., "otp = ?, expire_time = ?"
 
-        if (await this.findByEmail(data.email)) {
-            throw new Error(`Email ${data.email} is already in use.`);
-        }
+    // Build the query dynamically
+    const query = `UPDATE members SET ${setClause} WHERE id = ?`;
 
-        try {
-            const userId = await this.create(data); // Call the BaseModel's create method
-            // console.log('Inserted user ID:', userId); // Log the inserted ID
-            return userId;
-        } catch (error) {
-            console.error('Error creating member:', error.message); // Log the error
-            throw error;
-        }
-    }
+    // Execute the query, adding the memberId to the values array
+    await pool.query(query, [...values, memberId]);
+  }
+  async updateRequestQuoteData(requestId, data) {
+    // Extract keys and values from the data object
+    const keys = Object.keys(data); // ['otp', 'expire_time']
+    const values = Object.values(data); // [newOtp, newExpireTime]
 
-    async findById(memberId) {
-        const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
-        const [rows] = await pool.query(query, [memberId]);
-        // console.log(rows)
-        return rows.length ? rows[0] : null; // Return the first result or null
-    }
+    // Construct the SET clause dynamically
+    const setClause = keys.map((key) => `${key} = ?`).join(", "); // e.g., "otp = ?, expire_time = ?"
 
-    // Function to update rider's verified status and set OTP to null
-    async updateMemberVerification(memberId) {
-        const query = `UPDATE members SET mem_verified = 1, otp = NULL WHERE id = ?`;
-        await pool.query(query, [memberId]);
-    }
-    async updateMemberData(memberId, data) {
-        // Extract keys and values from the data object
-        const keys = Object.keys(data); // ['otp', 'expire_time']
-        const values = Object.values(data); // [newOtp, newExpireTime]
+    // Build the query dynamically
+    const query = `UPDATE request_quote SET ${setClause} WHERE id = ?`;
 
-        // Construct the SET clause dynamically
-        const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
+    // Execute the query, adding the memberId to the values array
+    await pool.query(query, [...values, requestId]);
+  }
 
-        // Build the query dynamically
-        const query = `UPDATE members SET ${setClause} WHERE id = ?`;
+  async updateOtp(memberId, otp) {
+    const query = "UPDATE members SET otp = ? WHERE id = ?";
+    const values = [otp, memberId];
+    await pool.query(query, values); // Updates the OTP for the member
+  }
+  async updatePassword(memberId, hashedPassword) {
+    const query = `UPDATE ${this.tableName} SET password = ? WHERE id = ?`;
+    await pool.query(query, [hashedPassword, memberId]);
+  }
 
-        // Execute the query, adding the memberId to the values array
-        await pool.query(query, [...values, memberId]);
-    }
-    async updateRequestQuoteData(requestId, data) {
-        // Extract keys and values from the data object
-        const keys = Object.keys(data); // ['otp', 'expire_time']
-        const values = Object.values(data); // [newOtp, newExpireTime]
-
-        // Construct the SET clause dynamically
-        const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
-
-        // Build the query dynamically
-        const query = `UPDATE request_quote SET ${setClause} WHERE id = ?`;
-
-        // Execute the query, adding the memberId to the values array
-        await pool.query(query, [...values, requestId]);
-    }
-
-    async updateOtp(memberId, otp) {
-        const query = 'UPDATE members SET otp = ? WHERE id = ?';
-        const values = [otp, memberId];
-        await pool.query(query, values); // Updates the OTP for the member
-    }
-    async updatePassword(memberId, hashedPassword) {
-        const query = `UPDATE ${this.tableName} SET password = ? WHERE id = ?`;
-        await pool.query(query, [hashedPassword, memberId]);
-    }
-
-
-async updateMemberImage (userId, imageUrl) {
-  const query = `UPDATE ${this.tableName} SET mem_image = ? WHERE id = ? RETURNING mem_image`;
-  const values = [imageUrl, userId];
-  const result = await pool.query(query, values);
-  return result.rows[0];
-};
-async getUserInvoices(userId) {
+  async updateMemberImage(userId, imageUrl) {
+    const query = `UPDATE ${this.tableName} SET mem_image = ? WHERE id = ? RETURNING mem_image`;
+    const values = [imageUrl, userId];
+    const result = await pool.query(query, values);
+    return result.rows[0];
+  }
+  async getUserInvoices(userId) {
     const query = `
         SELECT i.*
         FROM invoices i
@@ -132,16 +150,16 @@ async getUserInvoices(userId) {
         GROUP BY r.id;
     `;
     try {
-        const [rows] = await pool.query(query, [userId]);
+      const [rows] = await pool.query(query, [userId]);
 
-        return rows;
+      return rows;
     } catch (error) {
-        throw new Error(`Error fetching grouped invoices: ${error.message}`);
+      throw new Error(`Error fetching grouped invoices: ${error.message}`);
     }
-}
-async getOrdersByUserAndStatus({ userId, status = '', limit = null }) {
+  }
+  async getOrdersByUserAndStatus({ userId, status = "", limit = null }) {
     try {
-        let query = `
+      let query = `
             SELECT 
                 rq.*, 
                 m.full_name AS user_name, 
@@ -163,41 +181,54 @@ async getOrdersByUserAndStatus({ userId, status = '', limit = null }) {
                 rq.user_id = ?
         `;
 
-        const values = [userId];
+      const values = [userId];
 
-        // Add status condition if it's not empty
-        if (status) {
+      // Add status condition if it's not empty
+      if (status) {
+        switch (status) {
+          case "completed":
+            query += ` AND rq.status = ?`;
+            values.push("completed");
+            break;
+          case "in_progress":
+            // Assuming anything not completed is in progress
+            query += ` AND rq.status != ?`;
+            values.push("completed");
+            break;
+          default:
             query += ` AND rq.status = ?`;
             values.push(status);
         }
+      }
 
-        query += `
+      query += `
             GROUP BY 
                 rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
             ORDER BY 
                 rq.id DESC
         `;
 
-        // Add LIMIT clause if limit is not null
-        if (limit !== null) {
-            query += ` LIMIT ?`;
-            values.push(limit);
-        }
+      console.log("Fetching orders for user:", userId, "with status:", status);
 
-        const [rows] = await pool.query(query, values);
+      // Add LIMIT clause if limit is not null
+      if (limit !== null) {
+        query += ` LIMIT ?`;
+        values.push(limit);
+      }
 
-        return rows; // Return the list of orders with user and parcel details
+      const [rows] = await pool.query(query, values);
+
+      return rows; // Return the list of orders with user and parcel details
     } catch (err) {
-        console.error("Error fetching orders:", err.message);
-        throw new Error("Failed to fetch orders.");
+      console.error("Error fetching orders:", err.message);
+      throw new Error("Failed to fetch orders.");
     }
-}
+  }
 
-
-async getUserOrderDetailsById( {userId, requestId}) {
+  async getUserOrderDetailsById({ userId, requestId }) {
     try {
-        // Query to fetch the order by ID
-        const query = `SELECT 
+      // Query to fetch the order by ID
+      const query = `SELECT 
     rq.*, 
     m.full_name AS user_name, 
     m.mem_image AS user_image,
@@ -222,29 +253,27 @@ GROUP BY
     rq.id, m.full_name, m.mem_image, m.email, m.mem_phone;
 `;
 
-        
-        // Execute the query using the connection pool
-        const [rows, fields] = await pool.query(query, [userId, requestId]);
-        // console.log("userId:",userId,"requestId:",requestId)
-        // console.log("rows:",rows)
+      // Execute the query using the connection pool
+      const [rows, fields] = await pool.query(query, [userId, requestId]);
+      // console.log("userId:",userId,"requestId:",requestId)
+      // console.log("rows:",rows)
 
-        // If no rows are returned, the order doesn't exist
-        if (rows.length === 0) {
-            return null;
-        }
+      // If no rows are returned, the order doesn't exist
+      if (rows.length === 0) {
+        return null;
+      }
 
-        // Return the order details (first row since we expect a single result)
-        return rows[0];
+      // Return the order details (first row since we expect a single result)
+      return rows[0];
     } catch (error) {
-        console.error("Error in getOrderDetailsById:", error);
-        throw new Error("Database query failed.");
+      console.error("Error in getOrderDetailsById:", error);
+      throw new Error("Database query failed.");
     }
-
-}
-async getUserOrderDetailsByTrackingId({ tracking_id }) {
+  }
+  async getUserOrderDetailsByTrackingId({ tracking_id }) {
     try {
-        // Query to fetch order, rider, and user details
-        const query = `
+      // Query to fetch order, rider, and user details
+      const query = `
             SELECT 
                 rq.*, 
                 r.full_name AS rider_name,  
@@ -274,26 +303,26 @@ async getUserOrderDetailsByTrackingId({ tracking_id }) {
                 m.full_name, m.mem_image, m.email, m.mem_phone;
         `;
 
-        // Execute the query
-        const [rows, fields] = await pool.query(query, [tracking_id]);
+      // Execute the query
+      const [rows, fields] = await pool.query(query, [tracking_id]);
 
-        // If no rows are returned, the order doesn't exist
-        if (rows.length === 0) {
-            return null;
-        }
+      // If no rows are returned, the order doesn't exist
+      if (rows.length === 0) {
+        return null;
+      }
 
-        // Return the order details (first row)
-        return rows[0];
+      // Return the order details (first row)
+      return rows[0];
     } catch (error) {
-        console.error("Error in getUserOrderDetailsByTrackingId:", error);
-        throw new Error("Database query failed.");
+      console.error("Error in getUserOrderDetailsByTrackingId:", error);
+      throw new Error("Database query failed.");
     }
-}
+  }
 
-async getOrderDetailsById( {requestId}) {
+  async getOrderDetailsById({ requestId }) {
     try {
-        // Query to fetch the order by ID
-        const query = `SELECT 
+      // Query to fetch the order by ID
+      const query = `SELECT 
     rq.*, 
     m.full_name AS user_name, 
     m.mem_image AS user_image,
@@ -317,51 +346,49 @@ GROUP BY
     rq.id, m.full_name, m.mem_image, m.email, m.mem_phone;
 `;
 
-        
-        // Execute the query using the connection pool
-        const [rows, fields] = await pool.query(query, [requestId]);
-        // console.log("userId:",userId,"requestId:",requestId)
-        // console.log("rows:",rows)
+      // Execute the query using the connection pool
+      const [rows, fields] = await pool.query(query, [requestId]);
+      // console.log("userId:",userId,"requestId:",requestId)
+      // console.log("rows:",rows)
 
-        // If no rows are returned, the order doesn't exist
-        if (rows.length === 0) {
-            return null;
-        }
+      // If no rows are returned, the order doesn't exist
+      if (rows.length === 0) {
+        return null;
+      }
 
-        // Return the order details (first row since we expect a single result)
-        return rows[0];
+      // Return the order details (first row since we expect a single result)
+      return rows[0];
     } catch (error) {
-        console.error("Error in getOrderDetailsById:", error);
-        throw new Error("Database query failed.");
+      console.error("Error in getOrderDetailsById:", error);
+      throw new Error("Database query failed.");
     }
+  }
+  async updateRequestData(requestId, data) {
+    const keys = Object.keys(data); // ['otp', 'expire_time']
+    const values = Object.values(data); // [newOtp, newExpireTime]
 
-}
-async updateRequestData(requestId, data) {
-        const keys = Object.keys(data); // ['otp', 'expire_time']
-        const values = Object.values(data); // [newOtp, newExpireTime]
+    const setClause = keys.map((key) => `${key} = ?`).join(", "); // e.g., "otp = ?, expire_time = ?"
 
-        const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
+    const query = `UPDATE request_parcels SET ${setClause} WHERE id = ?`;
 
-        const query = `UPDATE request_parcels SET ${setClause} WHERE id = ?`;
+    await pool.query(query, [...values, requestId]);
+  }
 
-        await pool.query(query, [...values, requestId]);
-    }
-
-async getUnreadNotificationsCount ({userId, memType}) {
+  async getUnreadNotificationsCount({ userId, memType }) {
     try {
-        const query = `
+      const query = `
             SELECT COUNT(*) AS unreadCount
             FROM notifications
             WHERE user_id = ? AND mem_type = ? AND status = 0
         `;
-        const [result] = await pool.query(query, [userId, memType]);
-        return result[0]?.unreadCount || 0;
+      const [result] = await pool.query(query, [userId, memType]);
+      return result[0]?.unreadCount || 0;
     } catch (error) {
-        console.error("Error in getUnreadNotificationsCount:", error);
-        throw error; // Let the controller handle the error
+      console.error("Error in getUnreadNotificationsCount:", error);
+      throw error; // Let the controller handle the error
     }
-}
-async getNotifications(userId, memType) {
+  }
+  async getNotifications(userId, memType) {
     const query = `
       SELECT 
         n.*, 
@@ -382,40 +409,39 @@ WHERE n.user_id = ? AND n.mem_type = ?
       ORDER BY n.created_date DESC
     `;
     const values = [userId, memType];
-  
+
     try {
       const [rows] = await pool.query(query, values);
-    //   console.log("Notification rows:",rows)
+      //   console.log("Notification rows:",rows)
       return rows;
     } catch (error) {
-      console.error('Error fetching notifications:', error.message);
-      throw new Error('Database query failed.');
+      console.error("Error fetching notifications:", error.message);
+      throw new Error("Database query failed.");
     }
   }
 
   async getNotificationById(id) {
     const query = `SELECT * FROM notifications WHERE id = ?`;
     const [rows] = await pool.query(query, [id]);
-    console.log("rows:",rows)
+    console.log("rows:", rows);
     return rows.length ? rows[0] : null;
-}
-  
-  
+  }
+
   static async deleteNotification(id) {
-    const query = 'DELETE FROM notifications WHERE id = ?;';
+    const query = "DELETE FROM notifications WHERE id = ?;";
     await pool.query(query, [id]);
   }
-  async getLatestNotifications(userId,memType) {
+  async getLatestNotifications(userId, memType) {
     try {
-        const query = 'SELECT * FROM notifications WHERE user_id = ? AND mem_type = ? ORDER BY id DESC LIMIT 3';
-        const [rows] = await pool.query(query, [userId, memType]); // Use correct query execution
-        return rows; // Return the result
+      const query =
+        "SELECT * FROM notifications WHERE user_id = ? AND mem_type = ? ORDER BY id DESC LIMIT 3";
+      const [rows] = await pool.query(query, [userId, memType]); // Use correct query execution
+      return rows; // Return the result
     } catch (error) {
-        console.error("Error fetching latest notifications:", error);
-        return []; // Return an empty array on error
+      console.error("Error fetching latest notifications:", error);
+      return []; // Return an empty array on error
     }
-}
-
+  }
 
   static async updateTempEmail(id, temp_email) {
     const query = `
@@ -427,33 +453,37 @@ WHERE n.user_id = ? AND n.mem_type = ?
     const [result] = await pool.query(query, values);
 
     if (result.affectedRows === 0) {
-        throw new Error("Member not found or update failed.");
+      throw new Error("Member not found or update failed.");
     }
 
     return result.affectedRows;
-}
+  }
 
-static async createReview(orderId, userId, rating, message) {
+  static async createReview(orderId, userId, rating, message) {
     try {
       // Insert the review into the reviews table
       const query = `
         INSERT INTO reviews (order_id, user_id, rating, message, created_at)
         VALUES (?, ?, ?, ?, NOW());
       `;
-      const [result] = await pool.query(query, [orderId, userId, rating, message]);
-  
+      const [result] = await pool.query(query, [
+        orderId,
+        userId,
+        rating,
+        message,
+      ]);
+
       // Optionally, retrieve the inserted review if needed (based on the auto-increment ID)
       const reviewId = result.insertId;
-  
+
       // Fetch the inserted review (optional)
-      const selectQuery = 'SELECT * FROM reviews WHERE id = ?';
+      const selectQuery = "SELECT * FROM reviews WHERE id = ?";
       const [review] = await db.execute(selectQuery, [reviewId]);
-  
+
       return review[0]; // Return the first (and only) row
-  
     } catch (error) {
-      console.error('Error creating review:', error);
-      throw new Error('Failed to post review');
+      console.error("Error creating review:", error);
+      throw new Error("Failed to post review");
     }
   }
 
@@ -467,87 +497,78 @@ static async createReview(orderId, userId, rating, message) {
     const currentMonth = moment().format("YYYY-MM"); // Current Year-Month
 
     const [rows] = await pool.query(
-        `SELECT COUNT(*) AS count FROM credit_invoices 
+      `SELECT COUNT(*) AS count FROM credit_invoices 
          WHERE user_id = ? 
-         AND DATE_FORMAT(FROM_UNIXTIME(created_date), '%Y-%m') = ?`, 
-        [userId, currentMonth]
+         AND DATE_FORMAT(FROM_UNIXTIME(created_date), '%Y-%m') = ?`,
+      [userId, currentMonth]
     );
 
     return rows[0].count > 0; // Returns true if at least one invoice exists
-}
-async checkExistingMonthCredits(userId) {
+  }
+  async checkExistingMonthCredits(userId) {
     const currentMonth = moment().format("YYYY-MM"); // Current Year-Month
 
     const [rows] = await pool.query(
-        `SELECT COUNT(*) AS count FROM credits 
+      `SELECT COUNT(*) AS count FROM credits 
          WHERE user_id = ? AND type='admin' and e_type='credit'
-         AND DATE_FORMAT(FROM_UNIXTIME(created_date), '%Y-%m') = ?`, 
-        [userId, currentMonth]
+         AND DATE_FORMAT(FROM_UNIXTIME(created_date), '%Y-%m') = ?`,
+      [userId, currentMonth]
     );
 
     return rows[0].count > 0; // Returns true if at least one invoice exists
-}
+  }
 
-
-async getTotalDebitCredits(userId) {
+  async getTotalDebitCredits(userId) {
     const [rows] = await pool.query(
-        `SELECT SUM(credits) AS totalDebit FROM credits 
+      `SELECT SUM(credits) AS totalDebit FROM credits 
          WHERE user_id = ? AND e_type = 'debit'`,
-        [userId]
+      [userId]
     );
     // console.log("rows:",rows,userId)
 
-
     return rows[0].totalDebit || 0; // Return 0 if no debits found
-}
-
-
+  }
 
   async insertInvoice(userId, amount = 100) {
-        const createdDate = helpers.getUtcTimeInSeconds();
-        amount=amount.toFixed(2)
+    const createdDate = helpers.getUtcTimeInSeconds();
+    amount = amount.toFixed(2);
     const newInvoice = {
       amount,
       created_date: createdDate,
       user_id: userId,
-      status:0
+      status: 0,
     };
     return pool.query("INSERT INTO credit_invoices SET ?", newInvoice);
   }
 
- async getInvoicesByUserId(userId) {
+  async getInvoicesByUserId(userId) {
     try {
-        const [invoices] = await pool.query(
-            "SELECT * FROM credit_invoices WHERE user_id = ? ORDER BY created_date DESC",
-            [userId]
-        );
-        // console.log("invoices:",invoices)
+      const [invoices] = await pool.query(
+        "SELECT * FROM credit_invoices WHERE user_id = ? ORDER BY created_date DESC",
+        [userId]
+      );
+      // console.log("invoices:",invoices)
 
-        return invoices;
+      return invoices;
     } catch (error) {
-        console.error("Error fetching invoices:", error);
-        throw error;
+      console.error("Error fetching invoices:", error);
+      throw error;
     }
-}
-async getCreditInvoicesById(invoice_id) {
+  }
+  async getCreditInvoicesById(invoice_id) {
     try {
-        const [invoices] = await pool.query(
-            "SELECT * FROM credit_invoices WHERE id = ?",
-            [invoice_id]
-        );
-        if (invoices.length === 0) {
-            return null;
-        }
-        return invoices[0];
+      const [invoices] = await pool.query(
+        "SELECT * FROM credit_invoices WHERE id = ?",
+        [invoice_id]
+      );
+      if (invoices.length === 0) {
+        return null;
+      }
+      return invoices[0];
     } catch (error) {
-        console.error("Error fetching invoices:", error);
-        throw error;
+      console.error("Error fetching invoices:", error);
+      throw error;
     }
-}
-
-
-
-
-
+  }
 }
 module.exports = MemberModel;
