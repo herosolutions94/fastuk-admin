@@ -345,6 +345,82 @@ $(document).ready(function () {
     }
     });
 
+//   $('#mainCategory').on('change', function () {
+//     const parentId = $(this).val();
+//     const riderId = $('#riderId').val();
+
+//     if (parentId) {
+//       $.ajax({
+//         url: `/admin/rider/category/fetch-subcategories/${riderId}`,
+//         method: 'POST',
+//         contentType: 'application/json',
+//         data: JSON.stringify({ parent_id: parentId }),
+//         success: function (data) {
+//           let options = '<option value="">-- Select Sub Category --</option>';
+//           data.forEach(item => {
+//             options += `<option value="${item.id}">${item.vehicle_name}</option>`;
+//           });
+//           $('#subCategory').html(options);
+//         }
+//       });
+//     }
+//   });
+
+//   $('#subCategory').on('change', function () {
+//     const categoryId = $(this).val();
+//     const riderId = $('#riderId').val();
+
+//     if (categoryId) {
+//       $.ajax({
+//         url: `/admin/rider/category/save-category/${riderId}`,
+//         method: 'POST',
+//         contentType: 'application/json',
+//         data: JSON.stringify({ category_id: categoryId }),
+//         success: function (response) {
+//           alert('Category saved for rider successfully!');
+//         },
+//         error: function () {
+//           alert('Error saving category for rider.');
+//         }
+//       });
+//     }
+//   });
+
+
+$(document).ready(function () {
+  $('#parent_id').on('change', function () {
+    const parentId = $(this).val();
+    const riderId = $('#riderId').val();
+
+    if (parentId) {
+      $.ajax({
+        url: `/admin/rider/category/fetch-subcategories/${riderId}`,
+        type: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ parent_id: parentId }),
+        success: function (data) {
+          $('#category_id').empty().append('<option value="">-- Select Sub Category --</option>');
+
+          data.forEach(item => {
+            $('#category_id').append(
+              $('<option></option>').val(item.id).text(item.vehicle_name)
+            );
+          });
+          console.log("Category select HTML:", $select.prop('outerHTML'));
+  console.log("Select has name:", $select.attr('name'));
+        },
+        error: function (xhr, status, error) {
+          console.error('Error fetching subcategories:', error);
+        }
+      });
+    } else {
+      $('#category_id').html('<option value="">-- Select Sub Category --</option>');
+    }
+  });
+});
+
+
+
   
 
 

@@ -917,7 +917,103 @@ getSourceAttachments: async function(request_id) {
   `;
   const [rows] = await pool.query(query, [request_id]);
   return rows;
+},
+
+convertToPostgresDate: function (dateString) {
+  console.log('date string', dateString);
+  if (!dateString) {
+    console.log("❗ No date string provided:", dateString);
+    return null;
+  }
+
+  const [day, month, year] = dateString.split('/');
+  if (!day || !month || !year) {
+    console.log("❌ Invalid date format:", dateString);
+    return null;
+  }
+
+  const date = new Date(`${year}-${month}-${day}`);
+  if (isNaN(date.getTime())) {
+    console.log("❌ Still an invalid date:", dateString);
+    return null;
+  }
+
+  const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  console.log("✅ Parsed date:", formattedDate);
+  return formattedDate; // PostgreSQL DATE format: 'YYYY-MM-DD'
+},
+
+convertToPostgresTime: function (timeString, date) {
+  console.log('time string:', timeString);
+  console.log('date string:', date);
+
+  if (!timeString || !date) {
+    console.log("❗ Missing time or date input");
+    return null;
+  }
+
+  // Parse and normalize time
+  const normalized = timeString.trim().toUpperCase();
+  const timeParts = normalized.match(/^(\d{1,2}):(\d{2})\s?(AM|PM)$/);
+  if (!timeParts) {
+    console.log("❌ Invalid time format:", timeString);
+    return null;
+  }
+
+  let [ , hour, minute, period ] = timeParts;
+  hour = parseInt(hour, 10);
+  minute = parseInt(minute, 10);
+
+  if (period === "PM" && hour !== 12) hour += 12;
+  if (period === "AM" && hour === 12) hour = 0;
+
+  const formattedTime = `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}:00`;
+
+  // Convert date to YYYY-MM-DD format
+  const [day, month, year] = date.split('/');
+  if (!day || !month || !year) {
+    console.log("❌ Invalid date format:", date);
+    return null;
+  }
+
+  const formattedDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+
+  const timestamp = `${formattedDate} ${formattedTime}`;
+  console.log("✅ Combined TIMESTAMP:", timestamp);
+
+  return timestamp; // PostgreSQL TIMESTAMP format: 'YYYY-MM-DD HH:MM:SS'
+},
+combineDateTime: function(date, time) {
+  if (!date || !time) return null;
+  return `${date} ${time}`; // 'YYYY-MM-DD HH:MM:SS'
+},
+
+extractDate : function (isoString) {
+  return isoString ? isoString.split("T")[0] : null;
+},
+formatTimestamp : function (isoString)  {
+  if (!isoString) return null;
+  const date = new Date(isoString);
+  const yyyy = date.getFullYear();
+  const mm = String(date.getMonth() + 1).padStart(2, '0');
+  const dd = String(date.getDate()).padStart(2, '0');
+  const hh = String(date.getHours()).padStart(2, '0');
+  const mi = String(date.getMinutes()).padStart(2, '0');
+  const ss = String(date.getSeconds()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
+},
+
+ unwrapJsonString: function(value) {
+  if (typeof value === 'string' && value.startsWith('"') && value.endsWith('"')) {
+    return value.slice(1, -1);
+  }
+  return value;
 }
+
+
+
+
+
 
 
 
