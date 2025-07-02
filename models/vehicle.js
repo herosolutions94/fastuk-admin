@@ -87,7 +87,7 @@ class VehicleModel extends BaseModel {
     return rows.length ? rows[0] : null;
   }
 
-  static async getVehicleById(id) {
+  static async getVehicleCategoryById(id) {
     const query = `SELECT * FROM vehicle_categories WHERE id = ? LIMIT 1`;
     const [rows] = await pool.query(query, [id]);
     return rows.length ? rows[0] : null;
