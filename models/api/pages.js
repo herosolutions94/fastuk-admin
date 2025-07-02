@@ -18,39 +18,60 @@ class PageModel extends BaseModel {
         const query = `
             INSERT INTO request_quote(user_id, selected_vehicle, vehicle_price, total_amount,tax, payment_intent, customer_id, source_postcode, source_address,
             source_name, source_phone_number, source_city, dest_postcode, dest_address, dest_name, dest_phone_number, dest_city,
-            payment_method, payment_method_id, status, start_date, created_date, notes, rider_price, promo_code, discount)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?)
+            payment_method, payment_method_id, status, start_date, created_date, notes, rider_price, promo_code, discount, 
+            pickup_time_option, pickup_start_time, pickup_start_date, pickup_end_date, pickup_end_time, delivery_time_option, delivery_start_date, delivery_start_time, delivery_end_date, delivery_end_time, pickup_time, pickup_date, delivery_time, delivery_date)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?,?)
         `;
         const values = [
-            data.user_id,
-            data.selected_vehicle,
-            data.vehicle_price,
-            data.total_amount,
-            data.tax,
-            data.payment_intent,
-            data.customer_id,
-            data.source_postcode,
-            data.source_address,
-            data.source_name,
-            data.source_phone_number,
-            data.source_city,
-            data.dest_postcode,
-            data.dest_address,
-            data.dest_name,
-            data.dest_phone_number,
-            data.dest_city,
-            data.payment_method,
-            data.payment_method_id,
-            data?.status ? data?.status : 'paid',
-            data.start_date,
-            data.created_date,
-            data.notes,
-            data.rider_price,
-            data.promo_code,
-            data.discount,
+  data.user_id ?? null,
+  data.selected_vehicle ?? null,
+  data.vehicle_price ?? 0,
+  data.total_amount ?? 0,
+  data.tax ?? 0,
+  data.payment_intent || null,
+  data.customer_id || null,
+  data.source_postcode || '',
+  data.source_address || '',
+  data.source_name || '',
+  data.source_phone_number || '',
+  data.source_city || '',
+  data.dest_postcode || '',
+  data.dest_address || '',
+  data.dest_name || '',
+  data.dest_phone_number || '',
+  data.dest_city || '',
+  data.payment_method || '',
+  data.payment_method_id || '',
+  data.status || 'paid',
+  data.start_date || null,
+  data.created_date || new Date(), // fallback
+  data.notes || '',
+  data.rider_price ?? 0,
+  data.promo_code || '',
+  data.discount ?? 0,
 
-        ];
+  // new fields - validate properly
+  data.pickup_time_option || null,
+  data.pickup_start_time || null,
+  data.pickup_start_date || null,
+  data.pickup_end_date || null,
+  data.pickup_end_time || null,
+
+  data.delivery_time_option || null,
+  data.delivery_start_date || null,
+  data.delivery_start_time || null,
+  data.delivery_end_date || null,
+  data.delivery_end_time || null,
+
+  data.pickup_time || null,
+  data.pickup_date || null,
+  data.delivery_time || null,
+  data.delivery_date || null
+];
+
         // console.log("values:",values)
+        // console.log("createRequestQuote values:", values,data);return;
+
     
         const result = await pool.query(query, values);
         // console.log("result:",result)
@@ -81,12 +102,12 @@ class PageModel extends BaseModel {
             source,
             parcel_number,
             distance,
-            parcel_type)
-            VALUES(?,?,?,?,?,?,?,?,?,?,?)
+            parcel_type,postcode)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?, ?)
             
         `;
         for (const parcel of parcels) {
-            const values = [parcel.request_id, parcel.length, parcel.width, parcel.height, parcel.weight, parcel.quantity, parcel.destination, parcel.source, parcel.parcelNumber, parcel.distance, parcel.parcelType];
+            const values = [parcel.request_id, parcel.length, parcel.width, parcel.height, parcel.weight, parcel.quantity, parcel.destination, parcel.source, parcel.parcelNumber, parcel.distance, parcel.parcelType,parcel.postcode];
             // console.log('Inserting values:', values);
 
             const [result] = await pool.query(query, values);
@@ -101,12 +122,20 @@ class PageModel extends BaseModel {
             phone_number,
             post_code,
             address,
-            city)
-            VALUES(?,?,?,?,?,?)
+            city,
+            via_pickup_time_option,
+            via_pickup_time,
+            via_pickup_date,
+            via_pickup_start_date,
+            via_pickup_start_time,
+            via_pickup_end_date,
+            via_pickup_end_time
+            )
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?, ?)
             
         `;
         for (const via of vias) {
-            const values = [via.request_id, via.full_name, via.phone_number, via.post_code, via.address, via.city];
+            const values = [via.request_id, via.full_name, via.phone_number, via.post_code, via.address, via.city, via.via_pickup_time_option, via.via_pickup_time || null, via.via_pickup_date || null, via.via_pickup_start_date || null, via.via_pickup_end_date || null, via.via_pickup_start_time || null, via.via_pickup_end_time || null];
             // console.log('Inserting values:', values);
 
             const [result] = await pool.query(query, values);
@@ -188,6 +217,23 @@ class PageModel extends BaseModel {
           const result = await pool.query(query, values);
           return result;
         }
+
+
+// async getOrdersByStatus(status) {
+//     let query = 'SELECT * FROM request_quote';
+//     let values = [];
+
+//     if (status === 'completed') {
+//       query += ' WHERE status = ?';
+//       values.push('completed');
+//     } else if (status) {
+//       query += ' WHERE status != ?';
+//       values.push('completed');
+//     }
+
+//     const [rows] = await pool.query(query, values);
+//     return rows;
+//   }        
       
     
     

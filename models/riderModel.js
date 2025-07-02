@@ -166,7 +166,7 @@ async UpdateOrderStatus(riderId, requestId,request_status) {
 
 async getOrdersByRiderAndStatus({ riderId, status }) {
     try {
-        const query = `
+        let query = `
             SELECT 
                 rq.*, 
                 m.full_name AS user_name, 
@@ -185,13 +185,37 @@ async getOrdersByRiderAndStatus({ riderId, status }) {
             ON 
                 rq.id = rp.request_id
             WHERE 
-                rq.assigned_rider = ? AND rq.status = ?
-            GROUP BY 
-                rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
-                ORDER BY 
-        rq.id DESC
+                rq.assigned_rider = ?
+            
         `;
-        const values = [riderId, status];
+        const values = [riderId];
+
+        if (status) {
+      switch (status) {
+        case 'completed':
+          query += ` AND rq.status = ?`;
+          values.push('completed');
+          break;
+        case 'in_progress':
+          query += ` AND rq.status != ?`;
+          values.push('completed');
+          break;
+        default:
+          query += ` AND rq.status = ?`;
+          values.push(status);
+      }
+    }
+
+    query += `
+      GROUP BY 
+        rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
+      ORDER BY 
+        rq.id DESC
+    `;
+
+          console.log("Fetching orders for rider:", riderId, "with status:", status);
+
+
         const [rows] = await pool.query(query, values);
         // console.log("orders rows:",rows)
 
@@ -1014,6 +1038,21 @@ async getCompletedOrdersByRider(riderId) {
     const query = "INSERT INTO rider_attachments (rider_id, filename, type) VALUES (?, ?, ?)";
     await pool.query(query, [riderId, filename, type]);
   }
+
+  async getSubCategoriesByRiderId(riderId) {
+  const query = `
+    SELECT v.id
+    FROM rider_vehicle_categories rvc
+    JOIN vehicle_categories v ON v.id = rvc.category_id
+    WHERE rvc.rider_id = ?
+  `;
+  const [rows] = await pool.query(query, [riderId]);
+  console.log("rows:",rows)
+
+  return rows.map(row => row.id); // Return only names in array
+}
+
+
   
   
   

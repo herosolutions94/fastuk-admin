@@ -1,0 +1,66 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Add New Category</h3>
+        <ul>
+          <li><a href="">Home</a></li>
+          <li class="active"><a href="">New Category</a></li>
+        </ul>
+      </div>
+      <div class="text text2">
+        <a href="blog.php" class="webBtn mdBtn greenBtn"
+          ><i class="fa-regular fa-arrow-left"></i>Cancel</a
+        >
+      </div>
+    </div>
+    <div class="dashTable">
+      <div class="card editor_card">
+        <div class="card-header">
+          <h5>Category Block</h5>
+        </div>
+        <div class="card-body full_width">
+          <form
+            id="addCategoryForm"
+            action="/admin/rider/category/add-category-form/<%= rider_id %>"
+            method="post">
+            <div class="row">
+              <div class="col-md-12">
+                <input type="hidden" id="riderId" value="<%= rider_id %>" />
+
+                <div class="row switch-showcase">
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label>Main Category</label>
+                      <select id="parent_id" name="parent_id">
+                        <option value="">-- Select Main Category --</option>
+                        <% mainCategories.forEach(cat => { %>
+                        <option value="<%= cat.id %>"><%= cat.title %></option>
+                        <% }); %>
+                      </select>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label>Sub Category</label>
+                      <select id="category_id" name="category_id">
+                        <option value="">-- Select Sub Category --</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="card-footer text-end">
+              <button class="webBtn" type="submit">
+                Assign Category <i class="spinner hidden"></i>
+              </button>
+            </div>
+          </form>
+        </div>
+        <hr />
+      </div>
+    </div>
+  </div>
+</section>

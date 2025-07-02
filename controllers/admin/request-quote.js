@@ -99,7 +99,7 @@ class RequestQuoteController extends BaseController {
 
       // console.log("invoices:",invoices)
       // console.log("invoices date:",orderDetails?.invoices?.created_date)
-      // console.log("reviews:",reviews)
+      console.log("reviews:",reviews)
 
       const encodedId = helpers.doEncode(orderDetails.id); // Encode ID properly
 

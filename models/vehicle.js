@@ -75,6 +75,25 @@ class VehicleModel extends BaseModel {
         }
       }
 
+      
+  static async getCategoryAndMainCategoryById(vehicleCategoryId) {
+    const categoryQuery = `
+      SELECT vc.vehicle_name AS category_name, v.title AS main_category_name
+      FROM vehicle_categories vc
+      LEFT JOIN vehicles v ON vc.parent_id = v.id
+      WHERE vc.id = ? LIMIT 1
+    `;
+    const [rows] = await pool.query(categoryQuery, [vehicleCategoryId]);
+    return rows.length ? rows[0] : null;
+  }
+
+  static async getVehicleById(id) {
+    const query = `SELECT * FROM vehicle_categories WHERE id = ? LIMIT 1`;
+    const [rows] = await pool.query(query, [id]);
+    return rows.length ? rows[0] : null;
+  }
+
+
     
 }
 

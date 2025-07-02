@@ -181,6 +181,7 @@ const newsLetterRoutes = require('./routes/admin/news-letter');
 const WithdrawalRequestsRoutes = require('./routes/admin/withdraw-requests');
 const transactionsRoutes = require('./routes/admin/transactions');
 const vehicleCategoryRoutes = require('./routes/admin/vehicle-categories');
+const categoryRoutes = require('./routes/admin/categoryRoutes');
 
 const authMiddleware = require('./middleware/authMiddleware');
 const authenticationMiddleware = require('./middleware/authentication');
@@ -244,6 +245,7 @@ app.use('/admin', businessUserRoutes);
 app.use('/admin', transactionsRoutes);
 app.use('/admin', subAdminRoutes);
 app.use('/admin', vehicleCategoryRoutes);
+app.use('/admin', categoryRoutes);
 
 
 

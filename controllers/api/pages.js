@@ -782,6 +782,44 @@ class PagesController extends BaseController {
       });
       };
 
+//  async getOrders(req, res) {
+//   try {
+//     const { status } = req.body;
+
+//     const orders = await this.pageModel.getOrdersByStatus(status);
+
+//     // Check and respond based on the status
+//     if (status === 'completed') {
+//       return res.status(200).json({
+//         status: 1,
+//         msg: "Completed orders fetched successfully!",
+//         data: orders
+//       });
+//     } else if (status) {
+//       return res.status(200).json({
+//         status: 1,
+//         msg: "Non-completed orders fetched successfully!",
+//         data: orders
+//       });
+//     } else {
+//       return res.status(200).json({
+//         status: 1,
+//         msg: "All orders fetched successfully!",
+//         data: orders
+//       });
+//     }
+
+//   } catch (error) {
+//     console.error("Error fetching orders:", error.message);
+//     return res.status(500).json({
+//       status: 0,
+//       msg: "Internal Server Error",
+//       details: error.message
+//     });
+//   }
+// }
+     
+
 
 
     
