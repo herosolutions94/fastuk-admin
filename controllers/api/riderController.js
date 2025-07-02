@@ -1314,7 +1314,7 @@ let vehicle = order.selected_vehicle
 
 
         const vehicle = order.selected_vehicle
-      ? await VehicleModel.getVehicleById(order.selected_vehicle)
+      ? await VehicleModel.getVehicleCategoryById(order.selected_vehicle)
       : null;
 
     const categoryInfo = order.selected_vehicle

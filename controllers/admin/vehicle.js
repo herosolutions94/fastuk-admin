@@ -140,7 +140,7 @@ class VehicleController extends BaseController {
 
                 });
             } else {
-                this.sendError(res, 'vehicle not found');
+            res.redirect('/admin/vehicles-list'); // 🔁 change this path as per your route
             }
         } catch (error) {
             console.error('Error fetching vehicle:', error); // Log the error for debugging
