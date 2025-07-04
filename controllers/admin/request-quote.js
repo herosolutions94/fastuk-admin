@@ -7,6 +7,7 @@ const RequestQuote = require("../../models/request-quote");
 const Member = require("../../models/memberModel");
 const Rider = require("../../models/riderModel");
 const PaymentMethodModel = require("../../models/api/paymentMethodModel"); // Assuming you have this model
+const Vehicle = require("../../models/vehicle");
 
 const { validateRequiredFields } = require("../../utils/validators");
 const helpers = require("../../utils/helpers");
@@ -99,7 +100,7 @@ class RequestQuoteController extends BaseController {
 
       // console.log("invoices:",invoices)
       // console.log("invoices date:",orderDetails?.invoices?.created_date)
-      console.log("reviews:",reviews)
+      // console.log("reviews:",reviews)
 
       const encodedId = helpers.doEncode(orderDetails.id); // Encode ID properly
 
@@ -112,11 +113,19 @@ class RequestQuoteController extends BaseController {
         { request_id: orderDetails.id, type: "destination" }
       );
 
+      const categoryInfo = orderDetails.selected_vehicle
+                  ? await Vehicle.getCategoryAndMainCategoryById(orderDetails.selected_vehicle)
+                  : null;
+            
+                  // console.log("categoryInfo:",categoryInfo)
+
 
 
       const order = {
         ...orderDetails,
         formatted_start_date: helpers.formatDateToUK(orderDetails.start_date),
+        category_name: categoryInfo?.category_name || null,
+        main_category_name: categoryInfo?.main_category_name || null,
         encodedId: encodedId,
         parcels: parcels,
         // invoices: invoices,
@@ -125,7 +134,7 @@ class RequestQuoteController extends BaseController {
         vias: orderDetails.vias || [],
         destination_attachments: destination_attachments
       };
-       console.log("orderDetails:",order)
+      //  console.log("orderDetails:",order)
 
       for (let via of order.vias) {
         const via_attachments = await helpers.getDataFromDB(

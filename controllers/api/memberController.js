@@ -1304,14 +1304,14 @@ class MemberController extends BaseController {
         via_pickup_start_date,
         via_pickup_end_date,
       } = req.body;
-      console.log(
-        "req.body:",
-        pickup_end_date,
-        pickup_end_time,
-        delivery_end_date,
-        delivery_end_time,
-        req.body
-      );
+      // console.log(
+      //   "req.body:",
+      //   pickup_end_date,
+      //   pickup_end_time,
+      //   delivery_end_date,
+      //   delivery_end_time,
+      //   req.body
+      // );
 
       if (token) {
         if (!token) {
@@ -3017,7 +3017,7 @@ class MemberController extends BaseController {
         source_attachments: source_attachments,
         destination_attachments: destination_attachments,
         category_name: categoryInfo?.category_name || null,
-      main_category_name: categoryInfo?.main_category_name || null
+        main_category_name: categoryInfo?.main_category_name || null
       };
       // Fetch parcels and vias based on the quoteId from the order
       // Assuming order.quote_id is the relevant field

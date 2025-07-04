@@ -1002,6 +1002,15 @@ formatTimestamp : function (isoString)  {
   const ss = String(date.getSeconds()).padStart(2, '0');
   return `${yyyy}-${mm}-${dd} ${hh}:${mi}:${ss}`;
 },
+formatUKTime : function (dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('en-GB', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false, // 24-hour format
+  });
+},
+
 
  unwrapJsonString: function(value) {
   if (typeof value === 'string' && value.startsWith('"') && value.endsWith('"')) {
