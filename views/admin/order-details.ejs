@@ -70,7 +70,10 @@
                   <div class="list-group-item">
                     <div class="d-flex w-100">
                       <p>
-                        <strong>Vehicle: </strong><%= order.vehicle_name %>
+                        <strong>Vehicle Main Category: </strong><%= order.main_category_name %>
+                      </p>
+                      <p>
+                        <strong>Vehicle Sub Category: </strong><%= order.category_name %>
                       </p>
                     </div>
                   </div>
@@ -306,6 +309,7 @@
                       <p>
                         <strong>End (Destination): </strong><%= order.dest_address %>
                       </p>
+                      
                       <p>
                             <%=helpers.getRiderMessageForAddress(
                               order?.parcels,
@@ -468,6 +472,85 @@
 
       
     </div>
+    <div class="details">
+  <div class="heading mth"><h4>Address Information</h4></div>
+
+  <div class="quote-section three-cols">
+    <!-- Column 1: Source Details -->
+    <div class="quote-card">
+      <h4>Source Details</h4>
+      <p><strong>Postcode:</strong> <%= order.source_postcode %></p>
+      <p><strong>Address:</strong> <%= order.source_address %></p>
+      <p><strong>Name:</strong> <%= order.source_name %></p>
+      <p><strong>Phone Number:</strong> <%= order.source_phone_number %></p>
+      <p><strong>City:</strong> <%= order.source_city %></p>
+      <p><strong>Pickup Time Option:</strong> <%= order.pickup_time_option %></p>
+
+      <% if (['at', 'before'].includes(order.pickup_time_option)) { %>
+        <p><strong>Pickup Date:</strong> <%= helpers.toUKDateFormat(order?.pickup_date) %></p>
+        <p><strong>Pickup Time:</strong> <%= helpers.formatUKTime(order?.pickup_time) %></p>
+      <% } else if (order.pickup_time_option === 'between') { %>
+        <p><strong>Start Date:</strong> <%= helpers.toUKDateFormat(order.pickup_start_date) %></p>
+        <p><strong>Start Time:</strong> <%= helpers.formatUKTime(order.pickup_start_time) %></p>
+        <p><strong>End Date:</strong> <%= helpers.toUKDateFormat(order.pickup_end_date) %></p>
+        <p><strong>End Time:</strong> <%= helpers.formatUKTime(order.pickup_end_time) %></p>
+      <% } %>
+    </div>
+
+    <!-- Column 2: Destination Details -->
+    <div class="quote-card">
+      <h4>Destination Details</h4>
+      <p><strong>Postcode:</strong> <%= order.dest_postcode %></p>
+      <p><strong>Address:</strong> <%= order.dest_address %></p>
+      <p><strong>Name:</strong> <%= order.dest_name %></p>
+      <p><strong>Phone Number:</strong> <%= order.dest_phone_number %></p>
+      <p><strong>City:</strong> <%= order.dest_city %></p>
+      <p><strong>Delivery Time Option:</strong> <%= order.delivery_time_option %></p>
+
+      <% if (['at', 'by'].includes(order.delivery_time_option)) { %>
+        <p><strong>Delivery Date:</strong> <%= helpers.toUKDateFormat(order.delivery_date) %></p>
+        <p><strong>Delivery Time:</strong> <%= helpers.formatUKTime(order.delivery_time) %></p>
+      <% } else if (order.delivery_time_option === 'between') { %>
+        <p><strong>Start Date:</strong> <%= helpers.toUKDateFormat(order.delivery_start_date) %></p>
+        <p><strong>Start Time:</strong> <%= helpers.formatUKTime(order.delivery_start_time) %></p>
+        <p><strong>End Date:</strong> <%= helpers.toUKDateFormat(order.delivery_end_date) %></p>
+        <p><strong>End Time:</strong> <%= helpers.formatUKTime(order.delivery_end_time) %></p>
+      <% } %>
+    </div>
+
+    <!-- Column 3: All Via Stops -->
+    <div class="quote-card">
+      <h4>Via Stops</h4>
+      <% if (order.vias && order.vias.length > 0) { %>
+        <% order.vias.forEach((via, index) => { %>
+          <div class="via-stop">
+            <h5>Via Stop <%= index + 1 %></h5>
+            <p><strong>Postcode:</strong> <%= via.post_code %></p>
+            <p><strong>Address:</strong> <%= via.address %></p>
+            <p><strong>Name:</strong> <%= via.full_name %></p>
+            <p><strong>Phone Number:</strong> <%= via.phone_number %></p>
+            <p><strong>City:</strong> <%= via.city %></p>
+            <p><strong>Pickup Time Option:</strong> <%= via.via_pickup_time_option %></p>
+
+            <% if (['at', 'before'].includes(via.via_pickup_time_option)) { %>
+              <p><strong>Pickup Date:</strong> <%= helpers.toUKDateFormat(via.via_pickup_date) %></p>
+              <p><strong>Pickup Time:</strong> <%= helpers.formatUKTime(via.via_pickup_time) %></p>
+            <% } else if (via.via_pickup_time_option === 'between') { %>
+              <p><strong>Start Date:</strong> <%= helpers.toUKDateFormat(via.via_pickup_start_date) %></p>
+              <p><strong>Start Time:</strong> <%= helpers.formatUKTime(via.via_pickup_start_time) %></p>
+              <p><strong>End Date:</strong> <%= helpers.toUKDateFormat(via.via_pickup_end_date) %></p>
+              <p><strong>End Time:</strong> <%= helpers.formatUKTime(via.via_pickup_end_time) %></p>
+            <% } %>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <p>No via stops available.</p>
+      <% } %>
+    </div>
+  </div>
+</div>
+
+
     </div>
   </div>
 </section>

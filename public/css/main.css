@@ -4056,3 +4056,23 @@ label.switch {
   display: flex;
   gap: 5px;
 }
+.quote-section.three-cols {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.quote-section.three-cols .quote-card {
+  flex: 1;
+  min-width: 300px;
+  background: #f9f9f9;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+}
+
+.via-stop {
+  margin-bottom: 20px;
+  border-top: 1px dashed #ccc;
+  padding-top: 10px;
+}
