@@ -280,6 +280,19 @@ getBusinessUserApprovalStatus: function (status) {
     }
   },
 
+  convertUtcSecondsToUKTime: function(utcSeconds) {
+  // Convert seconds to milliseconds
+  const date = new Date(utcSeconds * 1000);
+
+  // Convert to UK time (Europe/London timezone)
+  return date.toLocaleTimeString('en-GB', {
+    timeZone: 'Europe/London',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+},
+
+
   // Function to capitalize text
   capitalize: function (text) {
     return validator.isString(text)
