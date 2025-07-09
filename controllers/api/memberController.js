@@ -2067,7 +2067,7 @@ class MemberController extends BaseController {
             via_pickup_end_time: null,
           };
         });
-        console.log("requestData:", "requestData");
+        // console.log("requestData:", "requestData");
 
         // Insert parcels into the database
         await this.pageModel.insertVias(viaRecords);

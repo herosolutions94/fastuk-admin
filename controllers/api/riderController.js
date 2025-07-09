@@ -829,7 +829,7 @@ if (!assignedSubCategories.includes(selectedVehicle)) {
         status: status
       });
 
-            console.log("riderOrders:",riderOrders)
+            // console.log("riderOrders:",riderOrders)
 
 
       // Encode the `id` for each order
@@ -1437,12 +1437,17 @@ let vehicle = order.selected_vehicle
             .status(500)
             .json({ status: 0, msg: "Error updating request status." });
         }
+
         let adminData = res.locals.adminData;
         let request_row = request[0];
+        const sourcePickedTime = helpers.convertUtcSecondsToUKTime(pickedTime);
+        console.log("sourcePickedTime:",sourcePickedTime)
         const requestRow = {
-          ...request_row, // Spread request properties into order
-          parcels: parcels // Add parcels as an array inside order
-        };
+  ...request_row,
+  parcels: parcels,
+  rider_name: rider.user?.full_name,
+  picked_time: sourcePickedTime
+};
 
         await helpers.sendEmail(
           userRow.email,
@@ -1455,6 +1460,8 @@ let vehicle = order.selected_vehicle
             address: request_row?.source_address
           }
         );
+
+
 
         const templateData = {
           username: userRow.full_name, // Pass username
@@ -1493,10 +1500,14 @@ let vehicle = order.selected_vehicle
         }
         let adminData = res.locals.adminData;
         let request_row = request[0];
+        const viaPickedTime = helpers.convertUtcSecondsToUKTime(pickedViaTime);
+
         const requestRow = {
-          ...request_row, // Spread request properties into order
-          parcels: parcels // Add parcels as an array inside order
-        };
+  ...request_row,
+  parcels: parcels,
+  rider_name: rider.user?.full_name,
+  picked_time:viaPickedTime
+};
 
         await helpers.sendEmail(
           userRow.email,
@@ -1509,6 +1520,8 @@ let vehicle = order.selected_vehicle
             address: via?.address
           }
         );
+
+
 
         notificationText = `Your request #${request_row.id} has been accepted by a rider at the via location: ${via?.address}.`;
       } else if (type?.toLowerCase() === "destination") {
@@ -1530,10 +1543,14 @@ let vehicle = order.selected_vehicle
         }
         let adminData = res.locals.adminData;
         let request_row = request[0];
+        const destinationPickedTime = helpers.convertUtcSecondsToUKTime(deliveredTime);
+
         const requestRow = {
-          ...request_row, // Spread request properties into order
-          parcels: parcels // Add parcels as an array inside order
-        };
+  ...request_row,
+  parcels: parcels,
+  rider_name: rider.user?.full_name,
+  picked_time:destinationPickedTime
+};
 
         await helpers.sendEmail(
           userRow.email,
@@ -1546,6 +1563,8 @@ let vehicle = order.selected_vehicle
             address: request_row?.dest_address
           }
         );
+
+
         notificationText = `Your request #${request_row.id} has been accepted by a rider at the destination location: ${request_row?.dest_address}.`;
       } else {
         return res
@@ -1742,9 +1761,13 @@ let vehicle = order.selected_vehicle
 
         let adminData = res.locals.adminData;
         let request_row = request[0];
+        const sourcePickedTime = helpers.convertUtcSecondsToUKTime(request_row?.picked_time);
+
         const requestRow = {
           ...request_row, // Spread request properties into order
           parcels: parcels_arr, // Add parcels as an array inside order
+          rider_name: rider.user?.full_name,
+  picked_time: sourcePickedTime
         };
 
         await helpers.sendEmail(
@@ -1849,9 +1872,15 @@ let vehicle = order.selected_vehicle
         }
         let adminData = res.locals.adminData;
         let request_row = request[0];
+        const viaPickedTime = helpers.convertUtcSecondsToUKTime(viaRow?.picked_time);
+        console.log("viaTime:",viaPickedTime,viaRow?.picked_time)
+        console.log("viaRow",viaRow)
+
         const requestRow = {
           ...request_row, // Spread request properties into order
-          parcels: parcels_arr // Add parcels as an array inside order
+          parcels: parcels_arr, // Add parcels as an array inside order
+          rider_name: rider.user?.full_name,
+  picked_time: viaPickedTime
         };
 
         await helpers.sendEmail(
@@ -1927,9 +1956,13 @@ let vehicle = order.selected_vehicle
         }
         let adminData = res.locals.adminData;
         let request_row = request[0];
+        const destinationPickedTime = helpers.convertUtcSecondsToUKTime(request_row?.delivered_time);
+
         const requestRow = {
           ...request_row, // Spread request properties into order
-          parcels: parcels_arr // Add parcels as an array inside order
+          parcels: parcels_arr, // Add parcels as an array inside order
+          rider_name: rider.user?.full_name,
+  picked_time: destinationPickedTime
         };
         if(attachments_arr?.length > 0){
           for (let attachment of attachments_arr) {
@@ -2157,9 +2190,15 @@ let vehicle = order.selected_vehicle
         decodedRequestId
       );
       let request_row = request[0];
+      const sourcePickedTime = helpers.convertUtcSecondsToUKTime(request_row?.picked_time);
+
       const requestRow = {
         ...request_row, // Spread request properties into order
-        parcels: parcels // Add parcels as an array inside order
+        parcels: parcels, // Add parcels as an array inside order
+        rider_name: rider.user?.full_name,
+
+        picked_time: sourcePickedTime
+
       };
       const result = await helpers.sendEmail(
         userRow.email,
