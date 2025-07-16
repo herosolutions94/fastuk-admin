@@ -5,13 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Your Order Has Been Picked</title>
   </head>
-  <body
-    style="
-      margin: 0;
-      padding: 20px;
-      background-color: #f4f4f4;
-    "
-  >
+  <body style="margin: 0; padding: 20px; background-color: #f4f4f4">
     <div
       style="
         max-width: 900px;
@@ -20,13 +14,15 @@
         padding: 20px;
         border-radius: 8px;
         border: 1px solid #d4e0df;
-      "
-    >
-      <table style="width: 100%; border-spacing: 0;">
+      ">
+      <table style="width: 100%; border-spacing: 0">
         <tbody>
           <tr>
-            <td style="padding: 0; text-align: center;">
-              <img src="<%= adminData.logo %>" alt="Logo" style="width: 100px;" />
+            <td style="padding: 0; text-align: center">
+              <img
+                src="<%= adminData.logo %>"
+                alt="Logo"
+                style="width: 100px" />
             </td>
           </tr>
         </tbody>
@@ -35,21 +31,28 @@
       <table style="width: 100%; margin-top: 30px; border-collapse: collapse">
         <tr>
           <td style="padding: 10px">
-            <h2 style="color: #ed1c24; font-weight: 600"> Invoice Has Been paid!</h2>
+            <h2 style="color: #ed1c24; font-weight: 600">
+              Invoice Has Been paid!
+            </h2>
             <p>
-              Good news! Customer has paid invoice. Now please go to order details and mark the request as completed.
+              Good news! Customer has paid invoice. Now please go to order
+              details and mark the request as completed.
             </p>
             <p>
-              <strong style="font-weight: 600">Tracking ID:</strong> <%= order.tracking_id %>
+              <strong style="font-weight: 600">Tracking ID:</strong> <%=
+              order.tracking_id %>
             </p>
             <p>
-              <strong style="font-weight: 600">Booking ID:</strong> <%= order.booking_id %>
+              <strong style="font-weight: 600">Booking ID:</strong> <%=
+              order.booking_id %>
             </p>
             <p>
-              <strong style="font-weight: 600">Pickup Time:</strong> <%= order.picked_time %>
+              <strong style="font-weight: 600">Pickup Time:</strong> <%=
+              order.picked_time %>
             </p>
             <p>
-              <strong style="font-weight: 600">Assigned Rider:</strong> <%= order.rider_name %>
+              <strong style="font-weight: 600">Assigned Rider:</strong> <%=
+              order.rider_name %>
             </p>
           </td>
         </tr>
@@ -58,12 +61,15 @@
       <table style="width: 100%; margin-top: 10px; border-collapse: collapse">
         <tr>
           <td style="width: 50%; padding: 10px">
-            <strong style="font-weight: 600">Source (Pickup) Location</strong><br />
-            <%= order.source_address %>, <%= order.source_city %> <br /><%= order.source_postcode %>
+            <strong style="font-weight: 600">Source (Pickup) Location</strong
+            ><br />
+            <%= order.source_address %>, <%= order.source_city %> <br /><%=
+            order.source_postcode %>
           </td>
           <td style="width: 50%; padding: 10px">
             <strong style="font-weight: 600">Drop-off Location</strong><br />
-            <%= order.dest_address %>, <%= order.dest_city %> <br /><%= order.dest_postcode %>
+            <%= order.dest_address %>, <%= order.dest_city %> <br /><%=
+            order.dest_postcode %>
           </td>
         </tr>
       </table>
@@ -74,8 +80,7 @@
           margin-top: 20px;
           border-collapse: collapse;
           border: 1px solid #ddd;
-        "
-      >
+        ">
         <thead>
           <tr style="background-color: #ed1c24; color: white; text-align: left">
             <th style="padding: 13px; font-weight: 600">Parcel</th>
@@ -85,20 +90,27 @@
           </tr>
         </thead>
         <tbody>
-           <% let totalDistance = 0; let subtotal=0; %>
-          <% order.parcels.forEach(parcel => { %>
-            <% totalDistance += parcel.distance; subtotal +=parseFloat(parcel.distance) * parseFloat(parcel.price) %>
-              <tr>
-                <td style="padding: 13px"><%= parcel.parcel_number %><br /><%=parcel?.length%> x <%=parcel?.width%> x <%=parcel?.height%> x <%=parcel?.weight%></td>
-                <td style="padding: 13px"><%= parcel.source_address %></td>
-                <td style="padding: 13px"><%= parcel.destination_address %></td>
-                <td style="padding: 13px"><%= parcel.distance %> miles</td>
-              </tr>
-            <% }); %>
+          <% let totalDistance = 0; let subtotal=0; %> <%
+          order.parcels.forEach(parcel => { %> <% totalDistance +=
+          parcel.distance; subtotal +=parseFloat(parcel.distance) *
+          parseFloat(parcel.price) %>
+          <tr>
+            <% const dims = []; if (parcel.length) dims.push(parcel.length); if
+            (parcel.width) dims.push(parcel.width); if (parcel.height)
+            dims.push(parcel.height); if (parcel.weight)
+            dims.push(parcel.weight); if (parcel.quantity)
+            dims.push(parcel.quantity); %>
+            <td style="padding: 13px">
+              <%= parcel.parcel_number %><br />
+              <%= dims.join(' x ') %>
+            </td>
+            <td style="padding: 13px"><%= parcel.source_address %></td>
+            <td style="padding: 13px"><%= parcel.destination_address %></td>
+            <td style="padding: 13px"><%= parcel.distance %> miles</td>
+          </tr>
+          <% }); %>
         </tbody>
       </table>
-
-      
     </div>
   </body>
 </html>
