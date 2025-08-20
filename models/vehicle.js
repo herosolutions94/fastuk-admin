@@ -49,10 +49,10 @@ class VehicleModel extends BaseModel {
     }
 
     static async updateVehicle(id, vehicleData) {
-        const { title, price, status, vehicle_image, business_user_price, admin_price, remote_price, weight, distance, vehicle_category_id } = vehicleData;
+        const { title, price, status, vehicle_image, business_user_price, admin_price, remote_price, weight, distance, vehicle_category_id,load_capacity,no_of_pallets} = vehicleData;
         await pool.query(
-            `UPDATE ${this.tableName} SET title = ?, price = ?, status = ?, vehicle_image = ?, business_user_price = ?, admin_price = ?, remote_price = ?, weight = ?, distance = ?, vehicle_category_id = ? WHERE id = ?`,
-            [title, price, status, vehicle_image, business_user_price, admin_price, remote_price, weight, distance, vehicle_category_id, id]
+            `UPDATE ${this.tableName} SET title = ?, price = ?, status = ?, vehicle_image = ?, business_user_price = ?, admin_price = ?, remote_price = ?, weight = ?, distance = ?, vehicle_category_id = ?, load_capacity = ?, no_of_pallets = ? WHERE id = ?`,
+            [title, price, status, vehicle_image, business_user_price, admin_price, remote_price, weight, distance, vehicle_category_id, load_capacity, no_of_pallets, id]
         );
     }
     static async deleteVehicleById(id) {
