@@ -87,9 +87,9 @@
                         value="<%= editVehicleId ? vehicle.title : '' %>" />
                     </div>
                   </div>
-                  <div class="col-md-12">
+                  <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="detail"
+                      <label class="form-label" for="price"
                         >Price<abbr class="required" title="required"
                           >*</abbr
                         ></label
@@ -102,7 +102,7 @@
                         value="<%= editVehicleId ? vehicle.price : '' %>" />
                     </div>
                   </div>
-                  <div class="col-md-12">
+                  <div class="col-md-6">
                     <div class="txtGrp">
                       <label class="form-label" for="detail"
                         >Business User Price<abbr class="required" title="required"
@@ -117,20 +117,20 @@
                         value="<%= editVehicleId ? vehicle.business_user_price : '' %>" />
                     </div>
                   </div>
-                    <div class="col-md-12">
-                    <div class="txtGrp">
-                      <label class="form-label" for="detail"
-                        >Rider Price<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="admin_price"
-                        type="text"
-                        name="admin_price"
-                        value="<%= editVehicleId ? vehicle.admin_price : '' %>" />
-                    </div>
+                    <div class="col-md-6">
+                      <div class="txtGrp">
+                        <label class="form-label" for="detail"
+                          >Rider Price<abbr class="required" title="required"
+                            >*</abbr
+                          ></label
+                        >
+                        <input
+                          class="input"
+                          id="admin_price"
+                          type="text"
+                          name="admin_price"
+                          value="<%= editVehicleId ? vehicle.admin_price : '' %>" />
+                      </div>
                     </div>
                     <div class="col-md-6">
                       <div class="txtGrp">
@@ -182,6 +182,39 @@
                         </select>
                       </div>
                     </div>
+                    <div class="clearfix"></div>
+                  <div class="col-md-6">
+
+                    <div class="txtGrp">
+                      <label class="form-label" for="load_capacity"
+                        >Maximum load capacity(Kgs)<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="load_capacity"
+                        type="text"
+                        name="load_capacity"
+                        value="<%= editVehicleId ? vehicle.load_capacity : '' %>" />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="no_of_pallets"
+                        >Maximum number of pallets(quantity)<abbr class="required" title="required"
+                          >*</abbr
+                        ></label
+                      >
+                      <input
+                        class="input"
+                        id="no_of_pallets"
+                        type="text"
+                        name="no_of_pallets"
+                        value="<%= editVehicleId ? vehicle.no_of_pallets : '' %>" />
+                    </div>
+                  </div>
+                  <div class="clearfix"></div>
                     
                     
                   </div>

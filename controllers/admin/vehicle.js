@@ -42,7 +42,9 @@ class VehicleController extends BaseController {
                 weight,
                 distance,
                 status,
-                vehicle_category_id
+                vehicle_category_id,
+                load_capacity,
+                no_of_pallets
             } = req.body;
             console.log("req.body",req.body);  // To check if name and description are being sent
 
@@ -62,6 +64,8 @@ class VehicleController extends BaseController {
                 // remote_price: typeof remote_price === 'string' ? remote_price.trim().toLowerCase() : '',
                 vehicle_image: vehicleImage,  // Change this to match your DB column name
                 status: status || 0,
+                load_capacity: load_capacity || 0,
+                no_of_pallets: no_of_pallets || 0,
                 vehicle_category_id: parseInt(vehicle_category_id) || null, // <- ensure it's an integer
 
             };
@@ -69,7 +73,7 @@ class VehicleController extends BaseController {
 
             // Validation for empty fields
             if (!validateRequiredFields(cleanedData)) {
-                return res.status(200).json({ status: 0, msg: 'All fields are required.' });
+                return res.status(200).json({ status: 0, msg: 'All fields are required!',message:"All fields are required!" });
             }
             // Create the rider
             const vehicleId = await this.vehicle.createVehicle(cleanedData);
