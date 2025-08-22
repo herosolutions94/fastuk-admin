@@ -720,34 +720,46 @@ class PagesController extends BaseController {
       return res.status(200).json({ error: 'Something went wrong.' });
   }
 
-  async getVehiclesByCategoryId (req, res) {
-    const { categoryId } = req.params;
-        const vehicleCategoryModel = new VehicleCategoryModel();
-        const vehicleAdminModel = new VehicleAdminModel();
-    
-  
-    try {
-      // Step 1: Check if category exists
-      const categoryResult = await VehicleCategoryModel.getVehicleCategoriesById(categoryId)
-  
-      if (categoryResult.length === 0) {
-        return res.status(404).json({ status: 0, msg: 'Vehicle category not found' });
-      }
-  
-      // Step 2: Fetch vehicles by category ID
-      const vehiclesResult = await VehicleAdminModel.getVehicleByVehicleCategoryId(categoryId)
-      // console.log("vehiclesResult:",vehiclesResult)
-  
-      return res.status(200).json({
-        status: 1,
-        category: categoryResult[0],
-        vehicles: vehiclesResult,
-      });
-    } catch (error) {
-      console.error('Error fetching vehicles by category ID:', error);
-      res.status(500).json({ success: false, message: 'Internal server error' });
+  async getVehiclesByCategoryId(req, res) {
+  const { categoryId } = req.params;
+  const { totalWeight, totalHeight, totalQuantity } = req.body; // ✅ get constraints
+
+  try {
+    // Step 1: Check if category exists
+    const categoryResult = await VehicleCategoryModel.getVehicleCategoriesById(categoryId);
+
+    if (categoryResult.length === 0) {
+      return res.status(200).json({ status: 0, msg: 'Vehicle category not found' });
     }
-  };
+
+    // Step 2: Fetch all vehicles in that category
+    const vehiclesResult = await VehicleAdminModel.getVehicleByVehicleCategoryId(categoryId);
+
+    // Step 3: Apply filtering based on constraints
+    const matchingVehicles = vehiclesResult.filter(v =>
+      v.max_height >= totalHeight &&
+      v.load_capacity >= totalWeight &&
+      v.no_of_pallets >= totalQuantity
+    );
+
+    if (matchingVehicles.length === 0) {
+      return res.status(200).json({
+        status: 0,
+        msg: "No vehicles found in this category for the given criteria."
+      });
+    }
+
+    return res.status(200).json({
+      status: 1,
+      category: categoryResult[0],
+      vehicles: matchingVehicles,
+    });
+  } catch (error) {
+    console.error('Error fetching vehicles by category ID:', error);
+    res.status(500).json({ status: 0, msg: 'Internal server error' });
+  }
+}
+
 
     async uploadLicense (req, res) {
           const riderId = req.body.rider_id;
@@ -781,6 +793,56 @@ class PagesController extends BaseController {
         details: error.message
       });
       };
+
+async getAvailableVehicleCategories(req, res) {
+  const { totalWeight, totalHeight, totalQuantity } = req.body;
+
+  try {
+    const vehicleModel = new VehicleModel();
+    // Fetch all active vehicles
+    const vehicles = await vehicleModel.getActiveVehicles();
+
+    // Filter vehicles based on constraints
+    const matchingVehicles = vehicles.filter(v =>
+      v.max_height >= totalHeight &&
+      v.load_capacity >= totalWeight &&
+      v.no_of_pallets >= totalQuantity
+    );
+    // console.log("matchingVehicles:",matchingVehicles)
+
+    if (matchingVehicles.length > 0) {
+      // Extract unique category IDs
+      const categoryIds = [...new Set(matchingVehicles.map(v => v.vehicle_category_id))];
+
+      // Fetch only categories that match those IDs
+      const vehicleCategories = await VehicleCategoryModel.getVehicleCategoriesById(categoryIds);
+      console.log("vehicleCategories:",vehicleCategories)
+
+
+      return res.status(200).json({
+        status: 1,
+        msg: "Available vehicle categories fetched successfully!",
+        vehicleCategories: vehicleCategories
+      });
+    } else {
+      return res.status(200).json({
+        status: 0,
+        msg: "No available vehicle categories found for the given criteria."
+      });
+    }
+  } catch (error) {
+    console.error("Error fetching available vehicle categories:", error.message);
+    return res.status(500).json({
+      status: 0,
+      msg: "Internal Server Error",
+      details: error.message
+    });
+  }
+}
+
+      
+      
+  
 
 //  async getOrders(req, res) {
 //   try {

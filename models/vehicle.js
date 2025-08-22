@@ -49,10 +49,10 @@ class VehicleModel extends BaseModel {
     }
 
     static async updateVehicle(id, vehicleData) {
-        const { title, price, status, vehicle_image, business_user_price, admin_price, remote_price, weight, distance, vehicle_category_id,load_capacity,no_of_pallets} = vehicleData;
+        const { title, price, status, vehicle_image, business_user_price, admin_price, remote_price, weight, distance, vehicle_category_id,load_capacity,no_of_pallets, max_height} = vehicleData;
         await pool.query(
-            `UPDATE ${this.tableName} SET title = ?, price = ?, status = ?, vehicle_image = ?, business_user_price = ?, admin_price = ?, remote_price = ?, weight = ?, distance = ?, vehicle_category_id = ?, load_capacity = ?, no_of_pallets = ? WHERE id = ?`,
-            [title, price, status, vehicle_image, business_user_price, admin_price, remote_price, weight, distance, vehicle_category_id, load_capacity, no_of_pallets, id]
+            `UPDATE ${this.tableName} SET title = ?, price = ?, status = ?, vehicle_image = ?, business_user_price = ?, admin_price = ?, remote_price = ?, weight = ?, distance = ?, vehicle_category_id = ?, load_capacity = ?, no_of_pallets = ?, max_height = ? WHERE id = ?`,
+            [title, price, status, vehicle_image, business_user_price, admin_price, remote_price, weight, distance, vehicle_category_id, load_capacity, no_of_pallets, max_height, id]
         );
     }
     static async deleteVehicleById(id) {
@@ -76,16 +76,19 @@ class VehicleModel extends BaseModel {
       }
 
       
-  static async getCategoryAndMainCategoryById(vehicleCategoryId) {
-    const categoryQuery = `
-      SELECT vc.vehicle_name AS category_name, v.title AS main_category_name
-      FROM vehicle_categories vc
-      LEFT JOIN vehicles v ON vc.parent_id = v.id
-      WHERE vc.id = ? LIMIT 1
-    `;
-    const [rows] = await pool.query(categoryQuery, [vehicleCategoryId]);
-    return rows.length ? rows[0] : null;
-  }
+  static async getCategoryAndMainCategoryById(vehicleId) {
+  const categoryQuery = `
+    SELECT vc.vehicle_name AS category_name, v.title AS main_category_name
+    FROM vehicles v
+    LEFT JOIN vehicle_categories vc ON vc.parent_id = v.id
+    WHERE v.id = ? 
+    LIMIT 1
+  `;
+  const [rows] = await pool.query(categoryQuery, [vehicleId]);
+  console.log("rows:", rows);
+  return rows.length ? rows[0] : null;
+}
+
 
   static async getVehicleCategoryById(id) {
     const query = `SELECT * FROM vehicle_categories WHERE id = ? LIMIT 1`;

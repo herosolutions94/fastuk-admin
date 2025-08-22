@@ -3039,6 +3039,9 @@ class MemberController extends BaseController {
 
       const siteSettings = res.locals.adminData;
 
+      console.log("order:",order)
+
+
       // Return the order details along with parcels and vias
       return res.status(200).json({
         status: 1,
