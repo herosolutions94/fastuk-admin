@@ -44,7 +44,8 @@ class VehicleController extends BaseController {
                 status,
                 vehicle_category_id,
                 load_capacity,
-                no_of_pallets
+                no_of_pallets,
+                max_height
             } = req.body;
             console.log("req.body",req.body);  // To check if name and description are being sent
 
@@ -66,6 +67,7 @@ class VehicleController extends BaseController {
                 status: status || 0,
                 load_capacity: load_capacity || 0,
                 no_of_pallets: no_of_pallets || 0,
+                max_height: max_height || 0,
                 vehicle_category_id: parseInt(vehicle_category_id) || null, // <- ensure it's an integer
 
             };
