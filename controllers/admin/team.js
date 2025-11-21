@@ -2,6 +2,8 @@
 const fs = require('fs'); // Import the file system module
 const path = require('path'); // For handling file paths
 
+const helpers = require('../../utils/helpers');
+
 const BaseController = require('../baseController');
 const Team = require('../../models/team');
 const { validateRequiredFields } = require('../../utils/validators');
@@ -40,6 +42,19 @@ class TeamController extends BaseController {
             const teamMemberImage = req.files && req.files["team_mem_image"] ? req.files["team_mem_image"][0].filename : '';
             // console.log("req.file:",req.file);  // To check if the file is being uploaded
 
+             if(teamMemberImage){
+                 const sourceDir = path.join(__dirname, '../../uploads');
+                const thumbFolder = 'thumbnails';
+                const width = 300;
+                const height = 300;
+
+                // ✅ Generate the thumbnail using your helper
+                await helpers.generateThumbnail(teamMemberImage, sourceDir, thumbFolder, width, height);
+                // console.log('Thumbnail created for:', teamMemberImage);        
+               
+            }
+
+
 
             // Clean and trim data
             const cleanedData = {
@@ -69,7 +84,7 @@ class TeamController extends BaseController {
             }
             // Create the rider
             const teamMemId = await this.team.createTeamMember(cleanedData);
-            console.log('Created team member ID:', teamMemId); // Log the created rider ID
+            // console.log('Created team member ID:', teamMemId); // Log the created rider ID
 
 
         const createdTeamMember = await this.team.findById(teamMemId);
@@ -160,6 +175,8 @@ class TeamController extends BaseController {
                 // If there is an old image, delete it
                 if (currentTeamMember.team_mem_image) {
                     const oldImagePath = path.join(__dirname, '../../uploads/', currentTeamMember.team_mem_image);
+                    const oldThumbPath = path.join(__dirname, '../../uploads/thumbnails/', currentTeamMember.team_mem_image);
+
     
                     // Check if the old image file exists before trying to delete
                     if (fs.existsSync(oldImagePath)) {
@@ -173,12 +190,41 @@ class TeamController extends BaseController {
                     } else {
                         console.log('Old image file not found:', oldImagePath);
                     }
+
+                     if (fs.existsSync(oldThumbPath)) {
+                    fs.unlink(oldThumbPath, (err) => {
+                        if (err) console.error('Error deleting old thumbnail:', err);
+                        else console.log('Old thumbnail deleted successfully');
+                    });
+                } else {
+                    console.log('Old thumbnail file not found:', oldThumbPath);
                 }
+
+                }
+
                 // Update the team member data with the new image filename
                 teamMemberData.team_mem_image = teamMemberImage;
             } else {
                 // If no new image is uploaded, retain the old image
                 teamMemberData.team_mem_image = currentTeamMember.team_mem_image; // Keep the old image
+            }
+
+             // If a new image is uploaded, generate a thumbnail
+            if (teamMemberImage) {
+                const sourceDir = path.join(__dirname, '../../uploads');
+                const thumbFolder = 'thumbnails';
+                const width = 300;
+                const height = 300;
+
+                // ✅ Generate the thumbnail using your helper
+                await helpers.generateThumbnail(teamMemberImage, sourceDir, thumbFolder, width, height);
+                console.log('Thumbnail created for:', teamMemberImage);
+
+                // Update with new image
+                teamMemberData.team_mem_image = teamMemberImage;
+            } else {
+                // Retain old image
+                teamMemberData.team_mem_image = currentTeamMember.team_mem_image;
             }
     
             // Update the team member in the database
@@ -215,6 +261,8 @@ class TeamController extends BaseController {
             // Step 2: Check if the rider has an associated image
             if (teamMemberImage) {
                 const imagePath = path.join(__dirname, '../../uploads/', teamMemberImage);
+                const thumbPath = path.join(__dirname, '../../uploads/thumbnails/', teamMemberImage);
+
                 // console.log('Image Path:', imagePath); // Log the image path
 
                 // Check if the image file exists before trying to delete
@@ -229,6 +277,14 @@ class TeamController extends BaseController {
                     });
                 } else {
                     console.log('Image file not found:', imagePath); // Log if the image file doesn't exist
+                }
+                if (fs.existsSync(thumbPath)) {
+                    fs.unlink(thumbPath, (err) => {
+                        if (err) console.error('Error deleting thumbnail:', err);
+                        else console.log('Thumbnail deleted successfully');
+                    });
+                } else {
+                    console.log('Thumbnail file not found:', thumbPath);
                 }
             }
 

@@ -1,0 +1,74 @@
+{
+  "events": [
+    {
+      "id": "EV027CA8SMVD03",
+      "created_at": "2025-10-02T09:14:03.526Z",
+      "resource_type": "billing_requests",
+      "action": "flow_created",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "billing_request_flow_created",
+        "description": "A billing request flow has been created against this billing request."
+      },
+      "links": {
+        "customer": "CU01K6J36D9NATVQTWS882RP8KR4",
+        "billing_request_flow": "BRF01K6J36DC49MSAACVPG4FW67Z4FF7",
+        "billing_request": "BRQ01K6J36DAAB2FX2SDKJ4NCW2RZ"
+      },
+      "resource_metadata": {
+        "custom_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027CAZT2MECA",
+      "created_at": "2025-10-02T09:14:37.699Z",
+      "resource_type": "payments",
+      "action": "created",
+      "metadata": {
+        "order_id": "order_1759396476121",
+        "invoice_id": "1",
+        "user_id": "undefined"
+      },
+      "details": {
+        "origin": "api",
+        "cause": "payment_created",
+        "description": "Payment created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6J37EPEE3RW5RWCT74WX3Q8"
+      },
+      "resource_metadata": {
+        "order_id": "order_1759396476121",
+        "invoice_id": "1",
+        "user_id": "undefined"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027CA8SKJZZA",
+      "created_at": "2025-10-02T09:14:03.486Z",
+      "resource_type": "billing_requests",
+      "action": "created",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "billing_request_created",
+        "description": "This billing request has been created."
+      },
+      "links": {
+        "customer": "CU01K6J36D9NATVQTWS882RP8KR4",
+        "billing_request": "BRQ01K6J36DAAB2FX2SDKJ4NCW2RZ"
+      },
+      "resource_metadata": {
+        "custom_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6J3VK7R0CDKG5P3QX31PPYY"
+  }
+}

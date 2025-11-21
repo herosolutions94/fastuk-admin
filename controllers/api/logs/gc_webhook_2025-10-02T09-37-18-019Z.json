@@ -1,0 +1,55 @@
+{
+  "events": [
+    {
+      "id": "EV027CHC7CY639",
+      "created_at": "2025-10-02T09:20:16.622Z",
+      "resource_type": "billing_requests",
+      "action": "payer_details_confirmed",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_payer_details_confirmed",
+        "description": "Payer has confirmed all their details for this billing request."
+      },
+      "links": {
+        "customer": "CU01K6J3GD4NHBEG1JPP3QM39XNT",
+        "customer_bank_account": "BA01K6J3H2QF90HJZ9VY2MFSXSSX",
+        "billing_request_flow": "BRF01K6J3GD6WD6MT0ZC3G0VZHKK3Y8J",
+        "billing_request": "BRQ01K6J3GD57HXVRJPNZA9RHTDT3"
+      },
+      "resource_metadata": {
+        "custom_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027CHDPB3WTS",
+      "created_at": "2025-10-02T09:20:18.159Z",
+      "resource_type": "payments",
+      "action": "created",
+      "metadata": {
+        "order_id": "order_1759396816360",
+        "invoice_id": "1",
+        "user_id": "undefined"
+      },
+      "details": {
+        "origin": "api",
+        "cause": "payment_created",
+        "description": "Payment created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6J3HV3FHQQFCZG6GBKDRVPF"
+      },
+      "resource_metadata": {
+        "order_id": "order_1759396816360",
+        "invoice_id": "1",
+        "user_id": "undefined"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6J4GZ45CP9TDX69M25CDDZW"
+  }
+}

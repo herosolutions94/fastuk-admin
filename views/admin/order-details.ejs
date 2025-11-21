@@ -10,9 +10,9 @@
       </div>
     </div>
     <div class="dashTable">
-    <div class="row">
-      <div class="col-md-6">
-        <div class="card">
+      <div class="row">
+        <div class="col-md-6">
+          <div class="card">
             <div class="card-header">
               <h5>Rider Details:</h5>
             </div>
@@ -21,536 +21,653 @@
               <div class="list-group details-group">
                 <% if (order?.assigned_rider) { %>
                   <div class="list-group-item">
-                      <div class="d-flex w-100">
-                          <p><strong>Rider: </strong>
-                              <img src="<%= helpers.getImage(order.rider_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;">
-                              <%= order.rider_name %>
-                          </p>
-                      </div>
+                    <div class="d-flex w-100">
+                      <a href="/admin/riders/edit/<%= order.assigned_rider %>" target="_blank" rel="noopener noreferrer"
+                        style="text-decoration: none; color: inherit;">
+                        <p><strong>Rider: </strong>
+                          <img src="<%= helpers.getImage(order.rider_dp) %>" alt="User Image" class="user-image"
+                            style="width: 50px; height: 50px; border-radius: 50%;">
+                          <%= order.rider_name %>
+                        </p>
+                      </a>
+                    </div>
                   </div>
-              <% } else { %>
-                  <p>Rider is not assigned yet.</p>
-              <% } %>
+                  <% } else { %>
+                    <p>Rider is not assigned yet.</p>
+                    <% } %>
 
               </div>
             </div>
-        </div>
-      </div>
-      <div class="col-md-6">
-         <div class="card">
-        <div class="card-header">
-          <h5>User Details:</h5>
-        </div>
-
-        <div class="card-body">
-          <div class="list-group details-group">
-              <div class="list-group-item">
-                  <div class="d-flex w-100">
-                      <p><strong>User: </strong>
-                          <img src="<%= helpers.getImage(order.member_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;">
-                          <%= order.member_name %>
-                      </p>
-                  </div>
-              </div>
-
           </div>
         </div>
-    </div>
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5>User Details:</h5>
+            </div>
+
+            <div class="card-body">
+              <div class="list-group details-group">
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <a href="/admin/members/edit/<%= order.user_id %>" target="_blank" rel="noopener noreferrer"
+                      style="text-decoration: none; color: inherit;">
+
+                      <p><strong>User: </strong>
+                        <img src="<%= helpers.getImage(order.member_dp) %>" alt="User Image" class="user-image"
+                          style="width: 50px; height: 50px; border-radius: 50%;">
+                        <%= order.member_name %>
+                      </p>
+                    </a>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <div class="card">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
             <div class="card-header">
               <h5>General Details:</h5>
             </div>
 
             <div class="card-body">
               <div class="list-group details-group">
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p>
-                        <strong>Vehicle Main Category: </strong><%= order.main_category_name %>
-                      </p>
-                      <p>
-                        <strong>Vehicle Sub Category: </strong><%= order.category_name %>
-                      </p>
-                    </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Vehicle Main Category: </strong>
+                      <%= order.main_category_name %>
+                    </p>
+                    <p>
+                      <strong>Vehicle Sub Category: </strong>
+                      <%= order.category_name %>
+                    </p>
                   </div>
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p>
-                        <strong>Status: </strong><p>
-               
-            </p>
-             <%- helpers.getRequestOrderStatus(order.request_status) %>
-                    </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Status: </strong>
+
+                      <%= order?.jobStatus %>
+
+                    </p>
+
                   </div>
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p>
-                        <strong>Pickup Address: </strong><%= order.source_address %>
-                      </p>
-                    </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Pickup Address: </strong>
+                      <%= order.source_address %>
+                    </p>
                   </div>
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p>
-                        <strong>Drop-off Address: </strong><%= order.dest_address %>
-                      </p>
-                    </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Drop-off Address: </strong>
+                      <%= order.dest_address %>
+                    </p>
                   </div>
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p>
-                        <strong>Distance: </strong><%= order.total_distance %>miles
-                      </p>
-                    </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Distance: </strong>
+                      <%= order.distance %>miles
+                    </p>
                   </div>
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p>
-                        <strong>Start Date: </strong><%= helpers.formatDateToUK(order.start_date) %>
-                      </p>
-                    </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Start Date: </strong>
+                      <%= helpers.toUKDateFormat(order.start_date) %>
+                    </p>
                   </div>
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p>
-                        <strong>End Date: </strong><%= helpers.formatDateToUK(order.end_date) %>
-                      </p>
-                    </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>End Date: </strong>
+                      <%= helpers.toUKDateFormat(order.end_date) %>
+                    </p>
                   </div>
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p>
-                        <strong>Notes: </strong><%= order.notes %>
-                      </p>
-                    </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Notes: </strong>
+                      <%= order?.notes && order.notes.trim() !=='' ? order.notes : 'No notes available' %>
+                    </p>
                   </div>
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p>
-                        <strong>Payment Method: </strong><%= order.payment_method %>
-                      </p>
-                    </div>
+                </div>
+
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Payment Method: </strong>
+                      <%= order.payment_method %>
+                    </p>
                   </div>
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p>
-                        <strong>Assigned Date: </strong><%= helpers.toUKDateFormat(order.assigned_date) %>
-                      </p>
-                    </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Assigned Date: </strong>
+                      <%= helpers.toUKDateFormat(order.assigned_date) %>
+                    </p>
                   </div>
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p>
-                        <strong>Created Date: </strong><%=
-                        helpers.toUKDateFormat(order.created_date) %>
-                      </p>
-                    </div>
+                </div>
+                <!-- <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Created Date: </strong>
+                      <%= helpers.toUKDateFormat(order.created_date) %>
+                    </p>
                   </div>
+                </div> -->
 
               </div>
             </div>
+          </div>
         </div>
+
       </div>
-      
-    </div>
-    <div class="row">
-      <div class="col-md-12">
-        <div class="card">
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
             <div class="card-header">
               <h5>Parcels:</h5>
             </div>
 
             <div class="card-body">
-            <% if (order?.parcels?.length > 0) { %>
-            <table class="table">
-              <thead>
-                <tr>
-                  <th width="25%">Parcel</th>
-                  <th width="10%">Price</th>
-                  <th width="25%">Source</th>
-                  <th width="25%">Destination</th>
-                  <th>Distance (miles)</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% order?.parcels.forEach(parcel => { %>
-                <tr>
-                  <td>
-                    <%= parcel.parcel_number %><br />
-                    <%= parcel.parcel_type %><br />
-                    <% if (parcel.length || parcel.width || parcel.height) { %>
-                      <%= parcel.length ? parcel.length + 'cm' : '' %>
-                      <%= parcel.width ? ' × ' + parcel.width + 'cm' : '' %>
-                      <%= parcel.height ? ' × ' + parcel.height + 'cm' : '' %><br />
-                    <% } %>
-                    <% if (parcel.weight) { %>
-                      <%= parcel.weight %>kg<br />
-                    <% } %>
-                    <% if (parcel.quantity) { %>
-                      Qty: <%= parcel.quantity %>
-                    <% } %>
-                  </td>
-                  
-                  <td>£<%= parcel.price %></td>
-                  <td><%= parcel.source_address %></td>
-                  <td><%= parcel.destination_address %></td>
-                  <td><%= parcel.distance %></td>
-                </tr>
-                <% }); %>
-              </tbody>
-            </table>
-            <% } else { %>
-            <p>No parcels found for this order.</p>
-            <% } %>
-                  
+              <% if (order?.parcels?.length> 0) { %>
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>Parcel Type</th>
+                      <th>Length</th>
+                      <th>Width</th>
+                      <th>Height</th>
+                      <th>Weight</th>
+                      <th>Quantity</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% order.parcels.forEach(parcel=> { %>
+                      <tr>
+                        <td>
+                          <%= parcel.parcel_type %>
+                        </td>
+                        <td>
+                          <%= parcel.length ? parcel.length + ' cm' : '--' %>
+                        </td>
+                        <td>
+                          <%= parcel.width ? parcel.width + ' cm' : '--' %>
+                        </td>
+                        <td>
+                          <%= parcel.height ? parcel.height + ' cm' : '--' %>
+                        </td>
+                        <td>
+                          <%= parcel.weight ? parcel.weight + ' kg' : '--' %>
+                        </td>
+                        <td>
+                          <%= parcel.quantity || '--' %>
+                        </td>
+                      </tr>
+                      <% }) %>
+                  </tbody>
+                </table>
+                <% } else { %>
+                  <p>No parcels found for this order.</p>
+                  <% } %>
             </div>
+          </div>
         </div>
       </div>
-      
-    </div>
 
-    <div class="row">
-      <div class="col-md-12">
-        <div class="card">
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
             <div class="card-header">
-              <h5>Job Stages:</h5>
+              <h5>Job Stages (Vias)</h5>
             </div>
 
             <div class="card-body">
-                <div class="list-group details-group">
+              <% if (order?.order_stages && order.order_stages.length> 0) { %>
+                <% order.order_stages.forEach((stage, idx)=> { %>
                   <div class="list-group-item">
                     <div class="d-flex w-100">
-                      <p>
-                        <strong>Start (Pickup): </strong><%= order.source_address %>
-                      </p>
-                      <p>
-                            <%=helpers.getRiderMessageForAddress(
-                              order?.parcels,
-                              order?.source_address
-                            )%>
-                          </p>
-                          <% if (order?.is_picked ==1) { %>
-                            <p>
-                                  Rider have reached 
-                                  <strong style="margin-left:3px;margin-right:3px"><%=order?.source_address%></strong> at 
-                                  <strong style="margin-left:3px;margin-left:3px"><%=helpers.convertUtcToUkFormat(order?.picked_time)%></strong>
-                                </p>
-                          <% } %>
-                          <% if (order.source_attachments && order.source_attachments.length) { %>
-                            <div class="attachments">
-                              <% order.source_attachments.forEach(file => { %>
-                                <img src="/uploads/<%= file.file_name %>" alt="Source Attachment" class="img-thumbnail" style="max-width: 150px; margin-right: 10px;">
-                              <% }); %>
-                            </div>
-                          <% } %>
-                          <% if (order?.source_completed ==1) { %>
-                            <p>
-                                  Package has been picked
-                                </p>
-                          <% } %>
-                    </div>
-                  </div>
-                </div>
-                
-                <div class="list-group-item">
-                   <% order?.vias.forEach((via, index) => { 
-                        let formattedTime = via.picked_time 
-                            ? new Date(via.picked_time * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
-                            : ''; 
-                        let riderMessages = helpers.getRiderMessageForAddress(order?.parcels, via.address);
-                    %>
-                        <div class="colsA" key="<%= index %>">
-                            
-                            <div class="detail">
-                                <div class="blue_note">
-                                    <h5>Interim Stop (Stopped for package handover)</h5>
-                                    <div class="location_ico">
-                                        <p><%= via.address %>, <%= via.city %></p>
-                                    </div>
-                                    <p>
-                                        <% riderMessages.forEach(message => { %>
-                                            <%= message %><br />
-                                        <% }); %>
-                                    </p>
-                                    <% if (via.attachments && via.attachments.length) { %>
-                                      <div class="attachments">
-                                        <% via.attachments.forEach(file => { %>
-                                          <img src="/uploads/<%= file.file_name %>" alt="Via Attachment" class="img-thumbnail" style="max-width: 150px; margin-right: 10px;">
-                                        <% }); %>
-                                      </div>
-                                    <% } %>
-                                    
-                                    <% if (via.is_picked === 1) { %>
-                                        <div class="time_block">
-                                            <p>Rider have reached <strong><%= via.address %></strong> at <strong><%= formattedTime %></strong></p>
-                                        </div>
-                                        <div class="handboll">
-                                            <form>
-                                                <% if (via.source_completed === 1) { %>
-                                                    <div class="item-picked-message">
-                                                        <h6>Package has been Picked</h6>
-                                                    </div>
-                                                <% } %>
-                                            </form>
-                                        </div>
-                                    <% } %>
-                                </div>
-                            </div>
-                        </div>
-                    <% }); %>
+                      <div class="stage-detail">
+                        <h6>
+                          <% if (idx===0) { %>
+                            Start (Pickup)
+                            <% } else if (idx===order.order_stages.length - 1) { %>
+                              End (Destination)
+                              <% } else { %>
+                                Stop <%= idx %>
+                                  <% } %>
+                        </h6>
 
-                  </div>
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p>
-                        <strong>End (Destination): </strong><%= order.dest_address %>
-                      </p>
-                      
-                      <p>
-                            <%=helpers.getRiderMessageForAddress(
-                              order?.parcels,
-                              order?.dest_address
-                            )%>
+                        <div class="location_ico">
+                          <p><strong>Address:</strong>
+                            <%= stage.address %>
                           </p>
-                          <% if (order?.is_picked ==1) { %>
-                            <p>
-                                  Rider have reached 
-                                  <strong style="margin-left:3px;margin-right:3px"><%=order?.dest_address%></strong> at 
-                                  <strong style="margin-left:3px;margin-left:3px"><%=helpers.convertUtcToUkFormat(order?.delivered_time)%></strong>
-                                </p>
+                        </div>
+
+                        <% if (stage.waiting_charges) { %>
+                          <p class="badge badge-warning mt-2">
+                            <strong>Waiting Charges:</strong> £<%= stage.waiting_charges %>
+                          </p>
                           <% } %>
-                          <% if (order.destination_attachments && order.destination_attachments.length) { %>
-                            <div class="attachments">
-                              <% order.destination_attachments.forEach(file => { %>
-                                <img src="/uploads/<%= file.file_name %>" alt="Destination Attachment" class="img-thumbnail" style="max-width: 150px; margin-right: 10px;">
-                              <% }); %>
-                            </div>
-                          <% } %>
-                          <% if (order?.finished ==1) { %>
-                            <p>
-                                  Package has been delivered
-                                </p>
-                          <% } %>
+
+                            <% if (stage.handball_charges) { %>
+                              <p class="badge badge-info mt-2">
+                                <strong>Handball Charges:</strong> £<%= stage.handball_charges %>
+                              </p>
+                              <% } %>
+
+                                <% if (stage.attachments && stage.attachments.length> 0) { %>
+                                  <div class="attachments mt-2">
+                                    <% stage.attachments.forEach(file=> { %>
+                                      <div style="display: inline-block; margin-right: 10px; text-align: center;">
+                                        <img src="/uploads/<%= file.file_name %>" alt="Stage Attachment"
+                                          class="img-thumbnail" style="max-width: 150px; margin-right: 10px;">
+                                        <a href="/uploads/<%= file.file_name %>" download
+                                          class="btn btn-sm btn-primary">
+                                          Download
+                                        </a>
+                                      </div>
+
+                                      <% }); %>
+                                  </div>
+                                  <% } %>
+
+                                    <% if (stage.status) { %>
+                                      <p>
+                                        <span class="badge mt-3
+                        <%= stage.status === 'pending' ? 'badge-secondary' : 
+                            stage.status === 'arrived' ? 'badge-primary' :
+                            stage.status === 'on-way-pickup' ? 'badge-warning' :
+                            stage.status === 'on-site-pickup' ? 'badge-warning' :
+                            stage.status === 'loaded' ? 'badge-info' : 
+                            stage.status === 'completed' ? 'badge-success' : 
+                            'badge-dark' %>">
+                                          <% if (stage.status==='arrived' ) { %>
+                                            ARRIVED
+                                            <% } else if (stage.status==='on-way-pickup' ) { %>
+                                              ON WAY TO (COLLECTION/PICKUP)
+                                              <% } else if (stage.status==='on-site-pickup' ) { %>
+                                                ON SITE (COLLECTION/PICKUP)
+                                                <% } else if (stage.status==='loaded' ) { %>
+                                                  LOADED
+                                                  <% } else if (stage.status==='completed' ) { %>
+                                                    COMPLETED
+                                                    <% } else { %>
+                                                      <%= stage.status.toUpperCase() %>
+                                                        <% } %>
+                                        </span>
+                                      </p>
+                                      <% } %>
+
+                                        <!-- Display arrival and loaded times -->
+                                        <% if (stage.arrived_time_formatted) { %>
+                                          <p class="text-info mt-2">
+                                            <strong>Arrived at:</strong>
+                                            <%= stage.arrived_time_formatted %>
+                                          </p>
+                                          <% } %>
+
+                                            <% if (stage.loaded_time_formatted) { %>
+                                              <p class="text-success mt-2">
+                                                <strong>Loaded at:</strong>
+                                                <%= stage.loaded_time_formatted %>
+                                              </p>
+                                              <% } %>
+
+                                                <% if (stage.completed_time_formatted) { %>
+                                                  <p class="text-primary mt-2">
+                                                    <strong>Completed at:</strong>
+                                                    <%= stage.completed_time_formatted %>
+                                                  </p>
+                                                  <% } %>
+
+
+                      </div>
                     </div>
                   </div>
-                </div>
-                </div>
-            
-                  
+                  <% }); %>
+                    <% } else { %>
+                      <p>No job stages available.</p>
+                      <% } %>
             </div>
+          </div>
         </div>
       </div>
-      
-    </div>
-    
-   
+
       <div class="row">
         <div class="col-md-12">
-            <div class="card">
-              <div class="card-header">
-                <h5>Payment Details:</h5>
-              </div>
+          <div class="card">
+            <div class="card-header">
+              <h5>Invoice Summary</h5>
+            </div>
 
-              <div class="card-body">
-                <div class="list-group details-group">
-                  
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p><strong>Total Amount: </strong>£<%= order.total_amount %></p>
-                    </div>
-                  </div>
-                  
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p><strong>Tax: </strong>£<%= order.tax %></p>
-                    </div>
-                  </div>
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                      <p><strong>Rider Price: </strong>£<%= order.rider_price %></p>
-                    </div>
-                  </div>
-                  <div class="list-group-item">
-                    <div class="d-flex w-100">
-                    
-                  <h3>Invoices</h3>
-                  <% if (order?.invoices.length > 0) { %>
-                  <table class="table">
-                    <thead>
-                      <tr>
-                        <th>Type</th>
-                        <th>Amount</th>
-                        <th>Status</th>
-                        <th>Created Date</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <% order?.invoices.forEach(invoice => { %>
-                      <tr>
-                        <td>
-                        <% if (invoice.type) { %>
-                          <span><%= invoice.type %></td></span>
-                        <% } else { %>
-                          <span>Invoice</span>
-                        <% } %>
-                        <td>£<%= invoice.amount %></td>
-                        <td><p>
-                          <% if (invoice.status === 1) { %>
-                          <a href="#" class="status badge success">Active</a>
-                          <% } else { %>
-                          <a href="#" class="status badge warning">Inactive</a>
-                          <% } %>
-                        </p></td>
-                        
-                        <td>
-                          <%= helpers.convertUtcToUkFormat(invoice.created_date)
-                          %>
-                        </td>
-                      </tr>
-                      <% }); %>
-                    </tbody>
-                  </table>
-                  <% } else { %>
-                  <p>No invoices found for this order.</p>
-                  <% } %>
-                  
-                    </div>
-                  </div>
-                  
+            <div class="card-body">
+              <div class="list-group details-group">
+
+                <!-- TOTAL JOB AMOUNT -->
+                <div class="list-group-item">
+                  <p><strong>Total Paid Amount By User: </strong>
+                    <%= helpers.format_amount(order.total_amount) %>
+                  </p>
                 </div>
+
+                <!-- SHOW RIDER PRICE -->
+                <div class="list-group-item">
+
+                  <p><strong>Total Job Amount:</strong>
+                    <%= helpers.format_amount((order.rider_price * order.distance).toFixed(2)) %>
+                  </p>
+                </div>
+
+                <div class="list-group-item">
+                  <h4>Invoice Breakdown</h4>
+
+                  <% if (order.invoices && order.invoices.length> 0) { %>
+
+                    <% order.invoices.forEach(invoice=> { %>
+
+                      <% if (invoice.address) { %>
+                        <div class="card mb-3">
+                          <div class="card-body">
+
+                            <!-- Stage Type -->
+                            <% if (invoice.type==="source" ) { %>
+                              <h6>Start (Pickup)</h6>
+                              <% } else if (invoice.type==="via" ) { %>
+                                <h6>Interim Stop (Package handover)</h6>
+                                <% } else if (invoice.type==="destination" ) { %>
+                                  <h6>End (Destination)</h6>
+                                  <% } %>
+
+                                    <!-- Address -->
+                                    <p><strong>Location:</strong>
+                                      <%= invoice.address %>
+                                    </p>
+
+                                    <!-- Charges -->
+                                    <ul class="invoice_charges">
+                                      <% if (invoice.handball_charges) { %>
+                                        <li><strong>Handball Charges:</strong>
+                                          <%= helpers.format_amount(invoice.handball_charges) %>
+                                        </li>
+                                        <% } %>
+
+                                          <% if (invoice.waiting_charges) { %>
+                                            <li><strong>Waiting Charges:</strong>
+                                              <%= helpers.format_amount(invoice.waiting_charges) %>
+                                            </li>
+                                            <% } %>
+                                    </ul>
+
+                          </div>
+                        </div>
+                        <% } %>
+
+                          <% }) %>
+
+                            <% } else { %>
+                              <p>No invoices found.</p>
+                              <% } %>
+                </div>
+
+
+                <!-- TOTAL INVOICE AMOUNT -->
+                <div class="list-group-item">
+                  <p><strong>Total Invoice Amount: </strong>
+                    <%= helpers?.format_amount(order?.totalAmount) %>
+                  </p>
+                </div>
+
+                <!-- PAID AMOUNT -->
+                <!-- <div class="list-group-item">
+                  <p><strong>Total Paid Amount: </strong>
+                    £<%= order.total_paid_amount || 0 %>
+                  </p>
+                </div> -->
+
+                <!-- DUE AMOUNT -->
+                <% if (order.dueAmount> 0) { %>
+                  <div class="list-group-item">
+                    <p class="text-danger"><strong>Total Due Amount: </strong>
+                      <%= helpers.format_amount(order.dueAmount) %>
+                    </p>
+                  </div>
+                  <% } %>
+
+
+
+
               </div>
             </div>
+          </div>
         </div>
       </div>
+
       <div class="row">
-      <div class="col-md-12">
-        <div class="card">
+        <div class="col-md-12">
+          <div class="card">
             <div class="card-header">
               <h5>Reviews:</h5>
             </div>
 
             <div class="card-body">
-           <h3>Reviews</h3>
-            <% if (order?.reviews.length > 0) { %>
-            <table class="table">
-              <thead>
-                <tr>
-                  <th>Review</th>
-                  <th>Rating</th>
-                  <th>Created Date</th>
-                </tr>
-              </thead>
-              <tbody>
-                <% order?.reviews.forEach(review => { %>
-                <tr>
-                  <td><%= review.review %></td>
-                  <td>
-                    <div
-                class="rateYo"
-                data-rateyo-rating="<%= review.rating %>"></div>
-                  </td>
-                  <td>
-                    <%= helpers.convertUtcToUkFormat(review.created_at) %>
-                  </td>
-                </tr>
-                <% }); %>
-              </tbody>
-            </table>
-            <% } else { %>
-            <p>No reviews found for this order.</p>
-            <% } %>
-                  
+              <h3>Reviews</h3>
+              <% if (order?.reviews.length> 0) { %>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Review</th>
+                      <th>Rating</th>
+                      <th>Created Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% order?.reviews.forEach(review=> { %>
+                      <tr>
+                        <td>
+                          <%= review.review %>
+                        </td>
+                        <td>
+                          <div class="rateYo" data-rateyo-rating="<%= review.rating %>"></div>
+                        </td>
+                        <td>
+                          <%= helpers.convertUtcToUkFormat(review.created_at) %>
+                        </td>
+                      </tr>
+                      <% }); %>
+                  </tbody>
+                </table>
+                <% } else { %>
+                  <p>No reviews found for this order.</p>
+                  <% } %>
+
             </div>
+          </div>
+        </div>
+
+
+
+
+      </div>
+      <div class="details">
+        <div class="heading mth">
+          <h4>Address Information</h4>
+        </div>
+
+        <div class="quote-section three-cols">
+          <!-- Column 1: Source Details -->
+          <div class="quote-card">
+            <h4>Source Details</h4>
+            <p><strong>Postcode:</strong>
+              <%= order.source_postcode %>
+            </p>
+            <p><strong>Address:</strong>
+              <%= order.source_address %>
+            </p>
+            <p><strong>Name:</strong>
+              <%= order.source_name %>
+            </p>
+            <p><strong>Phone Number:</strong>
+              <%= order.source_phone_number %>
+            </p>
+            <p><strong>City:</strong>
+              <%= order.source_city %>
+            </p>
+            <p><strong>Pickup Time Option:</strong>
+              <%= order.pickup_time_option %>
+            </p>
+
+            <% if (['at', 'before' ].includes(order.pickup_time_option)) { %>
+              <p><strong>Pickup Date:</strong>
+                <%= helpers.toUKDateFormat(order?.pickup_date) %>
+              </p>
+              <p><strong>Pickup Time:</strong>
+                <%= helpers.formatUKTime(order?.pickup_time) %>
+              </p>
+              <% } else if (order.pickup_time_option==='between' ) { %>
+                <p><strong>Start Date:</strong>
+                  <%= helpers.toUKDateFormat(order.pickup_start_date) %>
+                </p>
+                <p><strong>Start Time:</strong>
+                  <%= helpers.formatUKTime(order.pickup_start_time) %>
+                </p>
+                <p><strong>End Date:</strong>
+                  <%= helpers.toUKDateFormat(order.pickup_end_date) %>
+                </p>
+                <p><strong>End Time:</strong>
+                  <%= helpers.formatUKTime(order.pickup_end_time) %>
+                </p>
+                <% } %>
+          </div>
+
+          <!-- Column 2: Destination Details -->
+          <div class="quote-card">
+            <h4>Destination Details</h4>
+            <p><strong>Postcode:</strong>
+              <%= order.dest_postcode %>
+            </p>
+            <p><strong>Address:</strong>
+              <%= order.dest_address %>
+            </p>
+            <p><strong>Name:</strong>
+              <%= order.dest_name %>
+            </p>
+            <p><strong>Phone Number:</strong>
+              <%= order.dest_phone_number %>
+            </p>
+            <p><strong>City:</strong>
+              <%= order.dest_city %>
+            </p>
+            <p><strong>Delivery Time Option:</strong>
+              <%= order.delivery_time_option %>
+            </p>
+
+            <% if (['at', 'by' ].includes(order.delivery_time_option)) { %>
+              <p><strong>Delivery Date:</strong>
+                <%= helpers.toUKDateFormat(order.delivery_date) %>
+              </p>
+              <p><strong>Delivery Time:</strong>
+                <%= helpers.formatUKTime(order.delivery_time) %>
+              </p>
+              <% } else if (order.delivery_time_option==='between' ) { %>
+                <p><strong>Start Date:</strong>
+                  <%= helpers.toUKDateFormat(order.delivery_start_date) %>
+                </p>
+                <p><strong>Start Time:</strong>
+                  <%= helpers.formatUKTime(order.delivery_start_time) %>
+                </p>
+                <p><strong>End Date:</strong>
+                  <%= helpers.toUKDateFormat(order.delivery_end_date) %>
+                </p>
+                <p><strong>End Time:</strong>
+                  <%= helpers.formatUKTime(order.delivery_end_time) %>
+                </p>
+                <% } %>
+          </div>
+
+          <!-- Column 3: All Via Stops -->
+          <div class="quote-card">
+            <h4>Via Stops</h4>
+            <% if (order.vias && order.vias.length> 0) { %>
+              <% order.vias.forEach((via, index)=> { %>
+                <div class="via-stop">
+                  <h5>Via Stop <%= index + 1 %>
+                  </h5>
+                  <p><strong>Postcode:</strong>
+                    <%= via.post_code %>
+                  </p>
+                  <p><strong>Address:</strong>
+                    <%= via.address %>
+                  </p>
+                  <p><strong>Name:</strong>
+                    <%= via.full_name %>
+                  </p>
+                  <p><strong>Phone Number:</strong>
+                    <%= via.phone_number %>
+                  </p>
+                  <p><strong>City:</strong>
+                    <%= via.city %>
+                  </p>
+                  <p><strong>Pickup Time Option:</strong>
+                    <%= via.via_pickup_time_option %>
+                  </p>
+
+                  <% if (['at', 'before' ].includes(via.via_pickup_time_option)) { %>
+                    <p><strong>Pickup Date:</strong>
+                      <%= helpers.toUKDateFormat(via.via_pickup_date) %>
+                    </p>
+                    <p><strong>Pickup Time:</strong>
+                      <%= helpers.formatUKTime(via.via_pickup_time) %>
+                    </p>
+                    <% } else if (via.via_pickup_time_option==='between' ) { %>
+                      <p><strong>Start Date:</strong>
+                        <%= helpers.toUKDateFormat(via.via_pickup_start_date) %>
+                      </p>
+                      <p><strong>Start Time:</strong>
+                        <%= helpers.formatUKTime(via.via_pickup_start_time) %>
+                      </p>
+                      <p><strong>End Date:</strong>
+                        <%= helpers.toUKDateFormat(via.via_pickup_end_date) %>
+                      </p>
+                      <p><strong>End Time:</strong>
+                        <%= helpers.formatUKTime(via.via_pickup_end_time) %>
+                      </p>
+                      <% } %>
+                </div>
+                <% }); %>
+                  <% } else { %>
+                    <p>No via stops available.</p>
+                    <% } %>
+          </div>
         </div>
       </div>
 
-
-
-      
-    </div>
-    <div class="details">
-  <div class="heading mth"><h4>Address Information</h4></div>
-
-  <div class="quote-section three-cols">
-    <!-- Column 1: Source Details -->
-    <div class="quote-card">
-      <h4>Source Details</h4>
-      <p><strong>Postcode:</strong> <%= order.source_postcode %></p>
-      <p><strong>Address:</strong> <%= order.source_address %></p>
-      <p><strong>Name:</strong> <%= order.source_name %></p>
-      <p><strong>Phone Number:</strong> <%= order.source_phone_number %></p>
-      <p><strong>City:</strong> <%= order.source_city %></p>
-      <p><strong>Pickup Time Option:</strong> <%= order.pickup_time_option %></p>
-
-      <% if (['at', 'before'].includes(order.pickup_time_option)) { %>
-        <p><strong>Pickup Date:</strong> <%= helpers.toUKDateFormat(order?.pickup_date) %></p>
-        <p><strong>Pickup Time:</strong> <%= helpers.formatUKTime(order?.pickup_time) %></p>
-      <% } else if (order.pickup_time_option === 'between') { %>
-        <p><strong>Start Date:</strong> <%= helpers.toUKDateFormat(order.pickup_start_date) %></p>
-        <p><strong>Start Time:</strong> <%= helpers.formatUKTime(order.pickup_start_time) %></p>
-        <p><strong>End Date:</strong> <%= helpers.toUKDateFormat(order.pickup_end_date) %></p>
-        <p><strong>End Time:</strong> <%= helpers.formatUKTime(order.pickup_end_time) %></p>
-      <% } %>
     </div>
 
-    <!-- Column 2: Destination Details -->
-    <div class="quote-card">
-      <h4>Destination Details</h4>
-      <p><strong>Postcode:</strong> <%= order.dest_postcode %></p>
-      <p><strong>Address:</strong> <%= order.dest_address %></p>
-      <p><strong>Name:</strong> <%= order.dest_name %></p>
-      <p><strong>Phone Number:</strong> <%= order.dest_phone_number %></p>
-      <p><strong>City:</strong> <%= order.dest_city %></p>
-      <p><strong>Delivery Time Option:</strong> <%= order.delivery_time_option %></p>
-
-      <% if (['at', 'by'].includes(order.delivery_time_option)) { %>
-        <p><strong>Delivery Date:</strong> <%= helpers.toUKDateFormat(order.delivery_date) %></p>
-        <p><strong>Delivery Time:</strong> <%= helpers.formatUKTime(order.delivery_time) %></p>
-      <% } else if (order.delivery_time_option === 'between') { %>
-        <p><strong>Start Date:</strong> <%= helpers.toUKDateFormat(order.delivery_start_date) %></p>
-        <p><strong>Start Time:</strong> <%= helpers.formatUKTime(order.delivery_start_time) %></p>
-        <p><strong>End Date:</strong> <%= helpers.toUKDateFormat(order.delivery_end_date) %></p>
-        <p><strong>End Time:</strong> <%= helpers.formatUKTime(order.delivery_end_time) %></p>
-      <% } %>
-    </div>
-
-    <!-- Column 3: All Via Stops -->
-    <div class="quote-card">
-      <h4>Via Stops</h4>
-      <% if (order.vias && order.vias.length > 0) { %>
-        <% order.vias.forEach((via, index) => { %>
-          <div class="via-stop">
-            <h5>Via Stop <%= index + 1 %></h5>
-            <p><strong>Postcode:</strong> <%= via.post_code %></p>
-            <p><strong>Address:</strong> <%= via.address %></p>
-            <p><strong>Name:</strong> <%= via.full_name %></p>
-            <p><strong>Phone Number:</strong> <%= via.phone_number %></p>
-            <p><strong>City:</strong> <%= via.city %></p>
-            <p><strong>Pickup Time Option:</strong> <%= via.via_pickup_time_option %></p>
-
-            <% if (['at', 'before'].includes(via.via_pickup_time_option)) { %>
-              <p><strong>Pickup Date:</strong> <%= helpers.toUKDateFormat(via.via_pickup_date) %></p>
-              <p><strong>Pickup Time:</strong> <%= helpers.formatUKTime(via.via_pickup_time) %></p>
-            <% } else if (via.via_pickup_time_option === 'between') { %>
-              <p><strong>Start Date:</strong> <%= helpers.toUKDateFormat(via.via_pickup_start_date) %></p>
-              <p><strong>Start Time:</strong> <%= helpers.formatUKTime(via.via_pickup_start_time) %></p>
-              <p><strong>End Date:</strong> <%= helpers.toUKDateFormat(via.via_pickup_end_date) %></p>
-              <p><strong>End Time:</strong> <%= helpers.formatUKTime(via.via_pickup_end_time) %></p>
-            <% } %>
-          </div>
-        <% }); %>
-      <% } else { %>
-        <p>No via stops available.</p>
-      <% } %>
-    </div>
   </div>
-</div>
 
 
-    </div>
+
+
+
+  </div>
   </div>
 </section>

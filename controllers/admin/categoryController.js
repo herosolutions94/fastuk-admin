@@ -17,8 +17,8 @@ class CategoriesController extends BaseController {
     const { rider_id } = req.params;
 
     try {
-      const mainCategories = await Category.getMainCategories();
-      console.log("mainCategories:",mainCategories)
+      const mainCategories = await Category.getMainCategoriesArr();
+      console.log("sub category:",mainCategories)
       res.render("admin/add-category", { mainCategories, rider_id });
     } catch (error) {
       console.error("Error rendering add Category page:", error);
@@ -28,12 +28,12 @@ class CategoriesController extends BaseController {
 
   async fetchSubCategories(req, res) {
     const parentId = req.body.parent_id;
-      // console.log('Fetching subcategories for parent_id:', parentId);
+      console.log('Fetching subcategories for parent_id:', parentId);
 
 
     try {
-      const subCategories = await Category.getSubCategoriesByParentId(parentId);
-          // console.log('Fetched subCategories:', subCategories);
+      const subCategories = await Category.getVehiclesByParentId(parentId);
+          console.log('Fetched subCategories:', subCategories);
 
       res.json(subCategories);
     } catch (error) {
@@ -45,9 +45,9 @@ class CategoriesController extends BaseController {
   async saveCategoryForRider(req, res) {
     const { rider_id } = req.params;
     const { category_id } = req.body;
-//     console.log(rider_id, category_id);
-//     console.log("Incoming category_id:", category_id);
-// console.log("Rider ID:", rider_id);
+    console.log(rider_id, category_id);
+    console.log("Incoming category_id:", category_id);
+console.log("Rider ID:", rider_id);
 
     try {
       // Save in subtable
@@ -65,7 +65,7 @@ class CategoriesController extends BaseController {
 
     try {
       const categories = await Category.getCategoriesByRiderId(rider_id);
-      console.log("categories:", categories);
+      console.log("Vehicles:", categories);
       res.render("admin/categories", { categories, rider_id });
     } catch (error) {
       console.error("Error fetching rider's categories:", error);
@@ -83,7 +83,7 @@ class CategoriesController extends BaseController {
       return this.sendError(res, "Invalid subcategory ID");
     }
 
-const subCategory = await Category.getCategoryById(riderCategory.category_id);
+const subCategory = await Category.getVehicleById(riderCategory.category_id);
 // subCategory.parent_id is vehicle_id (main category)
    if (!subCategory) {
       return this.sendError(res, "Invalid subcategory ID");
@@ -92,10 +92,10 @@ const subCategory = await Category.getCategoryById(riderCategory.category_id);
 
 
     const parentCategoryId = subCategory.parent_id;
-    const mainCategories = await Category.getMainCategories();
+    const mainCategories = await Category.getMainCategoriesArr();
     console.log("mainCategories:",mainCategories)
-    const subCategories = await Category.getSubCategoriesByParentId(parentCategoryId);
-
+    const subCategories = await Category.getVehiclesByParentId(subCategory.vehicle_category_id);
+    console.log(subCategories)
     res.render("admin/edit-category", {
       mainCategories,
       subCategories,

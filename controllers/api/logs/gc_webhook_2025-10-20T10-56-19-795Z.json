@@ -1,0 +1,169 @@
+{
+  "events": [
+    {
+      "id": "EV0284V4XJRNYW",
+      "created_at": "2025-10-20T09:25:53.747Z",
+      "resource_type": "payouts",
+      "action": "paid",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payout_paid",
+        "description": "GoCardless has transferred the payout to the creditor's bank account. FX payouts will emit this event but will continue to have a `pending` status until we emit the `payout_fx_rate_confirmed` event."
+      },
+      "links": {
+        "creditor": "CR01K6CP101HP781XRW2RYREFN40",
+        "payout": "PO01K80E6SSQBMDAWGGETPKN8G67"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV0284V4XNN89C",
+      "created_at": "2025-10-20T09:25:53.777Z",
+      "resource_type": "payments",
+      "action": "paid_out",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_paid_out",
+        "description": "The payment has been paid out by GoCardless.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "parent_event": "EV0284V4XJRNYW",
+        "payout": "PO01K80E6SSQBMDAWGGETPKN8G67",
+        "payment": "PM01K76ENZQ1C7Q0VKB5N00A2AH7"
+      },
+      "resource_metadata": {
+        "type": "order",
+        "order_id": "282",
+        "invoice_id": "282"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV0284V4XPCN42",
+      "created_at": "2025-10-20T09:25:53.777Z",
+      "resource_type": "payments",
+      "action": "paid_out",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_paid_out",
+        "description": "The payment has been paid out by GoCardless.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "parent_event": "EV0284V4XJRNYW",
+        "payout": "PO01K80E6SSQBMDAWGGETPKN8G67",
+        "payment": "PM01K76FC6CW9PA7BF14NFVPMEP6"
+      },
+      "resource_metadata": {
+        "type": "order",
+        "order_id": "284",
+        "invoice_id": "284"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV0284V4XQRPAN",
+      "created_at": "2025-10-20T09:25:53.777Z",
+      "resource_type": "payments",
+      "action": "paid_out",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_paid_out",
+        "description": "The payment has been paid out by GoCardless.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "parent_event": "EV0284V4XJRNYW",
+        "payout": "PO01K80E6SSQBMDAWGGETPKN8G67",
+        "payment": "PM01K76FRVS887S9NBRW35P3FS0J"
+      },
+      "resource_metadata": {
+        "type": "credit_invoice",
+        "order_id": "order_1760080695751",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV0284V4XR6SHX",
+      "created_at": "2025-10-20T09:25:53.777Z",
+      "resource_type": "payments",
+      "action": "paid_out",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_paid_out",
+        "description": "The payment has been paid out by GoCardless.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "parent_event": "EV0284V4XJRNYW",
+        "payout": "PO01K80E6SSQBMDAWGGETPKN8G67",
+        "payment": "PM01K76SHRY4XH9B5QB2S36ZKQ30"
+      },
+      "resource_metadata": {
+        "type": "credit_invoice",
+        "order_id": "order_1760090948529",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV0284V4XSHZMV",
+      "created_at": "2025-10-20T09:25:53.777Z",
+      "resource_type": "payments",
+      "action": "paid_out",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_paid_out",
+        "description": "The payment has been paid out by GoCardless.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "parent_event": "EV0284V4XJRNYW",
+        "payout": "PO01K80E6SSQBMDAWGGETPKN8G67",
+        "payment": "PM01K7716E0C7Z2EM21EQ9CDM5AC"
+      },
+      "resource_metadata": {
+        "type": "credit_invoice",
+        "order_id": "order_1760098960727",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV0284V4XT48XD",
+      "created_at": "2025-10-20T09:25:53.777Z",
+      "resource_type": "payments",
+      "action": "paid_out",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_paid_out",
+        "description": "The payment has been paid out by GoCardless.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "parent_event": "EV0284V4XJRNYW",
+        "payout": "PO01K80E6SSQBMDAWGGETPKN8G67",
+        "payment": "PM01K775F7TRYE5JTHK2J9ADSSTE"
+      },
+      "resource_metadata": {
+        "type": "credit_invoice",
+        "order_id": "order_1760103447736",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K80F19FGZWXVSHSMHMCP98VT"
+  }
+}

@@ -1,0 +1,125 @@
+{
+  "events": [
+    {
+      "id": "EV027TDHM6W63E",
+      "created_at": "2025-10-13T12:23:44.836Z",
+      "resource_type": "billing_requests",
+      "action": "collect_bank_account",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_collect_bank_account",
+        "description": "Bank account details have been collected for this billing request."
+      },
+      "links": {
+        "customer": "CU01K7ERD83BH0B2WXRGMJK6YQE8",
+        "customer_bank_account": "BA01K7ERDMX53ECD7GNH5SEQQW5Z",
+        "billing_request_flow": "BRF01K7ERD86GAVHK9MSEECJ3VKT4M53",
+        "billing_request": "BRQ01K7ERD83XBGGTBRSCQ5RBG7ZZ"
+      },
+      "resource_metadata": {
+        "type": "order",
+        "order_id": "291",
+        "invoice_id": "291"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027TDHMPK77T",
+      "created_at": "2025-10-13T12:23:47.280Z",
+      "resource_type": "billing_requests",
+      "action": "payer_details_confirmed",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_payer_details_confirmed",
+        "description": "Payer has confirmed all their details for this billing request."
+      },
+      "links": {
+        "customer": "CU01K7ERD83BH0B2WXRGMJK6YQE8",
+        "customer_bank_account": "BA01K7ERDMX53ECD7GNH5SEQQW5Z",
+        "billing_request_flow": "BRF01K7ERD86GAVHK9MSEECJ3VKT4M53",
+        "billing_request": "BRQ01K7ERD83XBGGTBRSCQ5RBG7ZZ"
+      },
+      "resource_metadata": {
+        "type": "order",
+        "order_id": "291",
+        "invoice_id": "291"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027TDHMWE8BW",
+      "created_at": "2025-10-13T12:23:48.176Z",
+      "resource_type": "billing_requests",
+      "action": "fulfilled",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "billing_request_fulfilled",
+        "description": "This billing request has been fulfilled, and the resources have been created."
+      },
+      "links": {
+        "customer": "CU01K7ERD83BH0B2WXRGMJK6YQE8",
+        "customer_bank_account": "BA01K7ERDMX53ECD7GNH5SEQQW5Z",
+        "mandate_request_mandate": "MD01K7ERDR3JQ6BF0W04D6441TM5",
+        "billing_request": "BRQ01K7ERD83XBGGTBRSCQ5RBG7ZZ"
+      },
+      "resource_metadata": {
+        "type": "order",
+        "order_id": "291",
+        "invoice_id": "291"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027TDHMVDCBF",
+      "created_at": "2025-10-13T12:23:48.122Z",
+      "resource_type": "mandates",
+      "action": "created",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "mandate_created",
+        "description": "Mandate created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "billing_request": "BRQ01K7ERD83XBGGTBRSCQ5RBG7ZZ",
+        "mandate_request": "MRQ01K7ERD83T4WXSA",
+        "mandate": "MD01K7ERDR3JQ6BF0W04D6441TM5"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027TDHMXNFSH",
+      "created_at": "2025-10-13T12:23:48.373Z",
+      "resource_type": "payments",
+      "action": "created",
+      "metadata": {
+        "order_id": "291",
+        "invoice_id": "291",
+        "type": "order"
+      },
+      "details": {
+        "origin": "api",
+        "cause": "payment_created",
+        "description": "Payment created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K7ERDRAS0X1TEMRRRA795E7J"
+      },
+      "resource_metadata": {
+        "order_id": "291",
+        "invoice_id": "291",
+        "type": "order"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K7ERDTRE4R4X0MV8G11AM8MQ"
+  }
+}

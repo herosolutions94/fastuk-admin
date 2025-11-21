@@ -41,10 +41,17 @@ class VehicleCategoriesModel extends BaseModel {
         }
     }
     
-    static async getVehicleCategoriesById(id) {
-        const [vehicleCategory] = await pool.query(`SELECT * FROM ${this.tableName} WHERE id = ?`, [id]);
-        return vehicleCategory; // This should be an object, not an array
-    }
+    static async getVehicleCategoriesById(ids) {
+    if (!Array.isArray(ids)) ids = [ids]; // ✅ consistent
+
+    const [vehicleCategories] = await pool.query(
+        `SELECT * FROM ${this.tableName} WHERE id IN (?)`,
+        [ids]
+    );
+    // console.log("vehicleCategories", vehicleCategories);
+    return vehicleCategories;
+}
+
     // static async getRemotePostCodesInArray() {
     //     try {
     //         // Query to fetch post_code and remote_price where status is 1

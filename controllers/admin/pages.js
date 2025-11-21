@@ -83,12 +83,27 @@ class PagesController extends BaseController {
                     'sec7_image_0', 'sec7_image_1', 'sec7_image_2', 'sec7_image_3', 'image20'
                 ];
 
-                imageKeys.forEach((key) => {
+                const sourceDir = path.join(__dirname, '../../uploads');
+                const thumbFolder = 'thumbnails';
+                const thumbWidth = 300;
+                const thumbHeight = 300;
+
+                for (const key of imageKeys) {
                     if (req.files[key]) {
-                        formData[key] = `/${req.files[key][0].filename}`;
+                        const imageName = req.files[key][0].filename;
+                        formData[key] = `/${imageName}`;
+
+                        // ✅ Generate thumbnail for the uploaded image
+                        try {
+                            await helpers.generateThumbnail(imageName, sourceDir, thumbFolder, thumbWidth, thumbHeight);
+                            console.log(`Thumbnail generated for ${key}: ${imageName}`);
+                        } catch (thumbError) {
+                            console.error(`Failed to generate thumbnail for ${key}:`, thumbError.message);
+                        }
                     }
-                });
+                }
             }
+
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
@@ -104,6 +119,188 @@ class PagesController extends BaseController {
             next(error);
         }
     }
+
+    async home2View(req, res, next) {
+        try {
+            let pageData = await this.pages.findByKey('home2');
+
+            if (!pageData) {
+                await this.pages.createPage('home2');
+                pageData = { key: 'home2', content: null }; // Placeholder for new entry
+            }
+
+            let contentData = {};
+
+            // Try parsing the content from the database
+            if (pageData.content) {
+                try {
+                    contentData = JSON.parse(pageData.content);
+                } catch (err) {
+                    console.error('Error parsing JSON from database:', err);
+                    // Handle error - maybe set default values
+                    contentData = { error: 'Failed to load content.' };
+                }
+            }
+            // console.log(contentData)
+            res.render('admin/pages/home2', { jsonContent: req.body, contentData });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+
+
+    // async home2Form(req, res, next) {
+    //     try {
+    //         if (!req.body || Object.keys(req.body).length === 0) {
+    //             console.log("No data received, not executing form logic.");
+    //             return res.status(200).json({
+    //                 status: 0,
+    //                 message: 'No data provided.'
+    //             });
+    //         }
+
+    //         // Step 1: Fetch existing content to retain previous image paths
+    //         const pageData = await this.pages.findByKey('home2');
+    //         let existingContent = {};
+
+    //         if (pageData && pageData.content) {
+    //             try {
+    //                 existingContent = JSON.parse(pageData.content);
+    //             } catch (err) {
+    //                 console.error('Error parsing existing JSON content:', err);
+    //             }
+    //         }
+
+    //         // Initialize formData with existing content
+    //         const formData = { ...existingContent, ...helpers.sanitizeData(req.body) };
+    //         // console.log('data form', formData)
+    //         if (req.files) {
+    //             const imageKeys = [
+    //                 'image1', 'image2', 'image3', 'image4', 'image5', 'image6', 'image7', 'image8', 'sec1_image_0', 'sec1_image_1', 'sec1_image_2', 'sec1_image_3',
+    //                 'sec2_image_0', 'sec2_image_1', 'sec2_image_2', 'sec2_image_3', 'sec3_image_0', 'sec3_image_1', 'sec3_image_2', 'sec3_image_3', 'sec4_image_0', 'sec4_image_1','image10', 'image11', 'video',
+    //                 'sec5_image_0', 'sec5_image_1', 'sec5_image_2', 'sec5_image_3', 'sec6_image_0', 'sec6_image_1', 'sec6_image_2', 'sec6_image_3',
+    //                 'sec7_image_0', 'sec7_image_1', 'sec7_image_2', 'sec7_image_3', 'image20', 'cta_image'
+    //             ];
+
+    //         //     imageKeys.forEach((key) => {
+    //         //         if (req.files[key]) {
+    //         //             formData[key] = `/${req.files[key][0].filename}`;
+    //         //         }
+    //         //     });
+    //         // }
+
+    //         const sourceDir = path.join(__dirname, '../../uploads');
+    //         const thumbFolder = 'thumbnails';
+    //         const thumbWidth = 300;
+    //         const thumbHeight = 300;
+
+    //             for (const key of imageKeys) {
+    //             if (req.files[key]) {
+    //                 const imageName = req.files[key][0].filename;
+    //                 formData[key] = `/${imageName}`;
+
+    //                 // ✅ Generate thumbnail for the uploaded image
+    //                 try {
+    //                     await helpers.generateThumbnail(imageName, sourceDir, thumbFolder, thumbWidth, thumbHeight);
+    //                     console.log(`Thumbnail generated for ${key}: ${imageName}`);
+    //                 } catch (thumbError) {
+    //                     console.error(`Failed to generate thumbnail for ${key}:`, thumbError.message);
+    //                 }
+    //             }
+    //         }
+    //     }
+
+    //         // Step 3: Convert updated data to JSON
+    //         const jsonContent = JSON.stringify(formData);
+    //         // console.log("json content", jsonContent);
+
+    //         // Step 4: Update the database with the new JSON value for "home" key
+    //         await this.pages.updatePageContent('home2', jsonContent);
+
+    //         this.sendSuccess(res, {}, 'Data added successfully!', 200, '/admin/pages/home2');
+    //     } catch (error) {
+    //         console.error('Failed to add data:', error);
+    //         this.sendError(res, 'Failed to add data');
+    //         next(error);
+    //     }
+    // }
+
+    async home2Form(req, res, next) {
+        try {
+            if (!req.body || Object.keys(req.body).length === 0) {
+                console.log("No data received, not executing form logic.");
+                return res.status(200).json({
+                    status: 0,
+                    message: 'No data provided.'
+                });
+            }
+
+            // Step 1: Fetch existing content to retain previous image paths
+            const pageData = await this.pages.findByKey('home2');
+            let existingContent = {};
+
+            if (pageData && pageData.content) {
+                try {
+                    existingContent = JSON.parse(pageData.content);
+                } catch (err) {
+                    console.error('Error parsing existing JSON content:', err);
+                }
+            }
+
+            // Step 2: Merge form data
+            const formData = { ...existingContent, ...helpers.sanitizeData(req.body) };
+
+            // Step 3: Handle uploaded images
+            if (req.files) {
+                const sourceDir = path.join(__dirname, '../../uploads');
+                const thumbFolder = 'thumbnails';
+
+                // Define width/height per image key
+                const thumbnailSizes = {
+                    image2: { width: 900, height: 600 },
+                    image4: { width: 900, height: 600 },
+                    image6: { width: 900, height: 600 },
+                    image7: { width: 900, height: 600 },
+                    cta_image: { width: 900, height: 600 },
+                    sec4_image_0: { width: 600, height: 400 },
+                    sec4_image_1: { width: 600, height: 400 },
+                    default: { width: 450, height: 450 }
+                };
+
+                // ✅ Loop through all uploaded files dynamically
+                for (const [key, files] of Object.entries(req.files)) {
+                    if (files && files.length > 0) {
+                        const imageName = files[0].filename;
+                        formData[key] = `/${imageName}`;
+
+                        // Pick the right dimensions
+                        const { width, height } = thumbnailSizes[key] || thumbnailSizes.default;
+
+                        try {
+                            await helpers.generateThumbnail(imageName, sourceDir, thumbFolder, width, height);
+                            console.log(`✅ Thumbnail generated for ${key} (${width}×${height})`);
+                        } catch (err) {
+                            console.error(`❌ Thumbnail failed for ${key}:`, err.message);
+                        }
+                    }
+                }
+            }
+
+            // Step 4: Convert updated data to JSON
+            const jsonContent = JSON.stringify(formData);
+
+            // Step 5: Update the database with the new JSON value for "home2" key
+            await this.pages.updatePageContent('home2', jsonContent);
+
+            this.sendSuccess(res, {}, 'Data added successfully!', 200, '/admin/pages/home2');
+        } catch (error) {
+            console.error('Failed to add data:', error);
+            this.sendError(res, 'Failed to add data');
+            next(error);
+        }
+    }
+
 
     async aboutView(req, res, next) {
         try {
@@ -159,17 +356,67 @@ class PagesController extends BaseController {
             const formData = { ...existingContent, ...helpers.sanitizeData(req.body) };
 
             if (req.files) {
-                const imageKeys = [
-                    'abt_image1', 'abt_image2', 'abt_image3', 'abt_image4', 'abt_video', 'abt_image5',
-                    'sec4_abt_image_0', 'sec4_abt_image_1', 'sec4_abt_image_2', 'sec4_abt_image_3', 'abt_image10'
-                ];
+                // const imageKeys = [
+                //     'abt_image1', 'abt_image2', 'abt_image3', 'abt_image4', 'abt_video', 'abt_image5',
+                //     'sec4_abt_image_0', 'sec4_abt_image_1', 'sec4_abt_image_2', 'sec4_abt_image_3', 'abt_image10'
+                // ];
 
-                imageKeys.forEach((key) => {
-                    if (req.files[key]) {
-                        formData[key] = `/${req.files[key][0].filename}`;
+                //     imageKeys.forEach((key) => {
+                //         if (req.files[key]) {
+                //             formData[key] = `/${req.files[key][0].filename}`;
+                //         }
+                //     });
+                // }
+
+                const sourceDir = path.join(__dirname, '../../uploads');
+                const thumbFolder = 'thumbnails';
+                // const thumbWidth = 300;
+                // const thumbHeight = 300;
+
+                // Define width/height per image key
+                const thumbnailSizes = {
+                    abt_image1: { width: 800, height: 520 },
+                    abt_image3: { width: 750, height: 650 },
+                    abt_image5: { width: 800, height: 600 },
+                    abt_image10: { width: 800, height: 560 },
+                    default: { width: 600, height: 400 },
+                };
+
+                //         for (const key of imageKeys) {
+                //         if (req.files[key]) {
+                //             const imageName = req.files[key][0].filename;
+                //             formData[key] = `/${imageName}`;
+
+                //             // ✅ Generate thumbnail for the uploaded image
+                //             try {
+                //                 await helpers.generateThumbnail(imageName, sourceDir, thumbFolder, thumbWidth, thumbHeight);
+                //                 console.log(`Thumbnail generated for ${key}: ${imageName}`);
+                //             } catch (thumbError) {
+                //                 console.error(`Failed to generate thumbnail for ${key}:`, thumbError.message);
+                //             }
+                //         }
+                //     }
+                // }
+
+                // ✅ Loop through all uploaded files dynamically
+                for (const [key, files] of Object.entries(req.files)) {
+                    if (files && files.length > 0) {
+                        const imageName = files[0].filename;
+                        formData[key] = `/${imageName}`;
+
+                        // Pick the right dimensions
+                        const { width, height } = thumbnailSizes[key] || thumbnailSizes.default;
+
+                        try {
+                            await helpers.generateThumbnail(imageName, sourceDir, thumbFolder, width, height);
+                            console.log(`✅ Thumbnail generated for ${key} (${width}×${height})`);
+                        } catch (err) {
+                            console.error(`❌ Thumbnail failed for ${key}:`, err.message);
+                        }
                     }
-                });
+                }
             }
+
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
@@ -1055,17 +1302,66 @@ class PagesController extends BaseController {
             const formData = { ...existingContent, ...helpers.sanitizeData(req.body) };
 
             if (req.files) {
-                const imageKeys = [
-                    'business_image1', 'sec1_business_image_0', 'sec1_business_image_1', 'sec1_business_image_2', 'sec1_business_image_3',
-                    'business_image6', 'sec3_business_image_0', 'sec3_business_image_1', 'sec3_business_image_2', 'sec3_business_image_3',
-                    'business_image11'
-                ];
+                // const imageKeys = [
+                //     'business_image1', 'sec1_business_image_0', 'sec1_business_image_1', 'sec1_business_image_2', 'sec1_business_image_3',
+                //     'business_image6', 'sec3_business_image_0', 'sec3_business_image_1', 'sec3_business_image_2', 'sec3_business_image_3',
+                //     'business_image11'
+                // ];
 
-                imageKeys.forEach((key) => {
-                    if (req.files[key]) {
-                        formData[key] = `/${req.files[key][0].filename}`;
+                //     imageKeys.forEach((key) => {
+                //         if (req.files[key]) {
+                //             formData[key] = `/${req.files[key][0].filename}`;
+                //         }
+                //     });
+                // }
+
+                const sourceDir = path.join(__dirname, '../../uploads');
+                const thumbFolder = 'thumbnails';
+                // const thumbWidth = 300;
+                // const thumbHeight = 300;
+
+                const thumbnailSizes = {
+                    business_image1: { width: 800, height: 530 },
+                    business_image6: { width: 800, height: 480 },
+                    sec3_business_image_0: { width: 400, height: 540 },
+                    sec3_business_image_1: { width: 400, height: 540 },
+                    sec3_business_image_2: { width: 400, height: 540 },
+                    sec3_business_image_3: { width: 400, height: 540 },
+                    business_image11: { width: 700, height: 600 },
+                    default: { width: 600, height: 400 }
+                };
+
+
+                // for (const key of imageKeys) {
+                //     if (req.files[key]) {
+                //         const imageName = req.files[key][0].filename;
+                //         formData[key] = `/${imageName}`;
+
+                //         // ✅ Generate thumbnail for the uploaded image
+                //         try {
+                //             await helpers.generateThumbnail(imageName, sourceDir, thumbFolder, thumbWidth, thumbHeight);
+                //             console.log(`Thumbnail generated for ${key}: ${imageName}`);
+                //         } catch (thumbError) {
+                //             console.error(`Failed to generate thumbnail for ${key}:`, thumbError.message);
+                //         }
+                //     }
+                // }
+                for (const [key, files] of Object.entries(req.files)) {
+                    if (files && files.length > 0) {
+                        const imageName = files[0].filename;
+                        formData[key] = `/${imageName}`;
+
+                        // Pick the right dimensions
+                        const { width, height } = thumbnailSizes[key] || thumbnailSizes.default;
+
+                        try {
+                            await helpers.generateThumbnail(imageName, sourceDir, thumbFolder, width, height);
+                            console.log(`✅ Thumbnail generated for ${key} (${width}×${height})`);
+                        } catch (err) {
+                            console.error(`❌ Thumbnail failed for ${key}:`, err.message);
+                        }
                     }
-                });
+                }
             }
 
             // Step 3: Convert updated data to JSON
@@ -1144,16 +1440,62 @@ class PagesController extends BaseController {
             const formData = { ...existingContent, ...helpers.sanitizeData(req.body) };
 
             if (req.files) {
-                const imageKeys = ['rider_image1', 'rider_image2', 'rider_image3', 'sec3_rider_image_0', 'sec3_rider_image_1', 'sec3_rider_image_2', 'sec3_rider_image_3',
-                    'sec4_rider_image_0', 'sec4_rider_image_1', 'sec4_rider_image_2', 'sec4_rider_image_3'
-                ];
+                // const imageKeys = ['rider_image1', 'rider_image2', 'rider_image3', 'sec3_rider_image_0', 'sec3_rider_image_1', 'sec3_rider_image_2', 'sec3_rider_image_3',
+                //     'sec4_rider_image_0', 'sec4_rider_image_1', 'sec4_rider_image_2', 'sec4_rider_image_3'
+                // ];
 
-                imageKeys.forEach((key) => {
-                    if (req.files[key]) {
-                        formData[key] = `/${req.files[key][0].filename}`;
+                //     imageKeys.forEach((key) => {
+                //         if (req.files[key]) {
+                //             formData[key] = `/${req.files[key][0].filename}`;
+                //         }
+                //     });
+                // }
+
+                const sourceDir = path.join(__dirname, '../../uploads');
+                const thumbFolder = 'thumbnails';
+                // const thumbWidth = 300;
+                // const thumbHeight = 300;
+
+                const thumbnailSizes = {
+                    rider_image1: { width: 800, height: 530 },
+                    rider_image2: { width: 800, height: 520 },
+                    rider_image3: { width: 600, height: 600 },
+                    default: { width: 600, height: 400 }
+                };
+
+                for (const [key, files] of Object.entries(req.files)) {
+                    if (files && files.length > 0) {
+                        const imageName = files[0].filename;
+                        formData[key] = `/${imageName}`;
+
+                        // Pick the right dimensions
+                        const { width, height } = thumbnailSizes[key] || thumbnailSizes.default;
+
+                        try {
+                            await helpers.generateThumbnail(imageName, sourceDir, thumbFolder, width, height);
+                            console.log(`✅ Thumbnail generated for ${key} (${width}×${height})`);
+                        } catch (err) {
+                            console.error(`❌ Thumbnail failed for ${key}:`, err.message);
+                        }
                     }
-                });
+                }
             }
+
+            // for (const key of imageKeys) {
+            //     if (req.files[key]) {
+            //         const imageName = req.files[key][0].filename;
+            //         formData[key] = `/${imageName}`;
+
+            //         // ✅ Generate thumbnail for the uploaded image
+            //         try {
+            //             await helpers.generateThumbnail(imageName, sourceDir, thumbFolder, thumbWidth, thumbHeight);
+            //             console.log(`Thumbnail generated for ${key}: ${imageName}`);
+            //         } catch (thumbError) {
+            //             console.error(`Failed to generate thumbnail for ${key}:`, thumbError.message);
+            //         }
+            //     }
+            // }
+
             // Step 4: Clear old sec_text values
             await this.pages.deleteSecTextValues('home');
 
@@ -1181,6 +1523,13 @@ class PagesController extends BaseController {
 
 
 
+
+
+
+
 }
 
 module.exports = PagesController;
+
+
+

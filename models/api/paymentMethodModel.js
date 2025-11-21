@@ -80,6 +80,8 @@ class PaymentMethodModel extends BaseModel {
 
 
     async updateInvoicePaymentDetails(id, { payment_method_id, payment_intent_id, payment_method, payment_intent }) {
+        console.log("Invoice Update Params:", id, payment_method_id, payment_intent_id);
+
         const query = `
             UPDATE credit_invoices 
             SET payment_method_id = ?, payment_intent_id = ?, payment_method = ?, payment_intent = ? , status = ?

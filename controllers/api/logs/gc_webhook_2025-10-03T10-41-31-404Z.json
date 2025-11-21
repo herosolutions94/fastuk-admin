@@ -1,0 +1,27 @@
+{
+  "events": [
+    {
+      "id": "EV027E5KCTENY7",
+      "created_at": "2025-10-03T09:05:40.435Z",
+      "resource_type": "mandates",
+      "action": "created",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "mandate_created",
+        "description": "Mandate created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "billing_request": "BRQ01K6MN2ZPAHQSH918FC3B279JE",
+        "mandate_request": "MRQ01K6MN2ZP58ANP8",
+        "mandate": "MD01K6MN3S11KVR7CJK8YPYP4ZRW"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6MNASTY4MPQ30XBGQSZ98VY"
+  }
+}

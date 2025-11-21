@@ -1,0 +1,31 @@
+{
+  "events": [
+    {
+      "id": "EV0288QVBCT27T",
+      "created_at": "2025-10-22T09:55:11.062Z",
+      "resource_type": "payments",
+      "action": "paid_out",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_paid_out",
+        "description": "The payment has been paid out by GoCardless.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "parent_event": "EV0288QTZZW07R",
+        "payout": "PO01K85KA713NPZR5WXHZXWVAED1",
+        "payment": "PM01K7GT6NV83SGSJQW5XHWTQKRY"
+      },
+      "resource_metadata": {
+        "type": "order",
+        "order_id": "293",
+        "invoice_id": "293"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K85PF8T3P6Y0CQ9HSY3Q0NWB"
+  }
+}

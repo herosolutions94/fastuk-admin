@@ -1,0 +1,191 @@
+{
+  "events": [
+    {
+      "id": "EV027H3M646ZE3",
+      "created_at": "2025-10-06T15:40:51.660Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6HVYAC6XR3FY4FQQ3529V55",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6HVYG0T55F1DTGEC0XR1N9P"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "order_1759388842777",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027H3MAD9D19",
+      "created_at": "2025-10-06T15:40:52.818Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6HXJM8VRAY6C1VD0JKT0BXF",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6HXJR34YXBASGHPA1HJ6NQC"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "order_1759390554915",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027H3MGZK9SP",
+      "created_at": "2025-10-06T15:40:54.527Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6HZKRF6Z81XD2TVKJ1WZS9S",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6HZKXKZ8P6W9A7ZERD6SX9M"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "order_1759392690430",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027H3MM4SEPX",
+      "created_at": "2025-10-06T15:40:55.267Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6J2PHY2BTF4THJPMD56RV6D",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6J2PPFK44YE01AJTPN7W6ER"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "order_1759395927055",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027H3MREBSXT",
+      "created_at": "2025-10-06T15:40:56.580Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6J3H2QF90HJZ9VY2MFSXSSX",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6J3HV3FHQQFCZG6GBKDRVPF"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "order_1759396816360",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027H3MR356Z5",
+      "created_at": "2025-10-06T15:40:56.469Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6J375XPTTYH5WXJAGDQ6BMN",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6J37EPEE3RW5RWCT74WX3Q8"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "order_1759396476121",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027H3MWBP8C2",
+      "created_at": "2025-10-06T15:40:57.778Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6J7XWA7FAD0MZ7JAVYJ4C23",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6J7Y253H8655P2WNHPJQBEZ"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "order_1759401410759",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027H3MKEY1S3",
+      "created_at": "2025-10-06T15:40:55.117Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6J20SRPTNV75GYDP7X7SMXY",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6J20Z9JMW2Y639B6CSM0NEF"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "order_1759395215096",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6X2XW9B0736QPYG35FZAEGT"
+  }
+}

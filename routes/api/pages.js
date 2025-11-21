@@ -9,6 +9,7 @@ const pagesController = new PagesController();
 
 
 router.get('/home', (req, res) => pagesController.getHomeData(req, res));
+router.get('/home2', (req, res) => pagesController.getHome2Data(req, res));
 router.get('/about', (req, res) => pagesController.getAboutData(req, res));
 router.get('/contact', (req, res) => pagesController.getContactData(req, res));
 router.get('/privacy-policy', (req, res) => pagesController.getPrivacyPolicyData(req, res));
@@ -35,6 +36,7 @@ router.post('/apply-promo', upload, (req, res) => pagesController.applyPromoCode
 router.post('/vehicles/by-category/:categoryId', upload, (req, res) => pagesController.getVehiclesByCategoryId(req, res));
 router.post('/upload-license', upload, (req, res) => pagesController.uploadLicense(req, res));
 router.post('/available-categories', upload, (req, res) => pagesController.getAvailableVehicleCategories(req, res));
+router.post('/create-flow', upload, (req, res) => pagesController.createRedirectFlow(req, res));
 // router.post('/orders', upload, (req, res) => pagesController.getOrders(req, res));
 
 

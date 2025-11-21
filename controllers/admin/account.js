@@ -52,6 +52,10 @@ const homeView = (req, res, next) => {
     res.render('admin/home', { layout: 'admin/layout' });
 };
 
+const home2View = (req, res, next) => {
+    res.render('admin/home2', { layout: 'admin/layout' });
+};
+
 const messageView = (req, res, next) => {
     res.render('admin/message', { layout: 'admin/layout' });
 };
@@ -106,6 +110,7 @@ module.exports = {
     indexView,
     // siteSettingsView,
     homeView,
+    home2View,
     messageView,
     messageDetailView,
     contactListView,

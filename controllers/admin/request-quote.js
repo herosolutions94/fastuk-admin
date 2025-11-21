@@ -50,7 +50,7 @@ class RequestQuoteController extends BaseController {
           "rq.status = 'accepted'"
         ]);
 
-      // console.log('Request Quotes:', requestQuotesWithMembers);
+      console.log('Request Quotes:', requestQuotesWithMembers);
 
       res.render("admin/request-quotes", {
         requestQuotes: requestQuotesWithMembers,
@@ -95,6 +95,14 @@ class RequestQuoteController extends BaseController {
       const parcels = await this.rider.getParcelDetailsByQuoteId(
         orderDetails.id
       );
+
+      // console.log("parcels:",parcels)
+
+      const order_stages_arr = await this.rider.getRequestOrderStages(orderDetails.id);
+
+      const vias = await this.rider.getViasByQuoteId(orderDetails.id);
+
+
       // const invoices = await this.rider.getInvoicesDetailsByRequestId(orderDetails.id);
       const reviews = await this.rider.getOrderReviews(orderDetails.id);
 
@@ -104,6 +112,38 @@ class RequestQuoteController extends BaseController {
 
       const encodedId = helpers.doEncode(orderDetails.id); // Encode ID properly
 
+      // Fetch attachments for each stage
+      for (let stage of order_stages_arr) {
+        const stage_attachments = await helpers.getDataFromDB(
+          "order_stages_attachments",
+          { stage_id: stage.id } // stage.id exists here
+        );
+
+        // Attach to stage object if needed
+        stage.attachments = stage_attachments;
+
+        // Format arrived_time
+  if (stage.arrival_time) {
+    stage.arrived_time_formatted = helpers.convertUtcSecondsToUKTime(stage.arrival_time);
+  } else {
+    stage.arrived_time_formatted = null;
+  }
+
+  // Format loaded_time
+  if (stage.loaded_time) {
+    stage.loaded_time_formatted = helpers.convertUtcSecondsToUKTime(stage.loaded_time);
+  } else {
+    stage.loaded_time_formatted = null;
+  }
+
+  // Format completed_time
+  if (stage.completed_time) {
+    stage.completed_time_formatted = helpers.convertUtcSecondsToUKTime(stage.completed_time);
+  } else {
+    stage.completed_time_formatted = null;
+  }
+      }
+
       const source_attachments = await helpers.getDataFromDB(
         "request_quote_attachments",
         { request_id: orderDetails.id, type: "source" }
@@ -112,41 +152,97 @@ class RequestQuoteController extends BaseController {
         "request_quote_attachments",
         { request_id: orderDetails.id, type: "destination" }
       );
+      for (let via of vias) {
+        const via_attachments = await helpers.getDataFromDB(
+          "request_quote_attachments",
+          {
+            request_id: orderDetails.id,
+            type: "via",
+            via_id: via?.id,
+          }
+        );
+
+        via.attachments = via_attachments; // Add attachments array to each via
+      }
+
+      // const source_attachments = await helpers.getDataFromDB(
+      //   "request_quote_attachments",
+      //   { request_id: orderDetails.id, type: "source" }
+      // );
+      // const destination_attachments = await helpers.getDataFromDB(
+      //   "request_quote_attachments",
+      //   { request_id: orderDetails.id, type: "destination" }
+      // );
 
       const categoryInfo = orderDetails.selected_vehicle
-                  ? await Vehicle.getCategoryAndMainCategoryById(orderDetails.selected_vehicle)
-                  : null;
-            
-                  // console.log("categoryInfo:",categoryInfo)
+        ? await Vehicle.getCategoryAndMainCategoryById(orderDetails.selected_vehicle)
+        : null;
+
+      // console.log("categoryInfo:", categoryInfo)
+
+            const invoices = await this.rider.getInvoicesDetailsByRequestId(orderDetails.id);
+
+
+  //     const totalAmount = (parseFloat(orderDetails?.total_amount) || 0) +
+  // invoices?.reduce((total, invoice) => {
+  //   // Ensure the charges are treated as numbers
+  //   const handballCharges = parseFloat(invoice.handball_charges) || 0; // Convert to number, default to 0 if NaN
+  //   const waitingCharges = parseFloat(invoice.waiting_charges) || 0; // Convert to number, default to 0 if NaN
+  //   console.log("charges",invoice.handball_charges,invoice.waiting_charges)
+  //   return total + handballCharges + waitingCharges;
+  // }, 0);
+
+const totalAmount = (parseFloat(orderDetails?.rider_price) * parseFloat(orderDetails?.distance)) +
+  invoices?.reduce((total, invoice) => {
+    // Ensure the charges are treated as numbers
+    const handballCharges = parseFloat(invoice.handball_charges) || 0; // Convert to number, default to 0 if NaN
+    const waitingCharges = parseFloat(invoice.waiting_charges) || 0; // Convert to number, default to 0 if NaN
+    return total + handballCharges + waitingCharges;
+  }, 0);
+
+  // console.log("orderDetails:",orderDetails)
+
+  //  Loop through jobs and add jobStatus
+   
+  
+    const jobStatus = await helpers.updateRequestQuoteJobStatus(orderDetails.id);
+ 
+
 
 
 
       const order = {
         ...orderDetails,
+        jobStatus,
+        invoices,
         formatted_start_date: helpers.formatDateToUK(orderDetails.start_date),
         category_name: categoryInfo?.category_name || null,
         main_category_name: categoryInfo?.main_category_name || null,
         encodedId: encodedId,
         parcels: parcels,
+        order_stages: order_stages_arr,
+        vias: vias,
+        totalAmount,
         // invoices: invoices,
         reviews: reviews,
         source_attachments: source_attachments,
-        vias: orderDetails.vias || [],
-        destination_attachments: destination_attachments
+        destination_attachments: destination_attachments,
+        // vias: orderDetails.vias || [],
+
       };
       //  console.log("orderDetails:",order)
 
-      for (let via of order.vias) {
-        const via_attachments = await helpers.getDataFromDB(
-          "request_quote_attachments",
-          {
-            request_id: order.id,
-            type: "via",
-            via_id: via?.id
-          }
-        );
-        via.attachments = via_attachments;
-      }
+      // for (let via of order.vias) {
+      //   const via_attachments = await helpers.getDataFromDB(
+      //     "request_quote_attachments",
+      //     {
+      //       request_id: order.id,
+      //       type: "via",
+      //       via_id: via?.id
+      //     }
+      //   );
+      //   via.attachments = via_attachments;
+      // }
 
       res.render("admin/order-details", {
         order

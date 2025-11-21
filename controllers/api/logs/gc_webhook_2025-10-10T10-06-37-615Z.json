@@ -1,0 +1,49 @@
+{
+  "events": [
+    {
+      "id": "EV027RGCXJGQ4A",
+      "created_at": "2025-10-10T09:45:10.226Z",
+      "resource_type": "payouts",
+      "action": "paid",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payout_paid",
+        "description": "GoCardless has transferred the payout to the creditor's bank account. FX payouts will emit this event but will continue to have a `pending` status until we emit the `payout_fx_rate_confirmed` event."
+      },
+      "links": {
+        "creditor": "CR01K6CP101HP781XRW2RYREFN40",
+        "payout": "PO01K76P5JAM5N3GYH54KTXVBNYS"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027RGCXM07JD",
+      "created_at": "2025-10-10T09:45:10.281Z",
+      "resource_type": "payments",
+      "action": "paid_out",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_paid_out",
+        "description": "The payment has been paid out by GoCardless.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "parent_event": "EV027RGCXJGQ4A",
+        "payout": "PO01K76P5JAM5N3GYH54KTXVBNYS",
+        "payment": "PM01K6HWZEC339B2BKQ3S2SSEGV6"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "order_1759389922382",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K76R5CK5NZG9JTZD74BTZM9G"
+  }
+}

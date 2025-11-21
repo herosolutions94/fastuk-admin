@@ -117,11 +117,36 @@ app.use((req, res, next) => {
     next();
 });
 
+const bodyParser = require('body-parser');
+app.use(bodyParser.json()); // Use body-parser for parsing JSON
+
+// const MemberController = require('./controllers/api/memberController');
+// const memberController = new MemberController();
+
+// app.post(
+//   "/api/gc/webhook",
+//   bodyParser.raw({ type: "application/json" }),
+//   (req, res) => memberController.webhookGoCardlessRequest(req, res)
+// );
+
+const MemberController = require('./controllers/api/memberController');
+const memberController = new MemberController(); 
+
+app.post(
+  "/api/gc/webhook",
+  bodyParser.raw({ type: "application/json" }),
+  (req, res) => memberController.webhookGoCardlessRequest(req, res)
+);
+
+app.post('/api/gc/confirm-payment', (req, res) => memberController.confirmPayment(req, res));
+
+
 // Configure CORS to allow requests from http://localhost:3000
 const allowedOrigins = ['http://localhost:3000', 'http://localhost:4000','https://18.133.79.26:4000','https://main.d2kaxncwefchi9.amplifyapp.com','https://admin.fastukcouriers.com','https://fastukcouriers.com'];
 
 app.use(cors({
     origin: (origin, callback) => {
+      // console.log("CORS origin:", origin);
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, origin);
         } else {
@@ -129,11 +154,13 @@ app.use(cors({
         }
     },
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization','accept'],
+    allowedHeaders: ['Content-Type', 'Authorization','accept', 'Webhook-Signature'],
     credentials: true // Allows cookies and other credentials
 }));
-const bodyParser = require('body-parser');
-app.use(bodyParser.json()); // Use body-parser for parsing JSON
+
+
+// const bodyParser = require('body-parser');
+// app.use(bodyParser.json()); // Use body-parser for parsing JSON
 
 const session = require('express-session');
 
@@ -152,6 +179,44 @@ app.use(session({
         maxAge: 1000 * 60 * 60 * 24 // Set session to expire after 1 day (24 hours)
     }
 }));
+
+
+// Webhook route BEFORE cors middleware
+// app.post("/api/gc/webhook", express.json({ type: "*/*" }), (req, res) => {
+//   try {
+//     const event = req.body.events?.[0];
+//     const customId = event?.resource_metadata?.custom_id;
+
+//     // console.log("Custom ID:", customId); // ✅ Your orderId
+//     const payload = req.body;
+
+//     const now = new Date();
+//     const timestamp = now.toISOString().replace(/[:.]/g, "-");
+//     const filename = `gc_webhook_${timestamp}.json`;
+
+//     // const logsDir = path.join(__dirname, "logs"); // fixed path
+//     const logsDir = path.join(__dirname, "logs");
+
+//     if (!fs.existsSync(logsDir)) {
+//       fs.mkdirSync(logsDir);
+//     }
+
+//     const filepath = path.join(logsDir, filename);
+//     fs.writeFileSync(filepath, JSON.stringify(payload, null, 2), "utf-8");
+
+//     console.log(`Webhook stored: ${filepath}`);
+
+
+    
+//     res.status(200).send("OK");
+//   } catch (err) {
+//     console.error("Webhook error:", err);
+//     res.status(500).send("Error");
+//   }
+// });
+
+
+
 
 
 const accountRoutes = require('./routes/admin/account')
@@ -221,6 +286,8 @@ app.use('/api', memberRoutes);
 app.use('/api', messageRoutes);
 app.use('/api', apiPagesRoutes);
 app.use('/api', authApiRoutes);
+
+
 
 app.use('/admin', accountRoutes);
 app.use('/admin', authRoutes);

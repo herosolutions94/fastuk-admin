@@ -1,0 +1,30 @@
+{
+  "events": [
+    {
+      "id": "EV027C9DCHZXV8",
+      "created_at": "2025-10-02T09:13:14.244Z",
+      "resource_type": "billing_requests",
+      "action": "flow_visited",
+      "metadata": {},
+      "details": {
+        "origin": "payer",
+        "cause": "billing_request_flow_visited",
+        "description": "The billing request flow has been visited."
+      },
+      "links": {
+        "customer": "CU01K6J2NXSTM46ZQGXY91X10YKJ",
+        "customer_bank_account": "BA01K6J2PHY2BTF4THJPMD56RV6D",
+        "mandate_request_mandate": "MD01K6J2PP22YP870WFPZY8KBTM5",
+        "billing_request_flow": "BRF01K6J2NXVWCER5GFWV2QQR86RK34W",
+        "billing_request": "BRQ01K6J2NXT8HH36MYBHP5E6R02P"
+      },
+      "resource_metadata": {
+        "custom_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6J3S52K7K2KK7EWCB3DZEC9"
+  }
+}

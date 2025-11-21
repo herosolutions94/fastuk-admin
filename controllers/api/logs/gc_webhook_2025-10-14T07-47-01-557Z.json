@@ -1,0 +1,75 @@
+{
+  "events": [
+    {
+      "id": "EV027V5S8VDTW4",
+      "created_at": "2025-10-14T07:46:53.681Z",
+      "resource_type": "billing_requests",
+      "action": "collect_bank_account",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_collect_bank_account",
+        "description": "Bank account details have been collected for this billing request."
+      },
+      "links": {
+        "customer": "CU01K7GTSKMHF3A72FY2222P1TEC",
+        "customer_bank_account": "BA01K7GTZE2P7913MM5W1FRB8ZHY",
+        "billing_request_flow": "BRF01K7GTSKPVE6XBPZSGS4W32MD5TXP",
+        "billing_request": "BRQ01K7GTSKN6X4G7737P5VGB9V92"
+      },
+      "resource_metadata": {
+        "type": "credit_invoice",
+        "order_id": "order_1760427822651",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027V5SG8QDJM",
+      "created_at": "2025-10-14T07:46:59.382Z",
+      "resource_type": "billing_requests",
+      "action": "payer_details_confirmed",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_payer_details_confirmed",
+        "description": "Payer has confirmed all their details for this billing request."
+      },
+      "links": {
+        "customer": "CU01K7GTSKMHF3A72FY2222P1TEC",
+        "customer_bank_account": "BA01K7GTZE2P7913MM5W1FRB8ZHY",
+        "billing_request_flow": "BRF01K7GTSKPVE6XBPZSGS4W32MD5TXP",
+        "billing_request": "BRQ01K7GTSKN6X4G7737P5VGB9V92"
+      },
+      "resource_metadata": {
+        "type": "credit_invoice",
+        "order_id": "order_1760427822651",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027V5SHH278Q",
+      "created_at": "2025-10-14T07:47:00.443Z",
+      "resource_type": "mandates",
+      "action": "created",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "mandate_created",
+        "description": "Mandate created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "billing_request": "BRQ01K7GTSKN6X4G7737P5VGB9V92",
+        "mandate_request": "MRQ01K7GTSKN27G63J",
+        "mandate": "MD01K7GTZMNDW52H6M49ECNYWPH7"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K7GTZNQ68ENN3M66ANBDS4FS"
+  }
+}

@@ -28,7 +28,7 @@ const upload = multer({
     // console.log(file)
     const allowedExtensions = ['.webp', '.ico', '.jpg', '.jpeg', '.png', '.gif', '.svg', '.mp4', '.mov', '.avi','.mp3', '.ogg', '.wav'];
     const extname = path.extname(file.originalname).toLowerCase();
-    console.log("Final Stored Filename:", extname); // Debugging
+    // console.log("Final Stored Filename:", extname); // Debugging
 
     if (allowedExtensions.includes(extname)) {
       return cb(null, true);
@@ -52,6 +52,20 @@ const upload = multer({
   { name: 'team_mem_image', maxCount: 1 },
   { name: 'service_image', maxCount: 1 },
   { name: 'image1', maxCount: 1 },
+  { name: 'image2', maxCount: 1 },
+  { name: 'image3', maxCount: 1 },
+  { name: 'image4', maxCount: 1 },
+  { name: 'image5', maxCount: 1 },
+  { name: 'image6', maxCount: 1 },
+  { name: 'image7', maxCount: 1 },
+  { name: 'image8', maxCount: 1 },
+  { name: 'cta_image', maxCount: 1 },
+  { name: 'sec3_image_0', maxCount: 1 },
+  { name: 'sec3_image_1', maxCount: 1 },
+  { name: 'sec3_image_2', maxCount: 1 },
+  { name: 'sec3_image_3', maxCount: 1 },
+  { name: 'sec4_image_0', maxCount: 1 },
+  { name: 'sec4_image_1', maxCount: 1 },
   { name: 'sec1_image_0', maxCount: 1 },
   { name: 'sec1_image_1', maxCount: 1 },
   { name: 'sec1_image_2', maxCount: 1 },

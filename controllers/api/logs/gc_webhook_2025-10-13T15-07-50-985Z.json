@@ -1,0 +1,97 @@
+{
+  "events": [
+    {
+      "id": "EV027TEXG7NX58",
+      "created_at": "2025-10-13T15:07:43.889Z",
+      "resource_type": "mandates",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_submitted",
+        "description": "The mandate has been submitted to the banks.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K7EN10Q1SMS2R0X5MZN4SSJE"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027TEXM8DBQ3",
+      "created_at": "2025-10-13T15:07:45.231Z",
+      "resource_type": "mandates",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_submitted",
+        "description": "The mandate has been submitted to the banks.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K7EQ7GAQQBWP30NJACJBB7SR"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027TEXJ0D55V",
+      "created_at": "2025-10-13T15:07:44.317Z",
+      "resource_type": "mandates",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_submitted",
+        "description": "The mandate has been submitted to the banks.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K7ENT2AGDDPMM1WY7J9H9E5E"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027TEXK9J0GG",
+      "created_at": "2025-10-13T15:07:44.898Z",
+      "resource_type": "mandates",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_submitted",
+        "description": "The mandate has been submitted to the banks.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K7EP4XW6YC78Y5FF9X4CT2N1"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027TEXSDKYX4",
+      "created_at": "2025-10-13T15:07:46.996Z",
+      "resource_type": "mandates",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_submitted",
+        "description": "The mandate has been submitted to the banks.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K7EQT57M2T25SKE0J6TXATT8"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K7F1T47KJH23KFJ2A2G0KJ1E"
+  }
+}

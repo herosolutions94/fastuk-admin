@@ -1,0 +1,25 @@
+{
+  "events": [
+    {
+      "id": "EV027TCZ2G5CHJ",
+      "created_at": "2025-10-13T11:31:58.897Z",
+      "resource_type": "mandates",
+      "action": "active",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_activated",
+        "description": "The time window after submission for the banks to refuse a mandate has ended without any errors being received, so this mandate is now active.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K749MNEGJYVTB7PZS4F4J345"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K7ENEWWEQ7MR5NVEYTBJE0Z2"
+  }
+}

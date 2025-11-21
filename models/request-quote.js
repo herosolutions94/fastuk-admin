@@ -35,40 +35,40 @@ class RequestQuoteModel extends BaseModel {
     // }
 
     static async getRequestQuotesWithMembers(whereConditions) {
-        try {
-            let query = `
-                SELECT 
-                    rq.*, 
-                    m.id AS user_id, 
-                    m.full_name AS member_name, 
-                    m.mem_image AS member_image,
-                    r.id AS rider_id,
-                    r.full_name AS rider_name,
-                    r.mem_image AS rider_image
-                FROM ${this.tableName} rq
-                INNER JOIN members m ON rq.user_id = m.id
-                LEFT JOIN riders r ON rq.assigned_rider = r.id
-            `;
+    try {
+        let query = `
+            SELECT 
+                rq.*, 
+                m.id AS user_id, 
+                m.full_name AS member_name, 
+                m.mem_image AS member_image,
+                m.email AS member_email,
+                m.mem_phone AS member_phone,
+                r.id AS rider_id,
+                r.full_name AS rider_name,
+                r.mem_image AS rider_image
+            FROM ${this.tableName} rq
+            INNER JOIN members m ON rq.user_id = m.id
+            LEFT JOIN riders r ON rq.assigned_rider = r.id
+        `;
 
-            // Append additional WHERE conditions if provided
-            if (Array.isArray(whereConditions) && whereConditions.length > 0) {
-                if(whereConditions[0]){
-                    query+= `Where`;
-                }
-                query += ` ${whereConditions.join(" AND ")}`;
-            }
-            query += `GROUP BY rq.id`;
-            const [rows] = await pool.query(query);
-    
-            // console.log("ID:", id); // Ensure the ID is logged
-            // console.log("getRequestQuotesWithMembers Result:", rows); // Log the query result
-    
-            return rows; // Return the rows with request quotes and member details
-        } catch (error) {
-            console.error('Error fetching request quotes with members:', error);
-            throw error;
+        // If WHERE conditions exist
+        if (Array.isArray(whereConditions) && whereConditions.length > 0) {
+            query += ` WHERE ${whereConditions.join(" AND ")} `;
         }
+
+        // FIX: Add space before GROUP BY
+        query += ` GROUP BY rq.id`;
+
+        const [rows] = await pool.query(query);
+        return rows;
+
+    } catch (error) {
+        console.error('Error fetching request quotes with members:', error);
+        throw error;
     }
+}
+
 
     static async getOrderDetailsById(orderId) {
     try {
@@ -103,6 +103,11 @@ class RequestQuoteModel extends BaseModel {
             FROM order_details
             WHERE order_id = ?;
         `;
+        const order_stages = `
+            SELECT *
+            FROM order_stages
+            WHERE order_id = ?;
+        `;
         const viasQuery = `
             SELECT *
             FROM vias
@@ -118,6 +123,7 @@ class RequestQuoteModel extends BaseModel {
         // Execute queries
         const [orderRows] = await pool.query(orderQuery, [orderId]);
         const [parcelsRows] = await pool.query(parcelsQuery, [orderId]);
+        const [order_stages_arr] = await pool.query(order_stages, [orderId]);
         const [viasRows] = await pool.query(viasQuery, [orderId]);
         const [parcelsDistanceQueryRows] = await pool.query(parcelsDistanceQuery, [orderId]);
         let vehicle_name="";
@@ -137,7 +143,8 @@ class RequestQuoteModel extends BaseModel {
             invoices: invoicesRows,
             vias:viasRows,
             total_distance: parcelsDistanceQueryRows?.length > 0 ? parcelsDistanceQueryRows[0]?.total_distance : 0,
-            vehicle_name:vehicle_name
+            vehicle_name:vehicle_name,
+            order_stages_arr
         };
     } catch (error) {
         console.error('Error fetching order details:', error);
@@ -151,7 +158,9 @@ class RequestQuoteModel extends BaseModel {
     
     
     static async getRequestQuoteById(id) {
+        // console.log("id",id)
         const [requestQuote] = await pool.query(`SELECT * FROM ${this.tableName} WHERE id = ?`, [id]);
+        // console.log("requestQuote",requestQuote)
         return requestQuote; // This should be an object, not an array
     }
 
@@ -216,8 +225,9 @@ static async calculateDueAmount(id) {
 }
 
 static async updateRequestStatus(id, status) {
-    const query = `UPDATE request_quote SET status = ? WHERE id = ?`;
-    const values = [status, id];
+    // console.log(id,status);return;
+    const query = `UPDATE request_quote SET status = ?, request_status = ? WHERE id = ?`;
+    const values = [status,status, id];
     try {
         const [result] = await pool.query(query, values);
         
@@ -229,6 +239,8 @@ static async updateRequestStatus(id, status) {
             throw new Error('Error updating request quote status: ' + error.message);
         }
 }
+
+
 
 static async getRequestQuoteDetailsById(id) {
   try {
@@ -250,11 +262,15 @@ static async getRequestQuoteDetailsById(id) {
     const parcelsQuery = `SELECT * FROM request_parcels WHERE request_id = ? ORDER BY id ASC`;
     const [parcels] = await pool.query(parcelsQuery, [id]);
 
+    const order_stages = `SELECT * FROM order_stages WHERE order_id = ? ORDER BY id ASC`;
+    const [order_stages_arr] = await pool.query(order_stages, [id]);
+
     // 4. Combine everything
     return {
       ...quote,
       vias,
       parcels,
+      order_stages_arr
     };
   } catch (err) {
     console.error("getRequestQuoteDetailsById error:", err);

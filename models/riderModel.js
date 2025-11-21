@@ -67,15 +67,47 @@ class RiderModel extends BaseModel {
         // Execute the query, adding the memberId to the values array
         await pool.query(query, [...values, riderId]);
     }
-    async getRequestQuotesByCity (city) {
-        const query = `
-            SELECT * FROM request_quote
-            WHERE source_city = ? AND assigned_rider IS NULL ORDER BY id DESC;
-        `;
-        // console.log(query,city)
-        const [rows] = await pool.query(query, [city]); // Using promise wrapper
-        return rows;
-    };
+    async updateOrderStageData(stage_id, data) {
+        // Extract keys and values from the data object
+        const keys = Object.keys(data); // ['otp', 'expire_time']
+        const values = Object.values(data); // [newOtp, newExpireTime]
+
+        // Construct the SET clause dynamically
+        const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
+
+        // Build the query dynamically
+        const query = `UPDATE order_stages SET ${setClause} WHERE id = ?`;
+
+        // Execute the query, adding the memberId to the values array
+        await pool.query(query, [...values, stage_id]);
+    }
+async getRequestQuotesByCity(city, categoryIds) {
+    if (!Array.isArray(categoryIds) || categoryIds.length === 0) {
+        return [];
+    }
+
+    const placeholders = categoryIds.map(() => "?").join(",");
+
+    const query = `
+    SELECT DISTINCT rq.*
+    FROM request_quote rq
+    JOIN rider_vehicle_categories rvc
+        ON rq.selected_vehicle = rvc.category_id
+    WHERE 
+        rq.source_city = ?
+        AND rq.assigned_rider IS NULL
+        AND rvc.category_id IN (${placeholders})
+    ORDER BY rq.id DESC
+`;
+    
+
+    // console.log("Query:", query, "Params:", [city, ...categoryIds]);
+
+    const [rows] = await pool.query(query, [city, ...categoryIds]);
+    return rows;
+}
+
+
 
     // Fetch vias for a request_quote
     async getViasByQuoteId  (quoteId)  {
@@ -112,10 +144,45 @@ async getParcelDetailsByQuoteId (quoteId) {
     const [rows] = await pool.query(query, [quoteId]);
     return rows;
 };
+async getRequestOrderStages(quoteId) {
+  const query = `
+    SELECT * FROM order_stages
+    WHERE order_id = ?
+  `;
+  const [stages] = await pool.query(query, [quoteId]);
+
+  // fetch attachments for each stage
+  for (let stage of stages) {
+    const [attachments] = await pool.query(
+      `SELECT * FROM order_stages_attachments WHERE stage_id = ?`,
+      [stage.id]
+    );
+    stage.attachments = attachments; // ✅ add as array
+  }
+
+  return stages;
+};
+async getRequestOrderStageRow (quoteId,stage_id) {
+    const query = `
+        SELECT * FROM order_stages
+        WHERE order_id = ? AND id = ?
+    `;
+    const [rows] = await pool.query(query, [quoteId,stage_id]);
+    // console.log("rows",rows)
+    return rows[0];
+};
 
 async getRequestQuoteById(requestId) {
     const query = `SELECT * FROM request_quote WHERE id = ?`;
     const [rows] = await pool.query(query, [requestId]);
+    // console.log("Request:",rows)
+    return rows[0]; // Return the first row if it exists
+}
+
+async getRequestQuoteByUserId(userId) {
+  // console.log("userId:",userId)
+    const query = `SELECT * FROM request_quote WHERE user_id = ?`;
+    const [rows] = await pool.query(query, [userId]);
     // console.log("Request:",rows)
     return rows[0]; // Return the first row if it exists
 }
@@ -141,7 +208,7 @@ async assignRiderAndUpdateStatus(riderId, requestId) {
             id = ?`; // Ensure the current status is 'paid'
 
     const [result] = await pool.query(query, [riderId, assignedDate, endTime, updatedTime, requestId]);
-    console.log("endTime:", endTime)
+    // console.log("endTime:", endTime)
     return result; // Contains affectedRows and other info
 }
 async UpdateOrderStatus(riderId, requestId,request_status) {
@@ -213,7 +280,7 @@ async getOrdersByRiderAndStatus({ riderId, status }) {
         rq.id DESC
     `;
 
-          console.log("Fetching orders for rider:", riderId, "with status:", status);
+          // console.log("Fetching orders for rider:", riderId, "with status:", status);
 
 
         const [rows] = await pool.query(query, values);
@@ -637,6 +704,29 @@ async updateEarningStatusToCleared(earningId) {
         throw new Error("Failed to fetch invoices");
     }
 };
+
+ getInvoiceByOrderStageAndType= async (request_id, via_id, amount_type) => {
+  try {
+    const sql = `
+      SELECT *
+      FROM invoices
+      WHERE request_id = ?
+      AND via_id = ?
+      AND amount_type = ?
+      LIMIT 1
+    `;
+
+    const [rows] = await pool.query(sql, [request_id, via_id, amount_type]);
+
+    return rows.length > 0 ? rows[0] : null;
+
+  } catch (error) {
+    console.error("Error fetching invoice:", error);
+    return null; // or throw error if you want
+  }
+}
+
+
 async updateRequestInvoice(invoice_id, data) {
         // Extract keys and values from the data object
         const keys = Object.keys(data); // ['otp', 'expire_time']
@@ -709,20 +799,15 @@ updateViaSourceCompleted = async (id) => {
     const query = `
         SELECT 
             r.id AS request_id,
-            i.type,
             i.via_id,
             MAX(CASE WHEN i.amount_type = 'handball' THEN i.amount ELSE NULL END) AS handball_charges,
             MAX(CASE WHEN i.amount_type = 'waiting' THEN i.amount ELSE NULL END) AS waiting_charges,
-            CASE
-                WHEN i.type = 'source' THEN r.source_address
-                WHEN i.type = 'destination' THEN r.dest_address
-                WHEN i.type = 'via' THEN v.address
-            END AS address
+            os.address
         FROM invoices i
         JOIN request_quote r ON i.request_id = r.id
-        LEFT JOIN vias v ON i.via_id = v.id
+        LEFT JOIN order_stages os ON os.id = i.via_id
         WHERE r.id = ?
-        GROUP BY r.id, i.type, i.via_id, r.source_address, r.dest_address, v.address
+        GROUP BY i.via_id
         ORDER BY i.id ASC;
     `;
     try {
@@ -732,7 +817,6 @@ updateViaSourceCompleted = async (id) => {
         const invoices = rows.map(row => {
             return {
                 request_id: row.request_id,
-                type: row.type,
                 via_id: row.via_id,
                 handball_charges: row.handball_charges,
                 waiting_charges: row.waiting_charges,
@@ -821,7 +905,7 @@ async getCompletedOrdersByRider(riderId) {
       ON 
         rq.id = rp.request_id
       WHERE 
-        rq.assigned_rider = ? AND rq.status = ?
+        rq.assigned_rider = ? AND rq.status != ?
       GROUP BY 
         rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
       ORDER BY 
@@ -857,6 +941,25 @@ async getCompletedOrdersByRider(riderId) {
       throw new Error("Database query failed.");
     }
   }
+
+  async getCurrentOrdersByStatus(riderId) {
+  const query = `
+    SELECT COUNT(*) AS total_orders
+    FROM request_quote
+    WHERE assigned_rider = ? 
+      AND status != 'completed'
+  `;
+  const values = [riderId];
+
+  try {
+    const [rows] = await pool.query(query, values);
+    return rows[0].total_orders; // ✅ consistent with alias
+  } catch (error) {
+    console.error("Error fetching total orders:", error.message);
+    throw new Error("Database query failed.");
+  }
+}
+
   
   // Get the total count of completed orders for a rider
   async getTotalCompletedOrders(riderId) {
@@ -1008,14 +1111,14 @@ async getCompletedOrdersByRider(riderId) {
       VALUES (?, ?, ?)
     `;
     const values = [rider_id, filename, type];
-    console.log("values:",values)
+    // console.log("values:",values)
     await pool.query(query, values);
   }
 
   async createAttachments(attachments) {
     const values = attachments.map(att => `('${att.rider_id}', '${att.filename}', '${att.type}')`).join(',');
     const query = `INSERT INTO rider_attachments (rider_id, filename, type) VALUES ${values}`;
-    console.log("values:",values)
+    // console.log("values:",values)
     await pool.query(query);
   }
 
@@ -1023,9 +1126,9 @@ async getCompletedOrdersByRider(riderId) {
   async getRiderAttachments(riderId) {
     const query = `SELECT * FROM rider_attachments WHERE rider_id = ?`;
     const values = [riderId];
-    console.log("riderId:",riderId)
+    // console.log("riderId:",riderId)
     const [rows] = await pool.query(query, values); // Destructure only the rows
-    console.log("rows:", rows); // This should now log actual data
+    // console.log("rows:", rows); // This should now log actual data
     return rows;
   }
 
@@ -1043,14 +1146,65 @@ async getCompletedOrdersByRider(riderId) {
   const query = `
     SELECT v.id
     FROM rider_vehicle_categories rvc
-    JOIN vehicle_categories v ON v.id = rvc.category_id
+    JOIN vehicles v ON v.id = rvc.category_id
     WHERE rvc.rider_id = ?
   `;
   const [rows] = await pool.query(query, [riderId]);
-  console.log("rows:",rows)
+  // console.log("rows:",rows)
 
   return rows.map(row => row.id); // Return only names in array
 }
+
+async getRiderCategoriesById(rider_id) {
+  const query = `
+    SELECT category_id 
+    FROM rider_vehicle_categories
+    WHERE rider_id = ?
+  `;
+  // console.log(query,rider_id)
+  const [rows] = await pool.query(query, [rider_id]);
+  return rows.map(r => r.category_id);
+}
+
+
+async getOrderStages(orderId) {
+  const query = `SELECT * FROM order_stages WHERE order_id = ?`;
+  const [rows] = await pool.query(query, [orderId]);
+  return rows;
+}
+
+
+async updateParcelStatus(id, status) {
+  const arrival_time = helpers.getUtcTimeInSeconds(); // Only set if status is 'arrived'
+  const updated_time = helpers.getUtcTimeInSeconds(); // Always update for any action
+
+  // Build query depending on status
+  let query, values;
+
+  if (status === "arrived") {
+    query = `UPDATE order_stages 
+             SET status = ?, arrival_time = ?, updated_time = ?
+             WHERE id = ?`;
+    values = [status, arrival_time, updated_time, id];
+  } else {
+    query = `UPDATE order_stages 
+             SET status = ?, updated_time = ?
+             WHERE id = ?`;
+    values = [status, updated_time, id];
+  }
+
+  // console.log("SQL:", query, values);
+  return pool.query(query, values);
+}
+
+ async getUserById(userId) {
+        const query = `SELECT * FROM members WHERE id = ?`;
+        const [rows] = await pool.query(query, [userId]);
+        // console.log(rows)
+    return rows.length ? rows[0] : null; // Return the first result or null
+    }
+
+
 
 
   

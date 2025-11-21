@@ -1,0 +1,717 @@
+<section id="dashbaord">
+    <div class="contain-fluid">
+        <div class="heading">
+            <div class="text">
+                <h3>Update Home Page Content</h3>
+                <ul>
+                    <li><a href="/admin/dashboard">Dashboard</a></li>
+                    <li class="active"><a href="">Home Page</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="dashTable">
+            <form action="/admin/pages/home2-form" class="frmAjax" method="post" enctype="multipart/form-data">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Page Title & Meta Details</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                    <div class="col-md-12">
+                                        <div class="txtGrp">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <label class="form-label">Page Title
+
+                                                    </label>
+                                                    <input type="text" name="page_title"
+                                                        value="<%= contentData.page_title || '' %>" class="input"
+                                                        required="" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="txtGrp">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <label class="form-label">Meta Title
+
+                                                    </label>
+                                                    <input type="text" name="meta_title"
+                                                        value="<%= contentData.meta_title || '' %>" class="input"
+                                                        required="" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="txtGrp">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <label class="form-label">Meta Description
+                                                    </label>
+                                                    <textarea rows="5" name="meta_desc"
+                                                        class="input"><%= contentData.meta_desc || '' %></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="txtGrp">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <label class="form-label">Meta Keywords
+
+                                                    </label>
+                                                    <textarea rows="5" name="meta_keywords"
+                                                        class="input"><%= contentData.meta_keywords || '' %></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Banner</h5>
+                            </div>
+                            <div class="card-body full_width">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="card">
+                                            <div class="card-body preview">
+                                                <h5 class="card-title">Image</h5>
+                                                <div class="blog_img">
+                                                    <img src="<%=/uploads/+ contentData.image1 %>" class="card-img-top"
+                                                        alt="" />
+                                                </div>
+                                                <div class="in-upload">
+                                                    <button type="button" class="uploadImg">
+                                                        <i class="fa-regular fa-image"></i>choose
+                                                        another
+                                                        image
+                                                    </button>
+                                                    <input type="file" name="image1" class="uploadFile" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card">
+                                            <div class="card-body preview">
+                                                <h5 class="card-title">Image</h5>
+                                                <div class="blog_img">
+                                                    <img src="<%=/uploads/+ contentData.image2 %>" class="card-img-top"
+                                                        alt="" />
+                                                </div>
+                                                <div class="in-upload">
+                                                    <button type="button" class="uploadImg">
+                                                        <i class="fa-regular fa-image"></i>choose another
+                                                        image
+                                                    </button>
+                                                    <input type="file" name="image2" class="uploadFile" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <div class="card">
+                                            <div class="card-body preview">
+                                                <h5 class="card-title">Image</h5>
+                                                <div class="blog_img">
+                                                    <img src="<%=/uploads/+ contentData.image3 %>" class="card-img-top"
+                                                        alt="" />
+                                                </div>
+                                                <div class="in-upload">
+                                                    <button type="button" class="uploadImg">
+                                                        <i class="fa-regular fa-image"></i>choose another
+                                                        image
+                                                    </button>
+                                                    <input type="file" name="image3" class="uploadFile" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+
+
+
+
+                                </div>
+
+
+                                <div class="row">
+                                    <div class="txtGrp">
+                                        <label class="form-label">Heading</label>
+                                        <input name="banner_heading" value="<%= contentData?.banner_heading || '' %>"
+                                            class="input">
+                                    </div>
+
+                                    <div class="txtGrp">
+                                        <label class="form-label">Text</label>
+                                        <textarea type="text" name="banner_text"
+                                            class="input"><%= contentData?.banner_text || '' %></textarea>
+                                    </div>
+
+                                </div>
+
+                                <div class="row">
+                                    
+                                        <div class="col-md-6">
+                                            <div class="txtGrp">
+                                                <label class="form-label">Number</label>
+                                                <input type="text" name="banner_number1"
+                                                    value="<%= contentData?.banner_number1 || '' %>"
+                                                    class="input">
+                                            </div>
+                                            <div class="txtGrp">
+                                                <label class="form-label">Heading</label>
+                                                <input name="banner_heading1"
+                                                    value="<%= contentData?.banner_heading1 || '' %>"
+                                                    class="input">
+                                            </div>
+                                        </div>
+                                         <div class="col-md-6">
+                                            <div class="txtGrp">
+                                                <label class="form-label">Number</label>
+                                                <input type="text" name="banner_number2"
+                                                    value="<%= contentData?.banner_number2 || '' %>"
+                                                    class="input">
+                                            </div>
+                                            <div class="txtGrp">
+                                                <label class="form-label">Heading</label>
+                                                <input name="banner_heading2"
+                                                     value="<%= contentData.banner_heading2 || '' %>" 
+                                                    class="input">
+                                            </div>
+                                        </div>
+                                        
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="clearfix"></div>
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Section 1</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="col-md-12 full_width">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="card">
+                                                <div class="card-body preview">
+                                                    <h5 class="card-title">Image</h5>
+                                                    <div class="blog_img">
+                                                        <img src="<%=/uploads/+ contentData.image4 %>"
+                                                            class="card-img-top" alt="" />
+                                                    </div>
+                                                    <div class="in-upload">
+                                                        <button type="button" class="uploadImg">
+                                                            <i class="fa-regular fa-image"></i>choose
+                                                            another
+                                                            image
+                                                        </button>
+                                                        <input type="file" name="image4" class="uploadFile" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="card">
+                                                <div class="card-body preview">
+                                                    <h5 class="card-title">Image</h5>
+                                                    <div class="blog_img">
+                                                        <img src="<%=/uploads/+ contentData.image5 %>"
+                                                            class="card-img-top" alt="" />
+                                                    </div>
+                                                    <div class="in-upload">
+                                                        <button type="button" class="uploadImg">
+                                                            <i class="fa-regular fa-image"></i>choose
+                                                            another
+                                                            image
+                                                        </button>
+                                                        <input type="file" name="image5" class="uploadFile" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div class="col-md-8">
+                                            <div class="txtGrp">
+                                                        <div class="txtGrp">
+                                                            <label class="form-label" for="detail">Heading</label>
+                                                            <textarea class="ckeditor" name="sec1_heading"
+                                                                id="sec1_heading"><%= contentData?.sec1_heading || '' %></textarea>
+                                                        </div>
+                                                    </div>
+                                            
+                                        </div>
+
+
+
+                                    </div>
+
+                                    <div class="row">
+                                        <% for (let i=0; i < 3; i++) { %>
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="txtGrp">
+                                                        <div class="txtGrp">
+                                                            <label class="form-label" for="detail">Description</label>
+                                                            <textarea class="ckeditor" name="sec1_description_<%= i %>"
+                                                                id="section1_desc1"><%= contentData[`sec1_description_${i}` ] || '' %></textarea>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+
+
+                                            </div>
+                                            <% } %>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="clearfix"></div>
+                        </div>
+                    </div>
+
+
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Section 2</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="col-md-12 full_width">
+                                    <div class="row">
+                                        <div class="txtGrp">
+                                            <label class="form-label">Heading</label>
+                                            <input name="sec2_heading" value="<%=contentData.sec2_heading || '' %>"
+                                                class="input">
+                                        </div>
+
+                                        <div class="clearfix"></div>
+                                        <% for (let i=0; i < 4; i++) { %>
+                                            <div class="col-md-6">
+
+                                                <div class="txtGrp">
+                                                    <label class="form-label">Number</label>
+                                                    <input name="sec2_number_<%= i %>"
+                                                        value="<%= contentData[`sec2_number_${i}`] || '' %>"
+                                                        class="input">
+                                                </div>
+
+                                                <div class="txtGrp">
+                                                    <label class="form-label">Text</label>
+                                                    <textarea class="ckeditor" type="text" name="sec2_text_<%= i %>"
+                                                        class="input"><%= contentData[`sec2_text_${i}`] || '' %></textarea>
+                                                </div>
+
+                                            </div>
+                                            <% } %>
+                                                <div class="clearfix"></div>
+                                    </div>
+                                </div>
+                                <div class="clearfix"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Section 3</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="col-md-12 full_width">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="card">
+                                                <div class="card-body preview">
+                                                    <h5 class="card-title">Image</h5>
+                                                    <div class="blog_img">
+                                                        <img src="<%=/uploads/+ contentData.image6 %>"
+                                                            class="card-img-top" alt="" />
+                                                    </div>
+                                                    <div class="in-upload">
+                                                        <button type="button" class="uploadImg">
+                                                            <i class="fa-regular fa-image"></i>choose
+                                                            another
+                                                            image
+                                                        </button>
+                                                        <input type="file" name="image6" class="uploadFile" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="txtGrp">
+                                                        <label class="form-label" for="detail">Description</label>
+                                                        <textarea class="ckeditor" name="description3"
+                                                            id="description3"><%= contentData.description3 || '' %></textarea>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                        <div class="clearfix"></div>
+
+                                    </div>
+
+                                    <div class="row">
+                                        <% for (let i=0; i < 4; i++) { %>
+                                            <div class="col-md-6">
+
+                                                <div class="card">
+                                                    <div class="card-body preview">
+                                                        <h5 class="card-title">Image
+                                                        </h5>
+                                                        <div class="blog_img forth_icon">
+                                                            <img src="<%=/uploads/+ contentData[`sec3_image_${i}`] %>"
+                                                                class="card-img-top" alt="">
+                                                        </div>
+                                                        <div class="in-upload">
+                                                            <button type="button" class="uploadImg">
+                                                                <i class="fa-regular fa-image"></i>
+                                                                choose another image
+                                                            </button>
+                                                            <input type="file" name="sec3_image_<%= i %>"
+                                                                class="uploadFile">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="txtGrp">
+                                                    <label class="form-label">Text</label>
+                                                    <textarea type="text" name="sec3_text_<%= i %>"
+                                                        class="input"><%= contentData[`sec3_text_${i}`] || '' %></textarea>
+                                                </div>
+
+
+
+                                            </div>
+                                            <% } %>
+                                    </div>
+                                </div>
+                                <div class="clearfix"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Section 4</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="col-md-12 full_width">
+                                    <div class="col-md-12">
+                                        <div class="txtGrp">
+                                            <label class="form-label" for="detail">Description</label>
+                                            <textarea class="ckeditor" name="description4"
+                                                id="description4"><%= contentData.description4 || '' %></textarea>
+                                        </div>
+                                    </div>
+                                    <% for (let i=0; i < 2; i++) { %>
+                                        <div class="row">
+                                            <div class="col-md-4">
+                                                <div class="card">
+                                                    <div class="card-body preview">
+                                                        <h5 class="card-title">Image</h5>
+                                                        <div class="blog_img">
+                                                            <img src="<%=/uploads/+ contentData[`sec4_image_${i}`] %>"
+                                                                class="card-img-top" alt="" />
+                                                        </div>
+                                                        <div class="in-upload">
+                                                            <button type="button" class="uploadImg">
+                                                                <i class="fa-regular fa-image"></i>choose
+                                                                another
+                                                                image
+                                                            </button>
+                                                            <input type="file" name="sec4_image_<%= i %>"
+                                                                class="uploadFile" />
+                                                        </div>
+                                                    </div>
+                                                    <hr />
+
+                                                </div>
+                                            </div>
+
+
+
+                                            <div class="col-md-8">
+
+                                                <div class="txtGrp">
+                                                    <label class="form-label">Number</label>
+                                                    <input type="number" name="sec4_number_<%= i %>"
+                                                        value="<%= contentData[`sec4_number_${i}`] || '' %>"
+                                                        class="input">
+                                                </div>
+                                                <div class="txtGrp">
+                                                    <div class="txtGrp">
+                                                        <label class="form-label" for="detail">Description</label>
+                                                        <textarea class="ckeditor" name="sec4_text_<%= i %>"
+                                                            id="description4"><%= contentData[`sec4_text_${i}`] || '' %></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6">
+                                                        <div class="txtGrp">
+                                                            <label class="form-label">Link Text
+                                                            </label>
+                                                            <input type="text" name="sec4_link_text_<%= i %>"
+                                                                value="<%= contentData[`sec4_link_text_${i}`] || '' %>"
+                                                                class="input">
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-6">
+                                                        <div class="txtGrp">
+                                                            <label class="form-label">Link URL
+                                                            </label>
+                                                            <input type="text" name="sec4_link_url_<%= i %>"
+                                                                value="<%= contentData[`sec4_link_url_${i}`] || '' %>"
+                                                                class="input">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+
+
+                                        </div>
+                                        <% } %>
+
+                                </div>
+                                <div class="clearfix"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Section 5</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="col-md-12 full_width">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="row">
+                                                <div class="txtGrp">
+                                                    <label class="form-label">Heading</label>
+                                                    <input name="sec5_heading"
+                                                        value="<%= contentData?.sec5_heading || '' %>" class="input">
+                                                </div>
+                                                <div class="clearfix"></div>
+                                                <div class="col-md-6">
+                                                    <div class="txtGrp">
+                                                        <label class="form-label">Link Text
+                                                        </label>
+                                                        <input type="text" name="link_text"
+                                                            value="<%= contentData.link_text || '' %>" class="input">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="txtGrp">
+                                                        <label class="form-label">Link URL
+                                                        </label>
+                                                        <input type="text" name="link_url"
+                                                            value="<%= contentData.link_url || '' %>" class="input">
+                                                    </div>
+                                                </div>
+                                                <div class="clearfix"></div>
+                                            </div>
+                                        </div>
+                                        <div class="clearfix"></div>
+                                        <% for (let i=0; i < 3; i++) { %>
+                                            <div class="col-md-4">
+                                                <div class="card">
+                                                    <div class="card-body preview">
+                                                        <h5 class="card-title">Image</h5>
+                                                        <div class="blog_img forth_icon">
+                                                            <img src="<%=/uploads/+ contentData[`sec5_image_${i}`] %>"
+                                                                class="card-img-top" alt="">
+                                                        </div>
+                                                        <div class="in-upload">
+                                                            <button type="button" class="uploadImg">
+                                                                <i class="fa-regular fa-image"></i>
+                                                                choose another image
+                                                            </button>
+                                                            <input type="file" name="sec5_image_<%= i %>"
+                                                                class="uploadFile">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="txtGrp">
+                                                    <label class="form-label">Text</label>
+                                                    <textarea type="text" name="sec5_text_<%= i %>"
+                                                        class="input"><%= contentData[`sec5_text_${i}`] || '' %></textarea>
+                                                </div>
+                                                <div class="txtGrp">
+                                                    <label class="form-label">Heading</label>
+                                                    <input name="sec5_heading_<%= i %>"
+                                                        value="<%= contentData[`sec5_heading_${i}`] || '' %>"
+                                                        class="input">
+                                                </div>
+                                            </div>
+                                            <% } %>
+                                                <div class="clearfix"></div>
+                                    </div>
+                                </div>
+                                <div class="clearfix"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Section 6</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="col-md-12 full_width">
+                                    <div class="row">
+                                        <div class="col-md-8">
+                                            <div class="txtGrp">
+                                                <div class="txtGrp">
+                                                    <label class="form-label" for="detail">Description</label>
+                                                    <textarea class="ckeditor" name="description7"
+                                                        id="section1_desc1"><%= contentData.description7 || '' %></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="card">
+                                                <div class="card-body preview">
+                                                    <h5 class="card-title">Image</h5>
+                                                    <div class="blog_img">
+                                                        <img src="<%=/uploads/+ contentData.image7 %>"
+                                                            class="card-img-top" alt="" />
+                                                    </div>
+                                                    <div class="in-upload">
+                                                        <button type="button" class="uploadImg">
+                                                            <i class="fa-regular fa-image"></i>choose another
+                                                            image
+                                                        </button>
+                                                        <input type="file" name="image7" class="uploadFile" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <div class="card">
+                                                <div class="card-body preview">
+                                                    <h5 class="card-title">Image</h5>
+                                                    <div class="blog_img">
+                                                        <img src="<%=/uploads/+ contentData.image8 %>"
+                                                            class="card-img-top" alt="" />
+                                                    </div>
+                                                    <div class="in-upload">
+                                                        <button type="button" class="uploadImg">
+                                                            <i class="fa-regular fa-image"></i>choose another
+                                                            image
+                                                        </button>
+                                                        <input type="file" name="image8" class="uploadFile" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="clearfix"></div>
+
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>CTA Section</h5>
+                            </div>
+                            <div class="card-body full_width">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="card">
+                                            <div class="card-body preview">
+                                                <h5 class="card-title">Image</h5>
+                                                <div class="blog_img">
+                                                    <img src="<%=/uploads/+ contentData.cta_image %>"
+                                                        class="card-img-top" alt="" />
+                                                </div>
+                                                <div class="in-upload">
+                                                    <button type="button" class="uploadImg">
+                                                        <i class="fa-regular fa-image"></i>choose another
+                                                        image
+                                                    </button>
+                                                    <input type="file" name="cta_image" class="uploadFile" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-8">
+                                        <div class="txtGrp">
+                                            <label class="form-label">Heading</label>
+                                            <input name="cta_heading" value="<%= contentData?.cta_heading || '' %>"
+                                                class="input">
+                                        </div>
+
+                                        <div class="txtGrp">
+                                            <label class="form-label">Text</label>
+                                            <textarea type="text" name="cta_text"
+                                                class="input"><%= contentData?.cta_text || '' %></textarea>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <div class="txtGrp">
+                                                    <label class="form-label">Link Text
+                                                    </label>
+                                                    <input type="text" name="cta_link_text1"
+                                                        value="<%= contentData.cta_link_text1 || '' %>" class="input">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="txtGrp">
+                                                    <label class="form-label">Link URL
+                                                    </label>
+                                                    <input type="text" name="cta_link_url1"
+                                                        value="<%= contentData.cta_link_url1 || '' %>" class="input">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="txtGrp">
+                                                    <label class="form-label">Link Text
+                                                    </label>
+                                                    <input type="text" name="cta_link_text2"
+                                                        value="<%= contentData.cta_link_text2 || '' %>" class="input">
+                                                </div>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <div class="txtGrp">
+                                                    <label class="form-label">Link URL
+                                                    </label>
+                                                    <input type="text" name="cta_link_url2"
+                                                        value="<%= contentData.cta_link_url2 || '' %>" class="input">
+                                                </div>
+                                            </div>
+                                            <div class="text-right">
+                                                <button type="submit" class="webBtn">Update</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+
+
+                            </div>
+                        </div>
+                    </div>
+
+
+            </form>
+        </div>
+    </div>
+</section>

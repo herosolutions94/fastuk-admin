@@ -1,0 +1,134 @@
+<section id="dashbaord">
+    <div class="contain-fluid">
+        <div class="heading">
+            <div class="text">
+                <h3>Rider Jobs</h3>
+                <ul>
+                    <li><a href="">Home</a></li>
+                    <li class="active"><a href="">Rider</a></li>
+                </ul>
+            </div>
+        </div>
+        <div class="dashTable">
+            <table class="dataTable display" id="basic-1">
+                <thead>
+                    <tr class="table-scnd-row">
+                        <th width="25%">
+                            <p>#</p>
+                        </th>
+                        <th width="10%">
+                            <p>Booking id</p>
+                        </th>
+                        <!-- <th width="15%">
+              <p>Email</p>
+            </th>
+            <th width="10%">
+              <p>Phone No</p>
+            </th> -->
+                        <th width="10%">
+                            <p>Distance</p>
+                        </th>
+                        <th width="20%">
+                            <p>Pickup Location</p>
+                        </th>
+                        <th width="20%">
+                            <p>Drop-off Location</p>
+                        </th>
+                        <th width="10%">
+                            <p>Status</p>
+                        </th>
+                        <th width="9%">
+                            <p>Action</p>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (jobs && jobs.length> 0) { %> <% jobs.forEach((job, index)=> { %>
+                            <tr class="bottom-cntnt" id="rider-<%= riderId %>">
+                                <td>
+                                    <div class="flex">
+                                        <div class="image">
+                                            <img src="<%= helpers.getImage(job.member_image) %>" alt="User Image" />
+                                        </div>
+                                        <div class="custm-cntnt">
+                                            <p><strong>
+                                                    <%= job.member_name %>
+                                                </strong></p>
+                                            <p>
+                                                <%= job.member_email %>
+                                            </p>
+                                            <p>
+                                                <%= job.member_phone %>
+                                            </p>
+                                            <p><small>
+                                                    Updated at <%= helpers.timesAgo(job.updated_time) %>
+                                                </small></p>
+                                        </div>
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <p>
+                                        <%= job.booking_id %>
+                                    </p>
+                                </td>
+
+                                <td>
+                                    <p>
+                                        <%= job.distance %>km
+                                    </p>
+                                </td>
+
+                                <td>
+                                    <p>
+                                        <%= job.source_address %>
+                                    </p>
+                                </td>
+
+                                <td>
+                                    <p>
+                                        <%= job.dest_address %>
+                                    </p>
+                                </td>
+
+                                <td>
+                                    <p>
+                                        <%= job.jobStatus %>
+                                    </p>
+                                </td>
+                                <td>
+              <div class="btn-group">
+                <button
+                  type="button"
+                  class="dropdown-toggle"
+                  data-toggle="dropdown">
+                  <i class="fa fa-ellipsis-h"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-primary" role="menu">
+                  
+                  <li>
+                    <a
+                      href="/admin//job-detail/<%= job.id %>"
+                      class="btn btn-danger">
+                      View Job Details
+                    </a>
+                  </li>
+                  
+                </ul>
+              </div>
+            </td>
+                            </tr>
+
+                            <% }) %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="8">
+                                            <p>No jobs found.</p>
+                                        </td>
+                                    </tr>
+                                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

@@ -1,0 +1,51 @@
+{
+  "events": [
+    {
+      "id": "EV027F63077TX5",
+      "created_at": "2025-10-03T10:34:39.856Z",
+      "resource_type": "billing_requests",
+      "action": "flow_visited",
+      "metadata": {},
+      "details": {
+        "origin": "payer",
+        "cause": "billing_request_flow_visited",
+        "description": "The billing request flow has been visited."
+      },
+      "links": {
+        "customer": "CU01K6MT6NNPFQR5YHQ93V5QKDWF",
+        "billing_request_flow": "BRF01K6MT6NQVSJRQF0QJARSHV75P1M7",
+        "billing_request": "BRQ01K6MT6NPDDYC0PRJ3ACBZ2BXA"
+      },
+      "resource_metadata": {
+        "order_id": "undefined",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027F630MG0WX",
+      "created_at": "2025-10-03T10:34:48.318Z",
+      "resource_type": "billing_requests",
+      "action": "collect_customer_details",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_collect_customer_details",
+        "description": "Customer details have been collected for this billing request."
+      },
+      "links": {
+        "customer": "CU01K6MT6NNPFQR5YHQ93V5QKDWF",
+        "billing_request_flow": "BRF01K6MT6NQVSJRQF0QJARSHV75P1M7",
+        "billing_request": "BRQ01K6MT6NPDDYC0PRJ3ACBZ2BXA"
+      },
+      "resource_metadata": {
+        "order_id": "undefined",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6MT720C28252RH9GD4DVTQB"
+  }
+}

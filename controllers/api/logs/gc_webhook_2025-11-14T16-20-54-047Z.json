@@ -1,0 +1,30 @@
+{
+  "events": [
+    {
+      "id": "EV029CHA8ET6Y3",
+      "created_at": "2025-11-14T16:20:48.451Z",
+      "resource_type": "billing_requests",
+      "action": "collect_customer_details",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_collect_customer_details",
+        "description": "Customer details have been collected for this billing request."
+      },
+      "links": {
+        "customer": "CU01KA1JKWC6MJC1CB1FQ18PK29Q",
+        "billing_request_flow": "BRF01KA1JKWH79SX607ZVDPTZEWV9AXZ",
+        "billing_request": "BRQ01KA1JKWEJMCWN7DKZ6TFMHQSJ"
+      },
+      "resource_metadata": {
+        "type": "credit_invoice",
+        "order_id": "order_1763137155284",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01KA1JPWJ7SE0MKG8VM0PW9KQV"
+  }
+}

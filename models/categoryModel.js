@@ -27,6 +27,20 @@ class VehicleCategoriesModel extends BaseModel {
     throw error;
   }
 }
+  static async getVehiclesByParentId(parentId) {
+  try {
+    const [rows] = await pool.query(`
+      SELECT id,title as vehicle_name
+      FROM vehicles
+      WHERE vehicle_category_id = ?
+    `, [parentId]);
+
+    return rows;
+  } catch (error) {
+    console.error('Error fetching subcategories:', error);
+    throw error;
+  }
+}
 
 
   static async saveRiderCategory(riderId, categoryId) {
@@ -45,19 +59,21 @@ static async getMainCategories() {
     throw error;
   }
 }
+static async getMainCategoriesArr() {
+  try {
+    const [rows] = await pool.query(`SELECT id, vehicle_name as title FROM vehicle_categories WHERE status = 1`);
+    return rows;
+  } catch (error) {
+    console.error('Error fetching main vehicle categories:', error);
+    throw error;
+  }
+}
 
 
 static async getCategoriesByRiderId(riderId) {
   try {
     const [rows] = await pool.query(`
-      SELECT 
-        rvc.id AS rider_category_id,
-        vc.vehicle_name AS sub_category_name,
-        v.title AS main_category_name
-      FROM rider_vehicle_categories rvc
-      INNER JOIN vehicle_categories vc ON rvc.category_id = vc.id
-      LEFT JOIN vehicles v ON vc.parent_id = v.id
-      WHERE rvc.rider_id = ?
+      SELECT rvc.id AS rider_category_id, vc.vehicle_name AS sub_category_name, v.title AS main_category_name FROM rider_vehicle_categories rvc LEFT JOIN vehicles v ON rvc.category_id = v.id INNER JOIN vehicle_categories vc ON v.vehicle_category_id = vc.id WHERE rvc.rider_id= ?
     `, [riderId]);
 
     return rows;
@@ -95,6 +111,12 @@ static async getRiderCategoryById(riderCategoryId) {
 static async getCategoryById(categoryId) {
   const [rows] = await pool.query(`
     SELECT * FROM vehicle_categories WHERE id = ? LIMIT 1
+  `, [categoryId]);
+  return rows[0] || null;
+}
+static async getVehicleById(categoryId) {
+  const [rows] = await pool.query(`
+    SELECT * FROM vehicles WHERE id = ? LIMIT 1
   `, [categoryId]);
   return rows[0] || null;
 }

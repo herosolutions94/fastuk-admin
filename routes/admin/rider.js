@@ -34,6 +34,9 @@ router.delete('/riders/documents/delete/:rider_id/:document_id',ensureAuthentica
 router.get('/riders/documents/update-status/:id', ensureAuthenticated, checkAccessMiddleware(3), upload, RiderController.updateDocumentStatus.bind(RiderController));
 router.get('/riders/update-status/:id',ensureAuthenticated, checkAccessMiddleware(3), upload, RiderController.handleRiderApprove.bind(RiderController));
 
+router.get('/rider/:rider_id/jobs', ensureAuthenticated, checkAccessMiddleware(3), upload, RiderController.getRiderJobs.bind(RiderController));
+
+
 
 
 

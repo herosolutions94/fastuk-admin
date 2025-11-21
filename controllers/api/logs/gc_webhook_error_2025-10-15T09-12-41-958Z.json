@@ -1,0 +1,57 @@
+{
+  "error": "dbUserId is not defined",
+  "stack": "ReferenceError: dbUserId is not defined\n    at MemberController.webhookGoCardlessRequest (/var/www/html/fastuk-admin/controllers/api/memberController.js:1396:65)\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)",
+  "body": {
+    "events": [
+      {
+        "id": "EV027XHXN2CF21",
+        "created_at": "2025-10-15T09:07:09.961Z",
+        "resource_type": "payments",
+        "action": "confirmed",
+        "metadata": {},
+        "details": {
+          "origin": "gocardless",
+          "cause": "payment_confirmed",
+          "scheme": "bacs",
+          "reason_code": "CONFIRMED",
+          "description": "Enough time has passed since the payment was submitted for the banks to return an error, so this payment is now confirmed."
+        },
+        "links": {
+          "payment": "PM01K71G2YM8DHF42BCAPYWZY3SR"
+        },
+        "resource_metadata": {
+          "type": "order",
+          "order_id": "260",
+          "invoice_id": "260"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027XHXN1D9JN",
+        "created_at": "2025-10-15T09:07:09.961Z",
+        "resource_type": "payments",
+        "action": "confirmed",
+        "metadata": {},
+        "details": {
+          "origin": "gocardless",
+          "cause": "payment_confirmed",
+          "scheme": "bacs",
+          "reason_code": "CONFIRMED",
+          "description": "Enough time has passed since the payment was submitted for the banks to return an error, so this payment is now confirmed."
+        },
+        "links": {
+          "payment": "PM01K71FBAYTZZY1WEWW1YKWEXW7"
+        },
+        "resource_metadata": {
+          "type": "order",
+          "order_id": "259",
+          "invoice_id": "259"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      }
+    ],
+    "meta": {
+      "webhook_id": "WB01K7KJ98JP071FAVQ05YVW87K9"
+    }
+  }
+}

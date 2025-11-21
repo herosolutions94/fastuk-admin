@@ -1,0 +1,55 @@
+{
+  "events": [
+    {
+      "id": "EV027RQXFA79G9",
+      "created_at": "2025-10-10T12:23:04.288Z",
+      "resource_type": "billing_requests",
+      "action": "collect_bank_account",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_collect_bank_account",
+        "description": "Bank account details have been collected for this billing request."
+      },
+      "links": {
+        "customer": "CU01K7715N3KKANRC4WKW1EEVW09",
+        "customer_bank_account": "BA01K77168A5HSNP1QNKV5R64307",
+        "billing_request_flow": "BRF01K7715N508BN3XHT210JQNS0XR8F",
+        "billing_request": "BRQ01K7715N3XX9VRKKW4M3QHQRX7"
+      },
+      "resource_metadata": {
+        "type": "credit_invoice",
+        "order_id": "order_1760098960727",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027RQXFFM931",
+      "created_at": "2025-10-10T12:23:07.110Z",
+      "resource_type": "billing_requests",
+      "action": "payer_details_confirmed",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_payer_details_confirmed",
+        "description": "Payer has confirmed all their details for this billing request."
+      },
+      "links": {
+        "customer": "CU01K7715N3KKANRC4WKW1EEVW09",
+        "customer_bank_account": "BA01K77168A5HSNP1QNKV5R64307",
+        "billing_request_flow": "BRF01K7715N508BN3XHT210JQNS0XR8F",
+        "billing_request": "BRQ01K7715N3XX9VRKKW4M3QHQRX7"
+      },
+      "resource_metadata": {
+        "type": "credit_invoice",
+        "order_id": "order_1760098960727",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K7716D501S5GNAPYQAC0V62A"
+  }
+}

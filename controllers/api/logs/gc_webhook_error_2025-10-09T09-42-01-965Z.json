@@ -1,0 +1,241 @@
+{
+  "error": "dbUserId is not defined",
+  "stack": "ReferenceError: dbUserId is not defined\n    at MemberController.webhookGoCardlessRequest (/var/www/html/fastuk-admin/controllers/api/memberController.js:1394:71)\n    at runMicrotasks (<anonymous>)\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)",
+  "body": {
+    "events": [
+      {
+        "id": "EV027P8Y24Y0XV",
+        "created_at": "2025-10-09T09:06:48.353Z",
+        "resource_type": "payments",
+        "action": "confirmed",
+        "metadata": {},
+        "details": {
+          "origin": "gocardless",
+          "cause": "payment_confirmed",
+          "scheme": "bacs",
+          "reason_code": "CONFIRMED",
+          "description": "Enough time has passed since the payment was submitted for the banks to return an error, so this payment is now confirmed."
+        },
+        "links": {
+          "payment": "PM01K6JJM68E5ENSH1DZ254Z5DK2"
+        },
+        "resource_metadata": {
+          "user_id": "undefined",
+          "order_id": "null",
+          "invoice_id": "1"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027P8Y1QDJ6Y",
+        "created_at": "2025-10-09T09:06:48.353Z",
+        "resource_type": "payments",
+        "action": "confirmed",
+        "metadata": {},
+        "details": {
+          "origin": "gocardless",
+          "cause": "payment_confirmed",
+          "scheme": "bacs",
+          "reason_code": "CONFIRMED",
+          "description": "Enough time has passed since the payment was submitted for the banks to return an error, so this payment is now confirmed."
+        },
+        "links": {
+          "payment": "PM01K6J8W3J5QTVACYSSZ43ZERQ2"
+        },
+        "resource_metadata": {
+          "user_id": "undefined",
+          "order_id": "order_1759402395183",
+          "invoice_id": "1"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027P8Y1S57N6",
+        "created_at": "2025-10-09T09:06:48.353Z",
+        "resource_type": "payments",
+        "action": "confirmed",
+        "metadata": {},
+        "details": {
+          "origin": "gocardless",
+          "cause": "payment_confirmed",
+          "scheme": "bacs",
+          "reason_code": "CONFIRMED",
+          "description": "Enough time has passed since the payment was submitted for the banks to return an error, so this payment is now confirmed."
+        },
+        "links": {
+          "payment": "PM01K6J9PT5N5FKYRMVFGEMJ7XHG"
+        },
+        "resource_metadata": {
+          "user_id": "undefined",
+          "order_id": "order_1759403270288",
+          "invoice_id": "1"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027P8Y1R11RP",
+        "created_at": "2025-10-09T09:06:48.353Z",
+        "resource_type": "payments",
+        "action": "confirmed",
+        "metadata": {},
+        "details": {
+          "origin": "gocardless",
+          "cause": "payment_confirmed",
+          "scheme": "bacs",
+          "reason_code": "CONFIRMED",
+          "description": "Enough time has passed since the payment was submitted for the banks to return an error, so this payment is now confirmed."
+        },
+        "links": {
+          "payment": "PM01K6J9468ZMVFQDS7CMJGCBXV8"
+        },
+        "resource_metadata": {
+          "user_id": "undefined",
+          "order_id": "order_1759402660110",
+          "invoice_id": "1"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027P8Y1MAJWR",
+        "created_at": "2025-10-09T09:06:48.353Z",
+        "resource_type": "payments",
+        "action": "confirmed",
+        "metadata": {},
+        "details": {
+          "origin": "gocardless",
+          "cause": "payment_confirmed",
+          "scheme": "bacs",
+          "reason_code": "CONFIRMED",
+          "description": "Enough time has passed since the payment was submitted for the banks to return an error, so this payment is now confirmed."
+        },
+        "links": {
+          "payment": "PM01K6J462TKW579DAPCRPKXV2ZK"
+        },
+        "resource_metadata": {
+          "user_id": "undefined",
+          "order_id": "order_1759397479717",
+          "invoice_id": "1"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027P8Y1K95F7",
+        "created_at": "2025-10-09T09:06:48.353Z",
+        "resource_type": "payments",
+        "action": "confirmed",
+        "metadata": {},
+        "details": {
+          "origin": "gocardless",
+          "cause": "payment_confirmed",
+          "scheme": "bacs",
+          "reason_code": "CONFIRMED",
+          "description": "Enough time has passed since the payment was submitted for the banks to return an error, so this payment is now confirmed."
+        },
+        "links": {
+          "payment": "PM01K6J3HV3FHQQFCZG6GBKDRVPF"
+        },
+        "resource_metadata": {
+          "user_id": "undefined",
+          "order_id": "order_1759396816360",
+          "invoice_id": "1"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027P8Y1TQFVH",
+        "created_at": "2025-10-09T09:06:48.353Z",
+        "resource_type": "payments",
+        "action": "confirmed",
+        "metadata": {},
+        "details": {
+          "origin": "gocardless",
+          "cause": "payment_confirmed",
+          "scheme": "bacs",
+          "reason_code": "CONFIRMED",
+          "description": "Enough time has passed since the payment was submitted for the banks to return an error, so this payment is now confirmed."
+        },
+        "links": {
+          "payment": "PM01K6J9TXG16C74NZZ3V192J4C5"
+        },
+        "resource_metadata": {
+          "user_id": "undefined",
+          "order_id": "order_1759403404758",
+          "invoice_id": "1"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027P8Y20710G",
+        "created_at": "2025-10-09T09:06:48.353Z",
+        "resource_type": "payments",
+        "action": "confirmed",
+        "metadata": {},
+        "details": {
+          "origin": "gocardless",
+          "cause": "payment_confirmed",
+          "scheme": "bacs",
+          "reason_code": "CONFIRMED",
+          "description": "Enough time has passed since the payment was submitted for the banks to return an error, so this payment is now confirmed."
+        },
+        "links": {
+          "payment": "PM01K6JCJZYAHXHJWAZSGTQ7CWPP"
+        },
+        "resource_metadata": {
+          "user_id": "undefined",
+          "order_id": "null",
+          "invoice_id": "1"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027P8Y1PF798",
+        "created_at": "2025-10-09T09:06:48.353Z",
+        "resource_type": "payments",
+        "action": "confirmed",
+        "metadata": {},
+        "details": {
+          "origin": "gocardless",
+          "cause": "payment_confirmed",
+          "scheme": "bacs",
+          "reason_code": "CONFIRMED",
+          "description": "Enough time has passed since the payment was submitted for the banks to return an error, so this payment is now confirmed."
+        },
+        "links": {
+          "payment": "PM01K6J7Y253H8655P2WNHPJQBEZ"
+        },
+        "resource_metadata": {
+          "user_id": "undefined",
+          "order_id": "order_1759401410759",
+          "invoice_id": "1"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027P8Y22137G",
+        "created_at": "2025-10-09T09:06:48.353Z",
+        "resource_type": "payments",
+        "action": "confirmed",
+        "metadata": {},
+        "details": {
+          "origin": "gocardless",
+          "cause": "payment_confirmed",
+          "scheme": "bacs",
+          "reason_code": "CONFIRMED",
+          "description": "Enough time has passed since the payment was submitted for the banks to return an error, so this payment is now confirmed."
+        },
+        "links": {
+          "payment": "PM01K6JER7F09SC5K9G8G2FQ226A"
+        },
+        "resource_metadata": {
+          "user_id": "undefined",
+          "order_id": "null",
+          "invoice_id": "1"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      }
+    ],
+    "meta": {
+      "webhook_id": "WB01K743WFNXAGH4Y1VA18YEXFB3"
+    }
+  }
+}

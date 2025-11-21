@@ -13,6 +13,8 @@ const  checkAccessMiddleware  = require('../../middleware/checkAccessMiddleware'
 router.get('/pages', ensureAuthenticated, checkAccessMiddleware(10), pagesController.manage_pages.bind(pagesController));
 router.get('/pages/home', ensureAuthenticated, checkAccessMiddleware(10), pagesController.homeView.bind(pagesController));
 router.post('/pages/home-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.homeForm.bind(pagesController));
+router.get('/pages/home2', ensureAuthenticated, checkAccessMiddleware(10), pagesController.home2View.bind(pagesController));
+router.post('/pages/home2-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.home2Form.bind(pagesController));
 router.get('/pages/about', ensureAuthenticated, checkAccessMiddleware(10), pagesController.aboutView.bind(pagesController));
 router.post('/pages/about-form', ensureAuthenticated, checkAccessMiddleware(10), upload, pagesController.aboutForm.bind(pagesController));
 router.get('/pages/contact', ensureAuthenticated, checkAccessMiddleware(10), pagesController.contactView.bind(pagesController));

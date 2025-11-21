@@ -1,0 +1,125 @@
+{
+  "events": [
+    {
+      "id": "EV027TD5JDCQAR",
+      "created_at": "2025-10-13T11:38:01.823Z",
+      "resource_type": "billing_requests",
+      "action": "collect_bank_account",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_collect_bank_account",
+        "description": "Bank account details have been collected for this billing request."
+      },
+      "links": {
+        "customer": "CU01K7ENKWGPERW4M29Z91JAEPV1",
+        "customer_bank_account": "BA01K7ENSY5VNFM4ZNK49VN11JYV",
+        "billing_request_flow": "BRF01K7ENKWJB1ATCRZGZR7TXSMFCSNS",
+        "billing_request": "BRQ01K7ENKWH5TMXBCYCKRXX6D4XZ"
+      },
+      "resource_metadata": {
+        "type": "credit_invoice",
+        "order_id": "order_1760355280725",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027TD5JX0JK7",
+      "created_at": "2025-10-13T11:38:04.627Z",
+      "resource_type": "billing_requests",
+      "action": "payer_details_confirmed",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_payer_details_confirmed",
+        "description": "Payer has confirmed all their details for this billing request."
+      },
+      "links": {
+        "customer": "CU01K7ENKWGPERW4M29Z91JAEPV1",
+        "customer_bank_account": "BA01K7ENSY5VNFM4ZNK49VN11JYV",
+        "billing_request_flow": "BRF01K7ENKWJB1ATCRZGZR7TXSMFCSNS",
+        "billing_request": "BRQ01K7ENKWH5TMXBCYCKRXX6D4XZ"
+      },
+      "resource_metadata": {
+        "type": "credit_invoice",
+        "order_id": "order_1760355280725",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027TD5K8T130",
+      "created_at": "2025-10-13T11:38:06.065Z",
+      "resource_type": "mandates",
+      "action": "created",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "mandate_created",
+        "description": "Mandate created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "billing_request": "BRQ01K7ENKWH5TMXBCYCKRXX6D4XZ",
+        "mandate_request": "MRQ01K7ENKWH3XTRHS",
+        "mandate": "MD01K7ENT2AGDDPMM1WY7J9H9E5E"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027TD5K9D38A",
+      "created_at": "2025-10-13T11:38:06.104Z",
+      "resource_type": "billing_requests",
+      "action": "fulfilled",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "billing_request_fulfilled",
+        "description": "This billing request has been fulfilled, and the resources have been created."
+      },
+      "links": {
+        "customer": "CU01K7ENKWGPERW4M29Z91JAEPV1",
+        "customer_bank_account": "BA01K7ENSY5VNFM4ZNK49VN11JYV",
+        "mandate_request_mandate": "MD01K7ENT2AGDDPMM1WY7J9H9E5E",
+        "billing_request": "BRQ01K7ENKWH5TMXBCYCKRXX6D4XZ"
+      },
+      "resource_metadata": {
+        "type": "credit_invoice",
+        "order_id": "order_1760355280725",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027TD5KE4CA1",
+      "created_at": "2025-10-13T11:38:06.421Z",
+      "resource_type": "payments",
+      "action": "created",
+      "metadata": {
+        "order_id": "order_1760355280725",
+        "invoice_id": "1",
+        "type": "credit_invoice"
+      },
+      "details": {
+        "origin": "api",
+        "cause": "payment_created",
+        "description": "Payment created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K7ENT2NSD78QZAG2723MGK3R"
+      },
+      "resource_metadata": {
+        "order_id": "order_1760355280725",
+        "invoice_id": "1",
+        "type": "credit_invoice"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K7ENT6CCTZS9N929PWB1THAY"
+  }
+}

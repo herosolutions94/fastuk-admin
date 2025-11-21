@@ -1,0 +1,105 @@
+{
+  "error": "Cannot read properties of null (reading 'user_id')",
+  "stack": "TypeError: Cannot read properties of null (reading 'user_id')\n    at MemberController.webhookGoCardlessRequest (/var/www/html/fastuk-admin/controllers/api/memberController.js:1323:51)\n    at runMicrotasks (<anonymous>)\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)",
+  "body": {
+    "events": [
+      {
+        "id": "EV027K7KXCHCSC",
+        "created_at": "2025-10-08T08:26:27.343Z",
+        "resource_type": "billing_requests",
+        "action": "payer_details_confirmed",
+        "metadata": {},
+        "details": {
+          "origin": "api",
+          "cause": "billing_request_payer_details_confirmed",
+          "description": "Payer has confirmed all their details for this billing request."
+        },
+        "links": {
+          "customer": "CU01K71ETFB21NA5BVFVB6H7EZMY",
+          "customer_bank_account": "BA01K71EVEERRXSW6YYEAJ017RTN",
+          "billing_request_flow": "BRF01K71ETFD18S9QXTPEG7P4CHYVBV1",
+          "billing_request": "BRQ01K71ETFBMA7C4YTGK6B7DMAKQ"
+        },
+        "resource_metadata": {
+          "type": "order",
+          "order_id": "258",
+          "invoice_id": "258"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027K7KYTM53S",
+        "created_at": "2025-10-08T08:26:28.224Z",
+        "resource_type": "mandates",
+        "action": "created",
+        "metadata": {},
+        "details": {
+          "origin": "api",
+          "cause": "mandate_created",
+          "description": "Mandate created via the API.",
+          "scheme": "bacs"
+        },
+        "links": {
+          "billing_request": "BRQ01K71ETFBMA7C4YTGK6B7DMAKQ",
+          "mandate_request": "MRQ01K71ETFBHMNVBG",
+          "mandate": "MD01K71EVJYX8163EZX825RB18D5"
+        },
+        "resource_metadata": {},
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027K7KYVY2CY",
+        "created_at": "2025-10-08T08:26:28.264Z",
+        "resource_type": "billing_requests",
+        "action": "fulfilled",
+        "metadata": {},
+        "details": {
+          "origin": "gocardless",
+          "cause": "billing_request_fulfilled",
+          "description": "This billing request has been fulfilled, and the resources have been created."
+        },
+        "links": {
+          "customer": "CU01K71ETFB21NA5BVFVB6H7EZMY",
+          "customer_bank_account": "BA01K71EVEERRXSW6YYEAJ017RTN",
+          "mandate_request_mandate": "MD01K71EVJYX8163EZX825RB18D5",
+          "billing_request": "BRQ01K71ETFBMA7C4YTGK6B7DMAKQ"
+        },
+        "resource_metadata": {
+          "type": "order",
+          "order_id": "258",
+          "invoice_id": "258"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027K7KZDS65T",
+        "created_at": "2025-10-08T08:26:28.577Z",
+        "resource_type": "payments",
+        "action": "created",
+        "metadata": {
+          "order_id": "258",
+          "invoice_id": "258",
+          "type": "order"
+        },
+        "details": {
+          "origin": "api",
+          "cause": "payment_created",
+          "description": "Payment created via the API.",
+          "scheme": "bacs"
+        },
+        "links": {
+          "payment": "PM01K71EVK9SWMGJPDXPXXB7DQRH"
+        },
+        "resource_metadata": {
+          "order_id": "258",
+          "invoice_id": "258",
+          "type": "order"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      }
+    ],
+    "meta": {
+      "webhook_id": "WB01K71EVT64YTMNBNFMH0F0B3B1"
+    }
+  }
+}

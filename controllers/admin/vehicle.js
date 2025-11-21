@@ -2,6 +2,8 @@
 const fs = require('fs'); // Import the file system module
 const path = require('path'); // For handling file paths
 
+const helpers = require('../../utils/helpers');
+
 const BaseController = require('../baseController');
 const Vehicle = require('../../models/vehicle');
 const { validateRequiredFields } = require('../../utils/validators');
@@ -45,13 +47,27 @@ class VehicleController extends BaseController {
                 vehicle_category_id,
                 load_capacity,
                 no_of_pallets,
-                max_height
+                max_height,
+                max_length
             } = req.body;
-            console.log("req.body",req.body);  // To check if name and description are being sent
+            // console.log("req.body",req.body);  // To check if name and description are being sent
 
 
             const vehicleImage = req.files && req.files["vehicle_image"] ? req.files["vehicle_image"][0].filename : '';
             // console.log("req.file:",req.file);  // To check if the file is being uploaded
+            if(vehicleImage){
+                 const sourceDir = path.join(__dirname, '../../uploads');
+                const thumbFolder = 'thumbnails';
+                const width = 300;
+                const height = 300;
+
+                // ✅ Generate the thumbnail using your helper
+                await helpers.generateThumbnail(vehicleImage, sourceDir, thumbFolder, width, height);
+                console.log('Thumbnail created for:', vehicleImage);
+
+                // Update with new image
+               
+            }
 
 
             // Clean and trim data
@@ -68,6 +84,7 @@ class VehicleController extends BaseController {
                 load_capacity: load_capacity || 0,
                 no_of_pallets: no_of_pallets || 0,
                 max_height: max_height || 0,
+                max_length: max_length || 0,
                 vehicle_category_id: parseInt(vehicle_category_id) || null, // <- ensure it's an integer
 
             };
@@ -176,6 +193,8 @@ class VehicleController extends BaseController {
                 // If there is an old image, delete it
                 if (currentVehicle.vehicle_image) {
                     const oldImagePath = path.join(__dirname, '../../uploads/', currentVehicle.vehicle_image);
+                    const oldThumbPath = path.join(__dirname, '../../uploads/thumbnails/', currentVehicle.vehicle_image);
+
                     
                     // Check if the old image file exists before trying to delete
                     if (fs.existsSync(oldImagePath)) {
@@ -189,12 +208,40 @@ class VehicleController extends BaseController {
                     } else {
                         console.log('Old image file not found:', oldImagePath);
                     }
+                    // Delete old thumbnail if it exists
+                if (fs.existsSync(oldThumbPath)) {
+                    fs.unlink(oldThumbPath, (err) => {
+                        if (err) console.error('Error deleting old thumbnail:', err);
+                        else console.log('Old thumbnail deleted successfully');
+                    });
+                } else {
+                    console.log('Old thumbnail file not found:', oldThumbPath);
+                }
+            
                 }
     
-                // Update the testimonial data with the new image filename
+                // Update the vehicle data with the new image filename
                 vehicleData.vehicle_image = vehicleImage;
             } else {
                 // If no new image is uploaded, retain the old image
+                vehicleData.vehicle_image = currentVehicle.vehicle_image;
+            }
+
+            // If a new image is uploaded, generate a thumbnail
+            if (vehicleImage) {
+                const sourceDir = path.join(__dirname, '../../uploads');
+                const thumbFolder = 'thumbnails';
+                const width = 300;
+                const height = 300;
+
+                // ✅ Generate the thumbnail using your helper
+                await helpers.generateThumbnail(vehicleImage, sourceDir, thumbFolder, width, height);
+                console.log('Thumbnail created for:', vehicleImage);
+
+                // Update with new image
+                vehicleData.vehicle_image = vehicleImage;
+            } else {
+                // Retain old image
                 vehicleData.vehicle_image = currentVehicle.vehicle_image;
             }
     
@@ -231,6 +278,8 @@ class VehicleController extends BaseController {
             // Step 2: Check if the rider has an associated image
             if (vehicleImage) {
                 const imagePath = path.join(__dirname, '../../uploads/', vehicleImage);
+                const thumbPath = path.join(__dirname, '../../uploads/thumbnails/', vehicleImage);
+
                 // console.log('Image Path:', imagePath); // Log the image path
 
                 // Check if the image file exists before trying to delete
@@ -246,6 +295,15 @@ class VehicleController extends BaseController {
                 } else {
                     console.log('Image file not found:', imagePath); // Log if the image file doesn't exist
                 }
+                 if (fs.existsSync(thumbPath)) {
+                    fs.unlink(thumbPath, (err) => {
+                        if (err) console.error('Error deleting thumbnail:', err);
+                        else console.log('Thumbnail deleted successfully');
+                    });
+                } else {
+                    console.log('Thumbnail file not found:', thumbPath);
+                }
+
             }
 
             // Step 3: Delete the rider from the database
