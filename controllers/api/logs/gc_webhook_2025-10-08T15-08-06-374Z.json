@@ -1,0 +1,133 @@
+{
+  "events": [
+    {
+      "id": "EV027MXMHFY8AM",
+      "created_at": "2025-10-08T15:07:56.587Z",
+      "resource_type": "mandates",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_submitted",
+        "description": "The mandate has been submitted to the banks.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K71FBAK1JJ47Y8QVHQKAHX5A"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027MXMT2NW8Y",
+      "created_at": "2025-10-08T15:07:58.724Z",
+      "resource_type": "mandates",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_submitted",
+        "description": "The mandate has been submitted to the banks.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K71P1E46JY9KHK3WW6PFWMSS"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027MXMTRN300",
+      "created_at": "2025-10-08T15:07:58.927Z",
+      "resource_type": "mandates",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_submitted",
+        "description": "The mandate has been submitted to the banks.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K71PEWJMKNMBYSSS7J7BANBM"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027MXMXC55CZ",
+      "created_at": "2025-10-08T15:07:59.829Z",
+      "resource_type": "mandates",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_submitted",
+        "description": "The mandate has been submitted to the banks.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K71DP3JAQSX70R198FXTPEAZ"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027MXN4WG006",
+      "created_at": "2025-10-08T15:08:02.223Z",
+      "resource_type": "mandates",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_submitted",
+        "description": "The mandate has been submitted to the banks.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K71G2Y9VFST2AXWR2KV1AJGX"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027MXN7VSE3E",
+      "created_at": "2025-10-08T15:08:03.078Z",
+      "resource_type": "mandates",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_submitted",
+        "description": "The mandate has been submitted to the banks.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K71CBDWEF1RR56VXBD2T2596"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027MXNE52J5S",
+      "created_at": "2025-10-08T15:08:04.689Z",
+      "resource_type": "mandates",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_submitted",
+        "description": "The mandate has been submitted to the banks.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K71D5ZWZDFSKY7VVHD9110EC"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K725V08PA92E3A5AN82G8BD0"
+  }
+}

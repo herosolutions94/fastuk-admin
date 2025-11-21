@@ -1,0 +1,75 @@
+{
+  "events": [
+    {
+      "id": "EV027F6XTR7BE3",
+      "created_at": "2025-10-03T11:43:52.037Z",
+      "resource_type": "billing_requests",
+      "action": "collect_customer_details",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_collect_customer_details",
+        "description": "Customer details have been collected for this billing request."
+      },
+      "links": {
+        "customer": "CU01K6MY532S6ZYD1JAG7RT64HXQ",
+        "billing_request_flow": "BRF01K6MY53491409FDN8G5NTG7Q0ZSF",
+        "billing_request": "BRQ01K6MY5336BFQT16290F0PM3SK"
+      },
+      "resource_metadata": {
+        "order_id": "undefined",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027F6XV99X7B",
+      "created_at": "2025-10-03T11:43:58.595Z",
+      "resource_type": "billing_requests",
+      "action": "collect_bank_account",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_collect_bank_account",
+        "description": "Bank account details have been collected for this billing request."
+      },
+      "links": {
+        "customer": "CU01K6MY532S6ZYD1JAG7RT64HXQ",
+        "customer_bank_account": "BA01K6MY5MKAHQXYAQ59PX008JQT",
+        "billing_request_flow": "BRF01K6MY53491409FDN8G5NTG7Q0ZSF",
+        "billing_request": "BRQ01K6MY5336BFQT16290F0PM3SK"
+      },
+      "resource_metadata": {
+        "order_id": "undefined",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027F6XVAY4KY",
+      "created_at": "2025-10-03T11:44:00.943Z",
+      "resource_type": "billing_requests",
+      "action": "payer_details_confirmed",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_payer_details_confirmed",
+        "description": "Payer has confirmed all their details for this billing request."
+      },
+      "links": {
+        "customer": "CU01K6MY532S6ZYD1JAG7RT64HXQ",
+        "customer_bank_account": "BA01K6MY5MKAHQXYAQ59PX008JQT",
+        "billing_request_flow": "BRF01K6MY53491409FDN8G5NTG7Q0ZSF",
+        "billing_request": "BRQ01K6MY5336BFQT16290F0PM3SK"
+      },
+      "resource_metadata": {
+        "order_id": "undefined",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6MY5QYM79XM7W4ZXKT1QVE9"
+  }
+}

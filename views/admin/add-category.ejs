@@ -31,9 +31,9 @@
                 <div class="row switch-showcase">
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label>Main Category</label>
-                      <select id="parent_id" name="parent_id">
-                        <option value="">-- Select Main Category --</option>
+                      <label>Sub Category</label>
+                      <select id="parent_id" name="parent_id" class="form-select">
+                        <option value="">-- Select Sub Category --</option>
                         <% mainCategories.forEach(cat => { %>
                         <option value="<%= cat.id %>"><%= cat.title %></option>
                         <% }); %>
@@ -43,9 +43,9 @@
 
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label>Sub Category</label>
-                      <select id="category_id" name="category_id">
-                        <option value="">-- Select Sub Category --</option>
+                      <label>Main Category</label>
+                      <select id="category_id" name="category_id" class="form-select">
+                        <option value="">-- Select Main Category --</option>
                       </select>
                     </div>
                   </div>

@@ -1,0 +1,49 @@
+{
+  "events": [
+    {
+      "id": "EV027ANEAE3JPB",
+      "created_at": "2025-10-01T11:36:35.975Z",
+      "resource_type": "billing_requests",
+      "action": "flow_visited",
+      "metadata": {},
+      "details": {
+        "origin": "payer",
+        "cause": "billing_request_flow_visited",
+        "description": "The billing request flow has been visited."
+      },
+      "links": {
+        "customer": "CU01K6FPZHH60D333RVV4AR8P5VM",
+        "customer_bank_account": "BA01K6FQ02VT3XBMYA6E9K9XEPA2",
+        "mandate_request_mandate": "MD01K6FQ1ZM3F0TJ9KPEF0JQP7Q0",
+        "billing_request_flow": "BRF01K6FPZHJW3MTMS5ZGB0YT94GQYS8",
+        "billing_request": "BRQ01K6FPZHHKF8B2TQZ1K8MCP40K"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027ANEAGEJCT",
+      "created_at": "2025-10-01T11:36:35.980Z",
+      "resource_type": "billing_requests",
+      "action": "flow_visited",
+      "metadata": {},
+      "details": {
+        "origin": "payer",
+        "cause": "billing_request_flow_visited",
+        "description": "The billing request flow has been visited."
+      },
+      "links": {
+        "customer": "CU01K6FPZHH60D333RVV4AR8P5VM",
+        "customer_bank_account": "BA01K6FQ02VT3XBMYA6E9K9XEPA2",
+        "mandate_request_mandate": "MD01K6FQ1ZM3F0TJ9KPEF0JQP7Q0",
+        "billing_request_flow": "BRF01K6FPZHJW3MTMS5ZGB0YT94GQYS8",
+        "billing_request": "BRQ01K6FPZHHKF8B2TQZ1K8MCP40K"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6FRYZ2ZSGMBEB21WNHYN2FK"
+  }
+}

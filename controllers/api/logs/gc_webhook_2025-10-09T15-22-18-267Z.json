@@ -1,0 +1,30 @@
+{
+  "events": [
+    {
+      "id": "EV027PS3EQ7JAD",
+      "created_at": "2025-10-09T15:22:07.377Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6ZF2DS100E7XJA7P3DYGAJY",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6ZF2SNP1QJCPJ4A8CWKVW2C"
+      },
+      "resource_metadata": {
+        "type": "credit_invoice",
+        "order_id": "order_1759845088467",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K74S1Q6RNGZHKH73GPN221KS"
+  }
+}

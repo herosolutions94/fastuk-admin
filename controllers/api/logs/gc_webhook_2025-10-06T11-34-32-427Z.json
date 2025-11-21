@@ -1,0 +1,61 @@
+{
+  "events": [
+    {
+      "id": "EV027GTTW0GF8K",
+      "created_at": "2025-10-06T11:34:20.024Z",
+      "resource_type": "mandates",
+      "action": "active",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_activated",
+        "description": "The time window after submission for the banks to refuse a mandate has ended without any errors being received, so this mandate is now active.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K6J46290YSDYZS4M220KEYVY"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027GTV0HRG0E",
+      "created_at": "2025-10-06T11:34:22.385Z",
+      "resource_type": "mandates",
+      "action": "active",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_activated",
+        "description": "The time window after submission for the banks to refuse a mandate has ended without any errors being received, so this mandate is now active.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K6J8W35C7V2JEFNXJ0DTVJED"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027GTVC9YJ7R",
+      "created_at": "2025-10-06T11:34:27.658Z",
+      "resource_type": "mandates",
+      "action": "active",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_activated",
+        "description": "The time window after submission for the banks to refuse a mandate has ended without any errors being received, so this mandate is now active.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K6J7Y1NYS7B9T6PASS4SY1NP"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6WMTGMSAEWF568JCJHB37HV"
+  }
+}

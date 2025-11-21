@@ -1,0 +1,129 @@
+{
+  "events": [
+    {
+      "id": "EV027PKC0ZRWCN",
+      "created_at": "2025-10-09T11:33:00.671Z",
+      "resource_type": "billing_requests",
+      "action": "payer_details_confirmed",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_payer_details_confirmed",
+        "description": "Payer has confirmed all their details for this billing request."
+      },
+      "links": {
+        "customer": "CU01K74BX23M0919BX8YAFM1DJDC",
+        "customer_bank_account": "BA01K74BXN5Z6YCD0MK37FHRP5DW",
+        "billing_request_flow": "BRF01K74BX25DTGDDZCT2X010PNSD4D8",
+        "billing_request": "BRQ01K74BX2442G1ZSG23HA45XS12"
+      },
+      "resource_metadata": {
+        "type": "order",
+        "order_id": "276",
+        "invoice_id": "276"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027PKC3DD6QC",
+      "created_at": "2025-10-09T11:33:02.128Z",
+      "resource_type": "mandates",
+      "action": "created",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "mandate_created",
+        "description": "Mandate created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "billing_request": "BRQ01K74BX2442G1ZSG23HA45XS12",
+        "mandate_request": "MRQ01K74BX241YK1RH",
+        "mandate": "MD01K74BXXGG9B8AR622J4X48K8P"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027PKC3GWGTD",
+      "created_at": "2025-10-09T11:33:02.164Z",
+      "resource_type": "billing_requests",
+      "action": "fulfilled",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "billing_request_fulfilled",
+        "description": "This billing request has been fulfilled, and the resources have been created."
+      },
+      "links": {
+        "customer": "CU01K74BX23M0919BX8YAFM1DJDC",
+        "customer_bank_account": "BA01K74BXN5Z6YCD0MK37FHRP5DW",
+        "mandate_request_mandate": "MD01K74BXXGG9B8AR622J4X48K8P",
+        "billing_request": "BRQ01K74BX2442G1ZSG23HA45XS12"
+      },
+      "resource_metadata": {
+        "type": "order",
+        "order_id": "276",
+        "invoice_id": "276"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027PKC6WQYR9",
+      "created_at": "2025-10-09T11:33:04.155Z",
+      "resource_type": "mandates",
+      "action": "active",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_activated",
+        "description": "The time window after submission for the banks to refuse a mandate has ended without any errors being received, so this mandate is now active.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K6YRD56DEAQ4M01A9VKKG4KD"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027PKC80XF07",
+      "created_at": "2025-10-09T11:33:04.783Z",
+      "resource_type": "mandates",
+      "action": "active",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_activated",
+        "description": "The time window after submission for the banks to refuse a mandate has ended without any errors being received, so this mandate is now active.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K6ZE9DZJD2SZJ0HXVYJDKVQ9"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027PKC9HF9BF",
+      "created_at": "2025-10-09T11:33:05.627Z",
+      "resource_type": "mandates",
+      "action": "active",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_activated",
+        "description": "The time window after submission for the banks to refuse a mandate has ended without any errors being received, so this mandate is now active.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01K6ZEE4B4CSHN69H4AFYR1W8E"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K74BY2SG1QD97YJMN95SQF7Y"
+  }
+}

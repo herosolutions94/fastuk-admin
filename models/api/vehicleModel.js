@@ -13,6 +13,7 @@ class VehicleModel extends BaseModel {
     async getActiveVehicles() {
         try {
             const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE status=1`); // Only take the first result
+            // console.log("rows",rows)
             // console.log('Riders fetched successfully:', rows); // Log the data (only the rows)
             return rows; // Return the fetched rows
         } catch (error) {

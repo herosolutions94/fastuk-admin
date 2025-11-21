@@ -1,0 +1,25 @@
+{
+  "events": [
+    {
+      "id": "EV029E4770D6EH",
+      "created_at": "2025-11-17T16:07:52.855Z",
+      "resource_type": "mandates",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "mandate_submitted",
+        "description": "The mandate has been submitted to the banks.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "mandate": "MD01KA1JY093BV413BC3P0C519C3"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01KA995HWDC472KY8XBSGFTRDJ"
+  }
+}

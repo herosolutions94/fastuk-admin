@@ -1,0 +1,31 @@
+{
+  "events": [
+    {
+      "id": "EV027PJDRD34JA",
+      "created_at": "2025-10-09T10:52:52.656Z",
+      "resource_type": "billing_requests",
+      "action": "collect_bank_account",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_collect_bank_account",
+        "description": "Bank account details have been collected for this billing request."
+      },
+      "links": {
+        "customer": "CU01K749KJ6VKCYC7GW7DMB79EY3",
+        "customer_bank_account": "BA01K749MCFZMN6YQH6ZHVTYZP2R",
+        "billing_request_flow": "BRF01K749KJ8KTJ1HQBWQNFTWNC3DZTX",
+        "billing_request": "BRQ01K749KJ781HR95MN3NYH29ECV"
+      },
+      "resource_metadata": {
+        "type": "order",
+        "order_id": "272",
+        "invoice_id": "272"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K749MGRDC6E4YEP65NDZVTJY"
+  }
+}

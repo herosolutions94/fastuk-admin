@@ -46,6 +46,7 @@ class Member {
             parcel_weight ,
             shipment_volume ,
             delivery_speed } = memberData;
+            // console.log("memberData:", memberData)
         try {
 
             const sql = `

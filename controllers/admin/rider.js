@@ -3,6 +3,8 @@ const path = require("path"); // For handling file paths
 
 const Rider = require("../../models/rider");
 const RiderModel = require("../../models/riderModel");
+const RequestQuoteModel = require("../../models/request-quote"); // Assuming you have this model
+
 const BaseController = require("../baseController");
 const helpers = require("../../utils/helpers");
 
@@ -58,7 +60,7 @@ class RiderController extends BaseController {
           }
         });
         attachmentMap["pictures"] = pictures;
-        console.log("attachmentMap:", attachmentMap);
+        // console.log("attachmentMap:", attachmentMap);
         // Assuming `result` is defined properly, or you should use rider.rider_image
         res.render("admin/riders/edit-rider", {
           rider,
@@ -117,6 +119,7 @@ class RiderController extends BaseController {
       // Attachments to update
       const updatedAttachments = {
         address_proof: await handleSingleAttachment("address_proof"),
+        driving_license: await handleSingleAttachment("driving_license"),
         self_picture: await handleSingleAttachment("self_picture"),
         passport_pic: await handleSingleAttachment("passport_pic"),
         national_insurance: await handleSingleAttachment("national_insurance"),
@@ -126,53 +129,53 @@ class RiderController extends BaseController {
         pictures: await handleMultipleAttachments(),
       };
 
-      console.log("Files received:", req.files);
+      // console.log("Files received:", req.files);
 
       // Update rider info
-      const drivingLicense =
-        req.files && req.files["driving_license"]
-          ? req.files["driving_license"][0].filename
-          : null;
+      // const drivingLicense =
+      //   req.files && req.files["driving_license"]
+      //     ? req.files["driving_license"][0].filename
+      //     : null;
       // console.log('New riderDrivingLicense:', drivingLicense);
 
       // Check if there's an old image to delete
-      if (drivingLicense && currentRider.driving_license) {
-        const oldImagePath = path.join(
-          __dirname,
-          "../../uploads/",
-          currentRider.driving_license
-        );
-        console.log("Old Image Path:", oldImagePath);
+      // if (drivingLicense && currentRider.driving_license) {
+      //   const oldImagePath = path.join(
+      //     __dirname,
+      //     "../../uploads/",
+      //     currentRider.driving_license
+      //   );
+      //   console.log("Old Image Path:", oldImagePath);
 
-        // Check if the old image file exists before trying to delete
-        if (fs.existsSync(oldImagePath)) {
-          console.log("Old image found. Deleting now...");
-          fs.unlink(oldImagePath, (err) => {
-            if (err) {
-              console.error("Error deleting old image:", err);
-            } else {
-              console.log("Old image deleted successfully");
-            }
-          });
-        } else {
-          console.log("Old image file not found:", oldImagePath);
-        }
-      }
+      //   // Check if the old image file exists before trying to delete
+      //   if (fs.existsSync(oldImagePath)) {
+      //     console.log("Old image found. Deleting now...");
+      //     fs.unlink(oldImagePath, (err) => {
+      //       if (err) {
+      //         console.error("Error deleting old image:", err);
+      //       } else {
+      //         console.log("Old image deleted successfully");
+      //       }
+      //     });
+      //   } else {
+      //     console.log("Old image file not found:", oldImagePath);
+      //   }
+      // }
 
-      // If a new image is uploaded, update rider data with the new image filename
-      if (drivingLicense) {
-        riderData.driving_license = drivingLicense;
-      } else {
-        // If no new image is uploaded, retain the old image
-        riderData.driving_license = currentRider.driving_license;
-      }
+      // // If a new image is uploaded, update rider data with the new image filename
+      // if (drivingLicense) {
+      //   riderData.driving_license = drivingLicense;
+      // } else {
+      //   // If no new image is uploaded, retain the old image
+      //   riderData.driving_license = currentRider.driving_license;
+      // }
 
       await Rider.updateRider(riderId, riderData);
       await Rider.updateRiderAttachments(riderId, updatedAttachments); // new function for attachments
-      console.log(
-        "handleMultipleAttachments returned:",
-        updatedAttachments.pictures
-      );
+      // console.log(
+      //   "handleMultipleAttachments returned:",
+      //   updatedAttachments.pictures
+      // );
 
       this.sendSuccess(res, {}, "Updated Successfully!", 200, "/admin/riders");
     } catch (error) {
@@ -183,7 +186,7 @@ class RiderController extends BaseController {
 
   async deleteRiderPicture(req, res) {
     const { id, rider_id } = req.params;
-    console.log("id,rider_id:", id, rider_id);
+    // console.log("id,rider_id:", id, rider_id);
 
     try {
       const result = await Rider.getRiderAttachmentById(id, rider_id);
@@ -359,7 +362,7 @@ class RiderController extends BaseController {
   async renderEditDocumentForm(req, res) {
     try {
       const { rider_id, document_id } = req.params;
-      console.log("rider_id:", rider_id, "document_id:", document_id);
+      // console.log("rider_id:", rider_id, "document_id:", document_id);
 
       // Fetch document details
       const document = await Rider.getDocumentById(document_id);
@@ -460,8 +463,8 @@ class RiderController extends BaseController {
 
   async handleRiderApprove(req, res) {
     try {
-      console.log("req.params:", req.params);
-      console.log("req.query:", req.query);
+      // console.log("req.params:", req.params);
+      // console.log("req.query:", req.query);
 
       const { id } = req.params;
       const { is_approved } = req.query;
@@ -484,7 +487,7 @@ class RiderController extends BaseController {
 
       // Fetch the updated user
       const updatedRider = await Rider.findById(id);
-      console.log("Updated Rider:", updatedRider);
+      // console.log("Updated Rider:", updatedRider);
 
       let adminData = res.locals.adminData;
       let subject, templateName;
@@ -527,6 +530,41 @@ class RiderController extends BaseController {
       return res.status(200).json({ status: 0, msg: "Internal server error." });
     }
   }
+
+    async getRiderJobs (req, res)  {
+    try {
+        const riderId = req.params.rider_id;
+
+        const whereConditions = [
+            `rq.assigned_rider = ${riderId}`
+        ];
+
+        const jobs = await RequestQuoteModel.getRequestQuotesWithMembers(whereConditions);
+        // console.log("jobs:",jobs)
+ // Loop through jobs and add jobStatus
+    for (let job of jobs) {
+      job.jobStatus = await helpers.updateRequestQuoteJobStatus(job.id); 
+    }
+
+        return res.render("admin/riders/jobs", {
+            jobs,
+            riderId
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).send("Server Error");
+    }
+};
+
+
+
+
+
+
+
+
+
 }
 
 module.exports = new RiderController();

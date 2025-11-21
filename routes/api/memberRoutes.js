@@ -3,6 +3,7 @@ const express = require('express');
 const MemberController = require('../../controllers/api/memberController');
 const upload = require('../../file-upload');
 const multer = require('multer');
+const bodyParser = require('body-parser');
 
 const router = express.Router();
 const memberController = new MemberController();
@@ -60,6 +61,19 @@ router.post("/get-invoices", upload, (req, res) => memberController.getInvoices(
   
 
 router.post('/webhook_paypal', upload, (req, res) => memberController.webhookPaypalRequest(req, res));
+// GoCardless webhook must get raw body
+// router.post(
+//   "/api/gc/webhook",
+//   bodyParser.raw({ type: "application/json" }),
+//   (req, res) => memberController.webhookGoCardlessRequest(req, res)
+// );
+
+
+// router.post('/gc/confirm-payment', upload, (req, res) => memberController.confirmPayment(req, res));
+
+
+
+
 router.post('/send-email', upload, (req, res) => memberController.sendMailApi(req, res));
 
 

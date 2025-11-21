@@ -1,0 +1,75 @@
+{
+  "events": [
+    {
+      "id": "EV027V4DQS886A",
+      "created_at": "2025-10-14T07:26:43.497Z",
+      "resource_type": "billing_requests",
+      "action": "created",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "billing_request_created",
+        "description": "This billing request has been created."
+      },
+      "links": {
+        "customer": "CU01K7GSTG86XQV9EDE7R1WJVNZN",
+        "billing_request": "BRQ01K7GSTG8RZBBMRAVRB3G9E5YQ"
+      },
+      "resource_metadata": {
+        "invoice_id": "292",
+        "order_id": "292",
+        "type": "order"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027V4DQX4NWV",
+      "created_at": "2025-10-14T07:26:43.531Z",
+      "resource_type": "billing_requests",
+      "action": "flow_created",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "billing_request_flow_created",
+        "description": "A billing request flow has been created against this billing request."
+      },
+      "links": {
+        "customer": "CU01K7GSTG86XQV9EDE7R1WJVNZN",
+        "billing_request_flow": "BRF01K7GSTGAADRVYPMQPCNN2DPDXVV1",
+        "billing_request": "BRQ01K7GSTG8RZBBMRAVRB3G9E5YQ"
+      },
+      "resource_metadata": {
+        "invoice_id": "292",
+        "order_id": "292",
+        "type": "order"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027V4DSGJGPG",
+      "created_at": "2025-10-14T07:26:45.539Z",
+      "resource_type": "billing_requests",
+      "action": "flow_visited",
+      "metadata": {},
+      "details": {
+        "origin": "payer",
+        "cause": "billing_request_flow_visited",
+        "description": "The billing request flow has been visited."
+      },
+      "links": {
+        "customer": "CU01K7GSTG86XQV9EDE7R1WJVNZN",
+        "billing_request_flow": "BRF01K7GSTGAADRVYPMQPCNN2DPDXVV1",
+        "billing_request": "BRQ01K7GSTG8RZBBMRAVRB3G9E5YQ"
+      },
+      "resource_metadata": {
+        "type": "order",
+        "order_id": "292",
+        "invoice_id": "292"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K7GSTQK2RDJV1T5FZ7DDGBQF"
+  }
+}

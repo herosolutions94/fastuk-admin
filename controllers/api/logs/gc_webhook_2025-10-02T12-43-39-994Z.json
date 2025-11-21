@@ -1,0 +1,76 @@
+{
+  "events": [
+    {
+      "id": "EV027CXP311Y6P",
+      "created_at": "2025-10-02T12:43:30.210Z",
+      "resource_type": "mandates",
+      "action": "created",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "mandate_created",
+        "description": "Mandate created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "billing_request": "BRQ01K6JF54HVN1JNVAC57FXKXS38",
+        "mandate_request": "MRQ01K6JF54HSWT325",
+        "mandate": "MD01K6JF5XFZQNZZ649EK9P88V3Q"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027CXP32XEPV",
+      "created_at": "2025-10-02T12:43:30.258Z",
+      "resource_type": "billing_requests",
+      "action": "fulfilled",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "billing_request_fulfilled",
+        "description": "This billing request has been fulfilled, and the resources have been created."
+      },
+      "links": {
+        "customer": "CU01K6JF54HG9YETYSHRGN8G8QKA",
+        "customer_bank_account": "BA01K6JF5RBTA4H1HAECKA6STYXC",
+        "mandate_request_mandate": "MD01K6JF5XFZQNZZ649EK9P88V3Q",
+        "billing_request": "BRQ01K6JF54HVN1JNVAC57FXKXS38"
+      },
+      "resource_metadata": {
+        "order_id": "21",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027CXP341GYY",
+      "created_at": "2025-10-02T12:43:30.664Z",
+      "resource_type": "payments",
+      "action": "created",
+      "metadata": {
+        "order_id": "21",
+        "invoice_id": "1",
+        "user_id": "undefined"
+      },
+      "details": {
+        "origin": "api",
+        "cause": "payment_created",
+        "description": "Payment created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6JF5XXT40FKHFPX4940GGQZ"
+      },
+      "resource_metadata": {
+        "order_id": "21",
+        "invoice_id": "1",
+        "user_id": "undefined"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6JF670RM31CKCX4BPEV81C1"
+  }
+}

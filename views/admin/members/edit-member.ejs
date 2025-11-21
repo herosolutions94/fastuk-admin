@@ -100,10 +100,12 @@
               </div>
               <div class="col-md-6">
                 <div class="txtGrp">
-                  <label class="switch">Status
+                                      <label class="form-label" for="mem_status">Status:</label>
+
+                  <!-- <label class="switch">Status
                     <span
                       class="switch-state bg-primary"></span>
-                  </label>
+                  </label> -->
                   <select name="mem_status" class="input">
                     <option value="1" <%= member.mem_status == 1 ? 'selected' : '' %>>Active</option>
                     <option value="0" <%= member.mem_status == 0 ? 'selected' : '' %>>Inactive</option>
@@ -148,16 +150,16 @@
     <div class="dashTable">
          <div class="card">
             <div class="card-header">
-              <h5>General Details</h5>
+              <h5>Addresses</h5>
             </div>
             <div class="card-body">
-                <table class="table">
+                <table class="table table-striped table-bordered text-center align-middle">
                     <tr>
                         <td>Sr.</td>
                         <td>Name</td>
                         <td>Phone</td>
                         <td>Postal Code</td>
-                        <td>Address</td>
+                        <td width="20%">Address</td>
                         <td>City</td>
                         <td>Default</td>
                     </tr>

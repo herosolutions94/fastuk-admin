@@ -104,8 +104,6 @@
             <th style="padding: 13px; font-weight: 600">Parcel</th>
             <th style="padding: 13px; font-weight: 600">Source</th>
             <th style="padding: 13px; font-weight: 600">Destination</th>
-            <th style="padding: 13px; font-weight: 600">Distance</th>
-            <th style="padding: 13px; font-weight: 600">Price</th>
           </tr>
         </thead>
         <tbody style="border: 1px solid #fff5f6">
@@ -125,8 +123,6 @@
             </td>
             <td style="padding: 13px"><%= parcel.source_address %></td>
             <td style="padding: 13px"><%= parcel.destination_address %></td>
-            <td style="padding: 13px"><%= parcel.distance %> miles</td>
-            <td style="padding: 13px">£<%= parcel.price %></td>
           </tr>
           <% }); %>
         </tbody>
@@ -142,19 +138,19 @@
           <tr>
             <td style="padding: 13px" width="80%">Total Distance</td>
             <td style="padding: 13px" width="20%">
-              <%= totalDistance.toFixed(2) %> miles
+              <%= order.distance %> miles
             </td>
           </tr>
           <tr>
             <td style="padding: 13px" width="80%">Subtotal</td>
             <td style="padding: 13px" width="20%">
-              £<%= (subtotal || 0).toFixed(2) %>
+              £<%= order.total_amount || 0 %>
             </td>
           </tr>
           <% if (type === 'rider') { %>
           <tr>
             <td style="padding: 13px" width="80%">Total Amount</td>
-            <td style="padding: 13px" width="20%">£<%= subtotal %></td>
+            <td style="padding: 13px" width="20%">£<%= order.total_amount %></td>
           </tr>
           <% } else { %>
           <tr>

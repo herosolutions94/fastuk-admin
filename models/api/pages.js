@@ -19,8 +19,8 @@ class PageModel extends BaseModel {
             INSERT INTO request_quote(user_id, selected_vehicle, vehicle_price, total_amount,tax, payment_intent, customer_id, source_postcode, source_address,
             source_name, source_phone_number, source_city, dest_postcode, dest_address, dest_name, dest_phone_number, dest_city,
             payment_method, payment_method_id, status, start_date, created_date, notes, rider_price, promo_code, discount, 
-            pickup_time_option, pickup_start_time, pickup_start_date, pickup_end_date, pickup_end_time, delivery_time_option, delivery_start_date, delivery_start_time, delivery_end_date, delivery_end_time, pickup_time, pickup_date, delivery_time, delivery_date)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?,?)
+            pickup_time_option, pickup_start_time, pickup_start_date, pickup_end_date, pickup_end_time, delivery_time_option, delivery_start_date, delivery_start_time, delivery_end_date, delivery_end_time, pickup_time, pickup_date, delivery_time, delivery_date,round_trip,distance)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?,?,?,?)
         `;
         const values = [
   data.user_id ?? null,
@@ -66,11 +66,20 @@ class PageModel extends BaseModel {
   data.pickup_time || null,
   data.pickup_date || null,
   data.delivery_time || null,
-  data.delivery_date || null
+  data.delivery_date || null,
+  data.round_trip || null,
+  data.total_distance || null
 ];
+console.log("Rount trip model:", data.round_trip);
 
-        // console.log("values:",values)
-        // console.log("createRequestQuote values:", values,data);return;
+        // console.log("inserting request values:",values)
+//         console.log("createRequestQuote values:", values,data);
+//          console.log(
+//   "pickup_date:", data.pickup_time, "-> type:", typeof data.pickup_time
+// );
+// console.log(
+//   "pickup_time:", data.pickup_date, "-> type:", typeof data.pickup_date
+// );
 
     
         const result = await pool.query(query, values);
@@ -135,8 +144,29 @@ class PageModel extends BaseModel {
             
         `;
         for (const via of vias) {
-            const values = [via.request_id, via.full_name, via.phone_number, via.post_code, via.address, via.city, via.via_pickup_time_option, via.via_pickup_time || null, via.via_pickup_date || null, via.via_pickup_start_date || null, via.via_pickup_end_date || null, via.via_pickup_start_time || null, via.via_pickup_end_time || null];
-            // console.log('Inserting values:', values);
+            console.log('request_id:', via.request_id);
+            const values = [
+                via.request_id, 
+                via.full_name, 
+                via.phone_number, 
+                via.post_code, 
+                via.address, 
+                via.city, 
+                via.via_pickup_time_option, 
+                via.via_pickup_time || null, 
+                via.via_pickup_date || null, 
+                via.via_pickup_start_date || null,
+                via.via_pickup_start_time || null,  
+                via.via_pickup_end_date || null, 
+                via.via_pickup_end_time || null];
+            console.log('Inserting values:', values);
+//             console.log(
+//   "via_pickup_date:", via.via_pickup_date, "-> type:", typeof via.via_pickup_date
+// );
+// console.log(
+//   "via_pickup_time:", via.via_pickup_time, "-> type:", typeof via.via_pickup_time
+// );
+
 
             const [result] = await pool.query(query, values);
             // console.log('Insert result:', result);
@@ -168,6 +198,26 @@ class PageModel extends BaseModel {
         detail.source_lng,
         detail.destination_lat,
         detail.destination_lng,
+    ]);
+    const [result] = await pool.query(query, [values]);
+    // console.log('Insert result:', result);
+
+
+    }
+    async insertRequestStages(detailsArray,order_id) {
+        const query = `
+            INSERT INTO order_stages 
+            (order_id, address, lat, lng, status) 
+            VALUES ?
+        `;
+    
+        // Prepare data for bulk insert
+    const values = detailsArray.map((detail) => [
+        order_id,
+        detail.address,
+        detail.lat,
+        detail.lng,
+        'pending'
     ]);
     const [result] = await pool.query(query, [values]);
     // console.log('Insert result:', result);

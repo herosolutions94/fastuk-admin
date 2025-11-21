@@ -1,0 +1,99 @@
+<section id="dashbaord">
+    <div class="contain-fluid">
+        <div class="heading">
+            <div class="text">
+                <h3>CTA Section</h3>
+                <ul>
+                    <li><a href="">Home</a></li>
+                    <li class="active"><a href="">CTA Section</a></li>
+                </ul>
+            </div>
+            <div class="dashTable">
+                <div class="row">
+
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Banner</h5>
+                            </div>
+                            <div class="card-body full_width">
+                                <div class="row">
+                                    <div class="col-md-4">
+                                        <div class="card">
+                                            <div class="card-body preview">
+                                                <h5 class="card-title">Image</h5>
+                                                <div class="blog_img">
+                                                    <img src="<%=/uploads/+ contentData.cta_image %>"
+                                                        class="card-img-top" alt="" />
+                                                </div>
+                                                <div class="in-upload">
+                                                    <button type="button" class="uploadImg">
+                                                        <i class="fa-regular fa-image"></i>choose another
+                                                        image
+                                                    </button>
+                                                    <input type="file" name="cta_image" class="uploadFile" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="txtGrp">
+                                        <label class="form-label">Heading</label>
+                                        <input name="banner_heading" value="<%= contentData?.banner_heading || '' %>"
+                                            class="input">
+                                    </div>
+
+                                    <div class="txtGrp">
+                                        <label class="form-label">Text</label>
+                                        <textarea type="text" name="banner_text"
+                                            class="input"><%= contentData?.banner_text || '' %></textarea>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="txtGrp">
+                                        <label class="form-label">Link Text
+                                        </label>
+                                        <input type="text" name="link_text1" value="<%= contentData.link_text1 || '' %>"
+                                            class="input">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="txtGrp">
+                                        <label class="form-label">Link URL
+                                        </label>
+                                        <input type="text" name="link_url1" value="<%= contentData.link_url1 || '' %>"
+                                            class="input">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="txtGrp">
+                                        <label class="form-label">Link Text
+                                        </label>
+                                        <input type="text" name="link_text2" value="<%= contentData.link_text2 || '' %>"
+                                            class="input">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="txtGrp">
+                                        <label class="form-label">Link URL
+                                        </label>
+                                        <input type="text" name="link_url2" value="<%= contentData.link_url2 || '' %>"
+                                            class="input">
+                                    </div>
+                                </div>
+
+
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="clearfix"></div>
+
+
+
+
+
+                </div>
+            </div>
+</section>

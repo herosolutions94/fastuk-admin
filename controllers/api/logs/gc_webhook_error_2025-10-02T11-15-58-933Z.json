@@ -1,0 +1,123 @@
+{
+  "error": "Cannot access 'credit_invoice_row' before initialization",
+  "stack": "ReferenceError: Cannot access 'credit_invoice_row' before initialization\n    at MemberController.webhookGoCardlessRequest (/var/www/html/fastuk-admin/controllers/api/memberController.js:1332:85)\n    at processTicksAndRejections (node:internal/process/task_queues:96:5)",
+  "body": {
+    "events": [
+      {
+        "id": "EV027CWRCA736K",
+        "created_at": "2025-10-02T11:15:54.087Z",
+        "resource_type": "billing_requests",
+        "action": "collect_bank_account",
+        "metadata": {},
+        "details": {
+          "origin": "api",
+          "cause": "billing_request_collect_bank_account",
+          "description": "Bank account details have been collected for this billing request."
+        },
+        "links": {
+          "customer": "CU01K6JA50XFP6KMVFJ98E28VWZY",
+          "customer_bank_account": "BA01K6JA5GJ95E5RFK9311SZN0HJ",
+          "billing_request_flow": "BRF01K6JA50ZBGJZTJ7TCHBEJ321Z6XH",
+          "billing_request": "BRQ01K6JA50Y03FYF2XYP05CDE8Q8"
+        },
+        "resource_metadata": {
+          "invoice_id": "1"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027CWRCQ34J4",
+        "created_at": "2025-10-02T11:15:56.573Z",
+        "resource_type": "billing_requests",
+        "action": "payer_details_confirmed",
+        "metadata": {},
+        "details": {
+          "origin": "api",
+          "cause": "billing_request_payer_details_confirmed",
+          "description": "Payer has confirmed all their details for this billing request."
+        },
+        "links": {
+          "customer": "CU01K6JA50XFP6KMVFJ98E28VWZY",
+          "customer_bank_account": "BA01K6JA5GJ95E5RFK9311SZN0HJ",
+          "billing_request_flow": "BRF01K6JA50ZBGJZTJ7TCHBEJ321Z6XH",
+          "billing_request": "BRQ01K6JA50Y03FYF2XYP05CDE8Q8"
+        },
+        "resource_metadata": {
+          "invoice_id": "1"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027CWRCV3XNX",
+        "created_at": "2025-10-02T11:15:57.314Z",
+        "resource_type": "mandates",
+        "action": "created",
+        "metadata": {},
+        "details": {
+          "origin": "api",
+          "cause": "mandate_created",
+          "description": "Mandate created via the API.",
+          "scheme": "bacs"
+        },
+        "links": {
+          "billing_request": "BRQ01K6JA50Y03FYF2XYP05CDE8Q8",
+          "mandate_request": "MRQ01K6JA50XYAX9TN",
+          "mandate": "MD01K6JA5KPMN5RBT4K5Z84H6ZDR"
+        },
+        "resource_metadata": {},
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027CWRCXWSN3",
+        "created_at": "2025-10-02T11:15:57.381Z",
+        "resource_type": "billing_requests",
+        "action": "fulfilled",
+        "metadata": {},
+        "details": {
+          "origin": "gocardless",
+          "cause": "billing_request_fulfilled",
+          "description": "This billing request has been fulfilled, and the resources have been created."
+        },
+        "links": {
+          "customer": "CU01K6JA50XFP6KMVFJ98E28VWZY",
+          "customer_bank_account": "BA01K6JA5GJ95E5RFK9311SZN0HJ",
+          "mandate_request_mandate": "MD01K6JA5KPMN5RBT4K5Z84H6ZDR",
+          "billing_request": "BRQ01K6JA50Y03FYF2XYP05CDE8Q8"
+        },
+        "resource_metadata": {
+          "invoice_id": "1"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      },
+      {
+        "id": "EV027CWRCY2DK1",
+        "created_at": "2025-10-02T11:15:57.819Z",
+        "resource_type": "payments",
+        "action": "created",
+        "metadata": {
+          "order_id": "order_1759403755627",
+          "invoice_id": "1",
+          "user_id": "undefined"
+        },
+        "details": {
+          "origin": "api",
+          "cause": "payment_created",
+          "description": "Payment created via the API.",
+          "scheme": "bacs"
+        },
+        "links": {
+          "payment": "PM01K6JA5M6AHRGNNXE172N2CSQ3"
+        },
+        "resource_metadata": {
+          "order_id": "order_1759403755627",
+          "invoice_id": "1",
+          "user_id": "undefined"
+        },
+        "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+      }
+    ],
+    "meta": {
+      "webhook_id": "WB01K6JA5N56GVRFF8ADQWSCFWQM"
+    }
+  }
+}

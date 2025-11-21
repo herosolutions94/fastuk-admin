@@ -1,0 +1,30 @@
+{
+  "events": [
+    {
+      "id": "EV028AVDDF9GD9",
+      "created_at": "2025-10-23T09:09:43.379Z",
+      "resource_type": "payments",
+      "action": "confirmed",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_confirmed",
+        "scheme": "bacs",
+        "reason_code": "CONFIRMED",
+        "description": "Enough time has passed since the payment was submitted for the banks to return an error, so this payment is now confirmed."
+      },
+      "links": {
+        "payment": "PM01K7P4XHRDKQQHEGBXP6R5SV6F"
+      },
+      "resource_metadata": {
+        "type": "order",
+        "order_id": "296",
+        "invoice_id": "296"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K885PP3FQ647RVV49XB3SFEA"
+  }
+}

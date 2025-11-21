@@ -17,6 +17,9 @@ router.post('/get-rider-orders', upload, riderController.getRiderOrders.bind(rid
 router.post('/get-order-details/:encodedId', upload,riderController.getOrderDetailsByEncodedId.bind(riderController));
 router.post('/update-request-status', upload,riderController.updateRequestStatus.bind(riderController));
 router.post('/mark-as-completed', upload,riderController.markAsCompleted.bind(riderController));
+router.post('/update-stage-charges', upload,riderController.updateStageCharges.bind(riderController));
+router.post('/update-stage-status', upload,riderController.updateStageStatus.bind(riderController));
+router.post('/complete-order-stage', upload,riderController.completeOrderStage.bind(riderController));
 router.get('/get-invoices-detail', upload,riderController.getInvoiceDetails.bind(riderController));
 // router.post('/test-notification', upload,riderController.testNotification.bind(riderController));
 router.post('/test-notification-rider', upload, (req, res) => riderController.testNotification(req, res));
@@ -34,6 +37,9 @@ router.post('/get-rider-document-requests', upload, riderController.getRiderDocu
 router.post('/upload-rider-document', upload, riderController.uploadRiderDocument.bind(riderController));
 router.post('/delete-rider-document', upload, riderController.deleteRiderDocument.bind(riderController));
 router.post('/change-order-request-status', upload, riderController.changeOrderRequestStatus.bind(riderController));
+router.post('/parcel-status-update', upload, riderController.parcelStatusChange.bind(riderController));
+router.post('/update-parcel-status', upload, riderController.updateParcelStatus.bind(riderController));
+
 
 
 

@@ -185,13 +185,17 @@ class MemberModel extends BaseModel {
 
       // Add status condition if it's not empty
       if (status) {
+
         switch (status) {
           case "completed":
             query += ` AND rq.status = ?`;
             values.push("completed");
             break;
           case "in_progress":
-            // Assuming anything not completed is in progress
+            query += ` AND rq.status != ?`;
+            values.push("completed");
+            break;
+          case "not_completed": // <-- new case
             query += ` AND rq.status != ?`;
             values.push("completed");
             break;
@@ -208,7 +212,7 @@ class MemberModel extends BaseModel {
                 rq.id DESC
         `;
 
-      console.log("Fetching orders for user:", userId, "with status:", status);
+      // console.log("Fetching orders for user:", userId, "with status:", status);
 
       // Add LIMIT clause if limit is not null
       if (limit !== null) {
@@ -226,6 +230,7 @@ class MemberModel extends BaseModel {
   }
 
   async getUserOrderDetailsById({ userId, requestId }) {
+    // console.log("userId:", userId, "requestId:", requestId);
     try {
       // Query to fetch the order by ID
       const query = `SELECT 
@@ -270,6 +275,53 @@ GROUP BY
       throw new Error("Database query failed.");
     }
   }
+
+  async getUserOrderDetailsByIdGoCardless({ userId, requestId }) {
+    // console.log("userId:", userId, "requestId:", requestId);
+    try {
+      // Query to fetch the order by ID
+      const query = `
+SELECT 
+  rq.*, 
+  m.full_name AS user_name, 
+  m.mem_image AS user_image,
+  m.email AS user_email,
+  m.mem_phone AS user_phone,
+  COALESCE(SUM(rp.distance), 0) AS total_distance
+FROM 
+  request_quote rq
+LEFT JOIN 
+  riders m 
+    ON rq.assigned_rider = m.id AND rq.assigned_rider IS NOT NULL
+LEFT JOIN 
+  request_parcels rp 
+    ON rq.id = rp.request_id
+WHERE 
+  rq.user_id = ? 
+  AND rq.id = ?
+GROUP BY 
+  rq.id, m.full_name, m.mem_image, m.email, m.mem_phone;
+`;
+
+
+      // Execute the query using the connection pool
+      const [rows, fields] = await pool.query(query, [userId, requestId]);
+      // console.log("userId:",userId,"requestId:",requestId)
+      // console.log("rows:",rows)
+
+      // If no rows are returned, the order doesn't exist
+      if (rows.length === 0) {
+        return null;
+      }
+
+      // Return the order details (first row since we expect a single result)
+      return rows[0];
+    } catch (error) {
+      console.error("Error in getOrderDetailsById:", error);
+      throw new Error("Database query failed.");
+    }
+  }
+
   async getUserOrderDetailsByTrackingId({ tracking_id }) {
     try {
       // Query to fetch order, rider, and user details
@@ -310,6 +362,7 @@ GROUP BY
       if (rows.length === 0) {
         return null;
       }
+      console.log("rows:", rows, tracking_id);
 
       // Return the order details (first row)
       return rows[0];

@@ -1,6 +1,7 @@
 // controllers/api/RiderController.js
 const fs = require('fs'); // Import the file system module
 const path = require('path'); // For handling file paths
+const helpers = require('../../utils/helpers');
 
 const BaseController = require('../baseController');
 const Service = require('../../models/service');
@@ -30,11 +31,23 @@ class ServiceController extends BaseController {
                 description,
                 status,
             } = req.body;
-            console.log("req.body",req.body);  // To check if name and description are being sent
+            // console.log("req.body",req.body);  // To check if name and description are being sent
 
 
             const serviceImage = req.files && req.files["service_image"] ? req.files["service_image"][0].filename : '';
-            console.log("req.file:",req.file);  // To check if the file is being uploaded
+            // console.log("req.file:",req.file);  // To check if the file is being uploaded
+
+            if(serviceImage){
+                 const sourceDir = path.join(__dirname, '../../uploads');
+                const thumbFolder = 'thumbnails';
+                const width = 300;
+                const height = 300;
+
+                // ✅ Generate the thumbnail using your helper
+                await helpers.generateThumbnail(serviceImage, sourceDir, thumbFolder, width, height);
+                console.log('Thumbnail created for:', serviceImage);        
+               
+            }
 
 
             // Clean and trim data
@@ -51,12 +64,12 @@ class ServiceController extends BaseController {
             }
             // Create the rider
             const serviceId = await this.service.createService(cleanedData);
-            console.log('Created Service ID:', serviceId); // Log the created rider ID
+            // console.log('Created Service ID:', serviceId); // Log the created rider ID
 
 
             // Verify OTP was stored properly
         const createdService = await this.service.findById(serviceId);
-        console.log('Created Service:', createdService); // Log the created rider
+        // console.log('Created Service:', createdService); // Log the created rider
         res.json({
             status: 1,
             message: 'Service added successfully!',
@@ -93,13 +106,13 @@ class ServiceController extends BaseController {
     async editService(req, res) {
         try {
             const serviceId = req.params.id;  // Get the rider ID from the request parameters
-            console.log('Fetching service with ID:', serviceId); // Log the ID
+            // console.log('Fetching service with ID:', serviceId); // Log the ID
     
             // Fetch the rider by ID
             const service = (await Service.getServiceById(serviceId))[0]; // Extract the first rider if it's returned as an array
-            console.log('Fetched service:', service); // Log fetched rider data
+            // console.log('Fetched service:', service); // Log fetched rider data
 
-            console.log('Service data before rendering:', service); // Log the rider data
+            // console.log('Service data before rendering:', service); // Log the rider data
 
     
             // Check if rider exists
@@ -130,19 +143,21 @@ class ServiceController extends BaseController {
             const currentService = (await Service.getServiceById(serviceId))[0];
     
             // Debugging output
-            console.log('Current Service:', currentService);
+            // console.log('Current Service:', currentService);
             
             // Check if a new image is uploaded
             const serviceImage = req.files && req.files["service_image"] ? req.files["service_image"][0].filename : null;
     
             // Debugging output
-            console.log('New service image:', serviceImage);
+            // console.log('New service image:', serviceImage);
     
             // Handle image replacement
             if (serviceImage) {
                 // If there is an old image, delete it
                 if (currentService.service_image) {
                     const oldImagePath = path.join(__dirname, '../../uploads/', currentService.service_image);
+                    const oldThumbPath = path.join(__dirname, '../../uploads/thumbnails/', currentService.service_image);
+
                     
                     // Check if the old image file exists before trying to delete
                     if (fs.existsSync(oldImagePath)) {
@@ -156,12 +171,38 @@ class ServiceController extends BaseController {
                     } else {
                         console.log('Old image file not found:', oldImagePath);
                     }
+                    if (fs.existsSync(oldThumbPath)) {
+                    fs.unlink(oldThumbPath, (err) => {
+                        if (err) console.error('Error deleting old thumbnail:', err);
+                        else console.log('Old thumbnail deleted successfully');
+                    });
+                } else {
+                    console.log('Old thumbnail file not found:', oldThumbPath);
+                }
                 }
     
                 // Update the testimonial data with the new image filename
                 serviceData.service_image = serviceImage;
             } else {
                 // If no new image is uploaded, retain the old image
+                serviceData.service_image = currentService.service_image;
+            }
+
+            // If a new image is uploaded, generate a thumbnail
+            if (serviceImage) {
+                const sourceDir = path.join(__dirname, '../../uploads');
+                const thumbFolder = 'thumbnails';
+                const width = 300;
+                const height = 300;
+
+                // ✅ Generate the thumbnail using your helper
+                await helpers.generateThumbnail(serviceImage, sourceDir, thumbFolder, width, height);
+                console.log('Thumbnail created for:', serviceImage);
+
+                // Update with new image
+                serviceData.service_image = serviceImage;
+            } else {
+                // Retain old image
                 serviceData.service_image = currentService.service_image;
             }
     
@@ -198,6 +239,8 @@ class ServiceController extends BaseController {
             // Step 2: Check if the rider has an associated image
             if (serviceImage) {
                 const imagePath = path.join(__dirname, '../../uploads/', serviceImage);
+                const thumbPath = path.join(__dirname, '../../uploads/thumbnails/', serviceImage);
+
                 // console.log('Image Path:', imagePath); // Log the image path
 
                 // Check if the image file exists before trying to delete
@@ -212,6 +255,14 @@ class ServiceController extends BaseController {
                     });
                 } else {
                     console.log('Image file not found:', imagePath); // Log if the image file doesn't exist
+                }
+                if (fs.existsSync(thumbPath)) {
+                    fs.unlink(thumbPath, (err) => {
+                        if (err) console.error('Error deleting thumbnail:', err);
+                        else console.log('Thumbnail deleted successfully');
+                    });
+                } else {
+                    console.log('Thumbnail file not found:', thumbPath);
                 }
             }
 

@@ -1,4 +1,5 @@
 const pool = require("../config/db-connection"); // Ensure this is promise-based
+const helpers = require("../utils/helpers");
 
 class Rider {
   static async getAllRiders() {
@@ -42,11 +43,12 @@ class Rider {
       vehicle_type,
       vehicle_registration_num,
       driving_license_num,
+      national_insurance_num,
       status,
       driving_license,
     } = riderData;
     await pool.query(
-      "UPDATE riders SET full_name = ?, email = ?, mem_phone = ?, dob = ?, mem_address1 = ?, city = ?, vehicle_owner = ?, vehicle_type = ?, vehicle_registration_num = ?, driving_license_num = ?, status = ?, driving_license = ? WHERE id = ?",
+      "UPDATE riders SET full_name = ?, email = ?, mem_phone = ?, dob = ?, mem_address1 = ?, city = ?, vehicle_owner = ?, vehicle_type = ?, vehicle_registration_num = ?, driving_license_num = ?, status = ?, driving_license = ?, national_insurance_num = ? WHERE id = ?",
       [
         full_name,
         email,
@@ -60,6 +62,7 @@ class Rider {
         driving_license_num,
         status,
         driving_license,
+        national_insurance_num,
         id,
       ]
     );
@@ -74,13 +77,14 @@ class Rider {
       "passport_pic",
       "national_insurance",
       "company_certificate",
+      "driving_license"
     ];
 
     // Update or insert single attachment types
     for (const type of singleTypes) {
       const filename = attachments[type];
       if (filename) {
-        const existing = await pool.query(
+        const [existing] = await pool.query(
           "SELECT id FROM rider_attachments WHERE rider_id = ? AND type = ?",
           [riderId, type]
         );
@@ -234,6 +238,15 @@ static async getRiderAttachmentById(id, rider_id) {
     console.log(query);
     await pool.query(query, [is_approved, id]);
   }
+
+  static async getParcelsById(parcel_id) {
+    const query = `SELECT * FROM order_details WHERE id = ?`;
+    const [rows] = await pool.query(query, [parcel_id]);
+    console.log("parcels:",rows)
+    return rows.length ? rows[0] : null;
+  }
+
+  
 }
 
 module.exports = Rider;

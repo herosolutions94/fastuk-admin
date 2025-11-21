@@ -1,0 +1,70 @@
+{
+  "events": [
+    {
+      "id": "EV027FDWE7R55R",
+      "created_at": "2025-10-03T15:39:27.727Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6FS4NRJAP9AN7F8AM88SWY3",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6FS4TN77CPPRTHF0M77F9MK"
+      },
+      "resource_metadata": {
+        "order_id": "order_1759318796189"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027FDW9QQ7SV",
+      "created_at": "2025-10-03T15:39:26.140Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6FQ02VT3XBMYA6E9K9XEPA2",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6FQ1ZY8PXV32C8J9D1KBX6C"
+      },
+      "resource_metadata": {
+        "order_id": "order_1759316606210"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027FDW835STK",
+      "created_at": "2025-10-03T15:39:25.546Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6FP168FT0YEMFNVZ984JVR3",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6FP1ERKP1FMC1P03WMYH0NS"
+      },
+      "resource_metadata": {
+        "order_id": "order_1759315540072"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6NBMYZ7E2TMD8KHWZE39VFM"
+  }
+}

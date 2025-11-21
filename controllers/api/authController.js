@@ -779,6 +779,7 @@ class MemberController extends BaseController {
 
       // Clean the email data
       const cleanedEmail = typeof email === "string" ? email.trim() : "";
+      console.log("cleanedEmail:",cleanedEmail)
 
       // Check if the email exists in the database
       let existingMember = await this.member.findByEmail(cleanedEmail);
@@ -791,6 +792,7 @@ class MemberController extends BaseController {
           msg: "Email does not exist in the system."
         });
       }
+console.log("Sending email to:", existingMember.email);
 
       // Generate a random OTP
       const otp = Math.floor(100000 + Math.random() * 900000); // OTP between 100000 and 999999
@@ -823,7 +825,13 @@ class MemberController extends BaseController {
           adminData
       };
 
-      await helpers.sendEmail(existingMember.email, subject, "forget-password-email", templateData);
+      console.log("adminData in forget password:", adminData);
+
+
+      // await helpers.sendEmail(existingMember.email, subject, "forget-password-email", templateData);
+
+      const emailResponse = await helpers.sendEmail(existingMember.email, subject, "forget-password-email", templateData);
+console.log("Email Response:", emailResponse);
 
       // console.log(memType, "memType");
       const userId = existingMember.id;

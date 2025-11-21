@@ -1,0 +1,63 @@
+{
+  "events": [
+    {
+      "id": "EV027AJKHSXBXG",
+      "created_at": "2025-10-01T11:02:06.685Z",
+      "resource_type": "billing_requests",
+      "action": "flow_created",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "billing_request_flow_created",
+        "description": "A billing request flow has been created against this billing request."
+      },
+      "links": {
+        "customer": "CU01K6FPZHH60D333RVV4AR8P5VM",
+        "billing_request_flow": "BRF01K6FPZHJW3MTMS5ZGB0YT94GQYS8",
+        "billing_request": "BRQ01K6FPZHHKF8B2TQZ1K8MCP40K"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027AJKHN6VFQ",
+      "created_at": "2025-10-01T11:02:06.656Z",
+      "resource_type": "billing_requests",
+      "action": "created",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "billing_request_created",
+        "description": "This billing request has been created."
+      },
+      "links": {
+        "customer": "CU01K6FPZHH60D333RVV4AR8P5VM",
+        "billing_request": "BRQ01K6FPZHHKF8B2TQZ1K8MCP40K"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027AJKJV43P1",
+      "created_at": "2025-10-01T11:02:07.824Z",
+      "resource_type": "billing_requests",
+      "action": "flow_visited",
+      "metadata": {},
+      "details": {
+        "origin": "payer",
+        "cause": "billing_request_flow_visited",
+        "description": "The billing request flow has been visited."
+      },
+      "links": {
+        "customer": "CU01K6FPZHH60D333RVV4AR8P5VM",
+        "billing_request_flow": "BRF01K6FPZHJW3MTMS5ZGB0YT94GQYS8",
+        "billing_request": "BRQ01K6FPZHHKF8B2TQZ1K8MCP40K"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6FPZSFZPHY920H9FFJRKBSY"
+  }
+}

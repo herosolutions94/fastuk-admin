@@ -1,0 +1,76 @@
+{
+  "events": [
+    {
+      "id": "EV027JQ2PNRNSK",
+      "created_at": "2025-10-07T15:44:21.475Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6MRY6JXQ3HYD0AVXNFNHMW0",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6MRYASTATWXBNN7TRYGPJ69"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "null",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027JQ2R2R0R8",
+      "created_at": "2025-10-07T15:44:21.792Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6MT75D02ER38E65G8JTHFM5",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6MT7PKNZR4KJ851N68KZV09"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "null",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027JQ2SB4ZER",
+      "created_at": "2025-10-07T15:44:22.069Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6MWN7Y7YBJHRA3QF1PEWSER",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6MWNYXGFQD8KY711Q8SSXRK"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "null",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6ZNGRV022VD80CRFFKQHCTA"
+  }
+}

@@ -83,6 +83,36 @@ class PagesController extends BaseController {
       res.status(500).json({ error: "Internal Server Error" });
     }
   }
+
+  async getHome2Data(req, res) {
+    const testimonialModel = new TestimonialModel();
+
+    try {
+      const siteSettings = res.locals.adminData;
+
+      // Get the main page content
+      const pageContent = await this.pageModel.findByKey("home2");
+      const formData = pageContent
+        ? JSON.parse(pageContent.content || "{}")
+        : {};
+
+      // Get testimonials data
+      const testimonialsData = await testimonialModel.findFeatured();
+
+      // Combine the content and multi_text data
+      const jsonResponse = {
+        siteSettings,
+        content: formData,
+        testimonials: testimonialsData,
+      };
+
+      // Return data in JSON format
+      res.json(jsonResponse);
+    } catch (err) {
+      console.error("Error:", err);
+      res.status(500).json({ error: "Internal Server Error" });
+    }
+  }
   async getAboutData(req, res) {
     const teamModel = new TeamModel();
 
@@ -722,7 +752,7 @@ class PagesController extends BaseController {
 
   async getVehiclesByCategoryId(req, res) {
   const { categoryId } = req.params;
-  const { totalWeight, totalHeight, totalQuantity } = req.body; // ✅ get constraints
+  const { totalWeight, totalHeight, totalQuantity, totalLength } = req.body; // ✅ get constraints
 
   try {
     // Step 1: Check if category exists
@@ -738,6 +768,7 @@ class PagesController extends BaseController {
     // Step 3: Apply filtering based on constraints
     const matchingVehicles = vehiclesResult.filter(v =>
       v.max_height >= totalHeight &&
+      v.max_length >= totalLength &&
       v.load_capacity >= totalWeight &&
       v.no_of_pallets >= totalQuantity
     );
@@ -795,16 +826,19 @@ class PagesController extends BaseController {
       };
 
 async getAvailableVehicleCategories(req, res) {
-  const { totalWeight, totalHeight, totalQuantity } = req.body;
+  const { totalWeight, totalHeight, totalQuantity, totalLength } = req.body;
 
   try {
     const vehicleModel = new VehicleModel();
     // Fetch all active vehicles
     const vehicles = await vehicleModel.getActiveVehicles();
+        // console.log("vehicles:",vehicles)
+
 
     // Filter vehicles based on constraints
     const matchingVehicles = vehicles.filter(v =>
       v.max_height >= totalHeight &&
+      v.max_length >= totalLength &&
       v.load_capacity >= totalWeight &&
       v.no_of_pallets >= totalQuantity
     );
@@ -813,10 +847,12 @@ async getAvailableVehicleCategories(req, res) {
     if (matchingVehicles.length > 0) {
       // Extract unique category IDs
       const categoryIds = [...new Set(matchingVehicles.map(v => v.vehicle_category_id))];
+          console.log("categoryIds:",categoryIds)
+
 
       // Fetch only categories that match those IDs
       const vehicleCategories = await VehicleCategoryModel.getVehicleCategoriesById(categoryIds);
-      console.log("vehicleCategories:",vehicleCategories)
+      // console.log("vehicleCategories:",vehicleCategories)
 
 
       return res.status(200).json({

@@ -1,0 +1,33 @@
+{
+  "events": [
+    {
+      "id": "EV027CR795RN7R",
+      "created_at": "2025-10-02T09:31:21.357Z",
+      "resource_type": "payments",
+      "action": "created",
+      "metadata": {
+        "order_id": "order_1759397479717",
+        "invoice_id": "1",
+        "user_id": "undefined"
+      },
+      "details": {
+        "origin": "api",
+        "cause": "payment_created",
+        "description": "Payment created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6J462TKW579DAPCRPKXV2ZK"
+      },
+      "resource_metadata": {
+        "order_id": "order_1759397479717",
+        "invoice_id": "1",
+        "user_id": "undefined"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6J553PEQW4YD064KHTTRT8R"
+  }
+}

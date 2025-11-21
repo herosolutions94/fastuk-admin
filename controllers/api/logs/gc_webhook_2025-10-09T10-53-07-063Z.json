@@ -1,0 +1,75 @@
+{
+  "events": [
+    {
+      "id": "EV027PJDV1DCMC",
+      "created_at": "2025-10-09T10:53:00.708Z",
+      "resource_type": "billing_requests",
+      "action": "payer_details_confirmed",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "billing_request_payer_details_confirmed",
+        "description": "Payer has confirmed all their details for this billing request."
+      },
+      "links": {
+        "customer": "CU01K749KJ6VKCYC7GW7DMB79EY3",
+        "customer_bank_account": "BA01K749MCFZMN6YQH6ZHVTYZP2R",
+        "billing_request_flow": "BRF01K749KJ8KTJ1HQBWQNFTWNC3DZTX",
+        "billing_request": "BRQ01K749KJ781HR95MN3NYH29ECV"
+      },
+      "resource_metadata": {
+        "type": "order",
+        "order_id": "272",
+        "invoice_id": "272"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027PJDVRFJG7",
+      "created_at": "2025-10-09T10:53:01.826Z",
+      "resource_type": "mandates",
+      "action": "created",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "mandate_created",
+        "description": "Mandate created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "billing_request": "BRQ01K749KJ781HR95MN3NYH29ECV",
+        "mandate_request": "MRQ01K749KJ75VPFKF",
+        "mandate": "MD01K749MNEGJYVTB7PZS4F4J345"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027PJDVSX5TB",
+      "created_at": "2025-10-09T10:53:01.885Z",
+      "resource_type": "billing_requests",
+      "action": "fulfilled",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "billing_request_fulfilled",
+        "description": "This billing request has been fulfilled, and the resources have been created."
+      },
+      "links": {
+        "customer": "CU01K749KJ6VKCYC7GW7DMB79EY3",
+        "customer_bank_account": "BA01K749MCFZMN6YQH6ZHVTYZP2R",
+        "mandate_request_mandate": "MD01K749MNEGJYVTB7PZS4F4J345",
+        "billing_request": "BRQ01K749KJ781HR95MN3NYH29ECV"
+      },
+      "resource_metadata": {
+        "type": "order",
+        "order_id": "272",
+        "invoice_id": "272"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K749MTHW9DVSPRYECBSMZ9AP"
+  }
+}

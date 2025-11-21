@@ -25,10 +25,13 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const helpers = require("../../utils/helpers");
+const client = require("../../utils/goCardless");
 const { SMTP_MAIL, SMTP_PASSWORD } = process.env;
 const Stripe = require("stripe");
 const { pool } = require("../../config/db-connection");
 const { order } = require("paypal-rest-sdk");
+const path = require("path");
+const fs = require('fs');
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 class MemberController extends BaseController {
   constructor() {
@@ -491,78 +494,78 @@ class MemberController extends BaseController {
   }
 
   async requestQuote(req, res) {
-  const vehicleModel = new VehicleModel();
-  const vehicleCategoryModel = new VehicleCategoryModel();
-  const { token, memType, address_id, id } = req.body;
+    const vehicleModel = new VehicleModel();
+    const vehicleCategoryModel = new VehicleCategoryModel();
+    const { token, memType, address_id, id } = req.body;
 
-  let quoteDetails = null;
-  let member = null;
-  let paymentMethods = [];
-  let addressesData = [];
+    let quoteDetails = null;
+    let member = null;
+    let paymentMethods = [];
+    let addressesData = [];
 
-  try {
-    const siteSettings = res.locals.adminData;
+    try {
+      const siteSettings = res.locals.adminData;
 
-    // Fetch featured vehicles and categories
-    const vehiclesData = await vehicleModel.findFeatured();
-    const vehicleCategoriesData = await VehicleCategoryModel.getActiveVehicleCategories();
-    const remotePostCodes = await RemotePostCodeModel.getRemotePostCodesInArray();
+      // Fetch featured vehicles and categories
+      const vehiclesData = await vehicleModel.findFeatured();
+      const vehicleCategoriesData = await VehicleCategoryModel.getActiveVehicleCategories();
+      const remotePostCodes = await RemotePostCodeModel.getRemotePostCodesInArray();
 
-    // Token check
-    if (token && token !== "null") {
-      if (memType === "rider") {
-        return res.status(200).json({ status: 0, msg: "Rider account cannot create request!" });
-      }
+      // Token check
+      if (token && token !== "null") {
+        if (memType === "rider") {
+          return res.status(200).json({ status: 0, msg: "Rider account cannot create request!" });
+        }
 
-      const userResponse = await this.validateTokenAndGetMember(token, memType);
-      if (userResponse.status === 0) {
-        return res.status(200).json(userResponse);
-      }
+        const userResponse = await this.validateTokenAndGetMember(token, memType);
+        if (userResponse.status === 0) {
+          return res.status(200).json(userResponse);
+        }
 
-      member = userResponse.user;
-      if (!member) {
-        return res.status(200).json({ status: 0, msg: "Member not found." });
-      }
+        member = userResponse.user;
+        if (!member) {
+          return res.status(200).json({ status: 0, msg: "Member not found." });
+        }
 
-      // Fetch user addresses
-      addressesData = await this.addressModel.getAddressesByUserId(member.id);
+        // Fetch user addresses
+        addressesData = await this.addressModel.getAddressesByUserId(member.id);
 
-      // Decode ID (quote ID) and fetch quote details
-      let decodedId = id ? helpers.doDecode(id) : null;
-      if (decodedId) {
-        quoteDetails = await RequestQuoteModel.getRequestQuoteDetailsById(decodedId);
-        if (!quoteDetails) {
-          return res.status(200).json({ status: 0, msg: "Quote not found." });
+        // Decode ID (quote ID) and fetch quote details
+        let decodedId = id ? helpers.doDecode(id) : null;
+        if (decodedId) {
+          quoteDetails = await RequestQuoteModel.getRequestQuoteDetailsById(decodedId);
+          if (!quoteDetails) {
+            return res.status(200).json({ status: 0, msg: "Quote not found." });
+          }
+        }
+
+        // Fetch and format payment methods
+        const fetchedPaymentMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(member.id, memType);
+        if (fetchedPaymentMethods?.length > 0) {
+          paymentMethods = fetchedPaymentMethods.map((method) => ({
+            encoded_id: helpers.doEncode(method.id),
+            card_number: helpers.doDecode(method.card_number),
+          }));
         }
       }
 
-      // Fetch and format payment methods
-      const fetchedPaymentMethods = await this.paymentMethodModel.getPaymentMethodsByUserId(member.id, memType);
-      if (fetchedPaymentMethods?.length > 0) {
-        paymentMethods = fetchedPaymentMethods.map((method) => ({
-          encoded_id: helpers.doEncode(method.id),
-          card_number: helpers.doDecode(method.card_number),
-        }));
-      }
+      // Final JSON response
+      res.json({
+        addressesData,
+        siteSettings,
+        vehicles: vehiclesData,
+        vehicleCategories: vehicleCategoriesData,
+        member,
+        paymentMethods,
+        remotePostCodes,
+        quoteDetails,
+      });
+
+    } catch (err) {
+      console.error("Error:", err);
+      res.status(200).json({ error: "Internal Server Error" });
     }
-
-    // Final JSON response
-    res.json({
-      addressesData,
-      siteSettings,
-      vehicles: vehiclesData,
-      vehicleCategories: vehicleCategoriesData,
-      member,
-      paymentMethods,
-      remotePostCodes,
-      quoteDetails,
-    });
-
-  } catch (err) {
-    console.error("Error:", err);
-    res.status(200).json({ error: "Internal Server Error" });
   }
-}
 
 
   generatePseudoFingerprint(req) {
@@ -607,9 +610,11 @@ class MemberController extends BaseController {
       order_details,
       promo_code,
       totalDistance,
+      remote_price,
+      price
     } = req.body;
 
-    // console.log("req.body:",req.body);
+    // console.log("req.body:", req.body);
 
     const requiredFields = [
       "selectedVehicle",
@@ -639,6 +644,7 @@ class MemberController extends BaseController {
     // console.log(token, 'token')
     // Validate fields
     const { isValid, errors } = validateFields(req.body, requiredFields);
+    console.log("Validation errors:", errors);
     if (!isValid) {
       return res.status(200).json({
         status: 0,
@@ -649,19 +655,17 @@ class MemberController extends BaseController {
     // console.log(memType)
     try {
       const siteSettings = res.locals.adminData;
-      let order_amount_details = helpers.calculateOrderSummary(
-        order_details,
-        siteSettings
+      let order_amount_details = helpers.calculateOrderTotal(
+        totalDistance,
+        siteSettings,
+        price,
+        remote_price
       );
       const total_distance = order_amount_details?.totalDistance;
       let total_amount = order_amount_details?.totalAmount;
       let taxAmount = order_amount_details?.taxAmount;
       let grandTotal = order_amount_details?.grandTotal;
-      let parcel_price_obj = helpers.calculateParcelsPrice(
-        order_details,
-        siteSettings?.site_processing_fee
-      );
-      // console.log(parcel_price_obj);return;
+
       let userId;
       let token_arr = {};
       // Handle user authentication/creation
@@ -709,7 +713,7 @@ class MemberController extends BaseController {
         if (userExist) {
           return res
             .status(200)
-            .json({ error: "User already exists! Please login to continue!" });
+            .json({ status: 0, msg: "User already exists! Please login to continue!" });
         }
 
         // Hash password and create user
@@ -771,7 +775,7 @@ class MemberController extends BaseController {
         templateData
       );
 
-      console.log("result:", result);
+      // console.log("result:", result);
       if (
         grandTotal == undefined ||
         grandTotal == null ||
@@ -788,7 +792,7 @@ class MemberController extends BaseController {
       let formattedTotalPrice = helpers.formatAmount(grandTotal);
 
       let subTotal = 0;
-      console.log(promo_code);
+      // console.log(promo_code);
       if (
         promo_code !== "" &&
         promo_code !== null &&
@@ -848,6 +852,7 @@ class MemberController extends BaseController {
         customer: stripeCustomer.id,
         setup_future_usage: "off_session",
       });
+      // console.log(paymentIntent,finalAmount,paymentIntent)
 
       // Respond with payment details
       return res.status(200).json({
@@ -987,10 +992,17 @@ class MemberController extends BaseController {
               const parcelsArray = await this.rider.getParcelDetailsByQuoteId(
                 orderDetails.id
               );
+              const order_stages_arr = await this.rider.getRequestOrderStages(orderDetails.id);
               const orderRow = {
                 ...orderDetails,
                 parcels: parcelsArray,
+
+                order_stages: order_stages_arr,
                 start_date: helpers.formatDateToUK(orderDetails.start_date),
+                // ✅ ensure proper numeric formatting
+                total_amount: helpers.formatAmount(orderDetails.total_amount),
+                tax: helpers.formatAmount(orderDetails.tax),
+                distance: helpers.formatAmount(orderDetails.distance),
               };
               await helpers.sendEmail(
                 rider.email,
@@ -1026,9 +1038,11 @@ class MemberController extends BaseController {
           const parcelsArray = await this.rider.getParcelDetailsByQuoteId(
             orderDetails?.id
           );
+          const order_stages_arr = await this.rider.getRequestOrderStages(orderDetails.id);
           const orderRow = {
             ...orderDetails,
             parcels: parcelsArray,
+            order_stages: order_stages_arr,
             start_date: helpers.formatDateToUK(orderDetails.start_date),
           };
 
@@ -1124,7 +1138,7 @@ class MemberController extends BaseController {
               requestId
             )}`;
 
-            console.log("orderRow:", orderRow, "userRow:", userRow, dueAmount);
+            // console.log("orderRow:", orderRow, "userRow:", userRow, dueAmount);
 
             if (parseFloat(dueAmount) <= 0) {
               const notificationText = `Invoice is paid by the user.Now mark the request as completed`;
@@ -1196,13 +1210,15 @@ class MemberController extends BaseController {
           const parcels = await this.rider.getParcelDetailsByQuoteId(
             orderDetails.id
           );
+          const order_stages_arr = await this.rider.getRequestOrderStages(orderDetails.id);
           const dueAmount = await RequestQuoteModel.calculateDueAmount(
             orderDetails.id
           );
           let request_row = orderDetails;
           const requestRow = {
             ...request_row, // Spread request properties into order
-            parcels: parcels, // Add parcels as an array inside order
+            parcels: parcels,
+            order_stages: order_stages_arr
           };
           if (parseFloat(dueAmount) <= 0) {
             const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
@@ -1215,14 +1231,14 @@ class MemberController extends BaseController {
               notificationText,
               orderDetailsLink
             );
-            console.log(
-              request_row?.user_id,
-              userRow.id,
-              "request_row:",
-              request_row,
-              "userRow:",
-              userRow
-            );
+            // console.log(
+            //   request_row?.user_id,
+            //   userRow.id,
+            //   "request_row:",
+            //   request_row,
+            //   "userRow:",
+            //   userRow
+            // );
             const result = await helpers.sendEmail(
               userRow.email,
               "Invoice paid for: " + orderDetails?.booking_id,
@@ -1248,9 +1264,510 @@ class MemberController extends BaseController {
       return res.status(200).json({ error: "Unhandled event type" });
     } catch (error) {
       console.error("Webhook Error:", error);
-      return res.status(500).json({ error: "Internal Server Error" });
+      return res.status(200).json({ error: "Internal Server Error" });
     }
   }
+
+
+  async webhookGoCardlessRequest(req, res) {
+    try {
+      // console.log("✅ Webhook hit!"); 
+      // // console.log("Headers:", req.headers); 
+      // // console.log("Body:", JSON.stringify(req.body, null, 2)); 
+      const now = new Date(); const timestamp = now.toISOString().replace(/[:.]/g, "-");
+      const logsDir = path.join(__dirname, "logs");
+      if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
+      // console.log("Writing logs to:", logsDir) 
+      // // ✅ Step 1: Verify signature 
+      const webhookSecret = process.env.GOCARDLESS_WEBHOOK_SECRET;
+      const signature = req.headers["webhook-signature"];
+      const body = req.rawBody ? req.rawBody.toString("utf8") : JSON.stringify(req.body);
+      const hmac = crypto.createHmac("sha256", webhookSecret).update(body, "utf8").digest("hex");
+      if (hmac !== signature) {
+        console.error("⚠️ Invalid webhook signature");
+        const invalidFile = path.join(logsDir, `gc_invalid_signature_${timestamp}.json`);
+        fs.writeFileSync(invalidFile, body, "utf-8");
+        return res.status(200).send("Invalid signature");
+      }
+      const payload = req.body;
+      // ✅ Step 2: Save raw webhook to file 
+      const successFile = path.join(logsDir, `gc_webhook_${timestamp}.json`);
+
+      fs.writeFileSync(successFile, JSON.stringify(payload, null, 2), "utf-8");
+      // ✅ Step 3: Loop through events 
+      const events = payload.events || [];
+      for (const event of events) {
+        // console.log("event", event) 
+        const { id, action, resource_type, links, resource_metadata = {} } = event;
+        let invoiceId = resource_metadata.invoice_id || null;
+        // console.log("invoiceIdddddd", invoiceId) 
+        let paymentId = links?.payment || null;
+        // console.log("Processing event:", id, resource_type, action); 
+        // 🔔 Debug log // console.log("🔔 GoCardless Event:", { action, resource_type, paymentId, invoiceId }); 
+        // ✅ Handle payments 
+        // // console.log("resource_type", resource_type) 
+        if (resource_type === "payments") {
+          //  fetch full payment object to get metadata 
+          const payment = await client.payments.find(paymentId);
+          invoiceId = payment?.metadata?.invoiceId || invoiceId;
+          const orderId = payment?.metadata?.order_id || null;
+          const type = payment?.metadata?.type || "credit_invoice";
+
+          // const invoiceId = payment?.metadata?.invoice_id || null;
+          const userId = payment?.metadata?.user_id || null;
+          // console.log("🔎 Payment metadata:", payment.metadata); 
+          // console.log("action:", action); 
+          switch (action) {
+            case "created": {
+              console.log(`🟡 Payment ${paymentId} created for invoice ${invoiceId}`);
+              const order_id = payment?.metadata?.order_id;
+              const type = payment?.metadata?.type || "credit_invoice";
+
+              if (type === "credit_invoice") {
+                const credit_invoice_row = await this.member.getCreditInvoicesById(Number(invoiceId));
+                if (!credit_invoice_row) {
+                  console.error(`❌ Credit invoice not found for invoice_id ${invoiceId}`);
+                  break;
+                }
+
+                const dbUserId = credit_invoice_row.user_id;
+                const formattedAmount = helpers.formatAmount(parseFloat(credit_invoice_row.amount));
+
+                await helpers.storeTransaction({
+                  user_id: dbUserId,
+                  amount: formattedAmount,
+                  payment_method: "gocardless",
+                  transaction_id: order_id && !isNaN(order_id) ? parseInt(order_id, 10) : null,
+                  created_time: helpers.getUtcTimeInSeconds(),
+                  payment_intent_id: "",
+                  payment_method_id: payment.links?.mandate || "",
+                  type: "Request Quote",
+                  status: "pending",
+                });
+
+                if (process.env.GC_ENVIRONMENT !== "live") {
+                  try {
+                    // await this.confirmPayment(paymentId);
+                    await this.handleConfirmedPayment(payment, invoiceId, dbUserId, formattedAmount);
+                  } catch (e) {
+                    console.error("❌ Failed to auto-confirm sandbox payment:", e.message);
+                  }
+                }
+              } else if (type === "order") {
+                // For "order" type, don’t call getCreditInvoicesById
+                const orderId = order_id;
+                const orderDetails = await RequestQuoteModel.getOrderDetailsById(orderId);
+
+                if (!orderDetails) {
+                  console.error(`❌ Order not found for order_id ${orderId}`);
+                  break;
+                }
+
+                const dbUserId = orderDetails.user_id;
+                const formattedAmount = helpers.formatAmount(parseFloat(orderDetails.total_amount));
+
+                await helpers.storeTransaction({
+                  user_id: dbUserId,
+                  amount: formattedAmount,
+                  payment_method: "gocardless",
+                  transaction_id: orderId,
+                  created_time: helpers.getUtcTimeInSeconds(),
+                  payment_intent_id: "",
+                  payment_method_id: payment.links?.mandate || "",
+                  type: "Request Quote",
+                  status: "pending",
+                });
+
+                if (process.env.GC_ENVIRONMENT !== "live") {
+                  try {
+                    // await this.confirmPayment(paymentId);
+                    await this.handleOrderPayment(payment, orderId, dbUserId);
+                  } catch (e) {
+                    console.error("❌ Failed to auto-confirm sandbox payment:", e.message);
+                  }
+                }
+              }
+              break;
+            }
+
+            case "confirmed":
+              if (type === "credit_invoice") {
+                await this.handleConfirmedPayment(payment, invoiceId, dbUserId, formattedAmount);
+              } else if (type === "order") {
+                await this.handleOrderPayment(payment, orderId, dbUserId);
+              }
+              break;
+            // case "confirmed":
+            //   await this.handleConfirmedPayment(payment, invoiceId, dbUserId, formattedAmount);
+            //   break;
+            case "failed":
+              console.log(`❌ Payment ${paymentId} failed for invoice ${invoiceId}`);
+              break;
+            case "cancelled":
+              console.log(`⚠️ Payment ${paymentId} cancelled for invoice ${invoiceId}`);
+              break;
+            default:
+              console.log(`ℹ️ Ignoring payment action: ${action}`);
+          }
+        }
+        // ✅ Handle billing request (fulfillment gives invoiceId early) 
+        if (resource_type === "billing_requests" && action === "fulfilled") {
+          // console.log(📌 Billing request fulfilled for invoice ${invoiceId}); 
+        }
+      }
+      return res.status(200).json({ status: 1, msg: "Webhook processed" });
+    } catch (error) {
+      console.error("❌ GoCardless webhook error:", error);
+      try {
+        const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+        const logsDir = path.join(__dirname, "logs");
+        if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
+        const errorFile = path.join(logsDir, `gc_webhook_error_${timestamp}.json`);
+        fs.writeFileSync(errorFile, JSON.stringify({ error: error.message, stack: error.stack, body: req.body, }, null, 2), "utf-8");
+        console.log(`⚠️ Error logged to: ${errorFile}`);
+      } catch (logErr) {
+        console.error("⚠️ Failed to write error log:", logErr);
+
+      } return res.status(200).send("Server error");
+    }
+  }
+  async handleConfirmedPayment(payment, invoiceId, dbUserId, formattedAmount) {
+    console.log(`✅ Handling confirmed payment ${payment.id} for invoice ${invoiceId}`);
+    const order_id = payment?.metadata?.order_id || null; // ✅ FIX ADDED
+
+    if (!invoiceId) {
+      console.error("❌ No invoice ID found in metadata");
+      return;
+    }
+    const user = await this.member.findById(dbUserId);
+    if (!user) {
+      console.error(`❌ User ${dbUserId} not found`); return;
+    } // update credits 
+    await this.member.updateMemberData(dbUserId,
+      { total_credits: parseFloat(user.total_credits) + parseFloat(formattedAmount), });
+    const invoice = await this.paymentMethodModel.getInvoiceById(invoiceId);
+    if (!invoice) {
+      return res.status(200).json({ status: 0, msg: "Invoice not found." });
+    }
+    // update invoice 
+    const updateResult = await this.paymentMethodModel.updateInvoicePaymentDetails(invoiceId,
+      {
+        payment_intent_id: payment.id,
+        payment_method_id: payment.links?.mandate || "",
+        payment_intent: "",
+        payment_method: "gocardless",
+      });
+    // console.log("updateResult:", updateResult);
+    if (updateResult.affectedRows > 0) {
+      await helpers.storeTransaction({
+        user_id: dbUserId,
+        amount: formattedAmount,
+        payment_method: "gocardless",
+        transaction_id: order_id && !isNaN(order_id) ? parseInt(order_id, 10) : null,
+        created_time: helpers.getUtcTimeInSeconds(),
+        payment_intent_id: "",
+        payment_method_id: payment.links?.mandate || "",
+        type: "credits",
+        status: "confirmed"
+      });
+      console.log("Transaction recorded");
+      await this.pageModel.insertInCredits({
+        user_id: dbUserId,
+        type: "user",
+        credits: formattedAmount,
+        created_date: helpers.getUtcTimeInSeconds(),
+        e_type: "credit",
+      });
+      console.log("Credit entry added");
+      console.log(`🎉 Invoice ${invoiceId} marked as paid & credits added.`);
+    } else {
+      console.error(`❌ Failed to update invoice ${invoiceId}`);
+    }
+  }
+
+  async handleOrderPayment(payment, orderId, userId, res) {
+    try {
+      console.log(`✅ Handling GoCardless order payment for order ${orderId}`);
+
+      const orderDetails = await RequestQuoteModel.getOrderDetailsById(orderId);
+      if (!orderDetails) {
+        console.error("❌ Order not found:", orderId);
+        return;
+      }
+
+      // Update order as paid
+      await this.member.updateRequestQuoteData(orderDetails.id, {
+        status: "paid",
+        payment_intent: payment.id,
+      });
+
+
+      const source_city = orderDetails?.source_city;
+      const orderDetailsLink = `/rider-dashboard/jobs`;
+      // const siteSettings = res.locals.adminData;
+      const siteSettings = global.adminData || {}; // ✅ Fallback instead of res.locals
+
+
+      // Notify all riders in that city
+      const ridersInCity = await this.rider.getRidersByCity(source_city);
+      if (ridersInCity?.length) {
+        const notificationText = `A new request has been created in your city: ${source_city}`;
+        for (const rider of ridersInCity) {
+          await helpers.storeNotification(
+            rider.id,
+            "rider",
+            orderDetails?.user_id,
+            notificationText,
+            orderDetailsLink
+          );
+
+          const parcelsArray = await this.rider.getParcelDetailsByQuoteId(orderDetails.id);
+          const order_stages_arr = await this.rider.getRequestOrderStages(orderDetails.id);
+
+          const orderRow = {
+            ...orderDetails,
+            parcels: parcelsArray,
+            order_stages: order_stages_arr,
+            start_date: helpers.formatDateToUK(orderDetails.start_date),
+            total_amount: helpers.formatAmount(orderDetails.total_amount),
+            tax: helpers.formatAmount(orderDetails.tax),
+            distance: helpers.formatAmount(orderDetails.distance),
+          };
+
+          await helpers.sendEmail(
+            rider.email,
+            "New Order Requests - FastUk",
+            "request-quote",
+            { adminData: siteSettings, order: orderRow, type: "rider" }
+          );
+        }
+      }
+
+      // Insert transaction
+      const created_time = helpers.getUtcTimeInSeconds();
+      const formattedTotalAmount = helpers.formatAmount(orderDetails?.total_amount || 0);
+
+      await helpers.storeTransaction({
+        user_id: orderDetails?.user_id,
+        amount: formattedTotalAmount,
+        payment_method: "gocardless",
+        transaction_id: orderDetails?.id,
+        created_time,
+        payment_intent_id: payment.id,
+        payment_method_id: payment.links?.mandate || "",
+        type: "Request Quote",
+        status: "confirmed"
+      });
+
+      // Email user
+      const userRow = await this.member.findById(orderDetails.user_id);
+      const parcelsArray = await this.rider.getParcelDetailsByQuoteId(orderDetails.id);
+      const order_stages_arr = await this.rider.getRequestOrderStages(orderDetails.id);
+
+      const orderRow = {
+        ...orderDetails,
+        parcels: parcelsArray,
+        order_stages: order_stages_arr,
+        start_date: helpers.formatDateToUK(orderDetails.start_date),
+      };
+
+      const templateData = {
+        username: userRow.full_name,
+        adminData: siteSettings,
+        order: orderRow,
+        type: "user",
+      };
+
+      await helpers.sendEmail(
+        userRow.email,
+        "Parcel Request Confirmed: Awaiting Rider Assignment - FastUk",
+        "request-quote",
+        templateData
+      );
+
+      await helpers.storeWebHookData({
+        type: `GoCardless Payment ID: ${payment.id}`,
+        response: `GoCardless Payment Successful for Order: ${orderId}`,
+      });
+
+      console.log(`🎉 Order ${orderId} marked paid & notifications sent.`);
+
+    } catch (err) {
+      console.error("❌ Error in handleOrderPayment:", err);
+    }
+  }
+
+
+  //   async webhookGoCardlessRequest(req, res) {
+  //   try {
+  //     const now = new Date();
+  //     const timestamp = now.toISOString().replace(/[:.]/g, "-");
+  //     const logsDir = path.join(__dirname, "logs");
+  //     if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
+
+  //     const webhookSecret = process.env.GOCARDLESS_WEBHOOK_SECRET;
+  //     const signature = req.headers["webhook-signature"];
+  //     const body = req.rawBody ? req.rawBody.toString("utf8") : JSON.stringify(req.body);
+  //     const hmac = crypto.createHmac("sha256", webhookSecret).update(body, "utf8").digest("hex");
+
+  //     if (hmac !== signature) {
+  //       console.error("⚠️ Invalid webhook signature");
+  //       const invalidFile = path.join(logsDir, `gc_invalid_signature_${timestamp}.json`);
+  //       fs.writeFileSync(invalidFile, body, "utf-8");
+  //       return res.status(200).send("Invalid signature");
+  //     }
+
+  //     const payload = req.body;
+  //     const successFile = path.join(logsDir, `gc_webhook_${timestamp}.json`);
+  //     fs.writeFileSync(successFile, JSON.stringify(payload, null, 2), "utf-8");
+
+  //     const events = payload.events || [];
+
+  //     for (const event of events) {
+  //       const { id, action, resource_type, links, resource_metadata = {} } = event;
+  //       const paymentId = links?.payment || null;
+
+  //       if (resource_type === "payments") {
+  //         const payment = await client.payments.find(paymentId);
+
+  //         const invoiceId = payment?.metadata?.invoice_id || null;
+  //         const orderId = payment?.metadata?.order_id || null;
+  //         const userId = payment?.metadata?.user_id || null;
+  //         const type = payment?.metadata?.type || "credit_invoice";
+
+  //         // console.log("🔹 GoCardless Payment Event:", { action, type, invoiceId, orderId, userId });
+
+  //         switch (action) {
+  //           case "confirmed":
+  //             if (type === "credit_invoice") {
+  //               await this.handleConfirmedPayment(payment, invoiceId, userId);
+  //             } else if (type === "order") {
+  //               await this.handleOrderPayment(payment, orderId, userId);
+  //             }
+  //             break;
+
+  //           case "failed":
+  //             console.log(`❌ Payment ${paymentId} failed`);
+  //             break;
+
+  //           case "cancelled":
+  //             console.log(`⚠️ Payment ${paymentId} cancelled`);
+  //             break;
+
+  //           default:
+  //             console.log(`ℹ️ Ignoring action ${action}`);
+  //         }
+  //       }
+  //     }
+
+  //     return res.status(200).json({ status: 1, msg: "Webhook processed" });
+
+  //   } catch (error) {
+  //     console.error("❌ GoCardless webhook error:", error);
+  //     const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
+  //     const logsDir = path.join(__dirname, "logs");
+  //     if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
+  //     const errorFile = path.join(logsDir, `gc_webhook_error_${timestamp}.json`);
+  //     fs.writeFileSync(
+  //       errorFile,
+  //       JSON.stringify({ error: error.message, stack: error.stack, body: req.body }, null, 2),
+  //       "utf-8"
+  //     );
+  //     return res.status(200).send("Server error");
+  //   }
+  // }
+
+
+  //   async handleConfirmedPayment(payment, invoiceId, dbUserId, formattedAmount) {
+  //     console.log(`✅ Handling confirmed payment ${payment.id} for invoice ${invoiceId}`);
+
+  //     if (!invoiceId) {
+  //       console.error("❌ No invoice ID found in metadata");
+  //       return;
+  //     }
+
+  //     const user = await this.member.findById(dbUserId);
+  //     if (!user) {
+  //       console.error(`❌ User ${dbUserId} not found`);
+  //       return;
+  //     }
+
+  //     // update credits
+  //     await this.member.updateMemberData(dbUserId, {
+  //       total_credits: parseFloat(user.total_credits) + parseFloat(formattedAmount),
+  //     });
+
+  //     const invoice = await this.paymentMethodModel.getInvoiceById(
+  //             invoiceId
+  //           );
+  //           if (!invoice) {
+  //             return res
+  //               .status(200)
+  //               .json({ status: 0, msg: "Invoice not found." });
+  //           }
+
+  //     // update invoice
+  //     const updateResult = await this.paymentMethodModel.updateInvoicePaymentDetails(invoiceId, {
+  //       payment_intent_id: payment.id,
+  //       payment_method_id: payment.links?.mandate || "",
+  //       payment_intent: "",
+  //       payment_method: "gocardless",
+  //     });
+  //     // console.log("updateResult:", updateResult);
+
+  //     if (updateResult.affectedRows > 0) {
+  //       await helpers.storeTransaction({
+  //         user_id: dbUserId,
+  //         amount: formattedAmount,
+  //         payment_method: "gocardless",
+  //         transaction_id: order_id && !isNaN(order_id) ? parseInt(order_id, 10) : null,
+  //         created_time: helpers.getUtcTimeInSeconds(),
+  //         payment_intent_id: "",
+  //         payment_method_id: payment.links?.mandate || "",
+  //         type: "credits",
+  //         status: "confirmed"
+  //       });
+
+  //       // console.log("Transaction recorded");
+
+  //       await this.pageModel.insertInCredits({
+  //         user_id: dbUserId,
+  //         type: "user",
+  //         credits: formattedAmount,
+  //         created_date: helpers.getUtcTimeInSeconds(),
+  //         e_type: "credit",
+  //       });
+  //       // console.log("Credit entry added");
+
+
+  //       console.log(`🎉 Invoice ${invoiceId} marked as paid & credits added.`);
+  //     } else {
+  //       console.error(`❌ Failed to update invoice ${invoiceId}`);
+  //     }
+  //   }
+
+
+
+
+
+
+  //   async confirmPayment(paymentId) {
+  //     console.log("paymentId:",paymentId)
+  //   try {
+  //     const resp = await client.payments.confirm(paymentId);
+  //     console.log("✅ Payment force confirmed:", resp);
+  //   } catch (err) {
+  //     console.error("❌ Error confirming payment:", err.message);
+  //   }
+  // }
+
+
+
+
+
+
+
+
   async createRequestQuote(req, res) {
     this.tokenModel = new Token();
 
@@ -1298,25 +1815,50 @@ class MemberController extends BaseController {
         pickup_date,
         delivery_time,
         delivery_date,
+        full_name,
+        email,
+        password,
+        confirm_password,
+        fingerprint,
         via_pickup_time_option,
         via_pickup_time,
         via_pickup_date,
         via_pickup_start_date,
         via_pickup_end_date,
+        round_trip
       } = req.body;
+
+      const requiredFields = [
+        "selectedVehicle",
+        // "price",
+        "source_postcode",
+        "source_address",
+        "source_name",
+        "source_phone_number",
+        "source_city",
+        "dest_postcode",
+        "dest_address",
+        "dest_name",
+        "dest_phone_number",
+        "dest_city",
+        "source_full_address",
+        "dest_full_address",
+        "card_holder_name",
+        "confirm",
+        "totalAmount",
+        "payment_method",
+        "payment_method_id",
+      ];
       // console.log(
-      //   "req.body:",
-      //   pickup_end_date,
-      //   pickup_end_time,
-      //   delivery_end_date,
-      //   delivery_end_time,
-      //   req.body
+      //   "Req.body vias:",
+      //  vias
       // );
+      let userId = null;
+      let token_arr = {};
+      let member = null; // 🟩 Add this
+
 
       if (token) {
-        if (!token) {
-          return res.status(200).json({ status: 0, msg: "Token is required." });
-        }
         if (memType === "rider") {
           return res
             .status(200)
@@ -1331,943 +1873,1343 @@ class MemberController extends BaseController {
           // If validation fails, return the error message
           return res.status(200).json(userResponse);
         }
-        const member = userResponse.user;
+        member = userResponse.user;
         // Now you have the user (member) and their ID, use member.id instead of user.id
-        const userId = member.id;
+        userId = member.id;
+      }
+      else if (payment_method === 'paypal' || payment_method === 'apple-pay') {
 
-        // Fetch payment methods for the user
+        if (!token) {
+          requiredFields.push("full_name", "email", "password", "confirm_password");
+        }
 
-        let parcelsArr = [];
-        let viasArr = [];
-        if (parcels) {
-          parcelsArr = JSON.parse(parcels);
+        const emailRegex = /^\S+@\S+\.\S+$/;
+        if (!emailRegex.test(email)) {
+          return res.status(200).json({ error: "Invalid email format." });
         }
-        if (vias) {
-          viasArr = JSON.parse(vias);
-        }
-        // console.log(parcels);return;
-        // Validate parcels
-        if (!Array.isArray(parcelsArr)) {
+
+        // Check password match
+        if (password !== confirm_password) {
           return res
             .status(200)
-            .json({ status: 0, msg: "'parcels' must be an array" });
-        }
-        const siteSettings = res.locals.adminData;
-        let order_amount_details = helpers.calculateOrderSummary(
-          order_details,
-          siteSettings
-        );
-        let total_distance = order_amount_details?.totalDistance;
-        let total_amount = order_amount_details?.totalAmount;
-        let grandTotal = order_amount_details?.grandTotal;
-        let taxAmount = order_amount_details?.taxAmount;
-        // console.log(order_amount_details);return;
-        const parsedStartDate = date ? new Date(date) : null;
-
-        // if (!parsedStartDate || isNaN(parsedStartDate)) {
-        //   return res
-        //     .status(200)
-        //     .json({ status: 0, msg: "Invalid start_date format" });
-        // }
-
-        let parcel_price_obj = helpers.calculateParcelsPrice(
-          order_details,
-          siteSettings?.site_processing_fee
-        );
-
-        const formattedRiderPrice = helpers.formatAmount(rider_price || 0);
-        const formattedVehiclePrice = helpers.formatAmount(price || 0);
-        let formattedTotalAmount = helpers.formatAmount(grandTotal || 0);
-        const formattedTax = helpers.formatAmount(taxAmount || 0);
-
-        let discount = 0;
-
-        // console.log(formattedTotalAmount,formattedTax);return;
-        if (
-          promo_code !== "" &&
-          promo_code !== null &&
-          promo_code !== "null" &&
-          promo_code !== undefined
-        ) {
-          const promo = await this.promoCodeModel.findByCode(promo_code);
-
-          if (!promo) {
-            return res
-              .status(200)
-              .json({ status: 0, msg: "Invalid promo code." });
-          }
-
-          const currentDate = new Date();
-          if (promo.expiry_date && new Date(promo.expiry_date) < currentDate) {
-            return res.status(200).json({ error: "Promo code has expired." });
-          }
-
-          if (promo.promo_code_type === "percentage") {
-            discount = (total_amount * promo.percentage_value) / 100;
-          } else if (promo.promo_code_type === "amount") {
-            discount = promo.percentage_value;
-          } else {
-            return res.status(200).json({ error: "Promo code has expired." });
-          }
-
-          formattedTotalAmount = total_amount - discount;
-          formattedTotalAmount = formattedTotalAmount + taxAmount;
-          formattedTotalAmount = parseFloat(formattedTotalAmount.toFixed(2));
+            .json({ success: false, message: "Passwords do not match." });
         }
 
-        // console.log("Remote price",formattedRemotePrice)
-        // console.log("Remote price",remote_price)
-        let clientSecret = "";
-        let payment_intent_id = payment_intent_customer_id;
-        let payment_methodid = payment_method_id;
-        let requestQuoteId = "";
+        // Check if user already exists
+        const userExist = await this.member.emailExists(email);
+        if (userExist) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "User already exists! Please login to continue!" });
+        }
 
-        if (payment_method === "credit-card") {
-          let requestData = {
-            user_id: userId, // Save the userId in the request
-            selected_vehicle: selectedVehicle,
-            rider_price: formattedRiderPrice,
-            vehicle_price: formattedVehiclePrice,
-            total_amount: formattedTotalAmount,
-            tax: formattedTax,
-            payment_intent: payment_intent_customer_id,
-            customer_id: payment_intent_customer_id,
-            source_postcode,
-            source_address: source_full_address,
-            source_name,
-            source_phone_number,
-            source_city,
-            dest_postcode,
-            dest_address: dest_full_address,
-            dest_name,
-            dest_phone_number,
-            dest_city,
-            payment_method,
-            payment_method_id: payment_methodid,
-            created_date: new Date(), // Set current date as created_date
-            start_date: parsedStartDate,
-            notes: notes,
-            promo_code: promo_code,
-            discount: discount,
-            request_status: "active",
-            pickup_time_option,
-            delivery_time_option,
+        // Hash password and create user
+        const hashedPassword = await bcrypt.hash(password, 10);
+        const otp = Math.floor(100000 + Math.random() * 900000);
+        userId = await this.member.createMember({
+          full_name,
+          email,
+          mem_type: "user",
+          password: hashedPassword,
+          mem_status: 1,
+          created_at: helpers.create_current_date(),
+          otp,
+        });
 
-            // Pass start_date from the frontend
+        // console.log("User created with ID:", userId);
+      }
+      else if (token === undefined || token === "") {
+        if (!token) {
+          return res.status(200).json({ status: 0, msg: "Token is required." });
+        }
+      }
+
+      // Generate token for user if not provided
+      let actualFingerprint =
+        fingerprint || this.generatePseudoFingerprint(req); // Use let to allow reassignment
+
+      // Generate a random number and create the token
+      const randomNum = crypto.randomBytes(16).toString("hex");
+      const tokenType = "user";
+      const expiryDate = new Date();
+      expiryDate.setMonth(expiryDate.getMonth() + 1); // Token expires in 1 hour
+
+      // Create the token
+      const authToken = helpers.generateToken(
+        `${userId}-${randomNum}-${tokenType}`
+      );
+      if (!token) {
+        await this.tokenModel.storeToken(
+          userId,
+          authToken,
+          tokenType,
+          expiryDate,
+          actualFingerprint,
+          "user"
+        );
+        // console.log("Token stored for user:", userId);
+        token_arr = { authToken, type: "user" };
+      }
+      let adminData = res.locals.adminData;
+      const otp = Math.floor(100000 + Math.random() * 900000);
+
+      const subject = "Verify Your Email - " + adminData.site_name;
+      const templateData = {
+        username: full_name, // Pass username
+        otp: otp, // Pass OTP
+        adminData,
+      };
+      // console.log("Sending verification email to:", email);
+
+      const result = await helpers.sendEmail(
+        email,
+        subject,
+        "email-verify",
+        templateData
+      );
+        //     console.log("Sending verification email to:", member.email, subject,
+        // "email-verify",
+        // templateData);return;
+
+
+
+
+
+      // Fetch payment methods for the user
+
+      let parcelsArr = [];
+      let viasArr = [];
+      if (parcels) {
+        parcelsArr = JSON.parse(parcels);
+      }
+      if (vias) {
+        viasArr = JSON.parse(vias);
+      }
+      // console.log(parcels);return;
+      // Validate parcels
+      if (!Array.isArray(parcelsArr)) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "'parcels' must be an array" });
+      }
+      const siteSettings = res.locals.adminData;
+      let order_amount_details = helpers.calculateOrderTotal(
+        totalDistance,
+        siteSettings,
+        price,
+        remote_price
+      );
+      // console.log("order_amount_details:", order_amount_details);return;
+      let total_distance = order_amount_details?.totalDistance;
+      let total_amount = order_amount_details?.totalAmount;
+      let grandTotal = order_amount_details?.grandTotal;
+      let taxAmount = order_amount_details?.taxAmount;
+      // console.log(order_amount_details);return;
+      const parsedStartDate = date ? new Date(date) : null;
+
+      // if (!parsedStartDate || isNaN(parsedStartDate)) {
+      //   return res
+      //     .status(200)
+      //     .json({ status: 0, msg: "Invalid start_date format" });
+      // }
+
+      let parcel_price_obj = helpers.calculateParcelsPrice(
+        order_details,
+        siteSettings?.site_processing_fee
+      );
+
+      const formattedRiderPrice = helpers.formatAmount(rider_price || 0);
+      const formattedVehiclePrice = helpers.formatAmount(price || 0);
+      let formattedTotalAmount = helpers.formatAmount(grandTotal || 0);
+      const formattedTax = helpers.formatAmount(taxAmount || 0);
+
+      let discount = 0;
+
+      // console.log(formattedTotalAmount,formattedTax);return;
+      if (
+        promo_code !== "" &&
+        promo_code !== null &&
+        promo_code !== "null" &&
+        promo_code !== undefined
+      ) {
+        const promo = await this.promoCodeModel.findByCode(promo_code);
+
+        if (!promo) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Invalid promo code." });
+        }
+
+        const currentDate = new Date();
+        if (promo.expiry_date && new Date(promo.expiry_date) < currentDate) {
+          return res.status(200).json({ error: "Promo code has expired." });
+        }
+
+        if (promo.promo_code_type === "percentage") {
+          discount = (total_amount * promo.percentage_value) / 100;
+        } else if (promo.promo_code_type === "amount") {
+          discount = promo.percentage_value;
+        } else {
+          return res.status(200).json({ error: "Promo code has expired." });
+        }
+
+        formattedTotalAmount = total_amount - discount;
+        // console.log("total_amount, discount, formattedTotalAmount :", total_amount, discount, formattedTotalAmount);
+        // console.log("formattedTax :", formattedTax);
+
+        // ✅ Ensure numeric addition
+        formattedTotalAmount = parseFloat(formattedTotalAmount) + parseFloat(taxAmount);
+        // console.log("formattedTotalAmount type:", formattedTotalAmount);return;
+
+        formattedTotalAmount = parseFloat(formattedTotalAmount.toFixed(2));
+      }
+
+      // console.log("Remote price",formattedRemotePrice)
+      // console.log("Remote price",remote_price)
+      let clientSecret = "";
+      let payment_intent_id = payment_intent_customer_id;
+      let payment_methodid = payment_method_id;
+      let requestQuoteId = "";
+      // console.log("payment_method:", payment_method);return;
+
+      if (payment_method === "credit-card") {
+        let requestData = {
+          user_id: userId, // Save the userId in the request
+          selected_vehicle: selectedVehicle,
+          rider_price: formattedRiderPrice,
+          vehicle_price: formattedVehiclePrice,
+          total_amount: formattedTotalAmount,
+          tax: formattedTax,
+          payment_intent: payment_intent_customer_id,
+          customer_id: payment_intent_customer_id,
+          source_postcode,
+          source_address: source_full_address,
+          source_name,
+          source_phone_number,
+          source_city,
+          dest_postcode,
+          dest_address: dest_full_address,
+          dest_name,
+          dest_phone_number,
+          dest_city,
+          payment_method,
+          payment_method_id: payment_methodid,
+          created_date: new Date(), // Set current date as created_date
+          start_date: parsedStartDate,
+          notes: notes,
+          promo_code: promo_code,
+          discount: discount,
+          request_status: "active",
+          pickup_time_option,
+          delivery_time_option,
+          round_trip:
+            round_trip === true ||
+              round_trip === "true" ||
+              round_trip === "yes"
+              ? "yes"
+              : "no",
+
+          total_distance: total_distance
+
+          // Pass start_date from the frontend
+        };
+
+        if (pickup_time_option === "at" || pickup_time_option === "before") {
+          requestData = {
+            ...requestData,
+            pickup_date: helpers.convertToPostgresDate(pickup_date),
+            pickup_time: helpers.convertToPostgresTime(
+              pickup_time,
+              pickup_date
+            ),
           };
+        } else if (pickup_time_option === "between") {
+          requestData = {
+            ...requestData,
+            pickup_start_date:
+              helpers.convertToPostgresDate(pickup_start_date),
+            pickup_start_time: helpers.convertToPostgresTime(
+              pickup_start_time,
+              pickup_start_date
+            ),
+            pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
+            pickup_end_time: helpers.convertToPostgresTime(
+              pickup_end_time,
+              pickup_end_date
+            ),
+          };
+        }
+        if (delivery_time_option === "at" || delivery_time_option === "by") {
+          requestData = {
+            ...requestData,
+            delivery_time: helpers.convertToPostgresTime(
+              delivery_time,
+              delivery_date
+            ),
+            delivery_date: helpers.convertToPostgresDate(delivery_date),
+          };
+        } else if (delivery_time_option === "between") {
+          requestData = {
+            ...requestData,
+            delivery_start_date:
+              helpers.convertToPostgresDate(delivery_start_date),
+            delivery_start_time: helpers.convertToPostgresTime(
+              delivery_start_time,
+              delivery_start_date
+            ),
+            delivery_end_date:
+              helpers.convertToPostgresDate(delivery_end_date),
+            delivery_end_time: helpers.convertToPostgresTime(
+              delivery_end_time,
+              delivery_end_date
+            ),
+          };
+        }
+        // console.log("Round trip:", requestData?.round_trip);
+        requestQuoteId = await this.pageModel.createRequestQuote(requestData);
 
-          if (pickup_time_option === "at" || pickup_time_option === "before") {
-            requestData = {
-              ...requestData,
-              pickup_date: helpers.convertToPostgresDate(pickup_date),
-              pickup_time: helpers.convertToPostgresTime(
-                pickup_time,
-                pickup_date
-              ),
-            };
-          } else if (pickup_time_option === "between") {
-            requestData = {
-              ...requestData,
-              pickup_start_date:
-                helpers.convertToPostgresDate(pickup_start_date),
-              pickup_start_time: helpers.convertToPostgresTime(
-                pickup_start_time,
-                pickup_start_date
-              ),
-              pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
-              pickup_end_time: helpers.convertToPostgresTime(
-                pickup_end_time,
-                pickup_end_date
-              ),
-            };
-          }
-          if (delivery_time_option === "at" || delivery_time_option === "by") {
-            requestData = {
-              ...requestData,
-              delivery_time: helpers.convertToPostgresTime(
-                delivery_time,
-                delivery_date
-              ),
-              delivery_date: helpers.convertToPostgresDate(delivery_date),
-            };
-          } else if (delivery_time_option === "between") {
-            requestData = {
-              ...requestData,
-              delivery_start_date:
-                helpers.convertToPostgresDate(delivery_start_date),
-              delivery_start_time: helpers.convertToPostgresTime(
-                delivery_start_time,
-                delivery_start_date
-              ),
-              delivery_end_date:
-                helpers.convertToPostgresDate(delivery_end_date),
-              delivery_end_time: helpers.convertToPostgresTime(
-                delivery_end_time,
-                delivery_end_date
-              ),
-            };
-          }
-          requestQuoteId = await this.pageModel.createRequestQuote(requestData);
-        } else if (payment_method === "saved-card") {
-          if (!saved_card_id) {
-            return res
-              .status(200)
-              .json({ status: 0, msg: "Card is required." });
-          }
-          // console.log('Saved Card ID before decoding:', saved_card_id);
+      } else if (payment_method === "saved-card") {
+        if (!saved_card_id) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Card is required." });
+        }
+        // console.log('Saved Card ID before decoding:', saved_card_id);
 
-          // Decode the saved card ID
-          const decodedId = helpers.doDecode(saved_card_id);
-          // console.log('Decoded ID:', decodedId); // Check decoded value
+        // Decode the saved card ID
+        const decodedId = helpers.doDecode(saved_card_id);
+        // console.log('Decoded ID:', decodedId); // Check decoded value
 
-          if (!decodedId) {
-            return res.status(200).json({ status: 0, msg: "Invalid Card." });
-          }
+        if (!decodedId) {
+          return res.status(200).json({ status: 0, msg: "Invalid Card." });
+        }
 
-          // Fetch the payment method from the database
-          const paymentMethod =
-            await this.paymentMethodModel.getPaymentMethodById(decodedId);
-          // console.log(paymentMethod,"payment method");
+        // Fetch the payment method from the database
+        const paymentMethod =
+          await this.paymentMethodModel.getPaymentMethodById(decodedId);
+        // console.log(paymentMethod,"payment method");
 
-          if (!paymentMethod) {
-            return res.status(200).json({ status: 0, msg: "Card not found." });
-          }
+        if (!paymentMethod) {
+          return res.status(200).json({ status: 0, msg: "Card not found." });
+        }
 
-          // Decode Stripe payment method ID stored in the database
-          const stripe_payment_method_id = helpers.doDecode(
-            paymentMethod?.payment_method_id
+        // Decode Stripe payment method ID stored in the database
+        const stripe_payment_method_id = helpers.doDecode(
+          paymentMethod?.payment_method_id
+        );
+        if (!stripe_payment_method_id) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Invalid Stripe Payment Method ID." });
+        }
+
+        // Retrieve the payment method details from Stripe
+        let stripePaymentMethod;
+        try {
+          stripePaymentMethod = await stripe.paymentMethods.retrieve(
+            stripe_payment_method_id
           );
-          if (!stripe_payment_method_id) {
-            return res
-              .status(200)
-              .json({ status: 0, msg: "Invalid Stripe Payment Method ID." });
-          }
-
-          // Retrieve the payment method details from Stripe
-          let stripePaymentMethod;
-          try {
-            stripePaymentMethod = await stripe.paymentMethods.retrieve(
-              stripe_payment_method_id
-            );
-          } catch (error) {
-            return res.status(200).json({
-              status: 0,
-              msg: "Error retrieving Stripe payment method.",
-              error: error.message,
-            });
-          }
-
-          // Ensure the payment method is attached to a customer
-          if (!stripePaymentMethod || !stripePaymentMethod.customer) {
-            return res.status(200).json({
-              status: 0,
-              msg: "Payment method is not linked to a customer.",
-            });
-          }
-
-          // Create a payment intent to charge the user
-          let paymentIntent;
-          try {
-            paymentIntent = await stripe.paymentIntents.create({
-              amount: Math.round(formattedTotalAmount * 100),
-              currency: "usd",
-              customer: stripePaymentMethod.customer,
-              payment_method: stripe_payment_method_id,
-              confirm: true,
-              use_stripe_sdk: true,
-              automatic_payment_methods: {
-                enabled: true,
-                allow_redirects: "never",
-              },
-              metadata: { user_id: userId },
-            });
-          } catch (error) {
-            console.error("Stripe Error:", error);
-            return res.status(200).json({
-              status: 0,
-              msg: "Error creating payment intent.",
-              error: error.message,
-            });
-          }
-
-          // Check the payment status
-          if (paymentIntent.status !== "succeeded") {
-            return res.status(200).json({
-              status: 0,
-              msg: "Payment failed.",
-              paymentStatus: paymentIntent.status,
-            });
-          }
-          payment_intent_id = paymentIntent.id;
-          payment_methodid = stripe_payment_method_id;
-          // Prepare the object for requestQuoteId insertion
-
-          let requestData = {
-            user_id: userId,
-            selected_vehicle: selectedVehicle,
-            rider_price: formattedRiderPrice,
-            vehicle_price: formattedVehiclePrice,
-            total_amount: formattedTotalAmount,
-            tax: formattedTax,
-            payment_intent: paymentIntent.id, // Store the Payment Intent ID
-            customer_id: stripePaymentMethod.customer, // Store the Customer ID
-            payment_method_id: stripe_payment_method_id, // Store the Stripe Payment Method ID
-            source_postcode,
-            source_address: source_full_address,
-            source_name,
-            source_phone_number,
-            source_city,
-            dest_postcode,
-            dest_address: dest_full_address,
-            dest_name,
-            dest_phone_number,
-            dest_city,
-            payment_method,
-            saved_card_id, // Store the saved card ID
-            created_date: new Date(),
-            start_date: new Date(date),
-            notes: notes,
-            promo_code: promo_code,
-            discount: discount,
-            request_status: "active",
-            pickup_time_option,
-
-            delivery_time_option,
-          };
-          if (pickup_time_option === "at" || pickup_time_option === "before") {
-            console.log("pickup_time,pickup_date", pickup_time, pickup_date);
-            requestData = {
-              ...requestData,
-              pickup_date: helpers.convertToPostgresDate(pickup_date),
-              pickup_time: helpers.convertToPostgresTime(
-                pickup_time,
-                pickup_date
-              ),
-            };
-          } else if (pickup_time_option === "between") {
-            requestData = {
-              ...requestData,
-              pickup_start_date:
-                helpers.convertToPostgresDate(pickup_start_date),
-              pickup_start_time: helpers.convertToPostgresTime(
-                pickup_start_time,
-                pickup_start_date
-              ),
-              pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
-              pickup_end_time: helpers.convertToPostgresTime(
-                pickup_end_time,
-                pickup_end_date
-              ),
-            };
-          }
-          if (delivery_time_option === "at" || delivery_time_option === "by") {
-            requestData = {
-              ...requestData,
-              delivery_time: helpers.convertToPostgresTime(
-                delivery_time,
-                delivery_date
-              ),
-              delivery_date: helpers.convertToPostgresDate(delivery_date),
-            };
-          } else if (delivery_time_option === "between") {
-            requestData = {
-              ...requestData,
-              delivery_start_date:
-                helpers.convertToPostgresDate(delivery_start_date),
-              delivery_start_time: helpers.convertToPostgresTime(
-                delivery_start_time,
-                delivery_start_date
-              ),
-              delivery_end_date:
-                helpers.convertToPostgresDate(delivery_end_date),
-              delivery_end_time: helpers.convertToPostgresTime(
-                delivery_end_time,
-                delivery_end_date
-              ),
-            };
-          }
-          requestQuoteId = await this.pageModel.createRequestQuote(requestData);
-        } else if (payment_method === "credits") {
-          if (member?.total_credits <= 0) {
-            return res
-              .status(200)
-              .json({ status: 0, msg: "Insufficient balance!" });
-          }
-          if (member?.total_credits <= parseFloat(formattedTotalAmount)) {
-            return res
-              .status(200)
-              .json({ status: 0, msg: "Insufficient balance!" });
-          }
-
-          payment_intent_id = "";
-          payment_methodid = "";
-          // Prepare the object for requestQuoteId insertion
-          let requestData = {
-            user_id: userId,
-            selected_vehicle: selectedVehicle,
-            rider_price: formattedRiderPrice,
-            vehicle_price: formattedVehiclePrice,
-            total_amount: formattedTotalAmount,
-            tax: formattedTax,
-            payment_intent: "", // Store the Payment Intent ID
-            customer_id: "", // Store the Customer ID
-            payment_method_id: "", // Store the Stripe Payment Method ID
-            source_postcode,
-            source_address: source_full_address,
-            source_name,
-            source_phone_number,
-            source_city,
-            dest_postcode,
-            dest_address: dest_full_address,
-            dest_name,
-            dest_phone_number,
-            dest_city,
-            payment_method,
-            created_date: new Date(),
-            start_date: new Date(date),
-            notes: notes,
-            promo_code: promo_code,
-            discount: discount,
-            request_status: "active",
-            pickup_time_option,
-
-            delivery_time_option,
-          };
-
-          if (pickup_time_option === "at" || pickup_time_option === "before") {
-            requestData = {
-              ...requestData,
-              pickup_date: helpers.convertToPostgresDate(pickup_date),
-              pickup_time: helpers.convertToPostgresDate(
-                pickup_time,
-                pickup_date
-              ),
-            };
-          } else if (pickup_time_option === "between") {
-            requestData = {
-              ...requestData,
-              pickup_start_date:
-                helpers.convertToPostgresDate(pickup_start_date),
-              pickup_start_time: helpers.convertToPostgresTime(
-                pickup_start_time,
-                pickup_start_date
-              ),
-              pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
-              pickup_end_time: helpers.convertToPostgresTime(
-                pickup_end_time,
-                pickup_end_date
-              ),
-            };
-          }
-          if (delivery_time_option === "at" || delivery_time_option === "by") {
-            requestData = {
-              ...requestData,
-              delivery_time: helpers.convertToPostgresTime(
-                delivery_time,
-                delivery_date
-              ),
-              delivery_date: helpers.convertToPostgresDate(delivery_date),
-            };
-          } else if (delivery_time_option === "between") {
-            requestData = {
-              ...requestData,
-              delivery_start_date:
-                helpers.convertToPostgresDate(delivery_start_date),
-              delivery_start_time: helpers.convertToPostgresTime(
-                delivery_start_time,
-                delivery_start_date
-              ),
-              delivery_end_date:
-                helpers.convertToPostgresDate(delivery_end_date),
-              delivery_end_time: helpers.convertToPostgresTime(
-                delivery_end_time,
-                delivery_end_date
-              ),
-            };
-          }
-          requestQuoteId = await this.pageModel.createRequestQuote(requestData);
-        } else if (payment_method === "paypal") {
-          payment_intent_id = "";
-          payment_methodid = "";
-          // Prepare the object for requestQuoteId insertion
-          let requestData = {
-            user_id: userId,
-            selected_vehicle: selectedVehicle,
-            rider_price: formattedRiderPrice,
-            vehicle_price: formattedVehiclePrice,
-            total_amount: formattedTotalAmount,
-            tax: formattedTax,
-            payment_intent: "", // Store the Payment Intent ID
-            customer_id: "", // Store the Customer ID
-            payment_method_id: "", // Store the Stripe Payment Method ID
-            source_postcode,
-            source_address: source_full_address,
-            source_name,
-            source_phone_number,
-            source_city,
-            dest_postcode,
-            dest_address: dest_full_address,
-            dest_name,
-            dest_phone_number,
-            dest_city,
-            payment_method,
-            created_date: new Date(),
-            start_date: new Date(date),
-            notes: notes,
-            status: "pending",
-            promo_code: promo_code,
-            discount: discount,
-            request_status: "active",
-            pickup_time_option,
-
-            delivery_time_option,
-          };
-          if (pickup_time_option === "at" || pickup_time_option === "before") {
-            requestData = {
-              ...requestData,
-              pickup_date: helpers.convertToPostgresDate(pickup_date),
-              pickup_time: helpers.convertToPostgresDate(
-                pickup_time,
-                pickup_date
-              ),
-            };
-          } else if (pickup_time_option === "between") {
-            requestData = {
-              ...requestData,
-              pickup_start_date:
-                helpers.convertToPostgresDate(pickup_start_date),
-              pickup_start_time: helpers.convertToPostgresTime(
-                pickup_start_time,
-                pickup_start_date
-              ),
-              pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
-              pickup_end_time: helpers.convertToPostgresTime(
-                pickup_end_time,
-                pickup_end_date
-              ),
-            };
-          }
-          if (delivery_time_option === "at" || delivery_time_option === "by") {
-            requestData = {
-              ...requestData,
-              delivery_time: helpers.convertToPostgresTime(
-                delivery_time,
-                delivery_date
-              ),
-              delivery_date: helpers.convertToPostgresDate(delivery_date),
-            };
-          } else if (delivery_time_option === "between") {
-            requestData = {
-              ...requestData,
-              delivery_start_date:
-                helpers.convertToPostgresDate(delivery_start_date),
-              delivery_start_time: helpers.convertToPostgresTime(
-                delivery_start_time,
-                delivery_start_date
-              ),
-              delivery_end_date:
-                helpers.convertToPostgresDate(delivery_end_date),
-              delivery_end_time: helpers.convertToPostgresTime(
-                delivery_end_time,
-                delivery_end_date
-              ),
-            };
-          }
-          requestQuoteId = await this.pageModel.createRequestQuote(requestData);
-        } else if (payment_method === "apple-pay") {
-          try {
-            payment_intent_id = "";
-            payment_methodid = "";
-            // Prepare the object for requestQuoteId insertion
-            let requestData = {
-              user_id: userId,
-              selected_vehicle: selectedVehicle,
-              rider_price: formattedRiderPrice,
-              vehicle_price: formattedVehiclePrice,
-              total_amount: formattedTotalAmount,
-              tax: formattedTax,
-              payment_intent: "", // Store the Payment Intent ID
-              customer_id: "", // Store the Customer ID
-              payment_method_id: "", // Store the Stripe Payment Method ID
-              source_postcode,
-              source_address: source_full_address,
-              source_name,
-              source_phone_number,
-              source_city,
-              dest_postcode,
-              dest_address: dest_full_address,
-              dest_name,
-              dest_phone_number,
-              dest_city,
-              payment_method,
-              created_date: new Date(),
-              start_date: new Date(date),
-              notes: notes,
-              promo_code: promo_code,
-              discount: discount,
-              request_status: "active",
-              pickup_time_option,
-
-              delivery_time_option,
-            };
-            if (
-              pickup_time_option === "at" ||
-              pickup_time_option === "before"
-            ) {
-              requestData = {
-                ...requestData,
-                pickup_date: helpers.convertToPostgresDate(pickup_date),
-                pickup_time: helpers.convertToPostgresDate(
-                  pickup_time,
-                  pickup_date
-                ),
-              };
-            } else if (pickup_time_option === "between") {
-              requestData = {
-                ...requestData,
-                pickup_start_date:
-                  helpers.convertToPostgresDate(pickup_start_date),
-                pickup_start_time: helpers.convertToPostgresTime(
-                  pickup_start_time,
-                  pickup_start_date
-                ),
-                pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
-                pickup_end_time: helpers.convertToPostgresTime(
-                  pickup_end_time,
-                  pickup_end_date
-                ),
-              };
-            }
-            if (
-              delivery_time_option === "at" ||
-              delivery_time_option === "by"
-            ) {
-              requestData = {
-                ...requestData,
-                delivery_time: helpers.convertToPostgresTime(
-                  delivery_time,
-                  delivery_date
-                ),
-                delivery_date: helpers.convertToPostgresDate(delivery_date),
-              };
-            } else if (delivery_time_option === "between") {
-              requestData = {
-                ...requestData,
-                delivery_start_date:
-                  helpers.convertToPostgresDate(delivery_start_date),
-                delivery_start_time: helpers.convertToPostgresTime(
-                  delivery_start_time,
-                  delivery_start_date
-                ),
-                delivery_end_date:
-                  helpers.convertToPostgresDate(delivery_end_date),
-                delivery_end_time: helpers.convertToPostgresTime(
-                  delivery_end_time,
-                  delivery_end_date
-                ),
-              };
-            }
-            requestQuoteId = await this.pageModel.createRequestQuote(
-              requestData
-            );
-          } catch (error) {
-            console.error("Stripe Error:", error);
-            return res.status(200).json({
-              status: 0,
-              msg: "Error creating payment intent.",
-              error: error.message,
-            });
-          }
+        } catch (error) {
+          return res.status(200).json({
+            status: 0,
+            msg: "Error retrieving Stripe payment method.",
+            error: error.message,
+          });
         }
 
-        // Create Request Quote record
+        // Ensure the payment method is attached to a customer
+        if (!stripePaymentMethod || !stripePaymentMethod.customer) {
+          return res.status(200).json({
+            status: 0,
+            msg: "Payment method is not linked to a customer.",
+          });
+        }
 
-        // Create Parcels records for the request
-        const parcelRecords = parcelsArr.map((parcel) => ({
-          request_id: requestQuoteId,
-          length: parcel.length,
-          width: parcel.width ? parcel.width : null,
-          height: parcel.height ? parcel.height : null,
-          weight: parcel.weight || null,
-          quantity: parcel.quantity || null,
-          destination: parcel.destination,
-          source: parcel.source,
-          parcelNumber: parcel.parcelNumber,
-          distance: parcel.distance,
-          parcelType: parcel.parcelType,
-          postcode: parcel.postcode,
-        }));
+        // Create a payment intent to charge the user
+        let paymentIntent;
+        try {
+          paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(formattedTotalAmount * 100),
+            currency: "usd",
+            customer: stripePaymentMethod.customer,
+            payment_method: stripe_payment_method_id,
+            confirm: true,
+            use_stripe_sdk: true,
+            automatic_payment_methods: {
+              enabled: true,
+              allow_redirects: "never",
+            },
+            metadata: { user_id: userId },
+          });
+        } catch (error) {
+          console.error("Stripe Error:", error);
+          return res.status(200).json({
+            status: 0,
+            msg: "Error creating payment intent.",
+            error: error.message,
+          });
+        }
 
-        // Insert parcels into the database
-        await this.pageModel.insertParcels(parcelRecords);
+        // Check the payment status
+        if (paymentIntent.status !== "succeeded") {
+          return res.status(200).json({
+            status: 0,
+            msg: "Payment failed.",
+            paymentStatus: paymentIntent.status,
+          });
+        }
+        payment_intent_id = paymentIntent.id;
+        payment_methodid = stripe_payment_method_id;
+        // Prepare the object for requestQuoteId insertion
 
-        const viaRecords = viasArr.map((via) => {
-          const commonFields = {
-            request_id: requestQuoteId,
-            full_name: via.full_name,
-            phone_number: via.phone_number,
-            post_code: via.post_code,
-            address: via.address,
-            city: via.city,
-            via_pickup_time_option: via.via_pickup_time_option,
+        let requestData = {
+          user_id: userId,
+          selected_vehicle: selectedVehicle,
+          rider_price: formattedRiderPrice,
+          vehicle_price: formattedVehiclePrice,
+          total_amount: formattedTotalAmount,
+          tax: formattedTax,
+          payment_intent: paymentIntent.id, // Store the Payment Intent ID
+          customer_id: stripePaymentMethod.customer, // Store the Customer ID
+          payment_method_id: stripe_payment_method_id, // Store the Stripe Payment Method ID
+          source_postcode,
+          source_address: source_full_address,
+          source_name,
+          source_phone_number,
+          source_city,
+          dest_postcode,
+          dest_address: dest_full_address,
+          dest_name,
+          dest_phone_number,
+          dest_city,
+          payment_method,
+          saved_card_id, // Store the saved card ID
+          created_date: new Date(),
+          start_date: new Date(date),
+          notes: notes,
+          promo_code: promo_code,
+          discount: discount,
+          request_status: "active",
+          pickup_time_option,
+          round_trip:
+            round_trip === true ||
+              round_trip === "true" ||
+              round_trip === "yes"
+              ? "yes"
+              : "no",
+
+          delivery_time_option,
+          total_distance: total_distance
+        };
+        if (pickup_time_option === "at" || pickup_time_option === "before") {
+          // console.log("pickup_time,pickup_date", pickup_time, pickup_date);
+          requestData = {
+            ...requestData,
+            pickup_date: helpers.convertToPostgresDate(pickup_date),
+            pickup_time: helpers.convertToPostgresTime(
+              pickup_time,
+              pickup_date
+            ),
           };
+        } else if (pickup_time_option === "between") {
+          requestData = {
+            ...requestData,
+            pickup_start_date:
+              helpers.convertToPostgresDate(pickup_start_date),
+            pickup_start_time: helpers.convertToPostgresTime(
+              pickup_start_time,
+              pickup_start_date
+            ),
+            pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
+            pickup_end_time: helpers.convertToPostgresTime(
+              pickup_end_time,
+              pickup_end_date
+            ),
+          };
+        }
+        if (delivery_time_option === "at" || delivery_time_option === "by") {
+          requestData = {
+            ...requestData,
+            delivery_time: helpers.convertToPostgresTime(
+              delivery_time,
+              delivery_date
+            ),
+            delivery_date: helpers.convertToPostgresDate(delivery_date),
+          };
+        } else if (delivery_time_option === "between") {
+          requestData = {
+            ...requestData,
+            delivery_start_date:
+              helpers.convertToPostgresDate(delivery_start_date),
+            delivery_start_time: helpers.convertToPostgresTime(
+              delivery_start_time,
+              delivery_start_date
+            ),
+            delivery_end_date:
+              helpers.convertToPostgresDate(delivery_end_date),
+            delivery_end_time: helpers.convertToPostgresTime(
+              delivery_end_time,
+              delivery_end_date
+            ),
+          };
+        }
+        requestQuoteId = await this.pageModel.createRequestQuote(requestData);
 
-          // Condition for "at" or "before"
-          if (["at", "before"].includes(via.via_pickup_time_option)) {
-            return {
-              ...commonFields,
-              via_pickup_date: helpers.convertToPostgresDate(
-                via.via_pickup_date
-              ),
-              via_pickup_time: helpers.convertToPostgresTime(
-                via.via_pickup_time,
-                via.via_pickup_date
-              ),
+      } else if (payment_method === "credits") {
+        if (member?.total_credits <= 0) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Insufficient balance!" });
+        }
+        if (member?.total_credits <= parseFloat(formattedTotalAmount)) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Insufficient balance!" });
+        }
 
-              // These fields will be null
-              via_pickup_start_date: null,
-              via_pickup_start_time: null,
-              via_pickup_end_date: null,
-              via_pickup_end_time: null,
+        payment_intent_id = "";
+        payment_methodid = "";
+        // Prepare the object for requestQuoteId insertion
+        let requestData = {
+          user_id: userId,
+          selected_vehicle: selectedVehicle,
+          rider_price: formattedRiderPrice,
+          vehicle_price: formattedVehiclePrice,
+          total_amount: formattedTotalAmount,
+          tax: formattedTax,
+          payment_intent: "", // Store the Payment Intent ID
+          customer_id: "", // Store the Customer ID
+          payment_method_id: "", // Store the Stripe Payment Method ID
+          source_postcode,
+          source_address: source_full_address,
+          source_name,
+          source_phone_number,
+          source_city,
+          dest_postcode,
+          dest_address: dest_full_address,
+          dest_name,
+          dest_phone_number,
+          dest_city,
+          payment_method,
+          created_date: new Date(),
+          start_date: new Date(date),
+          notes: notes,
+          promo_code: promo_code,
+          discount: discount,
+          request_status: "active",
+          pickup_time_option,
+
+          delivery_time_option,
+          round_trip:
+            round_trip === true ||
+              round_trip === "true" ||
+              round_trip === "yes"
+              ? "yes"
+              : "no",
+          total_distance: total_distance
+        };
+
+        if (pickup_time_option === "at" || pickup_time_option === "before") {
+          requestData = {
+            ...requestData,
+            pickup_date: helpers.convertToPostgresDate(pickup_date),
+            pickup_time: helpers.convertToPostgresDate(
+              pickup_time,
+              pickup_date
+            ),
+          };
+        } else if (pickup_time_option === "between") {
+          requestData = {
+            ...requestData,
+            pickup_start_date:
+              helpers.convertToPostgresDate(pickup_start_date),
+            pickup_start_time: helpers.convertToPostgresTime(
+              pickup_start_time,
+              pickup_start_date
+            ),
+            pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
+            pickup_end_time: helpers.convertToPostgresTime(
+              pickup_end_time,
+              pickup_end_date
+            ),
+          };
+        }
+        if (delivery_time_option === "at" || delivery_time_option === "by") {
+          requestData = {
+            ...requestData,
+            delivery_time: helpers.convertToPostgresTime(
+              delivery_time,
+              delivery_date
+            ),
+            delivery_date: helpers.convertToPostgresDate(delivery_date),
+          };
+        } else if (delivery_time_option === "between") {
+          requestData = {
+            ...requestData,
+            delivery_start_date:
+              helpers.convertToPostgresDate(delivery_start_date),
+            delivery_start_time: helpers.convertToPostgresTime(
+              delivery_start_time,
+              delivery_start_date
+            ),
+            delivery_end_date:
+              helpers.convertToPostgresDate(delivery_end_date),
+            delivery_end_time: helpers.convertToPostgresTime(
+              delivery_end_time,
+              delivery_end_date
+            ),
+          };
+        }
+        requestQuoteId = await this.pageModel.createRequestQuote(requestData);
+      } else if (payment_method === "paypal") {
+        payment_intent_id = "";
+        payment_methodid = "";
+        // Prepare the object for requestQuoteId insertion
+        let requestData = {
+          user_id: userId,
+          selected_vehicle: selectedVehicle,
+          rider_price: formattedRiderPrice,
+          vehicle_price: formattedVehiclePrice,
+          total_amount: formattedTotalAmount,
+          tax: formattedTax,
+          payment_intent: "", // Store the Payment Intent ID
+          customer_id: "", // Store the Customer ID
+          payment_method_id: "", // Store the Stripe Payment Method ID
+          source_postcode,
+          source_address: source_full_address,
+          source_name,
+          source_phone_number,
+          source_city,
+          dest_postcode,
+          dest_address: dest_full_address,
+          dest_name,
+          dest_phone_number,
+          dest_city,
+          payment_method,
+          created_date: new Date(),
+          start_date: new Date(date),
+          notes: notes,
+          status: "pending",
+          promo_code: promo_code,
+          discount: discount,
+          request_status: "active",
+          pickup_time_option,
+          round_trip:
+            round_trip === true ||
+              round_trip === "true" ||
+              round_trip === "yes"
+              ? "yes"
+              : "no",
+
+          delivery_time_option,
+          total_distance: total_distance
+        };
+        if (pickup_time_option === "at" || pickup_time_option === "before") {
+          requestData = {
+            ...requestData,
+            pickup_date: helpers.convertToPostgresDate(pickup_date),
+            pickup_time: helpers.convertToPostgresDate(
+              pickup_time,
+              pickup_date
+            ),
+          };
+        } else if (pickup_time_option === "between") {
+          requestData = {
+            ...requestData,
+            pickup_start_date:
+              helpers.convertToPostgresDate(pickup_start_date),
+            pickup_start_time: helpers.convertToPostgresTime(
+              pickup_start_time,
+              pickup_start_date
+            ),
+            pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
+            pickup_end_time: helpers.convertToPostgresTime(
+              pickup_end_time,
+              pickup_end_date
+            ),
+          };
+        }
+        if (delivery_time_option === "at" || delivery_time_option === "by") {
+          requestData = {
+            ...requestData,
+            delivery_time: helpers.convertToPostgresTime(
+              delivery_time,
+              delivery_date
+            ),
+            delivery_date: helpers.convertToPostgresDate(delivery_date),
+          };
+        } else if (delivery_time_option === "between") {
+          requestData = {
+            ...requestData,
+            delivery_start_date:
+              helpers.convertToPostgresDate(delivery_start_date),
+            delivery_start_time: helpers.convertToPostgresTime(
+              delivery_start_time,
+              delivery_start_date
+            ),
+            delivery_end_date:
+              helpers.convertToPostgresDate(delivery_end_date),
+            delivery_end_time: helpers.convertToPostgresTime(
+              delivery_end_time,
+              delivery_end_date
+            ),
+          };
+        }
+        requestQuoteId = await this.pageModel.createRequestQuote(requestData);
+      } else if (payment_method === "gocardless") {
+
+        payment_intent_id = "";
+        payment_methodid = "";
+        // Prepare the object for requestQuoteId insertion
+        let requestData = {
+          user_id: userId,
+          selected_vehicle: selectedVehicle,
+          rider_price: formattedRiderPrice,
+          vehicle_price: formattedVehiclePrice,
+          total_amount: formattedTotalAmount,
+          tax: formattedTax,
+          payment_intent: "", // Store the Payment Intent ID
+          customer_id: "", // Store the Customer ID
+          payment_method_id: "", // Store the Stripe Payment Method ID
+          source_postcode,
+          source_address: source_full_address,
+          source_name,
+          source_phone_number,
+          source_city,
+          dest_postcode,
+          dest_address: dest_full_address,
+          dest_name,
+          dest_phone_number,
+          dest_city,
+          payment_method,
+          created_date: new Date(),
+          start_date: new Date(date),
+          notes: notes,
+          status: "pending",
+          promo_code: promo_code,
+          discount: discount,
+          request_status: "active",
+          pickup_time_option,
+          round_trip:
+            round_trip === true ||
+              round_trip === "true" ||
+              round_trip === "yes"
+              ? "yes"
+              : "no",
+
+          delivery_time_option,
+          total_distance: total_distance
+        };
+        if (pickup_time_option === "at" || pickup_time_option === "before") {
+          requestData = {
+            ...requestData,
+            pickup_date: helpers.convertToPostgresDate(pickup_date),
+            pickup_time: helpers.convertToPostgresDate(
+              pickup_time,
+              pickup_date
+            ),
+          };
+        } else if (pickup_time_option === "between") {
+          requestData = {
+            ...requestData,
+            pickup_start_date:
+              helpers.convertToPostgresDate(pickup_start_date),
+            pickup_start_time: helpers.convertToPostgresTime(
+              pickup_start_time,
+              pickup_start_date
+            ),
+            pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
+            pickup_end_time: helpers.convertToPostgresTime(
+              pickup_end_time,
+              pickup_end_date
+            ),
+          };
+        }
+        if (delivery_time_option === "at" || delivery_time_option === "by") {
+          requestData = {
+            ...requestData,
+            delivery_time: helpers.convertToPostgresTime(
+              delivery_time,
+              delivery_date
+            ),
+            delivery_date: helpers.convertToPostgresDate(delivery_date),
+          };
+        } else if (delivery_time_option === "between") {
+          requestData = {
+            ...requestData,
+            delivery_start_date:
+              helpers.convertToPostgresDate(delivery_start_date),
+            delivery_start_time: helpers.convertToPostgresTime(
+              delivery_start_time,
+              delivery_start_date
+            ),
+            delivery_end_date:
+              helpers.convertToPostgresDate(delivery_end_date),
+            delivery_end_time: helpers.convertToPostgresTime(
+              delivery_end_time,
+              delivery_end_date
+            ),
+          };
+        }
+        // console.log("GoCardless requestData:", requestData);return;
+        requestQuoteId = await this.pageModel.createRequestQuote(requestData);
+        // console.log("GoCardless requestQuoteId:", requestQuoteId);
+      } else if (payment_method === "apple-pay") {
+        try {
+          payment_intent_id = "";
+          payment_methodid = "";
+          // Prepare the object for requestQuoteId insertion
+          let requestData = {
+            user_id: userId,
+            selected_vehicle: selectedVehicle,
+            rider_price: formattedRiderPrice,
+            vehicle_price: formattedVehiclePrice,
+            total_amount: formattedTotalAmount,
+            tax: formattedTax,
+            payment_intent: "", // Store the Payment Intent ID
+            customer_id: "", // Store the Customer ID
+            payment_method_id: "", // Store the Stripe Payment Method ID
+            source_postcode,
+            source_address: source_full_address,
+            source_name,
+            source_phone_number,
+            source_city,
+            dest_postcode,
+            dest_address: dest_full_address,
+            dest_name,
+            dest_phone_number,
+            dest_city,
+            payment_method,
+            created_date: new Date(),
+            start_date: new Date(date),
+            notes: notes,
+            promo_code: promo_code,
+            discount: discount,
+            request_status: "active",
+            pickup_time_option,
+
+            delivery_time_option,
+            round_trip:
+              round_trip === true ||
+                round_trip === "true" ||
+                round_trip === "yes"
+                ? "yes"
+                : "no",
+            total_distance: total_distance
+          };
+          if (
+            pickup_time_option === "at" ||
+            pickup_time_option === "before"
+          ) {
+            requestData = {
+              ...requestData,
+              pickup_date: helpers.convertToPostgresDate(pickup_date),
+              pickup_time: helpers.convertToPostgresDate(
+                pickup_time,
+                pickup_date
+              ),
+            };
+          } else if (pickup_time_option === "between") {
+            requestData = {
+              ...requestData,
+              pickup_start_date:
+                helpers.convertToPostgresDate(pickup_start_date),
+              pickup_start_time: helpers.convertToPostgresTime(
+                pickup_start_time,
+                pickup_start_date
+              ),
+              pickup_end_date: helpers.convertToPostgresDate(pickup_end_date),
+              pickup_end_time: helpers.convertToPostgresTime(
+                pickup_end_time,
+                pickup_end_date
+              ),
+            };
+          }
+          if (
+            delivery_time_option === "at" ||
+            delivery_time_option === "by"
+          ) {
+            requestData = {
+              ...requestData,
+              delivery_time: helpers.convertToPostgresTime(
+                delivery_time,
+                delivery_date
+              ),
+              delivery_date: helpers.convertToPostgresDate(delivery_date),
+            };
+          } else if (delivery_time_option === "between") {
+            requestData = {
+              ...requestData,
+              delivery_start_date:
+                helpers.convertToPostgresDate(delivery_start_date),
+              delivery_start_time: helpers.convertToPostgresTime(
+                delivery_start_time,
+                delivery_start_date
+              ),
+              delivery_end_date:
+                helpers.convertToPostgresDate(delivery_end_date),
+              delivery_end_time: helpers.convertToPostgresTime(
+                delivery_end_time,
+                delivery_end_date
+              ),
             };
           }
 
-          // Condition for "between"
-          if (via.via_pickup_time_option === "between") {
-            return {
-              ...commonFields,
-              via_pickup_date: null,
-              via_pickup_time: null,
+          requestQuoteId = await this.pageModel.createRequestQuote(
+            requestData
+          );
 
-              via_pickup_start_date: helpers.convertToPostgresDate(
-                via.via_pickup_start_date
-              ),
-              via_pickup_start_time: helpers.convertToPostgresTime(
-                via.via_pickup_start_time,
-                via.via_pickup_start_date
-              ),
-              via_pickup_end_date: helpers.convertToPostgresDate(
-                via.via_pickup_end_date
-              ),
-              via_pickup_end_time: helpers.convertToPostgresTime(
-                via.via_pickup_end_time,
-                via.via_pickup_end_date
-              ),
-            };
-          }
+        } catch (error) {
+          console.error("Stripe Error:", error);
+          return res.status(200).json({
+            status: 0,
+            msg: "Error creating payment intent.",
+            error: error.message,
+          });
+        }
+      }
 
-          // Default fallback (if time_option is unrecognized)
+      // console.log("pickup_start_date:",
+      //           helpers.convertToPostgresDate(pickup_start_date),
+      //         "pickup_end_date:", helpers.convertToPostgresDate(pickup_end_date));return;
+
+      // Create Request Quote record
+
+      // Create Parcels records for the request
+      const parcelRecords = parcelsArr.map((parcel) => ({
+        request_id: requestQuoteId,
+        length: parcel.length,
+        width: parcel.width ? parcel.width : null,
+        height: parcel.height ? parcel.height : null,
+        weight: parcel.weight || null,
+        quantity: parcel.quantity || null,
+        destination: parcel.destination,
+        source: parcel.source,
+        parcelNumber: parcel.parcelNumber,
+        distance: parcel.distance,
+        parcelType: parcel.parcelType,
+        postcode: parcel.postcode,
+      }));
+      // console.log("parcelRecords:", parcelRecords);return;
+      // console.log("requestQuoteId:", requestQuoteId);return;
+
+
+      // Insert parcels into the database
+      await this.pageModel.insertParcels(parcelRecords);
+      // console.log("viasArr:", viasArr);return;
+
+      const viaRecords = viasArr.map((via) => {
+        const commonFields = {
+          request_id: requestQuoteId,
+          full_name: via.full_name,
+          phone_number: via.phone_number,
+          post_code: via.post_code,
+          address: via.address,
+          city: via.city,
+
+          via_pickup_time_option: via.via_pickup_time_option,
+        };
+        // console.log("requestQuoteId:", requestQuoteId);return;
+
+
+        // Condition for "at" or "before"
+        if (["at", "before"].includes(via.via_pickup_time_option)) {
           return {
             ...commonFields,
-            via_pickup_date: null,
-            via_pickup_time: null,
+            via_pickup_date: helpers.convertToPostgresDate(
+              via.via_pickup_date
+            ),
+            via_pickup_time: helpers.convertToPostgresTime(
+              via.via_pickup_time,
+              via.via_pickup_date
+            ),
+
+            // These fields will be null
             via_pickup_start_date: null,
             via_pickup_start_time: null,
             via_pickup_end_date: null,
             via_pickup_end_time: null,
           };
-        });
-        // console.log("requestData:", "requestData");
-
-        // Insert parcels into the database
-        await this.pageModel.insertVias(viaRecords);
-
-        let parsedOrderDetails = [];
-        try {
-          parsedOrderDetails = JSON.parse(order_details);
-        } catch (err) {
-          return res
-            .status(200)
-            .json({ status: 0, msg: "Invalid order_details format" });
         }
 
-        if (!Array.isArray(parsedOrderDetails)) {
-          return res
-            .status(200)
-            .json({ status: 0, msg: "'order_details' must be an array" });
+        // Condition for "between"
+        if (via.via_pickup_time_option === "between") {
+          //             console.log("🟢 via_pickup_start_date before convert:", via.via_pickup_start_date, "-> type:", typeof via.via_pickup_start_date);
+          //   console.log("🟢 via_pickup_end_date before convert:", via.via_pickup_end_date, "-> type:", typeof via.via_pickup_end_date);
+
+          //   const startDate = helpers.convertToPostgresDate(via.via_pickup_start_date);
+          // const endDate = helpers.convertToPostgresDate(via.via_pickup_end_date);
+
+          // console.log("✅ Converted via_pickup_start_date:", startDate);
+          // console.log("✅ Converted via_pickup_end_date:", endDate);
+
+          return {
+            ...commonFields,
+            via_pickup_date: null,
+            via_pickup_time: null,
+
+            via_pickup_start_date: helpers.convertToPostgresDate(
+              via.via_pickup_start_date
+            ),
+            via_pickup_start_time: helpers.convertToPostgresTime(
+              via.via_pickup_start_time,
+              via.via_pickup_start_date
+            ),
+            via_pickup_end_date: helpers.convertToPostgresDate(
+              via.via_pickup_end_date
+            ),
+            via_pickup_end_time: helpers.convertToPostgresTime(
+              via.via_pickup_end_time,
+              via.via_pickup_end_date
+            ),
+          };
         }
 
-        // console.log("Order Details:", parsedOrderDetails);
+        // Default fallback (if time_option is unrecognized)
+        return {
+          ...commonFields,
+          via_pickup_date: null,
+          via_pickup_time: null,
+          via_pickup_start_date: null,
+          via_pickup_start_time: null,
+          via_pickup_end_date: null,
+          via_pickup_end_time: null,
+        };
+      });
+      // console.log("via object:", viaRecords);return;
 
-        // Prepare order_details records
-        const orderDetailsRecords = parsedOrderDetails.map((detail) => ({
-          order_id: requestQuoteId,
-          source_address: detail.source,
-          destination_address: detail.destination,
-          distance: detail.distance,
-          height: detail.height || null,
-          length: detail.length || null,
-          width: detail.width || null,
-          weight: detail.weight || null,
-          quantity: detail.quantity || null,
-          parcel_number: detail.parcelNumber,
-          parcel_type: detail.parcelType,
-          price: helpers.formatAmount(detail?.price),
-          source_lat: detail?.source_lat,
-          source_lng: detail?.source_lng,
-          destination_lat: detail?.destination_lat,
-          destination_lng: detail?.destination_lng,
-        }));
+      // console.log("viaRecords:", viaRecords);
+      // Insert parcels into the database
+      await this.pageModel.insertVias(viaRecords);
 
-        // Insert order details into the database
-        await this.pageModel.insertOrderDetails(orderDetailsRecords);
-
-        // console.log(userId,parcel_price_obj?.total,payment_method,requestQuoteId)
-        if (payment_method === "credits") {
-          await this.member.updateMemberData(member?.id, {
-            total_credits:
-              parseFloat(member?.total_credits) -
-              parseFloat(formattedTotalAmount),
-          });
-          const createdDate = helpers.getUtcTimeInSeconds();
-
-          const creditEntry = {
-            user_id: userId,
-            type: "user", // Change type to 'user' as per requirement
-            credits: formattedTotalAmount, // Credits used by the user
-            created_date: createdDate,
-            e_type: "debit", // Debit type entry
-          };
-
-          await this.pageModel.insertInCredits(creditEntry);
-          //   console.log("credit entry:",await this.pageModel.insertInCredits(creditEntry)
-          // )
-          //   return;
-        }
-        // console.log(req.body)
-        //  return;
-        let apple_obj = {};
-        if (payment_method === "apple-pay") {
-          const paymentIntent = await stripe.paymentIntents.create({
-            amount: Math.round(formattedTotalAmount * 100), // Convert amount to cents (for Stripe)
-            currency: "gbp",
-            metadata: {
-              order_id: requestQuoteId, // Pass the order_id from your database
-            },
-            payment_method_types: ["card"],
-          });
-          clientSecret = paymentIntent?.client_secret;
-          apple_obj = {
-            clientSecret: clientSecret,
-            order_id: requestQuoteId,
-            amount: parseFloat(formattedTotalAmount),
-          };
-        } else if (payment_method != "paypal") {
-          const orderDetailsLink = `/rider-dashboard/jobs`;
-
-          const ridersInCity = await this.rider.getRidersByCity(source_city);
-
-          if (ridersInCity && ridersInCity.length > 0) {
-            const notificationText = `A new request has been created in your city: ${source_city}`;
-
-            // Loop through each rider and send a notification
-            for (const rider of ridersInCity) {
-              const riderId = rider.id;
-              // console.log(riderId,member?.id);return;
-
-              await helpers.storeNotification(
-                riderId,
-                "rider", // mem_type
-                member?.id, // sender (the requester)
-                notificationText,
-                orderDetailsLink
-              );
-
-              let orderRow = await this.member.getUserOrderDetailsById({
-                userId: userId,
-                requestId: requestQuoteId,
-              });
-
-              const parcelsArray = await this.rider.getParcelDetailsByQuoteId(
-                orderRow.id
-              );
-              orderRow = {
-                ...orderRow,
-                parcels: parcelsArray,
-                start_date: helpers.formatDateToUK(orderRow.start_date),
-              };
-              await helpers.sendEmail(
-                rider.email,
-                "New Order Requests - FastUk",
-                "request-quote",
-                {
-                  adminData: siteSettings,
-                  order: orderRow,
-                  type: "rider",
-                }
-              );
-            }
-          }
-
-          const created_time = helpers.getUtcTimeInSeconds();
-
-          // Insert Transaction Record
-          await helpers.storeTransaction({
-            user_id: userId,
-            amount: formattedTotalAmount,
-            payment_method: payment_method,
-            transaction_id: requestQuoteId,
-            created_time: created_time,
-            payment_intent_id: payment_intent_id,
-            payment_method_id: payment_methodid,
-            type: "Request Quote",
-          });
-          let orderRow = await RequestQuoteModel.getOrderDetailsById(
-            requestQuoteId
-          );
-          // console.log("orderRow",orderRow)
-          const parcelsArray = await this.rider.getParcelDetailsByQuoteId(
-            requestQuoteId
-          );
-          orderRow = {
-            ...orderRow,
-            parcels: parcelsArray,
-            start_date: helpers.formatDateToUK(orderRow.start_date),
-          };
-          // console.log("order:",orderRow)
-
-          const templateData = {
-            username: member.full_name, // Pass username
-            adminData: siteSettings,
-            order: orderRow,
-            type: "user",
-          };
-          // console.log("templateData:", templateData)
-
-          const result = await helpers.sendEmail(
-            member.email,
-            "Parcel Request Confirmed: Awaiting Rider Assignment - FastUk",
-            "request-quote",
-            templateData
-          );
-        }
-        // console.log("Successfully CREATED REQUEST", requestQuoteId);
-
-        // console.log("result:", result,member.email);
-
-        // Send success response
-        res.status(200).json({
-          status: 1,
-          apple_obj: apple_obj,
-          order_id: requestQuoteId,
-          msg:
-            payment_method === "apple-pay"
-              ? "Request Quote created, now you'll be redirected to apple pay for transaction!"
-              : "Request Quote, Parcels and vias created successfully",
-          data: {
-            requestId: helpers.doEncode(requestQuoteId),
-          },
-        });
-      } else {
-        return res.status(200).json({
-          error: "Token is required",
-        });
+      let parsedOrderDetails = [];
+      try {
+        parsedOrderDetails = JSON.parse(order_details);
+      } catch (err) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Invalid order_details format" });
       }
+
+      if (!Array.isArray(parsedOrderDetails)) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "'order_details' must be an array" });
+      }
+
+      // console.log("Order Details:", parsedOrderDetails);return;
+
+      // Prepare order_details records
+      const orderDetailsRecords = parsedOrderDetails.map((detail) => ({
+        order_id: requestQuoteId,
+        source_address: detail.source,
+        destination_address: detail.destination,
+        distance: detail.distance,
+        height: detail.height || null,
+        length: detail.length || null,
+        width: detail.width || null,
+        weight: detail.weight || null,
+        quantity: detail.quantity || null,
+        parcel_number: detail.parcelNumber,
+        parcel_type: detail.parcelType,
+        price: helpers.formatAmount(detail?.price),
+        source_lat: detail?.source_lat,
+        source_lng: detail?.source_lng,
+        destination_lat: detail?.destination_lat,
+        destination_lng: detail?.destination_lng,
+      }));
+      // console.log("Order Details Records:", orderDetailsRecords);return;
+
+
+
+      // Insert order details into the database
+      await this.pageModel.insertOrderDetails(orderDetailsRecords);
+
+      const unique_addresses = helpers.getUniqueAddresses(orderDetailsRecords);
+
+      await this.pageModel.insertRequestStages(unique_addresses, requestQuoteId);
+
+      // console.log(userId, parcel_price_obj?.total, payment_method, requestQuoteId);
+      if (payment_method === "credits") {
+        await this.member.updateMemberData(member?.id, {
+          total_credits:
+            parseFloat(member?.total_credits) -
+            parseFloat(formattedTotalAmount),
+        });
+        const createdDate = helpers.getUtcTimeInSeconds();
+
+        const creditEntry = {
+          user_id: userId,
+          type: "user", // Change type to 'user' as per requirement
+          credits: formattedTotalAmount, // Credits used by the user
+          created_date: createdDate,
+          e_type: "debit", // Debit type entry
+        };
+
+        await this.pageModel.insertInCredits(creditEntry);
+        //   console.log("credit entry:",await this.pageModel.insertInCredits(creditEntry)
+        // )
+        //   return;
+      }
+      // console.log(req.body)
+      //  return;
+      let apple_obj = {};
+      if (payment_method === "apple-pay") {
+              // console.log("formattedTotalAmount:", formattedTotalAmount);
+
+        const paymentIntent = await stripe.paymentIntents.create({
+          amount: Math.round(formattedTotalAmount * 100), // Convert amount to cents (for Stripe)
+          currency: "gbp",
+          metadata: {
+            order_id: requestQuoteId, // Pass the order_id from your database
+          },
+          payment_method_types: ["card"],
+        });
+        clientSecret = paymentIntent?.client_secret;
+        apple_obj = {
+          clientSecret: clientSecret,
+          order_id: requestQuoteId,
+          amount: parseFloat(formattedTotalAmount),
+        };
+
+      } else if (payment_method === "gocardless") {
+        const orderDetailsLink = `/rider-dashboard/jobs`;
+
+        const ridersInCity = await this.rider.getRidersByCity(source_city);
+
+        if (ridersInCity && ridersInCity.length > 0) {
+          const notificationText = `A new request has been created in your city: ${source_city}`;
+
+          // Loop through each rider and send a notification
+          for (const rider of ridersInCity) {
+            const riderId = rider.id;
+            // console.log(riderId,member?.id);return;
+
+            await helpers.storeNotification(
+              riderId,
+              "rider", // mem_type
+              member?.id, // sender (the requester)
+              notificationText,
+              orderDetailsLink
+            );
+
+            let orderRow = await this.member.getUserOrderDetailsByIdGoCardless({
+              userId: userId,
+              requestId: requestQuoteId,
+            });
+            // console.log("orderRow",orderRow);
+            // console.log("requestQuoteId",userId, requestQuoteId);
+
+
+            const parcelsArray = await this.rider.getParcelDetailsByQuoteId(
+              orderRow.id
+            );
+            const order_stages_arr = await this.rider.getRequestOrderStages(orderRow.id);
+            orderRow = {
+              ...orderRow,
+              parcels: parcelsArray,
+              order_stages: order_stages_arr,
+              start_date: helpers.formatDateToUK(orderRow.start_date),
+              // ✅ ensure proper numeric formatting
+              total_amount: helpers.formatAmount(orderRow.total_amount),
+              tax: helpers.formatAmount(orderRow.tax),
+              distance: helpers.formatAmount(orderRow.distance),
+            };
+            // console.log("siteSettings:",siteSettings)
+
+            await helpers.sendEmail(
+              rider.email,
+              "New Order Requests - FastUk",
+              "request-quote",
+              {
+                adminData: siteSettings,
+                order: orderRow,
+                type: "rider",
+              }
+            );
+            // console.log("details:",
+            //   await helpers.sendEmail(
+            //     rider.email,
+            //     "New Order Requests - FastUk",
+            //     "request-quote",
+            //     {
+            //       adminData: siteSettings,
+            //       order: orderRow,
+            //       type: "rider",
+            //     }
+            //   )
+            // )
+          }
+        };
+
+        const created_time = helpers.getUtcTimeInSeconds();
+
+        // Insert Transaction Record
+        await helpers.storeTransaction({
+          user_id: userId,
+          amount: formattedTotalAmount,
+          payment_method: payment_method,
+          transaction_id: requestQuoteId,
+          created_time: created_time,
+          payment_intent_id: payment_intent_id,
+          payment_method_id: payment_methodid,
+          type: "Request Quote",
+        });
+        let orderRow = await RequestQuoteModel.getOrderDetailsById(
+          requestQuoteId
+        );
+        // console.log("orderRow",orderRow)
+        const parcelsArray = await this.rider.getParcelDetailsByQuoteId(
+          requestQuoteId
+        );
+        const order_stages_arr = await this.rider.getRequestOrderStages(requestQuoteId);
+        orderRow = {
+          ...orderRow,
+          parcels: parcelsArray,
+          order_stages: order_stages_arr,
+          start_date: helpers.formatDateToUK(orderRow.start_date),
+        };
+        // console.log("order:", orderRow)
+
+        const templateData = {
+          username: member.full_name, // Pass username
+          adminData: siteSettings,
+          order: orderRow,
+          type: "user",
+        };
+        // console.log("templateData:", templateData)
+
+        const result = await helpers.sendEmail(
+          member.email,
+          "Parcel Request Confirmed: Awaiting Rider Assignment - FastUk",
+          "request-quote",
+          templateData
+        );
+
+      } else if (payment_method != "paypal") {
+        const orderDetailsLink = `/rider-dashboard/jobs`;
+
+        const ridersInCity = await this.rider.getRidersByCity(source_city);
+
+        if (ridersInCity && ridersInCity.length > 0) {
+          const notificationText = `A new request has been created in your city: ${source_city}`;
+
+          // Loop through each rider and send a notification
+          for (const rider of ridersInCity) {
+            const riderId = rider.id;
+            // console.log(riderId,member?.id);return;
+
+            await helpers.storeNotification(
+              riderId,
+              "rider", // mem_type
+              member?.id, // sender (the requester)
+              notificationText,
+              orderDetailsLink
+            );
+
+            let orderRow = await this.member.getUserOrderDetailsById({
+              userId: userId,
+              requestId: requestQuoteId,
+            });
+
+
+            const parcelsArray = await this.rider.getParcelDetailsByQuoteId(
+              orderRow.id
+            );
+            const order_stages_arr = await this.rider.getRequestOrderStages(orderRow.id);
+            orderRow = {
+              ...orderRow,
+              parcels: parcelsArray,
+              order_stages: order_stages_arr,
+              start_date: helpers.formatDateToUK(orderRow.start_date),
+              // ✅ ensure proper numeric formatting
+              total_amount: helpers.formatAmount(orderRow.total_amount),
+              tax: helpers.formatAmount(orderRow.tax),
+              distance: helpers.formatAmount(orderRow.distance),
+            };
+            await helpers.sendEmail(
+              rider.email,
+              "New Order Requests - FastUk",
+              "request-quote",
+              {
+                adminData: siteSettings,
+                order: orderRow,
+                type: "rider",
+              }
+            );
+          }
+        };
+
+        const created_time = helpers.getUtcTimeInSeconds();
+
+        // Insert Transaction Record
+        await helpers.storeTransaction({
+          user_id: userId,
+          amount: formattedTotalAmount,
+          payment_method: payment_method,
+          transaction_id: requestQuoteId,
+          created_time: created_time,
+          payment_intent_id: payment_intent_id,
+          payment_method_id: payment_methodid,
+          type: "Request Quote",
+        });
+        let orderRow = await RequestQuoteModel.getOrderDetailsById(
+          requestQuoteId
+        );
+        // console.log("orderRow",orderRow)
+        const parcelsArray = await this.rider.getParcelDetailsByQuoteId(
+          requestQuoteId
+        );
+        const order_stages_arr = await this.rider.getRequestOrderStages(requestQuoteId);
+        orderRow = {
+          ...orderRow,
+          parcels: parcelsArray,
+          order_stages: order_stages_arr,
+          start_date: helpers.formatDateToUK(orderRow.start_date),
+        };
+        // console.log("order:", orderRow)
+
+        const templateData = {
+          username: member.full_name, // Pass username
+          adminData: siteSettings,
+          order: orderRow,
+          type: "user",
+        };
+        // console.log("templateData:", templateData)
+
+        const result = await helpers.sendEmail(
+          member.email,
+          "Parcel Request Confirmed: Awaiting Rider Assignment - FastUk",
+          "request-quote",
+          templateData
+        );
+      };
+      // return;
+      // console.log("Successfully CREATED REQUEST", requestQuoteId);
+
+      // console.log("result:", result,member.email);
+
+      // Send success response
+      res.status(200).json({
+        status: 1,
+        apple_obj: apple_obj,
+        order_id: requestQuoteId,
+        token_arr: token_arr, // ✅ Add this line
+        msg:
+          payment_method === "apple-pay"
+            ? "Request Quote created, now you'll be redirected to apple pay for transaction!"
+            : "Your order has been successfully created!",
+        data: {
+          requestId: helpers.doEncode(requestQuoteId),
+        },
+      });
+
     } catch (error) {
       console.error("Error in createRequestQuote:", error);
       res.status(200).json({
         error: "Internal server error",
         details: error.message,
+        // stack: error.stack, // 👈 include stack trace temporarily
       });
     }
   }
@@ -2491,6 +3433,7 @@ class MemberController extends BaseController {
         mem_phone,
         address,
         bio,
+        national_insurance_num,
         memType,
         vehicle_owner,
         vehicle_type,
@@ -2565,15 +3508,16 @@ class MemberController extends BaseController {
         updatedData.vehicle_registration_num = vehicle_registration_num;
         updatedData.driving_license_num = driving_license_num;
         updatedData.dob = dob;
+        updatedData.national_insurance_num = national_insurance_num;
         await this.rider.updateRiderData(userId, updatedData); // Update rider data
 
         // 🔽 NEW: Handle attachments
         let { documents } = req.body;
         let attachments_ob =
           documents !== null &&
-          documents !== undefined &&
-          documents !== "" &&
-          documents !== "null"
+            documents !== undefined &&
+            documents !== "" &&
+            documents !== "null"
             ? JSON.parse(documents)
             : {};
         const attachments = [];
@@ -2606,13 +3550,13 @@ class MemberController extends BaseController {
             type: "passport_pic",
           });
         }
-        if (attachments_ob?.national_insurance) {
-          attachments.push({
-            rider_id: userId,
-            filename: attachments_ob?.national_insurance,
-            type: "national_insurance",
-          });
-        }
+        // if (attachments_ob?.national_insurance) {
+        //   attachments.push({
+        //     rider_id: userId,
+        //     filename: attachments_ob?.national_insurance,
+        //     type: "national_insurance",
+        //   });
+        // }
         if (attachments_ob?.company_certificate) {
           attachments.push({
             rider_id: userId,
@@ -2775,8 +3719,14 @@ class MemberController extends BaseController {
       // Fetch requests for which the assigned rider is this user and status is 'accepted'
       const memberOrders = await this.member.getOrdersByUserAndStatus({
         userId: member.id,
-        status: "accepted",
+        status: "not_completed",
         limit: 3,
+      });
+
+      const memberCurrentOrders = await this.member.getOrdersByUserAndStatus({
+        userId: member.id,
+        status: "not_completed", // <-- will fetch all orders whose status != completed
+
       });
       const memberTotalOrders = await this.member.getOrdersByUserAndStatus({
         userId: member.id,
@@ -2787,6 +3737,7 @@ class MemberController extends BaseController {
           userId: member.id,
           status: "accepted",
         });
+
 
       // console.log("User Orders before encoding:", memberOrders);
 
@@ -2803,6 +3754,7 @@ class MemberController extends BaseController {
         status: 1,
         msg: "Orders fetched successfully.",
         orders: ordersWithEncodedIds,
+        memberCurrentOrders: memberCurrentOrders?.length,
         total_active_orders: memberTotalAcceptedOrders?.length,
         total_orders: memberTotalOrders?.length,
         total_invoices: userInvoices?.length,
@@ -2843,16 +3795,29 @@ class MemberController extends BaseController {
         userId: member.id,
         status: status,
       });
-      console.log("status:", status);
-      console.log("memberOrders:", memberOrders);
+      // console.log("status:", status);
+      // console.log("memberOrders:", memberOrders);
 
       // console.log("User Orders before encoding:", memberOrders);
 
       // Encode the `id` for each order
-      const ordersWithEncodedIds = memberOrders.map((order) => {
-        const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string
-        return { ...order, encodedId }; // Add encodedId to each order
-      });
+      // const ordersWithEncodedIds = memberOrders.map((order) => {
+      //   const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string
+      //   return { ...order, encodedId }; // Add encodedId to each order
+      // });
+
+      const ordersWithEncodedIds = [];
+
+for (const order of memberOrders) {
+  const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
+  const encodedId = helpers.doEncode(String(order.id));
+
+  ordersWithEncodedIds.push({
+    ...order,
+    encodedId,
+    jobStatus,
+  });
+}
 
       // console.log("Member Orders with Encoded IDs:", ordersWithEncodedIds);
 
@@ -2959,14 +3924,19 @@ class MemberController extends BaseController {
           .json({ status: 0, msg: "This order does not belong to the user." });
       }
 
+      const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
+    // console.log("jobStatus on member:",jobStatus)
+    // console.log("order.id:",order.id)
+
       const categoryInfo = order.selected_vehicle
-            ? await Vehicle.getCategoryAndMainCategoryById(order.selected_vehicle)
-            : null;
-      
-            console.log("categoryInfo:",categoryInfo)
+        ? await Vehicle.getCategoryAndMainCategoryById(order.selected_vehicle)
+        : null;
+
+      // console.log("categoryInfo:", categoryInfo)
 
       const viasCount = await this.rider.countViasBySourceCompleted(order.id);
-      const parcels = await this.rider.getParcelDetailsByQuoteId(order.id); // Assuming order.quote_id is the relevant field
+      const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
+      const order_stages_arr = await this.rider.getRequestOrderStages(order.id);
       const vias = await this.rider.getViasByQuoteId(order.id);
       const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
       const reviews = await this.rider.getOrderReviews(order.id);
@@ -2979,7 +3949,19 @@ class MemberController extends BaseController {
 
       const formattedPaidAmount = helpers.formatAmount(paidAmount);
       const formattedDueAmount = helpers.formatAmount(dueAmount);
-      // console.log("order:", order); // Add this line to log the decoded ID
+      console.log("vias:", vias); // Add this line to log the decoded ID
+
+
+      // Fetch attachments for each stage
+      for (let stage of order_stages_arr) {
+        const stage_attachments = await helpers.getDataFromDB(
+          "order_stages_attachments",
+          { stage_id: stage.id } // stage.id exists here
+        );
+
+        // Attach to stage object if needed
+        stage.attachments = stage_attachments;
+      }
 
       const source_attachments = await helpers.getDataFromDB(
         "request_quote_attachments",
@@ -3001,6 +3983,7 @@ class MemberController extends BaseController {
 
         via.attachments = via_attachments; // Add attachments array to each via
       }
+      // console.log("end",order?.end_date, helpers.formatDateToUK(order?.end_date))
 
       order = {
         ...order,
@@ -3008,6 +3991,7 @@ class MemberController extends BaseController {
         formatted_end_date: helpers.formatDateToUK(order?.end_date),
         encodedId: encodedId,
         parcels: parcels,
+        order_stages: order_stages_arr,
         vias: vias,
         invoices: invoices,
         dueAmount: formattedDueAmount,
@@ -3017,10 +4001,12 @@ class MemberController extends BaseController {
         source_attachments: source_attachments,
         destination_attachments: destination_attachments,
         category_name: categoryInfo?.category_name || null,
-        main_category_name: categoryInfo?.main_category_name || null
+        main_category_name: categoryInfo?.main_category_name || null,
+        jobStatus: jobStatus
       };
       // Fetch parcels and vias based on the quoteId from the order
       // Assuming order.quote_id is the relevant field
+      // console.log("formatted_end_date:",helpers.formatDateToUK(order?.end_date))
 
       // Fetch payment methods for the user
       const fetchedPaymentMethods =
@@ -3039,7 +4025,7 @@ class MemberController extends BaseController {
 
       const siteSettings = res.locals.adminData;
 
-      console.log("order:",order)
+      // console.log("order:",order)
 
 
       // Return the order details along with parcels and vias
@@ -3064,6 +4050,7 @@ class MemberController extends BaseController {
       const { token, memType } = req.body;
       // console.log(token)
       const { tracking_id } = req.params;
+      console.log("tracking_id:", tracking_id);
 
       let paymentMethods = [];
       if (!tracking_id) {
@@ -3079,7 +4066,7 @@ class MemberController extends BaseController {
         tracking_id: tracking_id,
       });
 
-      // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
+      console.log("Order from DB:", order); // Add this line to log the order fetched from the database
 
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Order not found." });
@@ -3089,6 +4076,10 @@ class MemberController extends BaseController {
       const vias = await this.rider.getViasByQuoteId(order.id);
       const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
       const reviews = await this.rider.getOrderReviews(order.id);
+      const order_stages_arr = await this.rider.getRequestOrderStages(order.id);
+
+
+      console.log("order_stages_arr:", order_stages_arr)
 
       order = {
         ...order,
@@ -3098,9 +4089,11 @@ class MemberController extends BaseController {
         invoices: invoices,
         viasCount: viasCount,
         reviews: reviews,
+        order_stages: order_stages_arr,
       };
 
       const siteSettings = res.locals.adminData;
+      console.log("order:", order);
 
       // Return the order details along with parcels and vias
       return res.status(200).json({
@@ -3192,6 +4185,30 @@ class MemberController extends BaseController {
       return res.status(500).json({ status: 0, msg: "Internal Server Error" });
     }
   }
+  async ensureCustomerId(member) {
+  try {
+    // If member already has a customer_id, return it
+    if (member.customer_id) return member.customer_id;
+
+    // 1. Create a new customer in Stripe
+    const stripeCustomer = await stripe.customers.create({
+      name: member.full_name,
+      email: member.email,
+    });
+
+    const customerId = stripeCustomer.id;
+
+    // 2. Update member in DB with new customer_id
+    await this.member.updateMemberData(member.id, { customer_id: customerId });
+
+
+    return customerId;
+  } catch (error) {
+    console.error("Error creating customer:", error);
+    throw new Error("Failed to create customer ID.");
+  }
+}
+
 
   async addPaymentMethod(req, res) {
     try {
@@ -3236,12 +4253,13 @@ class MemberController extends BaseController {
       if (!member) {
         return res.status(200).json({ status: 0, msg: "Member not found." });
       }
-
       // Ensure member has a customer_id in Stripe
-      if (!member.customer_id) {
-        return res
-          .status(200)
-          .json({ status: 0, msg: "Customer ID not found for member." });
+     const customerId = await this.ensureCustomerId(member);
+      if (!customerId) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Unable to generate customer ID for member.",
+        });
       }
 
       // Retrieve the payment method from Stripe using the payment method ID
@@ -3273,11 +4291,11 @@ class MemberController extends BaseController {
 
       // Attach the payment method to the customer in Stripe
       await stripe.paymentMethods.attach(payment_method_id, {
-        customer: member.customer_id,
+        customer: customerId,
       });
 
       // Set the payment method as the default payment method for the customer
-      await stripe.customers.update(member.customer_id, {
+      await stripe.customers.update(customerId, {
         invoice_settings: { default_payment_method: payment_method_id },
       });
 
@@ -3292,7 +4310,7 @@ class MemberController extends BaseController {
       const newPaymentMethod = {
         user_id: member.id,
         user_type: memType,
-        customer_id: helpers.doEncode(member.customer_id), // Attach customer_id
+        customer_id: helpers.doEncode(customerId), // Attach customer_id
         payment_method_id: helpers.doEncode(paymentMethod.id),
         card_number: helpers.doEncode(paymentMethod.card.last4),
         exp_month: helpers.doEncode(paymentMethod.card.exp_month),
@@ -3562,8 +4580,8 @@ class MemberController extends BaseController {
           .status(200)
           .json({ status: 0, msg: "Notification not found or unauthorized." });
       }
-      console.log(user.id, "Validated User ID");
-      console.log(notification.user_id, "Notification User ID");
+      // console.log(user.id, "Validated User ID");
+      // console.log(notification.user_id, "Notification User ID");
 
       // Delete the notification
       await Member.deleteNotification(id);
@@ -3582,7 +4600,7 @@ class MemberController extends BaseController {
   // router.post('/create-payment-intent', async (req, res) => {
   async createPaymentIntent(req, res) {
     try {
-      const { amount, paymentMethod, payment_method, payment_method_id } =
+      const { amount, paymentMethod, payment_method, payment_method_id, requestId } =
         req.body;
       // console.log(req.body);
 
@@ -3591,6 +4609,18 @@ class MemberController extends BaseController {
           .status(200)
           .json({ error: "Amount and payment method are required" });
       }
+
+      // ✅ Prevent double payment
+    const dueAmount = await RequestQuoteModel.calculateDueAmount(requestId);
+        console.log("dueAmount payment intent",dueAmount,requestId)
+
+    if (dueAmount <= 0) {
+      return res.status(200).json({
+        status: 0,
+        error: "This invoice has already been fully paid."
+      });
+    }
+
 
       // Create a PaymentIntent with the specified amount and currency
       const paymentIntent = await stripe.paymentIntents.create({
@@ -3644,6 +4674,18 @@ class MemberController extends BaseController {
         saved_card_id,
       } = req.body;
       // console.log(req.body,'req.body')
+
+      // ✅ Prevent double payment
+    const dueAmount = await RequestQuoteModel.calculateDueAmount(requestId);
+    console.log("dueAmount",dueAmount)
+    if (dueAmount <= 0) {
+      return res.status(200).json({
+        status: 0,
+        msg: "This invoice has already been fully paid."
+      });
+    }
+    
+
       // Validate the required fields
       if (payment_method == "credit-card") {
         if (
@@ -3873,20 +4915,28 @@ class MemberController extends BaseController {
           payment_method_id: payment_method_id,
           type: "Invoice",
         });
-        let adminData = res.locals.adminData;
+       
+      }
+       let adminData = res.locals.adminData;
         // const request = await this.rider.getRequestById(54, 9);
         const userRow = await this.rider.findById(order.assigned_rider);
         const parcels = await this.rider.getParcelDetailsByQuoteId(requestId);
-        const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
+        const order_stages_arr = await this.rider.getRequestOrderStages(requestId);
+        const dueAmountchk = await RequestQuoteModel.calculateDueAmount(order.id);
         const orderDetailsLink = `/rider-dashboard/order-details/${helpers.doEncode(
           requestId
         )}`;
         let request_row = order;
         const requestRow = {
           ...request_row, // Spread request properties into order
-          parcels: parcels, // Add parcels as an array inside order
+          parcels: parcels,
+          order_stages: order_stages_arr
         };
-        if (parseFloat(dueAmount) <= 0) {
+        if (parseFloat(dueAmountchk) <= 0) {
+          const updatedRequest = await helpers.updateRequestStatus(
+            order?.id,
+            "completed"
+          );
           const notificationText = `Invoice is paid by the user.Now mark the request as completed`;
           await helpers.storeNotification(
             order.assigned_rider, // The user ID from request_quote
@@ -3895,12 +4945,12 @@ class MemberController extends BaseController {
             notificationText,
             orderDetailsLink
           );
-          console.log(
-            "Assigned Rider:",
-            order?.assigned_rider,
-            "User ID:",
-            userId
-          );
+          // console.log(
+          //   "Assigned Rider:",
+          //   order?.assigned_rider,
+          //   "User ID:",
+          //   userId
+          // );
           const result = await helpers.sendEmail(
             userRow.email,
             "Invoice paid for: " + order?.booking_id,
@@ -3912,7 +4962,6 @@ class MemberController extends BaseController {
             }
           );
         }
-      }
 
       // console.log(result,'result')
       // Handle response
@@ -3920,6 +4969,7 @@ class MemberController extends BaseController {
         return res.status(200).json({
           message: "Invoice created successfully.",
           invoiceId: invoice_id,
+          status:1
         });
       } else {
         return res.status(200).json({ error: "Failed to create invoice." });
@@ -4246,7 +5296,7 @@ class MemberController extends BaseController {
           const totalDebitAmount = await this.member.getTotalDebitCredits(
             userId
           );
-          console.log("totalDebitAmount:", totalDebitAmount);
+          // console.log("totalDebitAmount:", totalDebitAmount);
           if (totalDebitAmount > 0) {
             await this.member.insertInvoice(userId, totalDebitAmount);
             insertedUsers.push(userId);
@@ -4254,8 +5304,7 @@ class MemberController extends BaseController {
 
             const result = await helpers.sendEmail(
               userRow.email,
-              `Your Monthly Invoice for Credits Used ${
-                currentMonth + ", " + currentYear
+              `Your Monthly Invoice for Credits Used ${currentMonth + ", " + currentYear
               }`,
               "credit-invoice",
               {
@@ -4334,8 +5383,21 @@ class MemberController extends BaseController {
 
       const invoices = await this.member.getInvoicesByUserId(userId);
       // console.log("invoices:", invoices);
+
+
+      // const requestQuote = await this.rider.getRequestQuoteByUserId(userId);
+      // if (!requestQuote) {
+      //   return res
+      //     .status(200)
+      //     .json({ status: 0, msg: "Request quote not found." });
+      // }
+      // console.log("userId:", userId);
+
+      const order_id = invoices?.id
+      // console.log("requestQuote:", requestQuote);
       res.json({
         invoices,
+        order_id,
         siteSettings,
         paymentMethods: decodedPaymentMethods,
       });

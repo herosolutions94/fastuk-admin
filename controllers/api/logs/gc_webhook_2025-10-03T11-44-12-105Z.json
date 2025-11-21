@@ -1,0 +1,76 @@
+{
+  "events": [
+    {
+      "id": "EV027F6XVKC117",
+      "created_at": "2025-10-03T11:44:02.823Z",
+      "resource_type": "mandates",
+      "action": "created",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "mandate_created",
+        "description": "Mandate created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "billing_request": "BRQ01K6MY5336BFQT16290F0PM3SK",
+        "mandate_request": "MRQ01K6MY533431JTN",
+        "mandate": "MD01K6MY5RQ1G0CXQ7F97VSE9CVW"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027F6XVM63HC",
+      "created_at": "2025-10-03T11:44:02.867Z",
+      "resource_type": "billing_requests",
+      "action": "fulfilled",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "billing_request_fulfilled",
+        "description": "This billing request has been fulfilled, and the resources have been created."
+      },
+      "links": {
+        "customer": "CU01K6MY532S6ZYD1JAG7RT64HXQ",
+        "customer_bank_account": "BA01K6MY5MKAHQXYAQ59PX008JQT",
+        "mandate_request_mandate": "MD01K6MY5RQ1G0CXQ7F97VSE9CVW",
+        "billing_request": "BRQ01K6MY5336BFQT16290F0PM3SK"
+      },
+      "resource_metadata": {
+        "order_id": "undefined",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027F6XVPEVBX",
+      "created_at": "2025-10-03T11:44:03.325Z",
+      "resource_type": "payments",
+      "action": "created",
+      "metadata": {
+        "order_id": "null",
+        "invoice_id": "1",
+        "user_id": "undefined"
+      },
+      "details": {
+        "origin": "api",
+        "cause": "payment_created",
+        "description": "Payment created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6MY5S5SGP7W4X3B9WSN3TXN"
+      },
+      "resource_metadata": {
+        "order_id": "null",
+        "invoice_id": "1",
+        "user_id": "undefined"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6MY61R7CCC16GVMKG0C32KA"
+  }
+}

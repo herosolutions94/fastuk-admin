@@ -23,16 +23,39 @@ class VehicleModel extends BaseModel {
     return rows.length ? rows[0] : null; // Return the first result or null
     }
 
+    // static async getAllVehicles() {
+    //     try {
+    //         const [rows] = await pool.query(`SELECT * FROM ${this.tableName}`); // Only take the first result
+    //         // console.log('Riders fetched successfully:', rows); // Log the data (only the rows)
+    //         return rows; // Return the fetched rows
+    //     } catch (error) {
+    //         console.error('Error fetching vehicle:', error);
+    //         throw error;
+    //     }
+    // }
+
     static async getAllVehicles() {
-        try {
-            const [rows] = await pool.query(`SELECT * FROM ${this.tableName}`); // Only take the first result
-            // console.log('Riders fetched successfully:', rows); // Log the data (only the rows)
-            return rows; // Return the fetched rows
-        } catch (error) {
-            console.error('Error fetching vehicle:', error);
-            throw error;
-        }
+    try {
+        const query = `
+            SELECT 
+                v.*, 
+                vc.vehicle_name AS category_name
+            FROM 
+                vehicles v
+            LEFT JOIN 
+                vehicle_categories vc
+            ON 
+                v.vehicle_category_id = vc.id
+        `;
+
+        const [rows] = await pool.query(query);
+        return rows;
+    } catch (error) {
+        console.error('Error fetching vehicle:', error);
+        throw error;
     }
+}
+
     static async getActiveVehicles() {
         try {
             const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE status=1`); // Only take the first result
@@ -49,10 +72,10 @@ class VehicleModel extends BaseModel {
     }
 
     static async updateVehicle(id, vehicleData) {
-        const { title, price, status, vehicle_image, business_user_price, admin_price, remote_price, weight, distance, vehicle_category_id,load_capacity,no_of_pallets, max_height} = vehicleData;
+        const { title, price, status, vehicle_image, business_user_price, admin_price, remote_price, weight, distance, vehicle_category_id,load_capacity,no_of_pallets, max_height, max_length} = vehicleData;
         await pool.query(
-            `UPDATE ${this.tableName} SET title = ?, price = ?, status = ?, vehicle_image = ?, business_user_price = ?, admin_price = ?, remote_price = ?, weight = ?, distance = ?, vehicle_category_id = ?, load_capacity = ?, no_of_pallets = ?, max_height = ? WHERE id = ?`,
-            [title, price, status, vehicle_image, business_user_price, admin_price, remote_price, weight, distance, vehicle_category_id, load_capacity, no_of_pallets, max_height, id]
+            `UPDATE ${this.tableName} SET title = ?, price = ?, status = ?, vehicle_image = ?, business_user_price = ?, admin_price = ?, remote_price = ?, weight = ?, distance = ?, vehicle_category_id = ?, load_capacity = ?, no_of_pallets = ?, max_height = ?, max_length = ? WHERE id = ?`,
+            [title, price, status, vehicle_image, business_user_price, admin_price, remote_price, weight, distance, vehicle_category_id, load_capacity, no_of_pallets, max_height, max_length, id]
         );
     }
     static async deleteVehicleById(id) {
@@ -77,17 +100,22 @@ class VehicleModel extends BaseModel {
 
       
   static async getCategoryAndMainCategoryById(vehicleId) {
-  const categoryQuery = `
-    SELECT vc.vehicle_name AS category_name, v.title AS main_category_name
+  const categoryQuery = 
+  `SELECT 
+      v.title AS main_category_name,
+      vc.vehicle_name AS category_name
     FROM vehicles v
-    LEFT JOIN vehicle_categories vc ON vc.parent_id = v.id
-    WHERE v.id = ? 
+    INNER JOIN vehicle_categories vc ON v.vehicle_category_id = vc.id
+    WHERE v.id = ?
     LIMIT 1
   `;
   const [rows] = await pool.query(categoryQuery, [vehicleId]);
+    console.log("vehicleId:", vehicleId);
+
   console.log("rows:", rows);
   return rows.length ? rows[0] : null;
 }
+
 
 
   static async getVehicleCategoryById(id) {

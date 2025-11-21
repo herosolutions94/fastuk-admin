@@ -1,0 +1,237 @@
+{
+  "events": [
+    {
+      "id": "EV027JPNVBCNCS",
+      "created_at": "2025-10-07T15:42:35.035Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6MN3MEXH1425H2SQMB54G8P",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6MN3SF9ERK0M56NVH82KA9C"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "null",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027JPNTN7TYY",
+      "created_at": "2025-10-07T15:42:34.767Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6MMKQJBQXH9E0BFE16NQMF9",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6MMKZRNERRQTDZ13FZTZZSW"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "null",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027JPP5KW1WR",
+      "created_at": "2025-10-07T15:42:38.403Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6MTSCG0PPR2B463YAF88BDH",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6MTSGDMR1XW1A0AHBSXTQJB"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "null",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027JPP4XSNNG",
+      "created_at": "2025-10-07T15:42:38.191Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6MTDE0N0MDG5CAFDRCJTQ8N",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6MTDJ0RT0PNRMXWEFVW9HXB"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "null",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027JPP832B7Z",
+      "created_at": "2025-10-07T15:42:39.162Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6MXP968Y5QCTFDVVFWB3B9X",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6MXPMWETB831HDBNK9JJB23"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "null",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027JPP6CV7MX",
+      "created_at": "2025-10-07T15:42:38.670Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6MVHG91NW03MYN8X4BCXM66",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6MVHMFTBYSSB3PVXYANB1TR"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "null",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027JPP58AF28",
+      "created_at": "2025-10-07T15:42:38.293Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6MTHMKYFR1HAWSWK4B6R7ST",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6MTHRD2NBBT14EY8J7DVSRG"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "null",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027JPP8D1DD5",
+      "created_at": "2025-10-07T15:42:39.275Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6MY5MKAHQXYAQ59PX008JQT",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6MY5S5SGP7W4X3B9WSN3TXN"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "null",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027JPP4M9E1M",
+      "created_at": "2025-10-07T15:42:38.101Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6MSMDFXPM06B7Z4BGRS1804",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6MSMJDGX56F6598GFSANTFT"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "null",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV027JPP5Y28NK",
+      "created_at": "2025-10-07T15:42:38.518Z",
+      "resource_type": "payments",
+      "action": "submitted",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payment_submitted",
+        "description": "Payment submitted to the banks. As a result, it can no longer be cancelled.",
+        "bank_account_id": "BA01K6MV3BT799RQB96T07S8XZSA",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K6MV3FPZ06D8GM15JADG0KYN"
+      },
+      "resource_metadata": {
+        "user_id": "undefined",
+        "order_id": "null",
+        "invoice_id": "1"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K6ZNDQ4DND6KTNB48HNZGCX2"
+  }
+}

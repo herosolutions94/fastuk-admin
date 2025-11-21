@@ -1,0 +1,77 @@
+{
+  "events": [
+    {
+      "id": "EV028B6TFSK3R4",
+      "created_at": "2025-10-23T10:28:38.037Z",
+      "resource_type": "billing_requests",
+      "action": "fulfilled",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "billing_request_fulfilled",
+        "description": "This billing request has been fulfilled, and the resources have been created."
+      },
+      "links": {
+        "customer": "CU01K889EYWH8ANW4YMRXJG0ZPBB",
+        "customer_bank_account": "BA01K889SMFHKQWAGMX8KHPVT4FF",
+        "mandate_request_mandate": "MD01K889T1Y642RNXVRS52CQY68Q",
+        "billing_request": "BRQ01K889EYX1P4GJMZAXAWWKJJK6"
+      },
+      "resource_metadata": {
+        "type": "order",
+        "order_id": "306",
+        "invoice_id": "306"
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV028B6TFRY4FM",
+      "created_at": "2025-10-23T10:28:37.994Z",
+      "resource_type": "mandates",
+      "action": "created",
+      "metadata": {},
+      "details": {
+        "origin": "api",
+        "cause": "mandate_created",
+        "description": "Mandate created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "billing_request": "BRQ01K889EYX1P4GJMZAXAWWKJJK6",
+        "mandate_request": "MRQ01K889EYWZ7GP0A",
+        "mandate": "MD01K889T1Y642RNXVRS52CQY68Q"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    },
+    {
+      "id": "EV028B6TFTH5YZ",
+      "created_at": "2025-10-23T10:28:38.202Z",
+      "resource_type": "payments",
+      "action": "created",
+      "metadata": {
+        "order_id": "order_1761215318102",
+        "invoice_id": "",
+        "type": ""
+      },
+      "details": {
+        "origin": "api",
+        "cause": "payment_created",
+        "description": "Payment created via the API.",
+        "scheme": "bacs"
+      },
+      "links": {
+        "payment": "PM01K889T24P8YD7QEFWW2JCANCC"
+      },
+      "resource_metadata": {
+        "order_id": "order_1761215318102",
+        "invoice_id": "",
+        "type": ""
+      },
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01K889T77XZGZ38F3WCH5D1KEM"
+  }
+}
