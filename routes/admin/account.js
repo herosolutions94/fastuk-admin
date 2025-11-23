@@ -1,6 +1,8 @@
 const express = require('express');
 const accountController = require('../../controllers/admin/account');
 const ReportsController = require('../../controllers/admin/reports');
+const helpers = require("../../utils/helpers");
+
 const { ensureAuthenticated } = require('../../middleware/authMiddleware');
 const router = express.Router();
 const  checkAccessMiddleware  = require('../../middleware/checkAccessMiddleware');
@@ -32,6 +34,18 @@ router.get('/invoice', accountController.invoiceView);
 router.get('/manage-pages', accountController.managePagesView);
 router.get('/testimonials', accountController.testimonialsView);
 router.get('/change-password-form', accountController.changePasswordView);
+
+// Route to update all cities with latitude and longitude
+router.get('/update-cities', async (req, res) => {
+  try {
+    await helpers.updateCities();
+    res.send('All cities updated successfully!');
+  } catch (error) {
+    console.error("Error updating cities:", error.message);
+    res.status(500).send('Failed to update cities');
+  }
+});
+
 
 
 module.exports = router;

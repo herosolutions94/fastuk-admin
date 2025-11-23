@@ -19,8 +19,10 @@ class PageModel extends BaseModel {
             INSERT INTO request_quote(user_id, selected_vehicle, vehicle_price, total_amount,tax, payment_intent, customer_id, source_postcode, source_address,
             source_name, source_phone_number, source_city, dest_postcode, dest_address, dest_name, dest_phone_number, dest_city,
             payment_method, payment_method_id, status, start_date, created_date, notes, rider_price, promo_code, discount, 
-            pickup_time_option, pickup_start_time, pickup_start_date, pickup_end_date, pickup_end_time, delivery_time_option, delivery_start_date, delivery_start_time, delivery_end_date, delivery_end_time, pickup_time, pickup_date, delivery_time, delivery_date,round_trip,distance)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?,?,?,?)
+            pickup_time_option, pickup_start_time, pickup_start_date, pickup_end_date, pickup_end_time, delivery_time_option, 
+            delivery_start_date, delivery_start_time, delivery_end_date, delivery_end_time, pickup_time, pickup_date, delivery_time, 
+            delivery_date,round_trip,distance,source_lat,source_long)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?,?,?,?,?,?)
         `;
         const values = [
   data.user_id ?? null,
@@ -68,7 +70,9 @@ class PageModel extends BaseModel {
   data.delivery_time || null,
   data.delivery_date || null,
   data.round_trip || null,
-  data.total_distance || null
+  data.total_distance || null,
+  data.source_lat || null,
+  data.source_long || null
 ];
 console.log("Rount trip model:", data.round_trip);
 

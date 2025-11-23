@@ -12,23 +12,28 @@ class TransactionsModel extends BaseModel {
   static async getTransactionsWithMembers() {
     try {
       const result = await pool.query(`
-            SELECT 
-    t.id AS id,
-    t.transaction_id AS transaction_id,
-    t.user_id,
-    t.amount,
-    t.type,
-    t.payment_method,
-    t.created_time,
-    m.id AS member_id,
-    m.full_name AS member_name,
-    m.mem_image AS mem_image
-FROM transactions t
-JOIN members m ON t.user_id = m.id
-        WHERE t.is_deleted=0
-ORDER BY t.created_time DESC;
-;
-          `);
+    SELECT 
+        t.id AS id,
+        t.transaction_id,
+        t.user_id,
+        t.amount,
+        t.type,
+        t.payment_method,
+        t.created_time,
+
+        m.id AS member_id,
+        m.full_name AS member_name,
+        m.mem_image AS mem_image,
+
+        rq.booking_id AS booking_id 
+
+    FROM transactions t
+    JOIN members m ON t.user_id = m.id
+    LEFT JOIN request_quote rq ON rq.id = t.transaction_id
+    WHERE t.is_deleted = 0
+    ORDER BY t.created_time DESC;
+`);
+
       // console.log("Raw Query Result:", result);
       const rows = result[0];
       if (!rows || rows.length === 0) {

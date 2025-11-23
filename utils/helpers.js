@@ -1385,7 +1385,59 @@ module.exports = {
       console.error("Error generating thumbnail:", err.message);
       throw err;
     }
+  },
+
+  updateCities: async function () {
+    try {
+      // 1. Fetch all cities
+      const [cities] = await pool.query("SELECT id, name FROM cities");
+
+      for (const city of cities) {
+        try {
+          console.log("Fetching:", city.city_name);
+
+          const url = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
+            city.name + " UK"
+          )}`;
+
+          const res = await axios.get(url, {
+            headers: { "User-Agent": "https://fastukcouriers.com/" }
+          });
+
+          if (res.data.length === 0) {
+            console.log("❌ No results for:", city.name);
+            continue;
+          }
+
+          const lat = res.data[0].lat;
+          const lon = res.data[0].lon;
+
+          console.log(`Updating ${city.name} → Lat: ${lat}, Lng: ${lon}`);
+
+          // 2. Update the city in DB
+          await pool.query(
+            "UPDATE cities SET latitude = ?, longitude = ? WHERE id = ?",
+            [lat, lon, city.id]
+          );
+
+          // Required delay to avoid API rate limit (Nominatim requires this)
+          await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        } catch (innerErr) {
+          console.error(`Error updating city ${city.name}:`, innerErr.message);
+        }
+      }
+
+      console.log("All cities updated successfully!");
+      return true;
+
+    } catch (error) {
+      console.error("Error in updateCities:", error);
+      throw error;
+    }
   }
+
+
 
 
 };

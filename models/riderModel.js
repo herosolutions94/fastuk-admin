@@ -81,31 +81,60 @@ class RiderModel extends BaseModel {
         // Execute the query, adding the memberId to the values array
         await pool.query(query, [...values, stage_id]);
     }
-async getRequestQuotesByCity(city, categoryIds) {
+async getRequestQuotesByCity(categoryIds, lat, lng) {
     if (!Array.isArray(categoryIds) || categoryIds.length === 0) {
         return [];
     }
 
+    // Convert lat/lng to numbers to avoid RADIANS(NULL)
+   lat = parseFloat(lat);
+lng = parseFloat(lng);
+if (isNaN(lat) || isNaN(lng)) return [];
+
     const placeholders = categoryIds.map(() => "?").join(",");
 
     const query = `
-    SELECT DISTINCT rq.*
-    FROM request_quote rq
-    JOIN rider_vehicle_categories rvc
-        ON rq.selected_vehicle = rvc.category_id
-    WHERE 
-        rq.source_city = ?
-        AND rq.assigned_rider IS NULL
-        AND rvc.category_id IN (${placeholders})
-    ORDER BY rq.id DESC
-`;
-    
+        SELECT DISTINCT 
+            rq.*,
+            (
+                6371 * ACOS(
+                    COS(RADIANS(?)) 
+                    * COS(RADIANS(rq.source_lat)) 
+                    * COS(RADIANS(rq.source_long) - RADIANS(?)) 
+                    + SIN(RADIANS(?)) 
+                    * SIN(RADIANS(rq.source_lat))
+                )
+            ) AS distance
+        FROM request_quote rq
+        JOIN rider_vehicle_categories rvc
+            ON rq.selected_vehicle = rvc.category_id
+        WHERE 
+            rq.assigned_rider IS NULL
+            AND rvc.category_id IN (${placeholders})
+        HAVING distance <= 30
+        ORDER BY distance ASC;
+    `;
 
-    // console.log("Query:", query, "Params:", [city, ...categoryIds]);
+    const params = [
+        lat,
+        lng,
+        lat,
+        ...categoryIds
+    ];
 
-    const [rows] = await pool.query(query, [city, ...categoryIds]);
+    const [rows] = await pool.query(query, params);
     return rows;
 }
+
+
+
+async getCityLatLng(cityName) {
+    const query = `SELECT latitude, longitude FROM cities WHERE name = ? LIMIT 1`;
+    const [rows] = await pool.query(query, [cityName]);
+    return rows.length ? rows[0] : null;
+}
+
+
 
 
 
