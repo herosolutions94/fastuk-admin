@@ -19,7 +19,7 @@ class TransactionsController extends BaseController {
           const transactionsWithMembers = await Transactions.getTransactionsWithMembers();
       
           if (transactionsWithMembers && transactionsWithMembers.length > 0) {
-            // console.log('reviews:', reviewsWithMembers); // Ensure data is logged here
+            console.log('transactionsWithMembers:', transactionsWithMembers); // Ensure data is logged here
             res.render('admin/transactions', { transactions: transactionsWithMembers });
           } else {
             // console.log('No reviews found'); // Debugging fallback

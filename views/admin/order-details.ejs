@@ -131,14 +131,7 @@
                     </p>
                   </div>
                 </div>
-                <div class="list-group-item">
-                  <div class="d-flex w-100">
-                    <p>
-                      <strong>End Date: </strong>
-                      <%= helpers.toUKDateFormat(order.end_date) %>
-                    </p>
-                  </div>
-                </div>
+
                 <div class="list-group-item">
                   <div class="d-flex w-100">
                     <p>
@@ -160,10 +153,28 @@
                   <div class="d-flex w-100">
                     <p>
                       <strong>Assigned Date: </strong>
-                      <%= helpers.toUKDateFormat(order.assigned_date) %>
+                      <% if (order.assigned_date) { %>
+                        <%= helpers.toUKDateFormat(order.assigned_date) %>
+                          <% } else { %>
+                            N/A
+                            <% } %>
                     </p>
                   </div>
                 </div>
+
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>End Date: </strong>
+                      <% if (order.end_date) { %>
+                        <%= helpers.toUKDateFormat(order.end_date) %>
+                          <% } else { %>
+                            N/A
+                            <% } %>
+                    </p>
+                  </div>
+                </div>
+
                 <!-- <div class="list-group-item">
                   <div class="d-flex w-100">
                     <p>

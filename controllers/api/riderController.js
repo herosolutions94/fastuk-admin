@@ -496,6 +496,7 @@ class RiderController extends BaseController {
       if (!token) {
         return res.status(200).json({ status: 0, msg: "Token is required." });
       }
+
       // Call the method from BaseController to get the user data
       const userResponse = await this.validateTokenAndGetMember(token, memType);
       // console.log("userResponse:",userResponse)
@@ -518,20 +519,43 @@ class RiderController extends BaseController {
         : userResponse.user.city;
 
         const loggedInUser = userResponse.user
-    console.log("city",city)
+    // console.log("city",city)
+
+    // STEP 1: Get rider city lat/lng from cities table
+    const riderCityDetails = await this.rider.getCityLatLng(city_name);
+
+        if (!riderCityDetails) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Lat/Lng not found for the rider city."
+      });
+    }
+    console.log("riderCityDetails:",riderCityDetails)
+
+const { latitude, longitude } = riderCityDetails;
+const latNum = parseFloat(latitude);
+const lngNum = parseFloat(longitude);
+
+if (isNaN(latNum) || isNaN(lngNum)) {
+  return res.status(200).json({
+    status: 0,
+    msg: "Invalid lat/lng values for the rider city."
+  });
+}
       const assignedSubCategories = await this.rider.getRiderCategoriesById(loggedInUser.id);
-  console.log("assignedSubCategories",assignedSubCategories)
+  // console.log("assignedSubCategories",assignedSubCategories)
       if (!assignedSubCategories || assignedSubCategories.length === 0) {
         return res.status(200).json({
           status: 0,
           msg: "You are not assigned any vehicle category."
         });
       }
-      console.log("assignedSubCategories:", assignedSubCategories)
+      // console.log("assignedSubCategories:", assignedSubCategories)
 
 
       // Fetch quotes by city using the model
-      const requestQuotes = await this.rider.getRequestQuotesByCity(city_name, assignedSubCategories );
+      const requestQuotes = await this.rider.getRequestQuotesByCity(assignedSubCategories,latNum,
+  lngNum );
       console.log("requestQuotes:", requestQuotes)
 
       if (requestQuotes.length === 0) {

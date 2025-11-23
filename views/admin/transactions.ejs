@@ -30,19 +30,23 @@
             <td>
             <% if (transaction.transaction_id !=0) { %>
               <p>
-                <a href="/admin/job-detail/<%= transaction.transaction_id %>">View Job</a>
+                <a href="/admin/job-detail/<%= transaction.transaction_id %>" target="_blank"
+                      rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><%= transaction?.booking_id %></a>
               </p>
               </td>
               <% } else{ %>
               N/A
               <% }  %>
             <td>
+              <a href="/admin/members/edit/<%= transaction?.user_id %>" target="_blank" rel="noopener noreferrer"
+                    style="text-decoration: none; color: inherit;">
               <div class="flex">
               <div class="image-blog">
                 <img src="<%= helpers.getImage(transaction.mem_image) %>" alt="User Image" class="img-responsive"/>
               </div>
               <p><%= transaction.member_name %></p>
             </div>
+            </a>
             </td>
             <td><p>£<%= transaction.amount %></p></td>
             <td><p><%= transaction.payment_method %></p></td>
