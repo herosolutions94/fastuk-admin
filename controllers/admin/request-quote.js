@@ -68,10 +68,10 @@ class RequestQuoteController extends BaseController {
       const requestQuotesWithMembers =
         await RequestQuote.getRequestQuotesWithMembers([
           "rq.status = 'paid'",
-          "rq.start_date > CURDATE()"
+           "rq.start_date >= CURDATE()"
         ]);
 
-      // console.log('Request Quotes:', requestQuotesWithMembers);
+      console.log('Upcoming Request Quotes:', requestQuotesWithMembers);
 
       res.render("admin/request-quotes", {
         requestQuotes: requestQuotesWithMembers,

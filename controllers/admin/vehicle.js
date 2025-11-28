@@ -41,6 +41,8 @@ class VehicleController extends BaseController {
                 price,
                 business_user_price,
                 admin_price,
+                min_mileage,
+                min_price,
                 weight,
                 distance,
                 status,
@@ -78,6 +80,8 @@ class VehicleController extends BaseController {
                 admin_price: typeof admin_price === 'string' ? admin_price.trim().toLowerCase() : '',
                 weight: typeof weight === 'string' ? weight.trim().toLowerCase() : '',
                 distance: typeof distance === 'string' ? distance.trim().toLowerCase() : '',
+                min_mileage: typeof min_mileage === 'string' ? min_mileage.trim().toLowerCase() : '',
+                min_price: typeof min_price === 'string' ? min_price.trim().toLowerCase() : '',
                 // remote_price: typeof remote_price === 'string' ? remote_price.trim().toLowerCase() : '',
                 vehicle_image: vehicleImage,  // Change this to match your DB column name
                 status: status || 0,

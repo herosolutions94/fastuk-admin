@@ -37,6 +37,7 @@ router.post('/vehicles/by-category/:categoryId', upload, (req, res) => pagesCont
 router.post('/upload-license', upload, (req, res) => pagesController.uploadLicense(req, res));
 router.post('/available-categories', upload, (req, res) => pagesController.getAvailableVehicleCategories(req, res));
 router.post('/create-flow', upload, (req, res) => pagesController.createRedirectFlow(req, res));
+
 // router.post('/orders', upload, (req, res) => pagesController.getOrders(req, res));
 
 

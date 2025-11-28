@@ -21,8 +21,8 @@ class PageModel extends BaseModel {
             payment_method, payment_method_id, status, start_date, created_date, notes, rider_price, promo_code, discount, 
             pickup_time_option, pickup_start_time, pickup_start_date, pickup_end_date, pickup_end_time, delivery_time_option, 
             delivery_start_date, delivery_start_time, delivery_end_date, delivery_end_time, pickup_time, pickup_date, delivery_time, 
-            delivery_date,round_trip,distance,source_lat,source_long)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?,?,?,?,?,?)
+            delivery_date,round_trip,distance,source_lat,source_long,vat)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?,?,?,?,?,?,?)
         `;
         const values = [
   data.user_id ?? null,
@@ -72,12 +72,13 @@ class PageModel extends BaseModel {
   data.round_trip || null,
   data.total_distance || null,
   data.source_lat || null,
-  data.source_long || null
+  data.source_long || null,
+  data.vat || null
 ];
 console.log("Rount trip model:", data.round_trip);
 
         // console.log("inserting request values:",values)
-//         console.log("createRequestQuote values:", values,data);
+        console.log("createRequestQuote values:", values,data);
 //          console.log(
 //   "pickup_date:", data.pickup_time, "-> type:", typeof data.pickup_time
 // );

@@ -50,23 +50,41 @@ class RiderController extends BaseController {
       if (rider) {
         const attachments = await Rider.getRiderAttachments(riderId); // Add this method in your model
         // Organize attachments by type for easier access in EJS
+
+
         const attachmentMap = {};
         const pictures = [];
+        const otherDocuments = [];
+
         attachments.forEach((att) => {
           if (att?.type === "pictures") {
-            pictures.push(att); // 👈 Push full object, not just filename
-          } else {
-            attachmentMap[att.type] = att.filename;
+            pictures.push(att); // array of picture objects
+          }
+          else if (att?.type === "other_documents") {
+            otherDocuments.push(att); // array of document objects
+          }
+          else {
+            attachmentMap[att.type] = att.filename; // single file like license, insurance etc.
           }
         });
+
         attachmentMap["pictures"] = pictures;
-        // console.log("attachmentMap:", attachmentMap);
-        // Assuming `result` is defined properly, or you should use rider.rider_image
+        attachmentMap["other_documents"] = otherDocuments;
+
+
+        // ✅ NEW: fetch rider live jobs
+        const liveJobs = await Rider.getRiderLiveJobs(riderId);
+        const earnings = await this.riderModel.getAllEarnings();
+
+        console.log("liveJobs:", liveJobs)
+
         res.render("admin/riders/edit-rider", {
           rider,
           editRiderId: riderId,
           status: rider.status,
           attachments: attachmentMap,
+          earnings: earnings,
+          liveJobs,
         });
       } else {
         this.sendError(res, "Rider not found");
@@ -78,7 +96,7 @@ class RiderController extends BaseController {
   }
 
   // Method to handle updating rider information
-  async updateRider(req, res) {
+   async updateRider(req, res) {
     try {
       const riderId = req.params.id;
       const riderData = req.body;
@@ -104,16 +122,27 @@ class RiderController extends BaseController {
         return newFile || oldFile || null;
       };
 
-      // Helper: handle multiple images like front/back/side
-      const handleMultipleAttachments = async () => {
-        const newFiles = req.files?.["pictures"]?.map((f) => f.filename) || [];
+      // // Helper: handle multiple images like front/back/side
+      // const handleMultipleAttachments = async () => {
+      //   const newFiles = req.files?.["pictures"]?.map((f) => f.filename) || [];
 
-        const oldPictures = currentAttachments
-          .filter((att) => att.type === "pictures")
-          .map((att) => att.filename);
+      //   const oldPictures = currentAttachments
+      //     .filter((att) => att.type === "pictures")
+      //     .map((att) => att.filename);
 
-        // Don't delete old files, just combine them with the new ones
-        return [...oldPictures, ...newFiles];
+      //   // Don't delete old files, just combine them with the new ones
+      //   return [...oldPictures, ...newFiles];
+      // };
+
+      const handleMultipleTypeAttachments = async (typeName) => {
+        const newFiles = req.files?.[typeName]?.map(f => f.filename) || [];
+
+        const oldFiles = currentAttachments
+          .filter(att => att.type === typeName)
+          .map(att => att.filename);
+
+        // Keep existing + add new ones
+        return [...oldFiles, ...newFiles];
       };
 
       // Attachments to update
@@ -121,12 +150,15 @@ class RiderController extends BaseController {
         address_proof: await handleSingleAttachment("address_proof"),
         driving_license: await handleSingleAttachment("driving_license"),
         self_picture: await handleSingleAttachment("self_picture"),
+        insurance_certificate: await handleSingleAttachment("insurance_certificate"),
         passport_pic: await handleSingleAttachment("passport_pic"),
         national_insurance: await handleSingleAttachment("national_insurance"),
         company_certificate: await handleSingleAttachment(
           "company_certificate"
         ),
-        pictures: await handleMultipleAttachments(),
+        // Multiple files:
+        pictures: await handleMultipleTypeAttachments("pictures"),
+        other_documents: await handleMultipleTypeAttachments("other_documents"),
       };
 
       // console.log("Files received:", req.files);
@@ -198,6 +230,7 @@ class RiderController extends BaseController {
       }
 
       const filename = result[0].filename;
+      const type = result[0].type; // <-- detect type (pictures or other_documents)
       const imagePath = path.join(__dirname, "../../uploads/", filename);
 
       fs.unlink(imagePath, async (err) => {
@@ -209,7 +242,7 @@ class RiderController extends BaseController {
         }
 
         try {
-          await Rider.deleteAttachmentById(id, rider_id, "pictures");
+          await Rider.deleteAttachmentById(id, rider_id, type);
           return res
             .status(200)
             .json({ status: 1, message: "Image deleted successfully" });
@@ -531,31 +564,31 @@ class RiderController extends BaseController {
     }
   }
 
-    async getRiderJobs (req, res)  {
+  async getRiderJobs(req, res) {
     try {
-        const riderId = req.params.rider_id;
+      const riderId = req.params.rider_id;
 
-        const whereConditions = [
-            `rq.assigned_rider = ${riderId}`
-        ];
+      const whereConditions = [
+        `rq.assigned_rider = ${riderId}`
+      ];
 
-        const jobs = await RequestQuoteModel.getRequestQuotesWithMembers(whereConditions);
-        // console.log("jobs:",jobs)
- // Loop through jobs and add jobStatus
-    for (let job of jobs) {
-      job.jobStatus = await helpers.updateRequestQuoteJobStatus(job.id); 
-    }
+      const jobs = await RequestQuoteModel.getRequestQuotesWithMembers(whereConditions);
+      // console.log("jobs:",jobs)
+      // Loop through jobs and add jobStatus
+      for (let job of jobs) {
+        job.jobStatus = await helpers.updateRequestQuoteJobStatus(job.id);
+      }
 
-        return res.render("admin/riders/jobs", {
-            jobs,
-            riderId
-        });
+      return res.render("admin/riders/jobs", {
+        jobs,
+        riderId
+      });
 
     } catch (err) {
-        console.error(err);
-        res.status(500).send("Server Error");
+      console.error(err);
+      res.status(500).send("Server Error");
     }
-};
+  };
 
 
 

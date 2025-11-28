@@ -20,6 +20,28 @@ class Rider {
     return rider; // This should be an object, not an array
   }
 
+  static async getRiderLiveJobs(riderId) {
+    const query = `
+        SELECT 
+            rq.*, 
+            m.id AS user_id,
+            m.full_name AS member_name,
+            m.mem_image AS member_image,
+            m.email AS member_email,
+            m.mem_phone AS member_phone
+        FROM request_quote rq
+        LEFT JOIN members m ON rq.user_id = m.id
+        WHERE rq.assigned_rider = ?
+        AND rq.status != 'completed'
+    `;
+
+    const [rows] = await pool.query(query, [riderId]);
+    return rows;
+  }
+
+
+
+
   // Rider.js model
   // Rider.js model
   static async getRiderAttachments(riderId) {
@@ -44,11 +66,12 @@ class Rider {
       vehicle_registration_num,
       driving_license_num,
       national_insurance_num,
+              utr_num,
       status,
       driving_license,
     } = riderData;
     await pool.query(
-      "UPDATE riders SET full_name = ?, email = ?, mem_phone = ?, dob = ?, mem_address1 = ?, city = ?, vehicle_owner = ?, vehicle_type = ?, vehicle_registration_num = ?, driving_license_num = ?, status = ?, driving_license = ?, national_insurance_num = ? WHERE id = ?",
+      "UPDATE riders SET full_name = ?, email = ?, mem_phone = ?, dob = ?, mem_address1 = ?, city = ?, vehicle_owner = ?, vehicle_type = ?, vehicle_registration_num = ?, driving_license_num = ?, status = ?, driving_license = ?, national_insurance_num = ?, utr_num = ? WHERE id = ?",
       [
         full_name,
         email,
@@ -63,6 +86,7 @@ class Rider {
         status,
         driving_license,
         national_insurance_num,
+                utr_num,
         id,
       ]
     );
@@ -74,6 +98,7 @@ class Rider {
     const singleTypes = [
       "address_proof",
       "self_picture",
+      "insurance_certificate",
       "passport_pic",
       "national_insurance",
       "company_certificate",
@@ -115,6 +140,19 @@ class Rider {
         }
       }
     }
+
+    // Insert new other_documents (multi-type) without deleting existing ones
+if (Array.isArray(attachments.other_documents)) {
+  for (const filename of attachments.other_documents) {
+    const [exists] = await pool.query(
+      "SELECT id FROM rider_attachments WHERE rider_id = ? AND filename = ? AND type = ?",
+      [riderId, filename, "other_documents"]
+    );
+    if (exists.length === 0) {
+      entries.push([riderId, filename, "other_documents"]);
+    }
+  }
+}
     console.log("Entries to insert:", entries);
 
     if (entries.length > 0) {
@@ -130,27 +168,27 @@ class Rider {
     await pool.query(query, [riderId, filename]);
   }
 
-static async deleteAttachmentById(id, rider_id, type) {
-  try {
-    const [result] = await pool.query(
-      "DELETE FROM rider_attachments WHERE id = ? AND rider_id = ? AND type = ?",
-      [id, rider_id, type]
-    );
-    return result.affectedRows > 0;
-  } catch (error) {
-    console.error("Database error:", error);
-    throw new Error("Failed to delete rider");
+  static async deleteAttachmentById(id, rider_id, type) {
+    try {
+      const [result] = await pool.query(
+        "DELETE FROM rider_attachments WHERE id = ? AND rider_id = ? AND type = ?",
+        [id, rider_id, type]
+      );
+      return result.affectedRows > 0;
+    } catch (error) {
+      console.error("Database error:", error);
+      throw new Error("Failed to delete rider");
+    }
   }
-}
 
 
-static async getRiderAttachmentById(id, rider_id) {
-  const [rows] = await pool.query(
-    "SELECT * FROM rider_attachments WHERE id = ? AND rider_id = ?",
-    [id, rider_id]
-  );
-  return rows;
-}
+  static async getRiderAttachmentById(id, rider_id) {
+    const [rows] = await pool.query(
+      "SELECT * FROM rider_attachments WHERE id = ? AND rider_id = ?",
+      [id, rider_id]
+    );
+    return rows;
+  }
 
 
   static async getRiderAttachments(riderId) {
@@ -242,11 +280,11 @@ static async getRiderAttachmentById(id, rider_id) {
   static async getParcelsById(parcel_id) {
     const query = `SELECT * FROM order_details WHERE id = ?`;
     const [rows] = await pool.query(query, [parcel_id]);
-    console.log("parcels:",rows)
+    console.log("parcels:", rows)
     return rows.length ? rows[0] : null;
   }
 
-  
+
 }
 
 module.exports = Rider;
