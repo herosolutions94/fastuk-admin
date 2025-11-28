@@ -1,0 +1,203 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Transaction Details</h3>
+        <ul>
+          <li><a href="/admin/dashbaord">Home</a></li>
+          <li class="active"><a href="">Booking ID: <%= transactions.booking_id %></a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dashTable">
+      <!-- <div class="row">
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5>Rider Details:</h5>
+            </div>
+
+            <div class="card-body">
+              <div class="list-group details-group">
+                <% if (transactions?.assigned_rider) { %>
+                  <div class="list-group-item">
+                    <div class="d-flex w-100">
+                      <a href="/admin/riders/edit/<%= transactions.assigned_rider %>" target="_blank" rel="noopener noreferrer"
+                        style="text-decoration: none; color: inherit;">
+                        <p><strong>Rider: </strong>
+                          <img src="<%= helpers.getImage(transactions.rider_dp) %>" alt="User Image" class="user-image"
+                            style="width: 50px; height: 50px; border-radius: 50%;">
+                          <%= transactions.rider_name %>
+                        </p>
+                      </a>
+                    </div>
+                  </div>
+                  <% } else { %>
+                    <p>Rider is not assigned yet.</p>
+                    <% } %>
+
+              </div>
+            </div>
+          </div>
+        </div>
+       
+      </div> -->
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h5>Payment Details:</h5>
+            </div>
+
+            <div class="card-body">
+              <div class="list-group details-group">
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Amount: </strong>
+                      £<%= transactions.amount %>
+                    </p>
+                    <p>
+                      <strong>Created Time: </strong>
+                      <%= helpers.convertUtcToUkFormat(transactions.created_time) %>
+                    </p>
+                    <p>
+                      <strong>Payment Method: </strong>
+                      <%= transactions.payment_method %>
+                    </p>
+                  </div>
+                </div>
+                
+                
+
+                
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h5>Order Details:</h5>
+            </div>
+
+            <div class="card-body">
+              <div class="list-group details-group">
+                <div class="list-group-item">
+                  <!-- <div class="d-flex w-100">
+                    <p>
+                      <strong>Vehicle Main Category: </strong>
+                      <%= transactions.main_category_name %>
+                    </p>
+                    <p>
+                      <strong>Vehicle Sub Category: </strong>
+                      <%= transactions.category_name %>
+                    </p>
+                  </div> -->
+                </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Status: </strong>
+
+                      <%= transactions?.jobStatus %>
+
+                    </p>
+
+                  </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Pickup Address: </strong>
+                      <%= transactions.source_address %>
+                    </p>
+                  </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Drop-off Address: </strong>
+                      <%= transactions.dest_address %>
+                    </p>
+                  </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Distance: </strong>
+                      <%= transactions.distance %>miles
+                    </p>
+                  </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Start Date: </strong>
+                      <%= helpers.toUKDateFormat(transactions.start_date) %>
+                    </p>
+                  </div>
+                </div>
+
+                
+
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Payment Method: </strong>
+                      <%= transactions.payment_method %>
+                    </p>
+                  </div>
+                </div>
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>Assigned Date: </strong>
+                      <% if (transactions.assigned_date) { %>
+                        <%= helpers.toUKDateFormat(transactions.assigned_date) %>
+                          <% } else { %>
+                            N/A
+                            <% } %>
+                    </p>
+                  </div>
+                </div>
+
+                <div class="list-group-item">
+                  <div class="d-flex w-100">
+                    <p>
+                      <strong>End Date: </strong>
+                      <% if (transactions.end_date) { %>
+                        <%= helpers.toUKDateFormat(transactions.end_date) %>
+                          <% } else { %>
+                            N/A
+                            <% } %>
+                    </p>
+                  </div>
+                </div>
+
+                
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      
+
+    </div>
+
+  </div>
+
+
+
+
+
+  </div>
+  </div>
+</section>

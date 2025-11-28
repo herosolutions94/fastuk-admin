@@ -39,6 +39,8 @@ router.post('/delete-rider-document', upload, riderController.deleteRiderDocumen
 router.post('/change-order-request-status', upload, riderController.changeOrderRequestStatus.bind(riderController));
 router.post('/parcel-status-update', upload, riderController.parcelStatusChange.bind(riderController));
 router.post('/update-parcel-status', upload, riderController.updateParcelStatus.bind(riderController));
+router.get('/clear-earnings', upload, riderController.clearOldEarnings.bind(riderController));
+
 
 
 

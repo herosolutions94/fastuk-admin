@@ -6,6 +6,8 @@ const validator = require("validator"); // Importing validator for input validat
 const crypto = require("crypto"); // Importing crypto for encryption and hashing
 const pool = require("../config/db-connection");
 const RequestQuoteModel = require("../models/request-quote");
+const Vehicle = require('../models/vehicle');
+const vehicleModel = new Vehicle(); // create instance
 
 const moment = require("moment-timezone");
 const { io, users } = require("../app"); // Import io from app.js
@@ -303,20 +305,22 @@ module.exports = {
 
       parcelsArr.forEach(parcel => {
         const distance = parseFloat(parcel.distance) || 0;
-        const price = parseFloat(parcel.price) || 0;
+        const price = this.formatAmount(parcel.price) || 0;
 
         totalDistance += distance;
         totalAmount += distance * price;
       });
 
-      const taxPercentage = parseFloat(siteSettings?.site_processing_fee || 0);
+      const taxPercentage = this.formatAmount(siteSettings?.site_processing_fee || 0);
       const taxAmount = (totalAmount * taxPercentage) / 100;
-      const grandTotal = totalAmount + taxAmount;
+
+      const grandTotal = this.formatAmount(totalAmount + taxAmount);
 
       return {
         totalDistance,
         totalAmount,
         taxAmount,
+       
         grandTotal
       };
     } catch (error) {
@@ -329,35 +333,63 @@ module.exports = {
     }
 
   },
-  calculateOrderTotal: function (totalDistance, siteSettings, price, remote_price) {
-    try {
-      let totalAmount = parseFloat(price) * parseFloat(totalDistance);
-      if (remote_price === null || remote_price === 'null' || remote_price === '' || remote_price === undefined) {
-        remote_price = 0;
-      }
-      totalAmount = totalAmount + remote_price;
+calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_price, selectedVehicle) {
+  try {
+    // 1️⃣ Fetch vehicle row using selectedVehicleId
+    const vehicle = await vehicleModel.findById(selectedVehicle);
+    if (!vehicle) throw new Error("Selected vehicle not found!");
+    // console.log("vehicle:", vehicle);
 
-      const taxPercentage = parseFloat(siteSettings?.site_processing_fee || 0);
-      const taxAmount = (totalAmount * taxPercentage) / 100;
-      const grandTotal = totalAmount + taxAmount;
-      console.log("Total Amount:", totalAmount);
+    const minMileage = parseFloat(vehicle.min_mileage || 0);
+    const minPrice = parseFloat(vehicle.min_price || 0);
 
-      return {
-        totalDistance,
-        totalAmount: totalAmount.toFixed(2),
-        taxAmount: taxAmount.toFixed(2),
-        grandTotal: grandTotal.toFixed(2)
-      };
-    } catch (error) {
-      console.error("Error parsing order_details JSON:", error.message);
-      return {
-        error: "Invalid JSON format for order_details",
-        tax: 0,
-        total: 0,
-      };
+    // 2️⃣ Handle remote_price
+    if (remote_price === null || remote_price === 'null' || remote_price === '' || remote_price === undefined) {
+      remote_price = 0;
+    }
+        console.log("remote_price:", remote_price);
+
+
+    // 3️⃣ Apply mileage condition
+    let totalAmount;
+    if (totalDistance > minMileage) {
+      // Normal calculation
+      totalAmount = parseFloat(price) * parseFloat(totalDistance);
+    } else {
+      // Use minimum price
+      totalAmount = parseFloat(minPrice);
     }
 
-  },
+    totalAmount += parseFloat(remote_price);
+
+    // 4️⃣ Apply tax
+    const taxPercentage = parseFloat(siteSettings?.site_processing_fee || 0);
+    const vatPercentage = parseFloat(siteSettings?.vat_amount || 0);
+    
+    const taxAmount = parseFloat((totalAmount * taxPercentage) / 100);
+    const vatAmount = parseFloat((totalAmount * vatPercentage) / 100);
+    const grandTotal = parseFloat(totalAmount + taxAmount+ vatAmount);
+
+    console.log("Total Amount:", totalAmount,taxAmount,vatAmount,grandTotal);
+
+    return {
+      totalDistance,
+      totalAmount: totalAmount,
+      taxAmount: taxAmount,
+      vatAmount: vatAmount,
+    
+      grandTotal: grandTotal
+    };
+  } catch (error) {
+    console.error("Error parsing order_details JSON:", error.message);
+    return {
+      error: "Invalid JSON format for order_details",
+      tax: 0,
+      total: 0,
+    };
+  }
+},
+
 
   getStatus: function (status) {
     if (parseInt(status) === 1) {

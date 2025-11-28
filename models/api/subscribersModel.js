@@ -13,9 +13,9 @@ class SubscribersModel extends BaseModel {
 
         return this.create(data);  // Call the BaseModel's create method
     }
-    async findByEmail(id) {
-        const query = `SELECT * FROM subscribers WHERE id = ?`;
-        const [rows] = await pool.query(query, [id]);
+    async findByEmail(email) {
+        const query = `SELECT * FROM subscribers WHERE email = ?`;
+        const [rows] = await pool.query(query, [email]);
         // console.log(rows)
         return rows.length ? rows[0] : null; // Return the first result or null
     }

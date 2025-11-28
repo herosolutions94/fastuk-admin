@@ -10,11 +10,7 @@
       </div>
     </div>
     <div class="dashTable">
-      <form
-        action="/admin/pages/rider-signup-form"
-        class="frmAjax"
-        method="post"
-        enctype="multipart/form-data">
+      <form action="/admin/pages/rider-signup-form" class="frmAjax" method="post" enctype="multipart/form-data">
         <div class="row">
           <div class="col-md-12">
             <div class="card">
@@ -28,11 +24,7 @@
                       <div class="row">
                         <div class="col-md-12">
                           <label class="form-label">Page Title </label>
-                          <input
-                            type="text"
-                            name="page_title"
-                            value="<%= contentData.page_title || '' %>"
-                            class="input"
+                          <input type="text" name="page_title" value="<%= contentData.page_title || '' %>" class="input"
                             required="" />
                         </div>
                       </div>
@@ -41,11 +33,7 @@
                       <div class="row">
                         <div class="col-md-12">
                           <label class="form-label">Meta Title </label>
-                          <input
-                            type="text"
-                            name="meta_title"
-                            value="<%= contentData.meta_title || '' %>"
-                            class="input"
+                          <input type="text" name="meta_title" value="<%= contentData.meta_title || '' %>" class="input"
                             required="" />
                         </div>
                       </div>
@@ -56,8 +44,7 @@
                         <div class="col-md-12">
                           <label class="form-label">Meta Description </label>
                           <textarea rows="5" name="meta_desc" class="input">
-<%= contentData.meta_desc || '' %></textarea
-                          >
+<%= contentData.meta_desc || '' %></textarea>
                         </div>
                       </div>
                     </div>
@@ -66,8 +53,7 @@
                         <div class="col-md-12">
                           <label class="form-label">Meta Keywords </label>
                           <textarea rows="5" name="meta_keywords" class="input">
-<%= contentData.meta_keywords || '' %></textarea
-                          >
+<%= contentData.meta_keywords || '' %></textarea>
                         </div>
                       </div>
                     </div>
@@ -86,15 +72,9 @@
                   <div class="col-md-12">
                     <div class="txtGrp">
                       <div class="txtGrp">
-                        <label class="form-label" for="detail"
-                          >Description</label
-                        >
-                        <textarea
-                          class="ckeditor"
-                          name="description1"
-                          id="description1">
-<%= contentData.description1 || '' %></textarea
-                        >
+                        <label class="form-label" for="detail">Description</label>
+                        <textarea class="ckeditor" name="description1" id="description1">
+<%= contentData.description1 || '' %></textarea>
                       </div>
                     </div>
                     <div class="col-md-12">
@@ -108,18 +88,19 @@
                               <div class="col-md-3">
                                 <div class="txtGrp">
                                   <label class="form-label">Heading 1</label>
-                                  <input
-                                    name="heading1"
-                                    value="<%= contentData.heading1 || '' %>"
-                                    class="input" />
+                                  <input name="heading1" value="<%= contentData.heading1 || '' %>" class="input" />
                                 </div>
                                 <div class="txtGrp">
                                   <label class="form-label">Heading 2</label>
-                                  <input
-                                    name="heading2"
-                                    value="<%= contentData.heading2 || '' %>"
-                                    class="input" />
+                                  <input name="heading2" value="<%= contentData.heading2 || '' %>" class="input" />
                                 </div>
+                              </div>
+                            </div>
+                            <div class="txtGrp">
+                              <div class="txtGrp">
+                                <label class="form-label" for="detail">Contract Content</label>
+                                <textarea class="ckeditor" name="contract_content" id="contract_content">
+<%= contentData.contract_content || '' %></textarea>
                               </div>
                             </div>
                           </div>

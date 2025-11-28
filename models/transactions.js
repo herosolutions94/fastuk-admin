@@ -25,7 +25,8 @@ class TransactionsModel extends BaseModel {
         m.full_name AS member_name,
         m.mem_image AS mem_image,
 
-        rq.booking_id AS booking_id 
+        rq.booking_id AS booking_id,
+        rq.assigned_rider AS rider_id 
 
     FROM transactions t
     JOIN members m ON t.user_id = m.id
@@ -49,6 +50,42 @@ class TransactionsModel extends BaseModel {
     }
   }
 
+static async getTransactionDetails(transactionId) {
+    try {
+        const [rows] = await pool.query(`
+            SELECT 
+                t.id AS transaction_id,
+                t.amount,
+                t.payment_method,
+                t.created_time,
+
+                rq.id AS booking_id,
+                rq.source_address,
+                rq.dest_address,
+                rq.distance,
+                rq.start_date,
+                rq.end_date,
+                rq.assigned_date,
+                rq.status AS jobStatus,
+                rq.assigned_rider,
+
+                m.full_name AS rider_name
+            FROM transactions t
+            LEFT JOIN request_quote rq ON rq.id = t.transaction_id
+            LEFT JOIN riders m ON rq.assigned_rider = m.id
+            WHERE t.id = ? LIMIT 1;
+        `, [transactionId]);
+
+        return rows;
+    } catch (err) {
+        console.error("Error fetching transaction details:", err);
+        throw err;
+    }
+}
+
+
+
+
   static async getTransactionsById(id) {
     const [transaction] = await pool.query(
       `SELECT * FROM ${this.tableName} WHERE id = ?`,
@@ -57,18 +94,18 @@ class TransactionsModel extends BaseModel {
     return transaction; // This should be an object, not an array
   }
 
-  static async deleteTransactionById(id) {
-    try {
-      const [result] = await pool.query(
-        `DELETE FROM ${this.tableName} WHERE id = ?`,
-        [id]
-      );
-      return result.affectedRows > 0; // Returns true if a row was deleted
-    } catch (error) {
-      console.error("Database error:", error);
-      throw new Error("Failed to delete transaction");
-    }
-  }
+  // static async deleteTransactionById(id) {
+  //   try {
+  //     const [result] = await pool.query(
+  //       `DELETE FROM ${this.tableName} WHERE id = ?`,
+  //       [id]
+  //     );
+  //     return result.affectedRows > 0; // Returns true if a row was deleted
+  //   } catch (error) {
+  //     console.error("Database error:", error);
+  //     throw new Error("Failed to delete transaction");
+  //   }
+  // }
   static async updateData(id, data) {
         // Extract keys and values from the data object
         const keys = Object.keys(data); // ['otp', 'expire_time']

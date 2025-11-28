@@ -362,7 +362,7 @@ GROUP BY
       if (rows.length === 0) {
         return null;
       }
-      console.log("rows:", rows, tracking_id);
+      // console.log("rows:", rows, tracking_id);
 
       // Return the order details (first row)
       return rows[0];
@@ -476,7 +476,7 @@ WHERE n.user_id = ? AND n.mem_type = ?
   async getNotificationById(id) {
     const query = `SELECT * FROM notifications WHERE id = ?`;
     const [rows] = await pool.query(query, [id]);
-    console.log("rows:", rows);
+    // console.log("rows:", rows);
     return rows.length ? rows[0] : null;
   }
 

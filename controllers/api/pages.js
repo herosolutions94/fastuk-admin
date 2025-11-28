@@ -594,6 +594,8 @@ class PagesController extends BaseController {
         const {
           email
         } = req.body;
+
+        // console.log("email:",email)
     
         if (!email || email=='' || email==null || email==undefined) {
           return res.status(200).json({ status: 0, msg: "Email is required!" });

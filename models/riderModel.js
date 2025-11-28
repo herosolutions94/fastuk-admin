@@ -104,15 +104,16 @@ if (isNaN(lat) || isNaN(lng)) return [];
                     + SIN(RADIANS(?)) 
                     * SIN(RADIANS(rq.source_lat))
                 )
-            ) AS distance
+            ) AS radius_distance
         FROM request_quote rq
         JOIN rider_vehicle_categories rvc
             ON rq.selected_vehicle = rvc.category_id
         WHERE 
             rq.assigned_rider IS NULL
             AND rvc.category_id IN (${placeholders})
-        HAVING distance <= 30
-        ORDER BY distance ASC;
+        HAVING radius_distance <= 30
+        ORDER BY rq.start_date DESC, rq.created_date DESC, radius_distance ASC;
+
     `;
 
     const params = [
@@ -123,6 +124,7 @@ if (isNaN(lat) || isNaN(lng)) return [];
     ];
 
     const [rows] = await pool.query(query, params);
+    console.log("rows in Jobs",rows)
     return rows;
 }
 
@@ -631,6 +633,26 @@ async updateEarningStatusToCleared(earningId) {
   }
 }
 
+// Clear all earnings older than 10 minutes
+async clearEarningsOlderThan10Minutes() {
+    const query = `
+      UPDATE earnings
+      SET status = 'cleared'
+      WHERE created_time <= UNIX_TIMESTAMP(UTC_TIMESTAMP()) - (10 * 60)
+      AND status = 'pending'
+    `;
+
+    try {
+      const [result] = await pool.query(query);
+      return result.affectedRows; // return number of rows updated
+    } catch (error) {
+      console.error("Error clearing earnings:", error);
+      throw error;
+    }
+  }
+
+
+
   async getViaByIdAndRequestId(via_id, request_id) {
     try {
       // Query to fetch via by via_id and request_id
@@ -1008,6 +1030,24 @@ async getCompletedOrdersByRider(riderId) {
     }
   }
 
+  async getRiderClearedEarningsSum(riderId) {
+  try {
+    const [rows] = await pool.query(
+      `SELECT SUM(amount) as net_income 
+       FROM earnings 
+       WHERE user_id = ? AND type = 'credit' AND status = 'cleared'`,
+      [riderId]
+    );
+
+    // rows[0].net_income can be null if no records exist, so default to 0
+    return parseFloat(rows[0].net_income || 0);
+  } catch (error) {
+    console.error('Error fetching cleared earnings:', error);
+    throw error;
+  }
+}
+
+
   async getRiderEarnings(riderId) {
     try {
       // Get earnings where the status is 'cleared' for Net Income
@@ -1232,6 +1272,52 @@ async updateParcelStatus(id, status) {
         // console.log(rows)
     return rows.length ? rows[0] : null; // Return the first result or null
     }
+
+    // Check if rider has active jobs (request_quote status != 'completed')
+async hasActiveJobs(riderId) {
+    const query = `
+      SELECT COUNT(*) AS activeCount
+      FROM request_quote
+      WHERE assigned_rider = ? AND status != 'completed'
+    `;
+    const [rows] = await pool.query(query, [riderId]);
+    // console.log("rows:",rows)
+    return rows[0].activeCount;
+  }
+
+  // Check if user has pending invoices (via request_id from request_quote)
+async hasPendingInvoices(memberId) {
+    const query = `
+      SELECT COUNT(*) AS pendingCount
+      FROM invoices i
+      JOIN request_quote rq ON i.request_id = rq.id
+      WHERE rq.user_id = ? AND i.status = 'pending'
+    `;
+    const [rows] = await pool.query(query, [memberId]);
+        // console.log("rows:",rows)
+
+    return rows[0].pendingCount;
+  }
+
+  // Deactivate rider or member account
+async deactivateRider(riderId, reason) {
+    const query = `
+      UPDATE riders
+      SET deactivated_reason = ?, is_deactivated = 1
+      WHERE id = ?
+    `;
+    return pool.query(query, [reason, riderId]);
+  }
+
+async deactivateMember(memberId, reason) {
+    const query = `
+      UPDATE members
+      SET deactivated_reason = ?, is_deactivated = 1
+      WHERE id = ?
+    `;
+    return pool.query(query, [reason, memberId]);
+  }
+
 
 
 

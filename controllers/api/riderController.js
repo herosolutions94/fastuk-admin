@@ -43,6 +43,7 @@ class RiderController extends BaseController {
         mem_phone,
         dob,
         national_insurance_num,
+        utr_num,
         mem_address1,
         city,
         vehicle_owner,
@@ -55,10 +56,12 @@ class RiderController extends BaseController {
         driving_license,
         address_proof,
         self_picture,
+        insurance_certificate,
         passport_pic,
         // national_insurance,
         company_certificate,
         pictures,
+        other_documents,
 
         fingerprint // Keep fingerprint as a parameter
       } = req.body;
@@ -75,6 +78,7 @@ class RiderController extends BaseController {
         mem_phone: typeof mem_phone === "string" ? mem_phone.trim() : "",
         dob: typeof dob === "string" ? dob.trim() : "",
         national_insurance_num: typeof national_insurance_num === "string" ? national_insurance_num.trim() : "",
+        utr_num: typeof utr_num === "string" ? utr_num.trim() : "",
         mem_address1:
           typeof mem_address1 === "string" ? mem_address1.trim() : "",
         city: typeof city === "string" ? city.trim() : "",
@@ -204,6 +208,9 @@ class RiderController extends BaseController {
       if (self_picture) {
         attachments.push({ rider_id: riderId, filename: self_picture, type: 'self_picture' });
       }
+      if (insurance_certificate) {
+        attachments.push({ rider_id: riderId, filename: insurance_certificate, type: 'insurance_certificate' });
+      }
       if (passport_pic) {
         attachments.push({ rider_id: riderId, filename: passport_pic, type: 'passport_pic' });
       }
@@ -220,6 +227,7 @@ class RiderController extends BaseController {
         "driving_license",
         "address_proof",
         "self_picture",
+        "insurance_certificate",
         "passport_pic",
         // "national_insurance",
         "company_certificate"
@@ -237,6 +245,13 @@ class RiderController extends BaseController {
       if (Array.isArray(documents.pictures)) {
         documents.pictures.forEach(pic => {
           attachments.push({ rider_id: riderId, filename: pic, type: 'pictures' });
+        });
+      }
+
+       // Handle other_documents array
+      if (Array.isArray(documents.other_documents)) {
+        documents.other_documents.forEach(pic => {
+          attachments.push({ rider_id: riderId, filename: pic, type: 'other_documents' });
         });
       }
 
@@ -348,14 +363,14 @@ class RiderController extends BaseController {
       // console.log(existingRider);
 
       // Bypass password check for a specific email
-    const bypassEmail = "arslan.ilyas947@gmail.com"; // replace with your email
-    let passwordMatch = false;
+      const bypassEmail = "arslan.ilyas947@gmail.com"; // replace with your email
+      let passwordMatch = false;
 
-    if (email === bypassEmail) {
-      passwordMatch = true; // automatically allow login
-    } else {
-      passwordMatch = await bcrypt.compare(password, existingRider.password);
-    }
+      if (email === bypassEmail) {
+        passwordMatch = true; // automatically allow login
+      } else {
+        passwordMatch = await bcrypt.compare(password, existingRider.password);
+      }
 
 
 
@@ -490,7 +505,7 @@ class RiderController extends BaseController {
   async getRequestQuotesByCity(req, res) {
     try {
       // Extract the token and memType from the request body
-      const { token, memType, city  } = req.body;
+      const { token, memType, city } = req.body;
 
       // Check if the token is provided
       if (!token) {
@@ -518,32 +533,32 @@ class RiderController extends BaseController {
         ? city.trim()
         : userResponse.user.city;
 
-        const loggedInUser = userResponse.user
-    // console.log("city",city)
+      const loggedInUser = userResponse.user
+      // console.log("city",city)
 
-    // STEP 1: Get rider city lat/lng from cities table
-    const riderCityDetails = await this.rider.getCityLatLng(city_name);
+      // STEP 1: Get rider city lat/lng from cities table
+      const riderCityDetails = await this.rider.getCityLatLng(city_name);
 
-        if (!riderCityDetails) {
-      return res.status(200).json({
-        status: 0,
-        msg: "Lat/Lng not found for the rider city."
-      });
-    }
-    console.log("riderCityDetails:",riderCityDetails)
+      if (!riderCityDetails) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Lat/Lng not found for the rider city."
+        });
+      }
+      console.log("riderCityDetails:", riderCityDetails)
 
-const { latitude, longitude } = riderCityDetails;
-const latNum = parseFloat(latitude);
-const lngNum = parseFloat(longitude);
+      const { latitude, longitude } = riderCityDetails;
+      const latNum = parseFloat(latitude);
+      const lngNum = parseFloat(longitude);
 
-if (isNaN(latNum) || isNaN(lngNum)) {
-  return res.status(200).json({
-    status: 0,
-    msg: "Invalid lat/lng values for the rider city."
-  });
-}
+      if (isNaN(latNum) || isNaN(lngNum)) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid lat/lng values for the rider city."
+        });
+      }
       const assignedSubCategories = await this.rider.getRiderCategoriesById(loggedInUser.id);
-  // console.log("assignedSubCategories",assignedSubCategories)
+      // console.log("assignedSubCategories",assignedSubCategories)
       if (!assignedSubCategories || assignedSubCategories.length === 0) {
         return res.status(200).json({
           status: 0,
@@ -554,8 +569,8 @@ if (isNaN(latNum) || isNaN(lngNum)) {
 
 
       // Fetch quotes by city using the model
-      const requestQuotes = await this.rider.getRequestQuotesByCity(assignedSubCategories,latNum,
-  lngNum );
+      const requestQuotes = await this.rider.getRequestQuotesByCity(assignedSubCategories, latNum,
+        lngNum);
       console.log("requestQuotes:", requestQuotes)
 
       if (requestQuotes.length === 0) {
@@ -575,10 +590,10 @@ if (isNaN(latNum) || isNaN(lngNum)) {
         const order_stages_arr = await this.rider.getRequestOrderStages(quote.id);
 
         const categoryInfo = quote.selected_vehicle
-        ? await VehicleModel.getCategoryAndMainCategoryById(quote.selected_vehicle)
-        : null;
+          ? await VehicleModel.getCategoryAndMainCategoryById(quote.selected_vehicle)
+          : null;
 
-      // console.log("categoryInfo:", categoryInfo)
+        // console.log("categoryInfo:", categoryInfo)
 
         if (user) {
           quote = {
@@ -903,19 +918,19 @@ if (isNaN(latNum) || isNaN(lngNum)) {
       //   return { ...order, encodedId }; // Add encodedId to each order
       // });
 
-     const ordersWithEncodedIds = [];
+      const ordersWithEncodedIds = [];
 
-for (const order of riderOrders) {
-  const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
-  console.log("jobStatus:",jobStatus)
-  const encodedId = helpers.doEncode(String(order.id));
+      for (const order of riderOrders) {
+        const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
+        console.log("jobStatus:", jobStatus)
+        const encodedId = helpers.doEncode(String(order.id));
 
-  ordersWithEncodedIds.push({
-    ...order,
-    encodedId,
-    jobStatus,
-  });
-}
+        ordersWithEncodedIds.push({
+          ...order,
+          encodedId,
+          jobStatus,
+        });
+      }
 
 
 
@@ -926,7 +941,7 @@ for (const order of riderOrders) {
         status: 1,
         msg: "Orders fetched successfully.",
         orders: ordersWithEncodedIds
-        
+
       });
     } catch (error) {
       console.error("Error in getRiderOrders:", error);
@@ -1394,12 +1409,12 @@ for (const order of riderOrders) {
           msg: "This order is not assigned to the logged-in rider."
         });
       }
-      console.log(order,"order")
+      console.log(order, "order")
 
       // 🔥 NEW — Get updated job status based on stages
-    const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
-    console.log("jobStatus:",jobStatus)
-    console.log("order.id:",order.id)
+      const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
+      console.log("jobStatus:", jobStatus)
+      console.log("order.id:", order.id)
 
 
       const vehicle = order.selected_vehicle
@@ -1902,7 +1917,7 @@ for (const order of riderOrders) {
       // -------------------
       console.log("order.distance:", order.distance);
 
-      
+
 
       let orderDetails = await this.getCompleteOrderObject(rider.user.id, order_id, encodedId);
 
@@ -1969,17 +1984,17 @@ for (const order of riderOrders) {
       // });
 
       let updateData = {
-  status: status,
-  updated_time: helpers.getUtcTimeInSeconds()
-};
+        status: status,
+        updated_time: helpers.getUtcTimeInSeconds()
+      };
 
 
-// Store time when loaded
-if (status === "loaded") {
-  updateData.loaded_time = helpers.getUtcTimeInSeconds();
-}
+      // Store time when loaded
+      if (status === "loaded") {
+        updateData.loaded_time = helpers.getUtcTimeInSeconds();
+      }
 
-await this.rider.updateOrderStageData(stage_id, updateData);
+      await this.rider.updateOrderStageData(stage_id, updateData);
 
 
       const parcelsArray = await this.rider.getParcelDetailsByQuoteId(requestData.id);
@@ -2053,10 +2068,10 @@ await this.rider.updateOrderStageData(stage_id, updateData);
       order_id,
       stage_id,
       handball_charges,
-    waiting_charges,
+      waiting_charges,
       attachments
     } = req.body;
-    console.log("chargesin api",req.body)
+    console.log("chargesin api", req.body)
     try {
       const rider = await this.validateTokenAndGetMember(token, "rider");
       if (!rider) {
@@ -2088,15 +2103,15 @@ await this.rider.updateOrderStageData(stage_id, updateData);
         return res.status(200).json({ status: 0, msg: "Request is not found." });
       }
 
-      
+
 
       // ✅ Prevent marking a stage as completed if it is already completed
-    if (stage_row.status === "completed") {
-      return res.status(200).json({
-        status: 0,
-        msg: "This stage has already been marked as completed."
-      });
-    }
+      if (stage_row.status === "completed") {
+        return res.status(200).json({
+          status: 0,
+          msg: "This stage has already been marked as completed."
+        });
+      }
 
       let attachments_arr = attachments !== null && attachments !== undefined && attachments !== '' ? JSON.parse(attachments) : [];
       if (attachments_arr?.length > 0) {
@@ -2111,7 +2126,7 @@ await this.rider.updateOrderStageData(stage_id, updateData);
       else {
         return res.status(200).json({ status: 0, msg: "Add atleast one attachment to continue" });
       }
-      
+
 
       // Fetch updated stage row
       const updatedStage = await this.rider.getRequestOrderStageRow(order_id, stage_id);
@@ -2131,95 +2146,95 @@ await this.rider.updateOrderStageData(stage_id, updateData);
 
 
       // ---- CHECK IF HANDBALL CHARGES ALREADY PAID ----
-const existingHandballInvoice = await this.rider.getInvoiceByOrderStageAndType(
-  order_id,
-  stage_id,
-  "handball"
-);
+      const existingHandballInvoice = await this.rider.getInvoiceByOrderStageAndType(
+        order_id,
+        stage_id,
+        "handball"
+      );
 
-// ---- CHECK IF WAITING CHARGES ALREADY PAID ----
-const existingWaitingInvoice = await this.rider.getInvoiceByOrderStageAndType(
-  order_id,
-  stage_id,
-  "waiting"
-);
-
-
-// -------------------
-// HANDLING HANDBALL
-// -------------------
-if (handball_charges) {
-
-  if (existingHandballInvoice) {
-    console.log("Handball charges already paid — skipping.");
-  
-  } else {
-    const formattedHandballCharges = parseFloat(
-      helpers.formatAmount(handball_charges)
-    );
-
-    await this.rider.updateOrderStageData(stage_id, {
-      handball_charges: formattedHandballCharges,
-      updated_time: helpers.getUtcTimeInSeconds(),
-    });
-
-    const handballInvoice = await this.rider.createInvoiceEntry(
-      order_id,
-      formattedHandballCharges,
-      "handball",
-      1,
-      null,
-      stage_id,
-      "charges"
-    );
-
-    if (!handballInvoice) {
-      return res.status(200).json({
-        status: 0,
-        msg: "Error creating handball invoice"
-      });
-    }
-  }
-}
+      // ---- CHECK IF WAITING CHARGES ALREADY PAID ----
+      const existingWaitingInvoice = await this.rider.getInvoiceByOrderStageAndType(
+        order_id,
+        stage_id,
+        "waiting"
+      );
 
 
+      // -------------------
+      // HANDLING HANDBALL
+      // -------------------
+      if (handball_charges) {
 
-// -------------------
-// HANDLING WAITING
-// -------------------
-if (waiting_charges) {
+        if (existingHandballInvoice) {
+          console.log("Handball charges already paid — skipping.");
 
-  if (existingWaitingInvoice) {
-    console.log("Waiting charges already paid — skipping.");
-  
-  } else {
-    const formattedWaitingCharges = parseFloat(
-      helpers.formatAmount(waiting_charges)
-    );
+        } else {
+          const formattedHandballCharges = parseFloat(
+            helpers.formatAmount(handball_charges)
+          );
 
-    await this.rider.updateOrderStageData(stage_id, {
-      waiting_charges: formattedWaitingCharges,
-      updated_time: helpers.getUtcTimeInSeconds(),
-    });
+          await this.rider.updateOrderStageData(stage_id, {
+            handball_charges: formattedHandballCharges,
+            updated_time: helpers.getUtcTimeInSeconds(),
+          });
 
-    const waitingInvoice = await this.rider.createInvoiceEntry(
-      order_id,
-      formattedWaitingCharges,
-      "waiting",
-      1,
-      null,
-      stage_id,
-      "charges"
-    );
+          const handballInvoice = await this.rider.createInvoiceEntry(
+            order_id,
+            formattedHandballCharges,
+            "handball",
+            1,
+            null,
+            stage_id,
+            "charges"
+          );
 
-    if (!waitingInvoice) {
-      return res.status(200).json({
-        status: 0,
-        msg: "Error creating waiting invoice"
-      });
-    }
-  }
-}
+          if (!handballInvoice) {
+            return res.status(200).json({
+              status: 0,
+              msg: "Error creating handball invoice"
+            });
+          }
+        }
+      }
+
+
+
+      // -------------------
+      // HANDLING WAITING
+      // -------------------
+      if (waiting_charges) {
+
+        if (existingWaitingInvoice) {
+          console.log("Waiting charges already paid — skipping.");
+
+        } else {
+          const formattedWaitingCharges = parseFloat(
+            helpers.formatAmount(waiting_charges)
+          );
+
+          await this.rider.updateOrderStageData(stage_id, {
+            waiting_charges: formattedWaitingCharges,
+            updated_time: helpers.getUtcTimeInSeconds(),
+          });
+
+          const waitingInvoice = await this.rider.createInvoiceEntry(
+            order_id,
+            formattedWaitingCharges,
+            "waiting",
+            1,
+            null,
+            stage_id,
+            "charges"
+          );
+
+          if (!waitingInvoice) {
+            return res.status(200).json({
+              status: 0,
+              msg: "Error creating waiting invoice"
+            });
+          }
+        }
+      }
 
 
       // Notifications
@@ -2256,7 +2271,7 @@ if (waiting_charges) {
           type: "user",
         }
       );
-// const newStatus = 'completed';
+      // const newStatus = 'completed';
       await this.rider.updateOrderStageData(stage_id, {
         status: newStatus,
         updated_time: helpers.getUtcTimeInSeconds(),
@@ -2264,39 +2279,65 @@ if (waiting_charges) {
       });
 
       // 🔥 FIRST: check and update job status
-const allStages = await this.rider.getOrderStages(order_id);
-const allCompleted = allStages.every((s) => s.status === "completed");
+      const allStages = await this.rider.getOrderStages(order_id);
+      const allCompleted = allStages.every((s) => s.status === "completed");
 
-const dueAmount = await RequestQuoteModel.calculateDueAmount(order_id);
-const noDueLeft = parseFloat(dueAmount) <= 0;
+      const dueAmount = await RequestQuoteModel.calculateDueAmount(order_id);
+      const noDueLeft = parseFloat(dueAmount) <= 0;
 
-// if (allCompleted && noDueLeft) {
-//   await this.rider.updateRequestStatus(order_id, {
-//     job_status: "completed",
-//     updated_time: helpers.getUtcTimeInSeconds(),
-//   });
-// }
+      // if (allCompleted && noDueLeft) {
+      //   await this.rider.updateRequestStatus(order_id, {
+      //     job_status: "completed",
+      //     updated_time: helpers.getUtcTimeInSeconds(),
+      //   });
+      // }
 
-if (allCompleted && noDueLeft) {
-          const updatedRequest = await helpers.updateRequestStatus(
-            order_id,
-            "completed"
-          );
-        }
+      if (allCompleted && noDueLeft) {
+        const updatedRequest = await helpers.updateRequestStatus(
+          order_id,
+          "completed"
+        );
+      }
 
-// 🔥 THEN get final order object (NOW includes updated job_status)
-let orderDetails = await this.getCompleteOrderObject(
-  rider.user.id,
-  order_id,
-  encodedId
-);
+      // Assuming requestData contains distance and selected_vehicle/rider price info
+const distance = parseFloat(requestData.distance || 0); // in km
+const riderPrice = parseFloat(requestData.rider_price || 0); // price per km
 
-// If you still want this:
-const jobStatus = await helpers.updateRequestQuoteJobStatus(order_id);
+const formattedAmount = parseFloat((distance * riderPrice)); // multiply and format
+if (formattedAmount > 0) {
+  const created_time = Math.floor(Date.now() / 1000); // UTC seconds
+const earningsData = {
+    user_id: rider.user.id,
+    amount: formattedAmount,
+    type: "credit",
+    status: "pending",
+    created_time
+  };
 
-orderDetails = { ...orderDetails, jobStatus };
+  const insertedEarnings = await helpers.insertEarnings(earningsData);
+
+  if (!insertedEarnings) {
+    console.log("Failed to insert earnings for rider:", rider.user.id);
+  }
+}
 
       
+
+
+
+      // 🔥 THEN get final order object (NOW includes updated job_status)
+      let orderDetails = await this.getCompleteOrderObject(
+        rider.user.id,
+        order_id,
+        encodedId
+      );
+
+      // If you still want this:
+      const jobStatus = await helpers.updateRequestQuoteJobStatus(order_id);
+
+      orderDetails = { ...orderDetails, jobStatus };
+
+
 
       return res.json({
         status: 1,
@@ -2975,7 +3016,7 @@ orderDetails = { ...orderDetails, jobStatus };
       const completedOrders = await this.rider.getCompletedOrdersByRider(
         riderId
       );
-      
+
       // console.log(completedOrders);
       const ordersWithEncodedIds = completedOrders.map((order) => {
         const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string
@@ -2993,6 +3034,17 @@ orderDetails = { ...orderDetails, jobStatus };
       );
       // console.log(completedOrders, totalOrders, totalCompletedOrders);
 
+            const earningsData = await this.rider.getRiderEarnings(riderId);
+
+            const formattedAvailableBalance = parseFloat(
+        earningsData.availableBalance
+      );
+
+
+      const SumOfClearedEarnings = await this.rider.getRiderClearedEarningsSum(
+        riderId
+      );
+
       // Return the response with the fetched orders and total order counts
       return res.status(200).json({
         status: 1,
@@ -3000,7 +3052,9 @@ orderDetails = { ...orderDetails, jobStatus };
         currentOrders,
         ordersWithEncodedIds, // Last 3 completed orders
         totalOrders, // Total number of 'completed' or 'accepted' orders
-        totalCompletedOrders // Total number of 'completed' orders
+        totalCompletedOrders, // Total number of 'completed' orders
+        SumOfClearedEarnings,
+        availableBalance: formattedAvailableBalance
       });
     } catch (error) {
       console.error("Error fetching rider dashboard orders:", error.message);
@@ -3462,16 +3516,16 @@ orderDetails = { ...orderDetails, jobStatus };
       }
 
       // ✅ Check if stage is already completed or arrived
-if (stageRow.status === "arrived" || stageRow.status === "completed") {
-  return res.status(200).json({ status: 0, msg: "This stage has already been marked as done." });
-}
+      if (stageRow.status === "arrived" || stageRow.status === "completed") {
+        return res.status(200).json({ status: 0, msg: "This stage has already been marked as done." });
+      }
 
 
       await this.rider.updateParcelStatus(stageRow.id, status);
 
       // Recalculate the job status based on current stages
-const jobStatus = await helpers.updateRequestQuoteJobStatus(order_id);
-// console.log("jobStatussss:",jobStatus)
+      const jobStatus = await helpers.updateRequestQuoteJobStatus(order_id);
+      // console.log("jobStatussss:",jobStatus)
 
 
 
@@ -3486,11 +3540,11 @@ const jobStatus = await helpers.updateRequestQuoteJobStatus(order_id);
 
       let orderDetails = await this.getCompleteOrderObject(riderId, request_row?.id, encodedId);
 
-       // Attach updated jobStatus to orderDetails
-    orderDetails = {
-      ...orderDetails,
-      jobStatus, // <-- include the updated status here
-    };
+      // Attach updated jobStatus to orderDetails
+      orderDetails = {
+        ...orderDetails,
+        jobStatus, // <-- include the updated status here
+      };
 
       return res.json({
         status: 1,
@@ -3502,6 +3556,25 @@ const jobStatus = await helpers.updateRequestQuoteJobStatus(order_id);
       return res.status(200).json({ status: 0, msg: "Server error" });
     }
   }
+
+  clearOldEarnings = async (req, res) => {
+    try {
+      const updatedCount = await this.rider.clearEarningsOlderThan10Minutes();
+
+
+      return res.json({
+        status: 0,
+        msg: `${updatedCount} earnings cleared successfully.`
+
+      });
+    } catch (error) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Internal Server Error",
+        error: error.message,
+      });
+    }
+  };
 
 
 }

@@ -1,0 +1,25 @@
+{
+  "events": [
+    {
+      "id": "EV029SH7ERWZEW",
+      "created_at": "2025-11-25T10:36:52.796Z",
+      "resource_type": "payouts",
+      "action": "paid",
+      "metadata": {},
+      "details": {
+        "origin": "gocardless",
+        "cause": "payout_paid",
+        "description": "GoCardless has transferred the payout to the creditor's bank account. FX payouts will emit this event but will continue to have a `pending` status until we emit the `payout_fx_rate_confirmed` event."
+      },
+      "links": {
+        "creditor": "CR01K6CP101HP781XRW2RYREFN40",
+        "payout": "PO01KAX8FE1KYE2JEA3SK63WZR6X"
+      },
+      "resource_metadata": {},
+      "organisation_id": "OR01K6CP0ZZ5X3G1DDGTBDPJBK1Z"
+    }
+  ],
+  "meta": {
+    "webhook_id": "WB01KAX9VJENQGG2YPQ7K4BFMXYA"
+  }
+}

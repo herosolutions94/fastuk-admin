@@ -53,7 +53,8 @@ class MemberController extends BaseController {
         parcel_type,
         parcel_weight,
         shipment_volume,
-        delivery_speed
+        delivery_speed,
+        vat_num
       } = req.body;
 
       const mem_type = "business";
@@ -82,6 +83,8 @@ class MemberController extends BaseController {
           typeof shipment_volume === "string" ? shipment_volume.trim() : "",
         delivery_speed:
           typeof delivery_speed === "string" ? delivery_speed.trim() : "",
+          vat_num:
+          typeof vat_num === "string" ? vat_num.trim() : "",
         created_at: new Date(),
         mem_status: 1,
         mem_verified: 0,
@@ -555,64 +558,134 @@ class MemberController extends BaseController {
     }
   }
 
+  // async deactivateAccount(req, res) {
+  //   try {
+  //     const { token, reason, memType } = req.body;
+  //     if (!token) {
+  //       return res.status(200).json({ status: 0, msg: "Token is required." });
+  //     }
+  //     const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+  //     if (userResponse.status === 0) {
+  //       // If validation fails, return the error message
+  //       return res.status(200).json(userResponse);
+  //     }
+  //     const member = userResponse.user;
+
+  //     // Generate a new OTP
+
+  //     if(memType==='rider'){
+  //         await this.rider.updateRiderData(member.id, {
+  //           deactivated_reason: reason,
+  //           is_deactivated: 1
+  //         });
+  //     }
+  //     else{
+  //       await this.member.updateMemberData(member.id, {
+  //         deactivated_reason: reason,
+  //         is_deactivated: 1
+  //       });
+  //     }
+      
+  //     const adminData = res.locals.adminData;
+  //     const subject = `Email Has Been Deactivated - ${adminData.site_name}`;
+      
+  //     const templateData = {
+  //       username: member.full_name, // Pass username
+  //       adminData,
+  //       reason
+  //     };
+  //     const result = await helpers.sendEmail(
+  //         member.email,
+  //         subject,
+  //         "email-deactivated",
+  //         templateData,
+  //       );
+  //     // Respond with the new OTP's expiry time
+  //     return res.status(200).json({
+  //       status: 1,
+  //       msg: "Account Deactivated successfully!"
+  //     });
+  //   } catch (error) {
+  //     // Server error handling
+  //     console.error("Error:", error);
+  //     return res.status(200).json({
+  //       status: 0,
+  //       msg: "An error occurred while generating a new OTP.",
+  //       error: error.message
+  //     });
+  //   }
+  // }
+
   async deactivateAccount(req, res) {
-    try {
-      const { token, reason, memType } = req.body;
-      if (!token) {
-        return res.status(200).json({ status: 0, msg: "Token is required." });
-      }
-      const userResponse = await this.validateTokenAndGetMember(token, memType);
+  try {
+    const { token, reason, memType } = req.body;
+    if (!token) {
+      return res.status(200).json({ status: 0, msg: "Token is required." });
+    }
 
-      if (userResponse.status === 0) {
-        // If validation fails, return the error message
-        return res.status(200).json(userResponse);
-      }
-      const member = userResponse.user;
+    const userResponse = await this.validateTokenAndGetMember(token, memType);
+    if (userResponse.status === 0) return res.status(200).json(userResponse);
 
-      // Generate a new OTP
+    const member = userResponse.user;
 
-      if(memType==='rider'){
-          await this.rider.updateRiderData(member.id, {
-            deactivated_reason: reason,
-            is_deactivated: 1
-          });
-      }
-      else{
-        await this.member.updateMemberData(member.id, {
-          deactivated_reason: reason,
-          is_deactivated: 1
-        });
-      }
-      
-      const adminData = res.locals.adminData;
-      const subject = `Email Has Been Deactivated - ${adminData.site_name}`;
-      
-      const templateData = {
-        username: member.full_name, // Pass username
-        adminData,
-        reason
-      };
-      const result = await helpers.sendEmail(
-          member.email,
-          subject,
-          "email-deactivated",
-          templateData,
-        );
-      // Respond with the new OTP's expiry time
-      return res.status(200).json({
-        status: 1,
-        msg: "Account Deactivated successfully!"
-      });
-    } catch (error) {
-      // Server error handling
-      console.error("Error:", error);
+    // ---------- CHECK ACTIVE JOBS ----------
+    let activeJobsCount = 0;
+    if (memType === 'rider') {
+      activeJobsCount = await this.rider.hasActiveJobs(member.id);
+    } else {
+      activeJobsCount = await this.rider.hasActiveJobs(member.id); // use same function for members if needed
+    }
+
+    if (activeJobsCount > 0) {
       return res.status(200).json({
         status: 0,
-        msg: "An error occurred while generating a new OTP.",
-        error: error.message
+        msg: "Cannot deactivate account. There are active jobs running."
       });
     }
+
+    // console.log("activeJobsCount",activeJobsCount)
+
+    // ---------- CHECK PENDING INVOICES ----------
+    const pendingInvoicesCount = await this.rider.hasPendingInvoices(member.id);
+    if (pendingInvoicesCount > 0) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Cannot deactivate account. There are pending invoices."
+      });
+    }
+
+    // console.log("pendingInvoicesCount",pendingInvoicesCount);return;
+
+    // ---------- DEACTIVATE ACCOUNT ----------
+    if (memType === 'rider') {
+      await this.rider.deactivateRider(member.id, reason);
+    } else {
+      await this.rider.deactivateMember(member.id, reason);
+    }
+
+    // ---------- SEND EMAIL ----------
+    const adminData = res.locals.adminData;
+    const subject = `Email Has Been Deactivated - ${adminData.site_name}`;
+    const templateData = { username: member.full_name, adminData, reason };
+
+    await helpers.sendEmail(member.email, subject, "email-deactivated", templateData);
+
+    return res.status(200).json({
+      status: 1,
+      msg: "Account deactivated successfully!"
+    });
+
+  } catch (error) {
+    console.error("Error:", error);
+    return res.status(200).json({
+      status: 0,
+      msg: "An error occurred while deactivating the account.",
+      error: error.message
+    });
   }
+}
+
 
   // API to verify OTP, generate a reset token, and store it
   async verifyOtpAndGenerateToken(req, res) {
