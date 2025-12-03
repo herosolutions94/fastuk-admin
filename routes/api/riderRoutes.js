@@ -19,6 +19,7 @@ router.post('/update-request-status', upload,riderController.updateRequestStatus
 router.post('/mark-as-completed', upload,riderController.markAsCompleted.bind(riderController));
 router.post('/update-stage-charges', upload,riderController.updateStageCharges.bind(riderController));
 router.post('/update-stage-status', upload,riderController.updateStageStatus.bind(riderController));
+router.post('/update-request-route-ready', upload,riderController.markRiderOrdersReady.bind(riderController));
 router.post('/complete-order-stage', upload,riderController.completeOrderStage.bind(riderController));
 router.get('/get-invoices-detail', upload,riderController.getInvoiceDetails.bind(riderController));
 // router.post('/test-notification', upload,riderController.testNotification.bind(riderController));

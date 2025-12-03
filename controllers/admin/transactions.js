@@ -43,11 +43,29 @@ class TransactionsController extends BaseController {
         if (!data || data.length === 0) {
             return res.render("admin/transaction-details", { transactions: null });
         }
-                    console.log('data:', data); // Ensure data is logged here
+        const transactions = data[0]
+
+        const subtotal = helpers?.format_amount(
+      (parseFloat(transactions?.total_amount || 0) -
+        parseFloat(transactions?.tax || 0) -
+        parseFloat(transactions?.vat || 0))
+    );
+
+        // parcel list → all rows
+const parcels = data.map(r => ({
+    parcel_type: r.parcel_type,
+    length: r.length,
+    width: r.width,
+    height: r.height,
+    weight: r.weight,
+    quantity: r.quantity
+})).filter(p => p.parcel_type); // remove null rows
 
 
         return res.render("admin/transaction-details", {
-            transactions: data[0]   // return single row
+            transactions,   // return single row
+            parcels,
+            subtotal
         });
 
     } catch (error) {

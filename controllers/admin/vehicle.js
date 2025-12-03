@@ -49,8 +49,12 @@ class VehicleController extends BaseController {
                 vehicle_category_id,
                 load_capacity,
                 no_of_pallets,
+                waiting_charges,
+                handball_charges,
                 max_height,
-                max_length
+                max_length,
+                max_width,
+                cancellation_charges
             } = req.body;
             // console.log("req.body",req.body);  // To check if name and description are being sent
 
@@ -82,6 +86,9 @@ class VehicleController extends BaseController {
                 distance: typeof distance === 'string' ? distance.trim().toLowerCase() : '',
                 min_mileage: typeof min_mileage === 'string' ? min_mileage.trim().toLowerCase() : '',
                 min_price: typeof min_price === 'string' ? min_price.trim().toLowerCase() : '',
+                waiting_charges: typeof waiting_charges === 'string' ? waiting_charges.trim().toLowerCase() : '',
+                handball_charges: typeof handball_charges === 'string' ? handball_charges.trim().toLowerCase() : '',
+                cancellation_charges: typeof cancellation_charges === 'string' ? cancellation_charges.trim().toLowerCase() : '',
                 // remote_price: typeof remote_price === 'string' ? remote_price.trim().toLowerCase() : '',
                 vehicle_image: vehicleImage,  // Change this to match your DB column name
                 status: status || 0,
@@ -89,6 +96,7 @@ class VehicleController extends BaseController {
                 no_of_pallets: no_of_pallets || 0,
                 max_height: max_height || 0,
                 max_length: max_length || 0,
+                max_width: max_width || 0,
                 vehicle_category_id: parseInt(vehicle_category_id) || null, // <- ensure it's an integer
 
             };

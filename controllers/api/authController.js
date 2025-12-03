@@ -4,6 +4,8 @@ const moment = require("moment");
 
 const Member = require("../../models/memberModel");
 const Rider = require("../../models/riderModel");
+const RequestQuoteModel = require("../../models/request-quote"); // Assuming you have this model
+
 const Token = require("../../models/tokenModel");
 const Addresses = require("../../models/api/addressModel");
 const {
@@ -23,6 +25,7 @@ class MemberController extends BaseController {
     super();
     this.member = new Member();
     this.rider = new Rider();
+    this.requestQuoteModel = new RequestQuoteModel();
     this.tokenModel = new Token();
     this.addressModel = new Addresses();
   }
@@ -634,7 +637,7 @@ class MemberController extends BaseController {
     if (memType === 'rider') {
       activeJobsCount = await this.rider.hasActiveJobs(member.id);
     } else {
-      activeJobsCount = await this.rider.hasActiveJobs(member.id); // use same function for members if needed
+      activeJobsCount = await this.rider.hasActiveJobsForMember(member.id); // use same function for members if needed
     }
 
     if (activeJobsCount > 0) {
@@ -644,16 +647,32 @@ class MemberController extends BaseController {
       });
     }
 
-    // console.log("activeJobsCount",activeJobsCount)
+    // // console.log("activeJobsCount",activeJobsCount)
 
-    // ---------- CHECK PENDING INVOICES ----------
-    const pendingInvoicesCount = await this.rider.hasPendingInvoices(member.id);
-    if (pendingInvoicesCount > 0) {
-      return res.status(200).json({
-        status: 0,
-        msg: "Cannot deactivate account. There are pending invoices."
-      });
+    // // ---------- CHECK PENDING INVOICES ----------
+    // const pendingInvoicesCount = await this.rider.hasPendingInvoices(member.id);
+    // if (pendingInvoicesCount > 0) {
+    //   return res.status(200).json({
+    //     status: 0,
+    //     msg: "Cannot deactivate account. There are pending invoices."
+    //   });
+    // }
+
+    // ---------- CHECK DUE AMOUNT (ONLY FOR MEMBER) ----------
+    if (memType !== "rider") {
+      const dueAmount = await RequestQuoteModel.calculateDueAmount(
+              member.id
+            );
+            console.log(dueAmount,"dueAmount");
+
+      if (dueAmount > 0) {
+        return res.status(200).json({
+          status: 0,
+          msg: `Cannot deactivate account. You have an outstanding balance of £${dueAmount}.`
+        });
+      }
     }
+
 
     // console.log("pendingInvoicesCount",pendingInvoicesCount);return;
 
@@ -852,7 +871,7 @@ class MemberController extends BaseController {
 
       // Clean the email data
       const cleanedEmail = typeof email === "string" ? email.trim() : "";
-      console.log("cleanedEmail:",cleanedEmail)
+      // console.log("cleanedEmail:",cleanedEmail)
 
       // Check if the email exists in the database
       let existingMember = await this.member.findByEmail(cleanedEmail);
@@ -865,7 +884,7 @@ class MemberController extends BaseController {
           msg: "Email does not exist in the system."
         });
       }
-console.log("Sending email to:", existingMember.email);
+// console.log("Sending email to:", existingMember.email);
 
       // Generate a random OTP
       const otp = Math.floor(100000 + Math.random() * 900000); // OTP between 100000 and 999999
@@ -898,13 +917,13 @@ console.log("Sending email to:", existingMember.email);
           adminData
       };
 
-      console.log("adminData in forget password:", adminData);
+      // console.log("adminData in forget password:", adminData);
 
 
       // await helpers.sendEmail(existingMember.email, subject, "forget-password-email", templateData);
 
       const emailResponse = await helpers.sendEmail(existingMember.email, subject, "forget-password-email", templateData);
-console.log("Email Response:", emailResponse);
+// console.log("Email Response:", emailResponse);
 
       // console.log(memType, "memType");
       const userId = existingMember.id;

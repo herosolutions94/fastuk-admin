@@ -4158,3 +4158,16 @@ label.switch {
   border-bottom: 1px solid #ddd;
   padding: 10px 0px;
 }
+
+.invoice-row {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 14px;
+
+}
+
+.invoice-row .invoice-label {
+  color: black;
+  font-weight: 800;
+  color: black;
+}

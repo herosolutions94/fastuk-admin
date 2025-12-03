@@ -242,40 +242,77 @@ $('#frmSetting').on('submit', function (e) {
 
 
 
+// $(document).ready(function () {
+//     $('.delete-item').on('click', function (e) {
+//         e.preventDefault();
+
+//         var deleteUrl = $(this).data('url'); // Get the URL from the data attribute
+//         var itemId = $(this).data('id'); // Get the ID from the data attribute
+//         var confirmation = confirm('Are you sure you want to delete this item?');
+
+//         if (confirmation) {
+//             $.ajax({
+//                 url: deleteUrl, // Use the URL specified in the data attribute
+//                 type: 'DELETE',
+//                 success: function (response) {
+//                     console.log(response)
+//                     if (response.status == 1) {
+//                         // Show the success toast
+//                         showToast(response.message, 'success');
+
+//                         // Remove the parent <tr> of the clicked delete link
+//                         $(e.target).closest('tr').remove(); // Remove the closest row
+
+//                     } else {
+//                         // Show error toast in case of failure
+//                         showToast(response.message, 'error');
+//                     }
+//                 },
+//                 error: function (xhr) {
+//                     showToast('An error occurred while trying to delete the item.', 'error');
+//                     console.error(xhr.responseText);
+//                 }
+//             });
+//         }
+//     });
+// });
+
 $(document).ready(function () {
-    $('.delete-item').on('click', function (e) {
+    // Use event delegation
+    $(document).on('click', '.delete-item', function (e) {
         e.preventDefault();
 
-        var deleteUrl = $(this).data('url'); // Get the URL from the data attribute
-        var itemId = $(this).data('id'); // Get the ID from the data attribute
+        var deleteUrl = $(this).data('url');
+        var itemId = $(this).data('id');
         var confirmation = confirm('Are you sure you want to delete this item?');
 
         if (confirmation) {
             $.ajax({
-                url: deleteUrl, // Use the URL specified in the data attribute
+                url: deleteUrl,
                 type: 'DELETE',
                 success: function (response) {
-                    console.log(response)
+                    console.log(response);
                     if (response.status == 1) {
-                        // Show the success toast
                         showToast(response.message, 'success');
-
-                        // Remove the parent <tr> of the clicked delete link
-                        $(e.target).closest('tr').remove(); // Remove the closest row
-
+                        $('#member-' + itemId).remove(); // remove the row by ID
                     } else {
-                        // Show error toast in case of failure
                         showToast(response.message, 'error');
                     }
                 },
                 error: function (xhr) {
-                    showToast('An error occurred while trying to delete the item.', 'error');
+                    let msg = "An error occurred while trying to delete the item.";
+                    try {
+                        const res = JSON.parse(xhr.responseText);
+                        msg = res.message || msg;
+                    } catch (e) {}
+                    showToast(msg, 'error');
                     console.error(xhr.responseText);
                 }
             });
         }
     });
 });
+
 
 
 

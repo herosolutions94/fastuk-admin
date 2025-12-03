@@ -72,10 +72,10 @@ class VehicleModel extends BaseModel {
     }
 
     static async updateVehicle(id, vehicleData) {
-        const { title, price, status, vehicle_image, business_user_price, admin_price, min_mileage, min_price, remote_price, weight, distance, vehicle_category_id,load_capacity,no_of_pallets, max_height, max_length} = vehicleData;
+        const { title, price, status, vehicle_image, business_user_price, admin_price, min_mileage, min_price, remote_price, weight, distance, vehicle_category_id,load_capacity,no_of_pallets, max_height, max_length, waiting_charges, handball_charges, max_width, cancellation_charges} = vehicleData;
         await pool.query(
-            `UPDATE ${this.tableName} SET title = ?, price = ?, status = ?, vehicle_image = ?, business_user_price = ?, admin_price = ?, min_mileage = ?, min_price = ?, remote_price = ?, weight = ?, distance = ?, vehicle_category_id = ?, load_capacity = ?, no_of_pallets = ?, max_height = ?, max_length = ? WHERE id = ?`,
-            [title, price, status, vehicle_image, business_user_price, admin_price, min_mileage, min_price, remote_price, weight, distance, vehicle_category_id, load_capacity, no_of_pallets, max_height, max_length, id]
+            `UPDATE ${this.tableName} SET title = ?, price = ?, status = ?, vehicle_image = ?, business_user_price = ?, admin_price = ?, min_mileage = ?, min_price = ?, remote_price = ?, weight = ?, distance = ?, vehicle_category_id = ?, load_capacity = ?, no_of_pallets = ?, max_height = ?, max_length = ?, waiting_charges = ?, handball_charges = ?, max_width = ?, cancellation_charges = ? WHERE id = ?`,
+            [title, price, status, vehicle_image, business_user_price, admin_price, min_mileage, min_price, remote_price, weight, distance, vehicle_category_id, load_capacity, no_of_pallets, max_height, max_length, waiting_charges, handball_charges, max_width, cancellation_charges, id]
         );
     }
     static async deleteVehicleById(id) {

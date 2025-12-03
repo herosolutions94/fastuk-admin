@@ -68,35 +68,46 @@ module.exports = {
   //     throw error;
   //   }
   // },
-  getUniqueAddresses: function (data) {
-    const allAddresses = [];
+  getUniqueAddresses: function (data, topAddress = null) { 
+  const allAddresses = [];
 
-    data.forEach(item => {
-      allAddresses.push({
-        address: item.source_address,
-        lat: item.source_lat,
-        lng: item.source_lng
-      });
-      allAddresses.push({
-        address: item.destination_address,
-        lat: item.destination_lat,
-        lng: item.destination_lng
-      });
+  data.forEach(item => {
+    allAddresses.push({
+      address: item.source_address,
+      lat: item.source_lat,
+      lng: item.source_lng
     });
+    allAddresses.push({
+      address: item.destination_address,
+      lat: item.destination_lat,
+      lng: item.destination_lng
+    });
+  });
 
-    // Remove duplicates
-    const unique = allAddresses.filter(
-      (addr, index, self) =>
-        index === self.findIndex(
-          a => a.address === addr.address && a.lat === addr.lat && a.lng === addr.lng
-        )
-    );
+  // Remove duplicates
+  const unique = allAddresses.filter(
+    (addr, index, self) =>
+      index === self.findIndex(
+        a => a.address === addr.address && a.lat === addr.lat && a.lng === addr.lng
+      )
+  );
 
-    // Sort alphabetically by address (you can change this to lat/lng if needed)
-    unique.sort((a, b) => a.address.localeCompare(b.address));
+  // Separate the top address if provided
+  let top = [];
+  let rest = unique;
 
-    return unique;
-  },
+  if (topAddress) {
+    top = rest.filter(a => a.address === topAddress);
+    rest = rest.filter(a => a.address !== topAddress);
+  }
+
+  // Sort the rest alphabetically
+  rest.sort((a, b) => a.address.localeCompare(b.address));
+
+  // Put the top address first
+  return [...top, ...rest];
+},
+
   getOptimizedAddresses: async function (addresses) {
     if (!addresses || addresses.length < 2) {
       throw new Error("At least 2 addresses required");
@@ -204,17 +215,23 @@ module.exports = {
   },
 
   format_amount: function (amount) {
-    amount = String(amount);
-
-    // Ensure always 2 decimals but without rounding
-    if (amount.includes(".")) {
-      let [int, dec] = amount.split(".");
-      dec = dec.substring(0, 2); // take only first 2 digits, NO ROUNDING
-      return `£${int}.${dec.padEnd(2, "0")}`;
-    } else {
-      return `£${amount}.00`;
-    }
+  // If amount is null, undefined, or not a number, default to 0
+  if (amount == null || isNaN(amount)) {
+    return "£0.00";
   }
+
+  amount = String(amount);
+
+  // Ensure always 2 decimals but without rounding
+  if (amount.includes(".")) {
+    let [int, dec] = amount.split(".");
+    dec = dec.substring(0, 2); // take only first 2 digits, NO ROUNDING
+    return `£${int}.${dec.padEnd(2, "0")}`;
+  } else {
+    return `£${amount}.00`;
+  }
+}
+
   ,
 
   updateRequestQuoteJobStatus: async function (orderId) {
@@ -225,28 +242,30 @@ module.exports = {
 
     // 0. Fetch current job status first
     const [rqRows] = await pool.query(
-      "SELECT status FROM request_quote WHERE id = ?",
+      "SELECT status, is_ready FROM request_quote WHERE id = ?",
       [orderId]
     );
 
     if (!rqRows || rqRows.length === 0) return;
     const currentStatus = rqRows[0].status;
-    console.log("currentStatus:", currentStatus);
-
+const isReady = parseInt(rqRows[0].is_ready) || 0; // new check
+    console.log("currentStatus:", currentStatus, "isReady:", isReady);
     // 1. Fetch all stages for this order
     const [stages] = await pool.query(
       "SELECT id, status FROM order_stages WHERE order_id = ? ORDER BY id ASC",
       [orderId]
     );
-    console.log("stages:", stages);
+    // console.log("stages:", stages);
 
     if (!stages || stages.length === 0) return;
 
     // 2. Determine stage progress
     const hasStarted = stages.some(s => s.status !== "pending");
     const allCompleted = stages.every(s => s.status === "completed");
+    console.log("DB is_ready:", isReady, "allCompleted:", allCompleted);
 
-    console.log(hasStarted, allCompleted)
+
+    // console.log(hasStarted, allCompleted)
 
     let newStatus = currentStatus;
 
@@ -255,30 +274,29 @@ module.exports = {
     // If job is accepted, all stages completed, but payment pending → pending_payment
     // **********************************************
     // 3. Determine new status
-    if (
-      currentStatus === "accepted" &&
-      allCompleted &&
-      dueAmount > 0
-    ) {
-      newStatus = "pending_payment";
-    }
-
-    else if (allCompleted && dueAmount === 0 && currentStatus === 'completed') {
-      newStatus = "completed";
-    }
-
-    // ⭐ IMPORTANT FIX: If job is accepted but not started → keep it "accepted"
-    else if (currentStatus === "accepted" && !hasStarted) {
-      newStatus = "accepted";
-    }
-
-    else if (hasStarted) {
-      newStatus = "in_progress";
-    }
-
-    else {
-      newStatus = "new";
-    }
+     // 3️⃣ Priority condition: if is_ready = 1 and job not completed → in_progress
+  if (isReady === 1 && !allCompleted) {
+    newStatus = "in_progress";
+  } 
+  // Job accepted, all stages completed, payment pending
+  else if (currentStatus === "accepted" && allCompleted && dueAmount > 0) {
+    newStatus = "pending_payment";
+  } 
+  // Job completed and no due left
+  else if (allCompleted && dueAmount === 0 && currentStatus === "completed") {
+    newStatus = "completed";
+  } 
+  // Job accepted but not started
+  else if (currentStatus === "accepted" && !hasStarted) {
+    newStatus = "accepted";
+  } 
+  // Job started but not completed
+  else if (hasStarted) {
+    newStatus = "in_progress";
+  } 
+  else {
+    newStatus = "new";
+  }
 
 
     // if (newStatus !== currentStatus) {

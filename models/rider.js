@@ -102,7 +102,8 @@ class Rider {
       "passport_pic",
       "national_insurance",
       "company_certificate",
-      "driving_license"
+      "driving_license",
+      "signature"
     ];
 
     // Update or insert single attachment types

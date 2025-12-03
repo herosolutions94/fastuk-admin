@@ -10,7 +10,7 @@
       </div>
     </div>
     <div class="dashTable">
-      <!-- <div class="row">
+      <div class="row">
         <div class="col-md-6">
           <div class="card">
             <div class="card-header">
@@ -22,27 +22,241 @@
                 <% if (transactions?.assigned_rider) { %>
                   <div class="list-group-item">
                     <div class="d-flex w-100">
-                      <a href="/admin/riders/edit/<%= transactions.assigned_rider %>" target="_blank" rel="noopener noreferrer"
-                        style="text-decoration: none; color: inherit;">
-                        <p><strong>Rider: </strong>
-                          <img src="<%= helpers.getImage(transactions.rider_dp) %>" alt="User Image" class="user-image"
-                            style="width: 50px; height: 50px; border-radius: 50%;">
-                          <%= transactions.rider_name %>
-                        </p>
+                      <a href="/admin/riders/edit/<%= transactions.assigned_rider %>" target="_blank"
+                        rel="noopener noreferrer"
+                        style="text-decoration: none; color: inherit; display: flex; gap: 15px; align-items: center;">
+
+                        <img src="<%= helpers.getImage(transactions.rider_dp) %>" alt="User Image" class="user-image"
+                          style="width: 50px; height: 50px; border-radius: 50%;">
+
+                        <div>
+                          <p style="margin: 0;"><strong>
+                              <%= transactions.rider_name %>
+                            </strong></p>
+                          <p style="margin: 0;">
+                            <%= transactions.email %>
+                          </p>
+                          <p style="margin: 0;">
+                            <%= transactions.mem_phone %>
+                          </p>
+                        </div>
+
                       </a>
                     </div>
                   </div>
                   <% } else { %>
                     <p>Rider is not assigned yet.</p>
                     <% } %>
-
               </div>
+
             </div>
           </div>
         </div>
-       
-      </div> -->
+
+        <div class="col-md-6">
+          <div class="card">
+            <div class="card-header">
+              <h5>Distance & Charges</h5>
+            </div>
+
+            <div class="card-body invoice-block">
+
+              <div class="invoice-row">
+                <div class="invoice-label">Amount:</div>
+                <div class="invoice-value"><%= helpers?.format_amount(transactions.total_amount) %>
+                </div>
+              </div>
+
+              <div class="invoice-row">
+                <div class="invoice-label">Distance:</div>
+                <div class="invoice-value">
+                  <%= transactions.distance %>
+                </div>
+              </div>
+
+              <div class="invoice-row">
+                <div class="invoice-label">Status:</div>
+                <div class="invoice-value">
+                  <%= transactions?.jobStatus %>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+      <!-- Pickup & Drop-off Section -->
+      <div class="row" style="margin-top: 25px;">
+
+        <!-- Pickup -->
+        <div class="col-md-6">
+          <div class="card" style="border-radius: 12px;">
+            <div class="card-body">
+
+              <h5><strong>Pickup Location</strong></h5>
+
+              <p style="margin: 0;">
+                <%= transactions.source_address %>
+              </p>
+
+              <p style="margin: 0; margin-top: 5px;">
+                <strong>Pickup Time:</strong>
+                <% if (transactions.start_date) { %>
+                  <%= helpers.toUKDateFormat(transactions.start_date) %>
+                    <% } else { %>
+                      N/A
+                      <% } %>
+              </p>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- Drop-off -->
+        <div class="col-md-6">
+          <div class="card" style="border-radius: 12px;">
+            <div class="card-body">
+
+              <h5><strong>Drop-off Location</strong></h5>
+
+              <p style="margin: 0;">
+                <%= transactions.dest_address %>
+              </p>
+
+              <p style="margin: 0; margin-top: 5px;">
+                <strong>End Date:</strong>
+                <% if (transactions.end_date) { %>
+                  <%= helpers.toUKDateFormat(transactions.end_date) %>
+                    <% } else { %>
+                      N/A
+                      <% } %>
+              </p>
+
+            </div>
+          </div>
+        </div>
+
+      </div>
+
       <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h5>Parcels:</h5>
+            </div>
+
+            <div class="card-body">
+              <% if (parcels?.length> 0) { %>
+                <table class="table table-bordered">
+                  <thead>
+                    <tr>
+                      <th>Parcel Type</th>
+                      <th>Length</th>
+                      <th>Width</th>
+                      <th>Height</th>
+                      <th>Weight</th>
+                      <th>Quantity</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% parcels?.forEach(parcel=> { %>
+                      <tr>
+                        <td>
+                          <%= parcel.parcel_type %>
+                        </td>
+                        <td>
+                          <%= parcel.length ? parcel.length + ' cm' : '--' %>
+                        </td>
+                        <td>
+                          <%= parcel.width ? parcel.width + ' cm' : '--' %>
+                        </td>
+                        <td>
+                          <%= parcel.height ? parcel.height + ' cm' : '--' %>
+                        </td>
+                        <td>
+                          <%= parcel.weight ? parcel.weight + ' kg' : '--' %>
+                        </td>
+                        <td>
+                          <%= parcel.quantity || '--' %>
+                        </td>
+                      </tr>
+                      <% }) %>
+                  </tbody>
+                </table>
+                <% } else { %>
+                  <p>No parcels found for this order.</p>
+                  <% } %>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Billing Summary -->
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h2>Billing Summary</h2>
+
+
+            </div>
+
+            <div class="card-body">
+
+              <div class="billing-summary">
+
+                <div class="summary-right">
+                  <ul class="invoice_charges">
+                    <li>
+                      <strong>Subtotal:</strong>
+                      <%= subtotal %>
+                    </li>
+
+                    <li>
+                      <strong>Tax (20%):</strong>
+                      <%= helpers?.format_amount(transactions?.tax) %>
+                    </li>
+
+                    <li>
+                      <strong>Vat (30%):</strong>
+                      <%= helpers?.format_amount(transactions?.vat) %>
+                    </li>
+
+                    <li>
+                      <strong>Total Amount:</strong>
+                      <%= helpers?.format_amount(transactions?.total_amount) %>
+                    </li>
+
+                    <!-- Example for additional charges -->
+                    <!-- <li>
+                      <strong>Handball Charges:</strong>
+                      £10.00
+                    </li>
+
+                    <li>
+                      <strong>Waiting Charges:</strong>
+                      £10.00
+                    </li> -->
+                  </ul>
+                </div>
+
+
+                <!-- <div class="invoice-note">
+        <strong>Notes:</strong>
+        Thank you for using FAST UK Couriers. This invoice is generated based on the rider's completed job stages and route distance.
+    </div> -->
+              </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- <div class="row">
         <div class="col-md-12">
           <div class="card">
             <div class="card-header">
@@ -67,10 +281,10 @@
                     </p>
                   </div>
                 </div>
-                
-                
 
-                
+
+
+
 
               </div>
             </div>
@@ -88,7 +302,7 @@
             <div class="card-body">
               <div class="list-group details-group">
                 <div class="list-group-item">
-                  <!-- <div class="d-flex w-100">
+                  <div class="d-flex w-100">
                     <p>
                       <strong>Vehicle Main Category: </strong>
                       <%= transactions.main_category_name %>
@@ -97,7 +311,7 @@
                       <strong>Vehicle Sub Category: </strong>
                       <%= transactions.category_name %>
                     </p>
-                  </div> -->
+                  </div>
                 </div>
                 <div class="list-group-item">
                   <div class="d-flex w-100">
@@ -143,7 +357,7 @@
                   </div>
                 </div>
 
-                
+
 
                 <div class="list-group-item">
                   <div class="d-flex w-100">
@@ -179,16 +393,16 @@
                   </div>
                 </div>
 
-                
+
 
               </div>
             </div>
           </div>
         </div>
 
-      </div>
+      </div> -->
 
-      
+
 
     </div>
 

@@ -122,9 +122,12 @@ if (isNaN(lat) || isNaN(lng)) return [];
         lat,
         ...categoryIds
     ];
+//     console.log("categoryIds:", categoryIds);
+// console.log("lat:", lat);
+// console.log("lng:", lng);
 
     const [rows] = await pool.query(query, params);
-    console.log("rows in Jobs",rows)
+    // console.log("rows in Jobs",rows)
     return rows;
 }
 
@@ -1272,6 +1275,21 @@ async updateParcelStatus(id, status) {
         // console.log(rows)
     return rows.length ? rows[0] : null; // Return the first result or null
     }
+    // Mark a single order as ready
+  async markOrderReady(orderId) {
+    const readyTime = helpers.getUtcTimeInSeconds();
+    await pool.query(
+      "UPDATE request_quote SET is_ready = 1, ready_time = ? WHERE id = ?",
+      [readyTime, orderId]
+    );
+    return readyTime;
+  }
+async getVehicleById(userId) {
+        const query = `SELECT * FROM vehicles WHERE id = ?`;
+        const [rows] = await pool.query(query, [userId]);
+        // console.log(rows)
+    return rows.length ? rows[0] : null; // Return the first result or null
+    }
 
     // Check if rider has active jobs (request_quote status != 'completed')
 async hasActiveJobs(riderId) {
@@ -1284,6 +1302,17 @@ async hasActiveJobs(riderId) {
     // console.log("rows:",rows)
     return rows[0].activeCount;
   }
+
+async hasActiveJobsForMember(memberId) {
+    const query = `
+      SELECT COUNT(*) AS activeCount
+      FROM request_quote
+      WHERE user_id = ? AND status != 'completed'
+    `;
+    const [rows] = await pool.query(query, [memberId]);
+    return rows[0].activeCount;
+}
+
 
   // Check if user has pending invoices (via request_id from request_quote)
 async hasPendingInvoices(memberId) {
