@@ -1,6 +1,9 @@
 // controllers/api/RiderController.js
 const BaseController = require("../baseController");
 const Member = require("../../models/memberModel");
+const fs = require("fs"); // Importing the file system module
+
+const path = require("path");
 
 const Rider = require("../../models/riderModel");
 const RiderModel = require("../../models/rider");
@@ -58,6 +61,7 @@ class RiderController extends BaseController {
         self_picture,
         insurance_certificate,
         passport_pic,
+        signature,
         // national_insurance,
         company_certificate,
         pictures,
@@ -195,6 +199,28 @@ class RiderController extends BaseController {
       const riderId = await this.rider.createRider(cleanedData);
       // console.log('cleanedData:', cleanedData); return;
 
+      let signatureFileName = null;
+
+      if (signature && signature.startsWith("data:image")) {
+        // Extract file extension
+        const mime = signature.substring(signature.indexOf("/") + 1, signature.indexOf(";"));
+        const ext = mime === "jpeg" ? "jpg" : mime;
+
+        // Generate filename
+        signatureFileName = `signature_${Date.now()}.${ext}`;
+
+        // Decode base64
+        const base64Data = signature.replace(/^data:image\/\w+;base64,/, "");
+
+        // Save file
+        const filePath = path.join(__dirname, "../../uploads", signatureFileName);
+        fs.writeFileSync(filePath, Buffer.from(base64Data, "base64"));
+      } else if (signature) {
+        // regular file uploaded via multer
+        signatureFileName = signature;
+      }
+
+
       // Save attachments
       const documents = JSON.parse(req.body.documents || "{}");
       const attachments = [];
@@ -220,6 +246,15 @@ class RiderController extends BaseController {
       if (company_certificate) {
         attachments.push({ rider_id: riderId, filename: company_certificate, type: 'company_certificate' });
       }
+      if (signatureFileName) {
+        attachments.push({
+          rider_id: riderId,
+          filename: signatureFileName,
+          type: "signature"
+        });
+      }
+
+
 
 
       // Handle single file fields
@@ -230,7 +265,8 @@ class RiderController extends BaseController {
         "insurance_certificate",
         "passport_pic",
         // "national_insurance",
-        "company_certificate"
+        "company_certificate",
+        "signature"
       ].forEach((type) => {
         if (documents[type]) {
           attachments.push({
@@ -248,7 +284,7 @@ class RiderController extends BaseController {
         });
       }
 
-       // Handle other_documents array
+      // Handle other_documents array
       if (Array.isArray(documents.other_documents)) {
         documents.other_documents.forEach(pic => {
           attachments.push({ rider_id: riderId, filename: pic, type: 'other_documents' });
@@ -545,7 +581,7 @@ class RiderController extends BaseController {
           msg: "Lat/Lng not found for the rider city."
         });
       }
-      console.log("riderCityDetails:", riderCityDetails)
+      // console.log("riderCityDetails:", riderCityDetails)
 
       const { latitude, longitude } = riderCityDetails;
       const latNum = parseFloat(latitude);
@@ -571,7 +607,7 @@ class RiderController extends BaseController {
       // Fetch quotes by city using the model
       const requestQuotes = await this.rider.getRequestQuotesByCity(assignedSubCategories, latNum,
         lngNum);
-      console.log("requestQuotes:", requestQuotes)
+      // console.log("requestQuotes:", requestQuotes)
 
       if (requestQuotes.length === 0) {
         return res
@@ -922,7 +958,7 @@ class RiderController extends BaseController {
 
       for (const order of riderOrders) {
         const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
-        console.log("jobStatus:", jobStatus)
+        // console.log("jobStatus:", jobStatus)
         const encodedId = helpers.doEncode(String(order.id));
 
         ordersWithEncodedIds.push({
@@ -1409,12 +1445,12 @@ class RiderController extends BaseController {
           msg: "This order is not assigned to the logged-in rider."
         });
       }
-      console.log(order, "order")
+      // console.log(order, "order")
 
       // 🔥 NEW — Get updated job status based on stages
       const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
-      console.log("jobStatus:", jobStatus)
-      console.log("order.id:", order.id)
+      // console.log("jobStatus:", jobStatus)
+      // console.log("order.id:", order.id)
 
 
       const vehicle = order.selected_vehicle
@@ -1549,7 +1585,7 @@ class RiderController extends BaseController {
         let adminData = res.locals.adminData;
         let request_row = request[0];
         const sourcePickedTime = helpers.convertUtcSecondsToUKTime(pickedTime);
-        console.log("sourcePickedTime:", sourcePickedTime)
+        // console.log("sourcePickedTime:", sourcePickedTime)
         const requestRow = {
           ...request_row,
           parcels: parcels,
@@ -1915,7 +1951,7 @@ class RiderController extends BaseController {
       // -------------------
       // Final response
       // -------------------
-      console.log("order.distance:", order.distance);
+      // console.log("order.distance:", order.distance);
 
 
 
@@ -2062,6 +2098,67 @@ class RiderController extends BaseController {
       res.status(500).json({ status: 0, msg: "Server error" });
     }
   };
+
+  markRiderOrdersReady = async (req, res) => {
+    // console.log('hy');
+    try {
+      const { token, mem_type, request_id } = req.body;
+      // console.log("req.body:", req.body)
+
+      // 1️⃣ Validate rider token
+      const rider = await this.validateTokenAndGetMember(token, mem_type || "rider");
+      if (!rider) {
+        return res.status(200).json({ status: 0, msg: "Unauthorized access." });
+      }
+
+      // 2️⃣ Validate request/order ID
+      if (!request_id) {
+        return res.status(200).json({ status: 0, msg: "Invalid request ID." });
+      }
+
+      // 3️⃣ Fetch the order
+      const request = await this.rider.getRequestById(request_id, rider.user.id);
+      if (!request || request.length === 0) {
+        return res.status(200).json({ status: 0, msg: "Request not found." });
+      }
+
+      const requestData = request[0];
+
+      // 4️⃣ Fetch the user who created the request
+      const user = await this.rider.getUserById(requestData?.user_id);
+      if (!user) {
+        return res.status(200).json({ status: 0, msg: "User not found." });
+      }
+
+      // 5️⃣ Mark the order as ready
+      const readyTime = await this.rider.markOrderReady(request_id);
+
+      // 🔥 THEN get final order object (NOW includes updated job_status)
+      let updatedOrder = await this.getCompleteOrderObject(
+        rider.user.id,
+        request_id,
+        helpers.doEncode(String(request_id))
+      );
+
+      // If you still want this:
+      const jobStatus = await helpers.updateRequestQuoteJobStatus(request_id);
+
+      updatedOrder = { ...updatedOrder, jobStatus };
+
+
+      return res.json({
+        status: 1,
+        msg: "Order marked as ready",
+        order: updatedOrder,
+
+      });
+
+    } catch (error) {
+      console.error("Error marking order ready:", error);
+      return res.status(500).json({ status: 0, msg: "Server error" });
+    }
+  };
+
   completeOrderStage = async (req, res) => {
     const {
       token,
@@ -2071,7 +2168,7 @@ class RiderController extends BaseController {
       waiting_charges,
       attachments
     } = req.body;
-    console.log("chargesin api", req.body)
+    // console.log("chargesin api", req.body)
     try {
       const rider = await this.validateTokenAndGetMember(token, "rider");
       if (!rider) {
@@ -2202,39 +2299,39 @@ class RiderController extends BaseController {
       // -------------------
       // HANDLING WAITING
       // -------------------
-      if (waiting_charges) {
+      // if (waiting_charges) {
 
-        if (existingWaitingInvoice) {
-          console.log("Waiting charges already paid — skipping.");
+      //   if (existingWaitingInvoice) {
+      //     console.log("Waiting charges already paid — skipping.");
 
-        } else {
-          const formattedWaitingCharges = parseFloat(
-            helpers.formatAmount(waiting_charges)
-          );
+      //   } else {
+      //     const formattedWaitingCharges = parseFloat(
+      //       helpers.formatAmount(waiting_charges)
+      //     );
 
-          await this.rider.updateOrderStageData(stage_id, {
-            waiting_charges: formattedWaitingCharges,
-            updated_time: helpers.getUtcTimeInSeconds(),
-          });
+      //     await this.rider.updateOrderStageData(stage_id, {
+      //       waiting_charges: formattedWaitingCharges,
+      //       updated_time: helpers.getUtcTimeInSeconds(),
+      //     });
 
-          const waitingInvoice = await this.rider.createInvoiceEntry(
-            order_id,
-            formattedWaitingCharges,
-            "waiting",
-            1,
-            null,
-            stage_id,
-            "charges"
-          );
+      //     const waitingInvoice = await this.rider.createInvoiceEntry(
+      //       order_id,
+      //       formattedWaitingCharges,
+      //       "waiting",
+      //       1,
+      //       null,
+      //       stage_id,
+      //       "charges"
+      //     );
 
-          if (!waitingInvoice) {
-            return res.status(200).json({
-              status: 0,
-              msg: "Error creating waiting invoice"
-            });
-          }
-        }
-      }
+      //     if (!waitingInvoice) {
+      //       return res.status(200).json({
+      //         status: 0,
+      //         msg: "Error creating waiting invoice"
+      //       });
+      //     }
+      //   }
+      // }
 
 
       // Notifications
@@ -2271,12 +2368,78 @@ class RiderController extends BaseController {
           type: "user",
         }
       );
-      // const newStatus = 'completed';
-      await this.rider.updateOrderStageData(stage_id, {
+
+      // arrival_time stored in DB
+      const arrivalTime = parseInt(stage_row.arrival_time || 0);   // seconds
+      // const completedTime = parseInt(stage_row.completed_time || 0);   // seconds
+      const completedTime = helpers.getUtcTimeInSeconds();
+      let updateData = {
         status: newStatus,
-        updated_time: helpers.getUtcTimeInSeconds(),
-        completed_time: helpers.getUtcTimeInSeconds()
-      });
+        updated_time: completedTime,
+        completed_time: completedTime
+      };
+
+      let autoWaitingCharge = 0;  // IMPORTANT so it can be used outside IF
+
+      if (arrivalTime > 0 && !existingWaitingInvoice) {
+
+        console.log("arrivalTime:", arrivalTime);
+
+        // 1: Get waiting minutes using your function
+        const diffMinutes = await this.getWaitingMinutes(arrivalTime);
+        console.log("diffMinutes:", diffMinutes);
+
+        // If no waiting → stop
+        if (diffMinutes <= 0) {
+          console.log("No waiting charges applied.");
+          updateData.waiting_charges = 0;
+        } else {
+
+          // 2: Convert minutes → 15-minute slots
+          const slots = Math.ceil(diffMinutes / 15);
+          console.log("slots:", slots);
+
+          // 3: Get vehicle waiting charge
+          const vehicle = await this.rider.getVehicleById(requestData.selected_vehicle);
+          console.log("vehicle:", vehicle);
+
+          const perSlotCharge = parseFloat(vehicle?.waiting_charges || 0);
+          console.log("perSlotCharge:", perSlotCharge);
+
+          // 4: Final waiting charge
+          autoWaitingCharge = slots * perSlotCharge;
+          console.log("autoWaitingCharge:", autoWaitingCharge);
+
+          updateData.waiting_charges = autoWaitingCharge;
+          // 5️⃣ Create waiting invoice ONLY if charges > 0
+          if (autoWaitingCharge > 0) {
+
+            await this.rider.createInvoiceEntry(
+              order_id,
+              autoWaitingCharge,
+              "waiting",
+              1,
+              null,
+              stage_id,
+              "charges"
+            );
+
+            console.log("Waiting invoice created.");
+          }
+        }
+      }
+
+
+
+      // ✅ Update stage once with all data
+      await this.rider.updateOrderStageData(stage_id, updateData);
+
+      // const newStatus = 'completed';
+      // await this.rider.updateOrderStageData(stage_id, {
+      //   status: newStatus,
+      //   updated_time: helpers.getUtcTimeInSeconds(),
+      //   completed_time: helpers.getUtcTimeInSeconds()
+      // });
 
       // 🔥 FIRST: check and update job status
       const allStages = await this.rider.getOrderStages(order_id);
@@ -2300,28 +2463,28 @@ class RiderController extends BaseController {
       }
 
       // Assuming requestData contains distance and selected_vehicle/rider price info
-const distance = parseFloat(requestData.distance || 0); // in km
-const riderPrice = parseFloat(requestData.rider_price || 0); // price per km
+      const distance = parseFloat(requestData.distance || 0); // in km
+      const riderPrice = parseFloat(requestData.rider_price || 0); // price per km
 
-const formattedAmount = parseFloat((distance * riderPrice)); // multiply and format
-if (formattedAmount > 0) {
-  const created_time = Math.floor(Date.now() / 1000); // UTC seconds
-const earningsData = {
-    user_id: rider.user.id,
-    amount: formattedAmount,
-    type: "credit",
-    status: "pending",
-    created_time
-  };
+      const formattedAmount = parseFloat((distance * riderPrice)); // multiply and format
+      if (formattedAmount > 0) {
+        const created_time = Math.floor(Date.now() / 1000); // UTC seconds
+        const earningsData = {
+          user_id: rider.user.id,
+          amount: formattedAmount,
+          type: "credit",
+          status: "pending",
+          created_time
+        };
 
-  const insertedEarnings = await helpers.insertEarnings(earningsData);
+        const insertedEarnings = await helpers.insertEarnings(earningsData);
 
-  if (!insertedEarnings) {
-    console.log("Failed to insert earnings for rider:", rider.user.id);
-  }
-}
+        if (!insertedEarnings) {
+          console.log("Failed to insert earnings for rider:", rider.user.id);
+        }
+      }
 
-      
+
 
 
 
@@ -2350,6 +2513,27 @@ const earningsData = {
       res.status(500).json({ status: 0, msg: "Server error" });
     }
   };
+
+  getWaitingMinutes = async (arrivalTime) => {
+    if (!arrivalTime) return 0;
+
+    // Add 3 minutes (3 * 60 seconds)
+    const graceEndTime = arrivalTime + (3 * 60);
+
+    // Current time in UNIX seconds
+    const currentTime = Math.floor(Date.now() / 1000);
+
+    // If completed before grace → no waiting
+    if (currentTime <= graceEndTime) {
+      return 0;
+    }
+
+    // Difference in minutes
+    const diffMinutes = Math.ceil((currentTime - graceEndTime) / 60);
+
+    return diffMinutes;
+  }
+
   markAsCompleted = async (req, res) => {
     const {
       type,
@@ -3034,9 +3218,9 @@ const earningsData = {
       );
       // console.log(completedOrders, totalOrders, totalCompletedOrders);
 
-            const earningsData = await this.rider.getRiderEarnings(riderId);
+      const earningsData = await this.rider.getRiderEarnings(riderId);
 
-            const formattedAvailableBalance = parseFloat(
+      const formattedAvailableBalance = parseFloat(
         earningsData.availableBalance
       );
 

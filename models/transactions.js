@@ -63,17 +63,35 @@ static async getTransactionDetails(transactionId) {
                 rq.source_address,
                 rq.dest_address,
                 rq.distance,
+                rq.total_amount,
+                rq.vat,
+                rq.tax,
                 rq.start_date,
                 rq.end_date,
                 rq.assigned_date,
                 rq.status AS jobStatus,
                 rq.assigned_rider,
 
-                m.full_name AS rider_name
+                m.full_name AS rider_name,
+                m.email AS email,
+                m.mem_phone AS mem_phone,
+
+                rp.parcel_type,
+                rp.length,
+                rp.width,
+                rp.height,
+                rp.weight,
+                rp.quantity
+
             FROM transactions t
-            LEFT JOIN request_quote rq ON rq.id = t.transaction_id
-            LEFT JOIN riders m ON rq.assigned_rider = m.id
-            WHERE t.id = ? LIMIT 1;
+            LEFT JOIN request_quote rq 
+                ON rq.id = t.transaction_id
+            LEFT JOIN riders m 
+                ON rq.assigned_rider = m.id
+            LEFT JOIN request_parcels rp 
+                ON rp.request_id = rq.id  -- ✔ link parcels
+
+            WHERE t.id = ?;
         `, [transactionId]);
 
         return rows;
@@ -82,6 +100,7 @@ static async getTransactionDetails(transactionId) {
         throw err;
     }
 }
+
 
 
 

@@ -367,6 +367,71 @@
         <div class="col-md-12">
           <div class="card">
             <div class="card-header">
+              <h5>Payment Summary</h5>
+            </div>
+
+            <div class="card-body">
+              <div class="list-group details-group">
+
+                <!-- TOTAL JOB AMOUNT -->
+                <div class="list-group-item">
+                  <p><strong>Sub Total: </strong>
+                    <%= order.subtotal %>
+                  </p>
+                </div>
+
+                <!-- SHOW RIDER PRICE -->
+                <div class="list-group-item">
+
+                  <p><strong>Tax(<%= order?.siteSettings?.site_processing_fee %> %):</strong>
+                    <%= helpers.format_amount((order.tax)) %>
+                  </p>
+                </div>
+
+                <div class="list-group-item">
+
+                  <p><strong>Vat(<%= order?.siteSettings?.vat_amount %> %):</strong>
+                    <%= helpers.format_amount((order.vat)) %>
+                  </p>
+                </div>
+
+                <div class="list-group-item">
+
+                  <p><strong>Total Amount:</strong>
+                    <%= helpers.format_amount(order.total_amount) %>
+                  </p>
+                </div>
+
+
+                <!-- PAID AMOUNT -->
+                <!-- <div class="list-group-item">
+                  <p><strong>Total Paid Amount: </strong>
+                    £<%= order.total_paid_amount || 0 %>
+                  </p>
+                </div> -->
+
+                <!-- DUE AMOUNT -->
+                <!-- <% if (order.dueAmount> 0) { %>
+                  <div class="list-group-item">
+                    <p class="text-danger"><strong>Total Due Amount: </strong>
+                      <%= helpers.format_amount(order.dueAmount) %>
+                    </p>
+                  </div>
+                  <% } %> -->
+
+
+
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
               <h5>Invoice Summary</h5>
             </div>
 

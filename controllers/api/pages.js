@@ -48,9 +48,9 @@ class PagesController extends BaseController {
     this.pageModel = new PageModel();
     this.subscribers = new SubscribersModel();
     this.tokenModel = new Token();
-    this.memberModel = new MemberModel(); 
-    this.contact_messages = new MessageModel(); 
-    this.promoCodeModel = new PromoCodeModel(); 
+    this.memberModel = new MemberModel();
+    this.contact_messages = new MessageModel();
+    this.promoCodeModel = new PromoCodeModel();
     this.rider = new Rider();
 
   }
@@ -338,7 +338,7 @@ class PagesController extends BaseController {
       res.status(200).json({ error: "Internal Server Error" });
     }
   }
-  
+
 
   async getForgotPasswordData(req, res) {
     try {
@@ -362,7 +362,7 @@ class PagesController extends BaseController {
       console.error("Error:", err);
       res.status(200).json({ error: "Internal Server Error" });
     }
-  }z
+  } z
   async getSignUpData(req, res) {
     try {
       const siteSettings = res.locals.adminData;
@@ -372,12 +372,12 @@ class PagesController extends BaseController {
       const formData = pageContent
         ? JSON.parse(pageContent.content || "{}")
         : {};
-        const cities = await helpers.getCities();
+      const cities = await helpers.getCities();
       // Combine the content and multi_text data
       const jsonResponse = {
         siteSettings,
         content: formData,
-        cities:cities
+        cities: cities
       };
 
       // Return data in JSON format
@@ -397,7 +397,7 @@ class PagesController extends BaseController {
       const formData = pageContent
         ? JSON.parse(pageContent.content || "{}")
         : {};
-        const cities = await helpers.getCities();  // Use await to get the cities array
+      const cities = await helpers.getCities();  // Use await to get the cities array
 
       const vehicleModel = new VehicleModel();
       const vehicles = await vehicleModel.getActiveVehicles();
@@ -430,8 +430,8 @@ class PagesController extends BaseController {
         ? JSON.parse(pageContent.content || "{}")
         : {};
 
-      
-        const cities = await helpers.getCities();  // Use await to get the cities array
+
+      const cities = await helpers.getCities();  // Use await to get the cities array
 
       const vehicleModel = new VehicleModel();
       const vehicles = await vehicleModel.getActiveVehicles();
@@ -450,7 +450,7 @@ class PagesController extends BaseController {
       }
 
       const riderId = userResponse?.user?.id; // Assuming user ID is in `userResponse.user.id`
-      console.log("riderId:",riderId)
+      // console.log("riderId:", riderId)
 
       if (!riderId) {
         return res.status(200).json({ status: 0, msg: "User ID not found." });
@@ -459,11 +459,11 @@ class PagesController extends BaseController {
       const drivingLicense = await this.rider.getRiderLicenseById(riderId);
 
 
-    let attachments = [];
-    if (riderId) {
-      attachments = await this.rider.getRiderAttachments(riderId);
-    }
-    console.log("attachments:",attachments)
+      let attachments = [];
+      if (riderId) {
+        attachments = await this.rider.getRiderAttachments(riderId);
+      }
+      // console.log("attachments:", attachments)
       // Combine the content and multi_text data
       const jsonResponse = {
         siteSettings,
@@ -471,7 +471,7 @@ class PagesController extends BaseController {
         content: formData,
         cities,
         attachments,
-        drivingLicense:drivingLicense
+        drivingLicense: drivingLicense
       };
 
       // Return data in JSON format
@@ -551,7 +551,7 @@ class PagesController extends BaseController {
     }
   }
 
-  
+
 
   async getAddress(req, res) {
     // console.log(req.body); // Log the body to check if it's coming through correctly
@@ -590,343 +590,415 @@ class PagesController extends BaseController {
   }
 
   async save_subscriber(req, res) {
-      try {
-        const {
-          email
-        } = req.body;
+    try {
+      const {
+        email
+      } = req.body;
 
-        // console.log("email:",email)
-    
-        if (!email || email=='' || email==null || email==undefined) {
-          return res.status(200).json({ status: 0, msg: "Email is required!" });
-        }
-    
-        // Email validation
-        if (!validateEmail(email)) {
-          return res.status(200).json({ status: 0, msg: "Invalid email format." });
-        }
-    
-        // Check if email already exists
-        const existingUser = await this.subscribers.findByEmail(email);
-        if (existingUser) {
-          return res.status(200).json({ status: 0, msg: "Email already exists." });
-        }
-    
-    
-        // Create the user
-        await this.subscribers.createSubscriber({email:email,created_at:new Date(),status:0});
-    
-        return res.status(200).json({
-          status: 1,
-          msg: "Subscribed successfully!",
-        });
-      } catch (error) {
-        return res.status(200).json({
-          status: 0,
-          msg: "An error occurred during registration.",
-          error: error.message,
-        });
-      }
-    }
-    async save_contact_message(req, res) {
-      try {
-        const {
-          name,
-          email,
-          phone_number,
-          subject,
-          message,
-        } = req.body;
-    
-        if (!email || email=='' || email==null || email==undefined) {
-          return res.status(200).json({ status: 0, msg: "Email is required!" });
-        }
-    
-        // Email validation
-        if (!validateEmail(email)) {
-          return res.status(200).json({ status: 0, msg: "Invalid email format." });
-        }
-        await this.contact_messages.createMessage({name:name,email:email,phone_number:phone_number,subject:subject,message:message,created_date:new Date(),status:0});
-    
-        return res.status(200).json({
-          status: 1,
-          msg: "Message sent successfully!",
-        });
-      } catch (error) {
-        return res.status(200).json({
-          status: 0,
-          msg: "An error occurred during registration.",
-          error: error.message,
-        });
-      }
-    }
+      // console.log("email:",email)
 
-    async getSiteSettingsData(req, res) {
-      try {
-        const siteSettings = res.locals.adminData;
-        // console.log(siteSettings,'siteSettings')
-
-        const cities = await helpers.getCities();
-
-  
-        // Combine the content and multi_text data
-        const jsonResponse = {
-          site_settings:siteSettings,
-          cities:cities
-        };
-
-  
-        // Return data in JSON format
-        res.json(jsonResponse);
-      } catch (err) {
-        console.error("Error:", err);
-        res.status(200).json({ error: "Internal Server Error" });
-      }
-    }    
-
-    async searchCities(req, res) {
-      const { query } = req.body; // Get search query from body
-    
-      if (!query) {
-        return res.status(200).json({ status: 0, msg: "Query field is required" });
-      }
-    
-      try {
-        const result = await this.pageModel.findAllCities(query); // Pass query to model function
-    
-        return res.status(200).json({
-          status: 1,
-          msg: "Cities fetched successfully!",
-          data: result, // Return result array
-        });
-      } catch (error) {
-        console.error("Database Error:", error);
-        return res.status(200).json({ status: 0, msg: "Internal Server Error" });
-      }
-    }
-
-
-    async applyPromoCode(req, res) {
-       const { promoCode, amount } = req.body;
-
-       if (!promoCode || !amount) {
-        return res.status(200).json({ error: 'Promo code and amount are required.' });
-    }
-
-        const promo = await this.promoCodeModel.findByCode(promoCode);
-        console.log(promo,promoCode)
-
-        if (!promo) {
-          return res.status(200).json({ error: 'Invalid promo code.' });
+      if (!email || email == '' || email == null || email == undefined) {
+        return res.status(200).json({ status: 0, msg: "Email is required!" });
       }
 
-        const currentDate = new Date();
-        if (promo.expiry_date && new Date(promo.expiry_date) < currentDate) {
-          return res.status(200).json({ error: 'Promo code has expired.' });
-        }
+      // Email validation
+      if (!validateEmail(email)) {
+        return res.status(200).json({ status: 0, msg: "Invalid email format." });
+      }
 
-        let discount = 0;
+      // Check if email already exists
+      const existingUser = await this.subscribers.findByEmail(email);
+      if (existingUser) {
+        return res.status(200).json({ status: 0, msg: "Email already exists." });
+      }
 
-        if (promo.promo_code_type === 'percentage') {
-            discount = (amount * promo.percentage_value) / 100;
-        } else if (promo.promo_code_type === 'amount') {
-            discount = promo.percentage_value;
-        } else {
-          return res.status(200).json({ error: 'Promo code has expired.' });
-        }
 
-        // Cap discount to amount if needed
-        if (discount > amount) {
-            discount = amount;
-        }
+      // Create the user
+      await this.subscribers.createSubscriber({ email: email, created_at: new Date(), status: 0 });
 
-        const finalAmount = amount - discount;
-
-        return res.json({
-          discount: discount,
-          finalAmount: finalAmount
+      return res.status(200).json({
+        status: 1,
+        msg: "Subscribed successfully!",
       });
-
     } catch (error) {
-      console.error(error);
-      return res.status(200).json({ error: 'Something went wrong.' });
+      return res.status(200).json({
+        status: 0,
+        msg: "An error occurred during registration.",
+        error: error.message,
+      });
+    }
+  }
+  async save_contact_message(req, res) {
+    try {
+      const {
+        name,
+        email,
+        phone_number,
+        subject,
+        message,
+      } = req.body;
+
+      if (!email || email == '' || email == null || email == undefined) {
+        return res.status(200).json({ status: 0, msg: "Email is required!" });
+      }
+
+      // Email validation
+      if (!validateEmail(email)) {
+        return res.status(200).json({ status: 0, msg: "Invalid email format." });
+      }
+      await this.contact_messages.createMessage({ name: name, email: email, phone_number: phone_number, subject: subject, message: message, created_date: new Date(), status: 0 });
+
+      return res.status(200).json({
+        status: 1,
+        msg: "Message sent successfully!",
+      });
+    } catch (error) {
+      return res.status(200).json({
+        status: 0,
+        msg: "An error occurred during registration.",
+        error: error.message,
+      });
+    }
+  }
+
+  async getSiteSettingsData(req, res) {
+    try {
+      const siteSettings = res.locals.adminData;
+      // console.log(siteSettings,'siteSettings')
+
+      const cities = await helpers.getCities();
+
+
+      // Combine the content and multi_text data
+      const jsonResponse = {
+        site_settings: siteSettings,
+        cities: cities
+      };
+
+
+      // Return data in JSON format
+      res.json(jsonResponse);
+    } catch (err) {
+      console.error("Error:", err);
+      res.status(200).json({ error: "Internal Server Error" });
+    }
+  }
+
+  async searchCities(req, res) {
+    const { query } = req.body; // Get search query from body
+
+    if (!query) {
+      return res.status(200).json({ status: 0, msg: "Query field is required" });
+    }
+
+    try {
+      const result = await this.pageModel.findAllCities(query); // Pass query to model function
+
+      return res.status(200).json({
+        status: 1,
+        msg: "Cities fetched successfully!",
+        data: result, // Return result array
+      });
+    } catch (error) {
+      console.error("Database Error:", error);
+      return res.status(200).json({ status: 0, msg: "Internal Server Error" });
+    }
+  }
+
+
+  async applyPromoCode(req, res) {
+    const { promoCode, amount } = req.body;
+
+    if (!promoCode || !amount) {
+      return res.status(200).json({ error: 'Promo code and amount are required.' });
+    }
+
+    const promo = await this.promoCodeModel.findByCode(promoCode);
+    // console.log(promo, promoCode)
+
+    if (!promo) {
+      return res.status(200).json({ error: 'Invalid promo code.' });
+    }
+
+    const currentDate = new Date();
+    if (promo.expiry_date && new Date(promo.expiry_date) < currentDate) {
+      return res.status(200).json({ error: 'Promo code has expired.' });
+    }
+
+    let discount = 0;
+
+    if (promo.promo_code_type === 'percentage') {
+      discount = (amount * promo.percentage_value) / 100;
+    } else if (promo.promo_code_type === 'amount') {
+      discount = promo.percentage_value;
+    } else {
+      return res.status(200).json({ error: 'Promo code has expired.' });
+    }
+
+    // Cap discount to amount if needed
+    if (discount > amount) {
+      discount = amount;
+    }
+
+    const finalAmount = amount - discount;
+
+    return res.json({
+      discount: discount,
+      finalAmount: finalAmount
+    });
+
+  } catch(error) {
+    console.error(error);
+    return res.status(200).json({ error: 'Something went wrong.' });
   }
 
   async getVehiclesByCategoryId(req, res) {
-  const { categoryId } = req.params;
-  const { totalWeight, totalHeight, totalQuantity, totalLength } = req.body; // ✅ get constraints
+    const { categoryId } = req.params;
+    const { totalWeight, totalHeight, totalQuantity, totalLength } = req.body; // ✅ get constraints
 
-  try {
-    // Step 1: Check if category exists
-    const categoryResult = await VehicleCategoryModel.getVehicleCategoriesById(categoryId);
+    try {
+      // Step 1: Check if category exists
+      const categoryResult = await VehicleCategoryModel.getVehicleCategoriesById(categoryId);
 
-    if (categoryResult.length === 0) {
-      return res.status(200).json({ status: 0, msg: 'Vehicle category not found' });
-    }
-
-    // Step 2: Fetch all vehicles in that category
-    const vehiclesResult = await VehicleAdminModel.getVehicleByVehicleCategoryId(categoryId);
-
-    // Step 3: Apply filtering based on constraints
-    const matchingVehicles = vehiclesResult.filter(v =>
-      v.max_height >= totalHeight &&
-      v.max_length >= totalLength &&
-      v.load_capacity >= totalWeight &&
-      v.no_of_pallets >= totalQuantity
-    );
-
-    if (matchingVehicles.length === 0) {
-      return res.status(200).json({
-        status: 0,
-        msg: "No vehicles found in this category for the given criteria."
-      });
-    }
-
-    return res.status(200).json({
-      status: 1,
-      category: categoryResult[0],
-      vehicles: matchingVehicles,
-    });
-  } catch (error) {
-    console.error('Error fetching vehicles by category ID:', error);
-    res.status(500).json({ status: 0, msg: 'Internal server error' });
-  }
-}
-
-
-    async uploadLicense (req, res) {
-          const riderId = req.body.rider_id;
-
-      if (
-        !req.files ||
-        !req.files["driving_license"] ||
-        req.files["driving_license"].length === 0
-      ) {
-        return res.status(200).json({ status: 0, msg: "No file uploaded." });
+      if (categoryResult.length === 0) {
+        return res.status(200).json({ status: 0, msg: 'Vehicle category not found' });
       }
 
-      // Get the uploaded file and construct the file path
-      const riderLicense = req.files["driving_license"][0].filename;
+      // Step 2: Fetch all vehicles in that category
+      const vehiclesResult = await VehicleAdminModel.getVehicleByVehicleCategoryId(categoryId);
 
-          await this.rider.updateDrivingLicense(riderId, riderLicense);
+      // Step 3: Apply filtering based on constraints
+      // const matchingVehicles = vehiclesResult.filter(v =>
+      //   Number(v.max_height) >= totalHeight &&
+      //   Number(v.max_length) >= totalLength &&
+      //   Number(v.load_capacity) >= totalWeight &&
+      //   Number(v.no_of_pallets) >= totalQuantity
+      // );
 
-      // console.log("Extracted Filename:", memImage);
+      const matchingVehicles = vehiclesResult.filter(v => {
+        const maxHeight = Number(v.max_height);
+        const maxLength = Number(v.max_length);
+        const loadCapacity = Number(v.load_capacity);
+        const noOfPallets = Number(v.no_of_pallets);
 
-      // const imageUrl = `${riderLicense}`;
+        return (
+          maxHeight >= Number(req.body.totalHeight) &&
+          maxLength >= Number(req.body.totalLength) &&
+          loadCapacity >= Number(req.body.totalWeight) &&
+          noOfPallets >= Number(req.body.totalQuantity)
+        );
+      });
+
+
+      // console.log("totalWeight", req.body.totalWeight);
+      // vehicles.forEach(v =>
+      //   console.log(
+      //     "vehicle:", v.id,
+      //     "load_capacity:", v.load_capacity,
+      //     "max_height:", v.max_height,
+      //     "max_length:", v.max_length,
+      //     "no_of_pallets:", v.no_of_pallets,
+          
+      //   )
+      // );
+
+
+
+
+
+      if (matchingVehicles.length === 0) {
+        return res.status(200).json({
+          status: 0,
+          msg: "No vehicles found in this category for the given criteria."
+        });
+      }
+
       return res.status(200).json({
         status: 1,
-        msg: "Image uploaded successfully.",
-        driving_license: riderLicense
+        category: categoryResult[0],
+        vehicles: matchingVehicles,
       });
     } catch (error) {
-      console.error("Error uploading profile image:", error.message);
-      return res.status(500).json({
-        status: 0,
-        msg: "Server error.",
-        details: error.message
-      });
-      };
-
-async getAvailableVehicleCategories(req, res) {
-  const { totalWeight, totalHeight, totalQuantity, totalLength } = req.body;
-
-  try {
-    const vehicleModel = new VehicleModel();
-    // Fetch all active vehicles
-    const vehicles = await vehicleModel.getActiveVehicles();
-        // console.log("vehicles:",vehicles)
-
-
-    // Filter vehicles based on constraints
-    const matchingVehicles = vehicles.filter(v =>
-      v.max_height >= totalHeight &&
-      v.max_length >= totalLength &&
-      v.load_capacity >= totalWeight &&
-      v.no_of_pallets >= totalQuantity
-    );
-    // console.log("matchingVehicles:",matchingVehicles)
-
-    if (matchingVehicles.length > 0) {
-      // Extract unique category IDs
-      const categoryIds = [...new Set(matchingVehicles.map(v => v.vehicle_category_id))];
-          console.log("categoryIds:",categoryIds)
-
-
-      // Fetch only categories that match those IDs
-      const vehicleCategories = await VehicleCategoryModel.getVehicleCategoriesById(categoryIds);
-      // console.log("vehicleCategories:",vehicleCategories)
-
-
-      return res.status(200).json({
-        status: 1,
-        msg: "Available vehicle categories fetched successfully!",
-        vehicleCategories: vehicleCategories
-      });
-    } else {
-      return res.status(200).json({
-        status: 0,
-        msg: "No available vehicle categories found for the given criteria."
-      });
+      console.error('Error fetching vehicles by category ID:', error);
+      res.status(500).json({ status: 0, msg: 'Internal server error' });
     }
-  } catch (error) {
-    console.error("Error fetching available vehicle categories:", error.message);
+  }
+
+
+  async uploadLicense(req, res) {
+    const riderId = req.body.rider_id;
+
+    if (
+      !req.files ||
+      !req.files["driving_license"] ||
+      req.files["driving_license"].length === 0
+    ) {
+      return res.status(200).json({ status: 0, msg: "No file uploaded." });
+    }
+
+    // Get the uploaded file and construct the file path
+    const riderLicense = req.files["driving_license"][0].filename;
+
+    await this.rider.updateDrivingLicense(riderId, riderLicense);
+
+    // console.log("Extracted Filename:", memImage);
+
+    // const imageUrl = `${riderLicense}`;
+    return res.status(200).json({
+      status: 1,
+      msg: "Image uploaded successfully.",
+      driving_license: riderLicense
+    });
+  } catch(error) {
+    console.error("Error uploading profile image:", error.message);
     return res.status(500).json({
       status: 0,
-      msg: "Internal Server Error",
+      msg: "Server error.",
       details: error.message
     });
+  };
+
+  async getAvailableVehicleCategories(req, res) {
+    const { totalWeight, totalHeight, totalQuantity, totalLength } = req.body;
+    // console.log("req.body w,h,q,l:", req.body)
+
+    try {
+      const vehicleModel = new VehicleModel();
+      // Fetch all active vehicles
+      const vehicles = await vehicleModel.getActiveVehicles();
+      // console.log("vehicles:",vehicles)
+
+
+      // Filter vehicles based on constraints
+      // const matchingVehicles = vehicles.filter(v =>
+      //   Number(v.max_height) >= totalHeight &&
+      //   Number(v.max_length) >= totalLength &&
+      //   Number(v.load_capacity) >= totalWeight &&
+      //   Number(v.no_of_pallets) >= totalQuantity
+
+      // );
+
+      const matchingVehicles = vehicles.filter(v => {
+  const maxHeight = Number(v.max_height);
+  const maxLength = Number(v.max_length);
+  const loadCapacity = Number(v.load_capacity);
+  const noOfPallets = Number(v.no_of_pallets);
+
+  return (
+    maxHeight >= Number(req.body.totalHeight) &&
+    maxLength >= Number(req.body.totalLength) &&
+    loadCapacity >= Number(req.body.totalWeight) &&
+    noOfPallets >= Number(req.body.totalQuantity)
+  );
+});
+
+
+      // vehicles.forEach(v =>
+      //   console.log(
+      //     "vehicle:", v.id,
+      //     "load_capacity:", v.load_capacity,
+      //     "max_height:", v.max_height,
+      //     "max_length:", v.max_length,
+      //     "no_of_pallets:", v.no_of_pallets,
+          
+      //   )
+      // );
+
+
+
+      //       console.log("totalWeight", req.body.totalWeight);
+      // vehicles.forEach(v =>
+      //   console.log(
+      //     "vehicle:", v.id,
+      //     "load_capacity:", v.load_capacity,
+      //     "type:", typeof v.load_capacity
+      //   )
+      // );
+
+// console.log("All vehicles:", vehicles);
+// console.log("Matching vehicles:", matchingVehicles);
+
+      if (matchingVehicles.length > 0) {
+        // Extract unique category IDs
+        const categoryIds = [...new Set(matchingVehicles.map(v => v.vehicle_category_id))];
+        // console.log("categoryIds:", categoryIds)
+
+
+        // Fetch only categories that match those IDs
+        const vehicleCategories = await VehicleCategoryModel.getVehicleCategoriesById(categoryIds);
+        // console.log("vehicleCategories:",vehicleCategories)
+
+
+        return res.status(200).json({
+          status: 1,
+          msg: "Available vehicle categories fetched successfully!",
+          vehicleCategories: vehicleCategories
+        });
+      } else {
+        return res.status(200).json({
+          status: 0,
+          msg: "No available vehicle categories found for the given criteria."
+        });
+      }
+    } catch (error) {
+      console.error("Error fetching available vehicle categories:", error.message);
+      return res.status(500).json({
+        status: 0,
+        msg: "Internal Server Error",
+        details: error.message
+      });
+    }
   }
-}
-
-      
-      
-  
-
-//  async getOrders(req, res) {
-//   try {
-//     const { status } = req.body;
-
-//     const orders = await this.pageModel.getOrdersByStatus(status);
-
-//     // Check and respond based on the status
-//     if (status === 'completed') {
-//       return res.status(200).json({
-//         status: 1,
-//         msg: "Completed orders fetched successfully!",
-//         data: orders
-//       });
-//     } else if (status) {
-//       return res.status(200).json({
-//         status: 1,
-//         msg: "Non-completed orders fetched successfully!",
-//         data: orders
-//       });
-//     } else {
-//       return res.status(200).json({
-//         status: 1,
-//         msg: "All orders fetched successfully!",
-//         data: orders
-//       });
-//     }
-
-//   } catch (error) {
-//     console.error("Error fetching orders:", error.message);
-//     return res.status(500).json({
-//       status: 0,
-//       msg: "Internal Server Error",
-//       details: error.message
-//     });
-//   }
-// }
-     
 
 
 
-    
+
+
+  //  async getOrders(req, res) {
+  //   try {
+  //     const { status } = req.body;
+
+  //     const orders = await this.pageModel.getOrdersByStatus(status);
+
+  //     // Check and respond based on the status
+  //     if (status === 'completed') {
+  //       return res.status(200).json({
+  //         status: 1,
+  //         msg: "Completed orders fetched successfully!",
+  //         data: orders
+  //       });
+  //     } else if (status) {
+  //       return res.status(200).json({
+  //         status: 1,
+  //         msg: "Non-completed orders fetched successfully!",
+  //         data: orders
+  //       });
+  //     } else {
+  //       return res.status(200).json({
+  //         status: 1,
+  //         msg: "All orders fetched successfully!",
+  //         data: orders
+  //       });
+  //     }
+
+  //   } catch (error) {
+  //     console.error("Error fetching orders:", error.message);
+  //     return res.status(500).json({
+  //       status: 0,
+  //       msg: "Internal Server Error",
+  //       details: error.message
+  //     });
+  //   }
+  // }
 
 
 
-    
+
+
+
+
+
+
 
 }
 

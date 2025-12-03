@@ -3,6 +3,7 @@ const path = require("path"); // For handling file paths
 
 const Rider = require("../../models/rider");
 const RiderModel = require("../../models/riderModel");
+
 const RequestQuoteModel = require("../../models/request-quote"); // Assuming you have this model
 
 const BaseController = require("../baseController");
@@ -76,7 +77,7 @@ class RiderController extends BaseController {
         const liveJobs = await Rider.getRiderLiveJobs(riderId);
         const earnings = await this.riderModel.getAllEarnings();
 
-        console.log("liveJobs:", liveJobs)
+        // console.log("liveJobs:", liveJobs)
 
         res.render("admin/riders/edit-rider", {
           rider,
@@ -153,6 +154,7 @@ class RiderController extends BaseController {
         insurance_certificate: await handleSingleAttachment("insurance_certificate"),
         passport_pic: await handleSingleAttachment("passport_pic"),
         national_insurance: await handleSingleAttachment("national_insurance"),
+        signature: await handleSingleAttachment("signature"),
         company_certificate: await handleSingleAttachment(
           "company_certificate"
         ),
@@ -269,6 +271,12 @@ class RiderController extends BaseController {
       if (!currentRider) {
         return this.sendError(res, "Rider not found");
       }
+
+      const activeJobsCount = await this.riderModel.hasActiveJobs(riderId);
+
+            if (activeJobsCount > 0) {
+                return this.sendError(res, "Cannot delete rider. Rider has active jobs running.", 200);
+            }
 
       // const riderImage = currentRider.driving_license; // Get the image filename
       // console.log('Rider to delete:', currentRider); // Log rider details for debugging

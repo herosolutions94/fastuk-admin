@@ -384,6 +384,36 @@
             </div>
           </div>
           <div class="col-md-4">
+  <div class="card">
+    <div class="card-body preview">
+      <div class="row">
+        <div class="col-md-12">
+          <h5 class="card-title">Signature</h5>
+
+          <div class="blog_img">
+            <% if (attachments.signature) { %>
+              <img src="<%= helpers.getImage(attachments.signature) %>" 
+                   alt="Signature Image" class="card-img-top" />
+            <% } %>
+          </div>
+
+          <!-- Upload disabled -->
+          <div class="in-upload">
+            <button type="button" class="uploadImg" disabled 
+              style="cursor:not-allowed; opacity:0.5;">
+              <i class="fa-regular fa-image"></i> Address Proof (Not Editable)
+            </button>
+
+            <input type="file" class="uploadFile" name="signature" disabled />
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+          <div class="col-md-4">
             <div class="card">
               <div class="card-body preview">
                 <div class="row">

@@ -206,6 +206,15 @@ const totalAmount = (parseFloat(orderDetails?.rider_price) * parseFloat(orderDet
    
   
     const jobStatus = await helpers.updateRequestQuoteJobStatus(orderDetails.id);
+
+    const subtotal = helpers?.format_amount(
+      (parseFloat(orderDetails?.total_amount || 0) -
+        parseFloat(orderDetails?.tax || 0) -
+        parseFloat(orderDetails?.vat || 0))
+    );
+
+          const siteSettings = res.locals.adminData;
+
  
 
 
@@ -213,7 +222,9 @@ const totalAmount = (parseFloat(orderDetails?.rider_price) * parseFloat(orderDet
 
       const order = {
         ...orderDetails,
+        siteSettings,
         jobStatus,
+        subtotal,
         invoices,
         formatted_start_date: helpers.formatDateToUK(orderDetails.start_date),
         category_name: categoryInfo?.category_name || null,

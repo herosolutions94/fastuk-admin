@@ -592,7 +592,7 @@ class MemberController extends BaseController {
       dest_name,
       dest_phone_number,
       dest_city,
-      source_full_address,
+      _source_fulladdress,
       dest_full_address,
       charge_agreement,
       full_name,
@@ -828,10 +828,10 @@ class MemberController extends BaseController {
         formattedTotalPrice = parseFloat(formattedTotalPrice.toFixed(2));
       }
 
-      console.log("formattedTotalPrice api:", formattedTotalPrice);
-console.log("taxAmount api:", taxAmount);
+      // console.log("formattedTotalPrice api:", formattedTotalPrice);
+// console.log("taxAmount api:", taxAmount);
 
-console.log("grandTotal before promo api:", grandTotal);
+// console.log("grandTotal before promo api:", grandTotal);
 
       // Handle payment logic
       const parsedAmount = parseFloat(formattedTotalPrice);
@@ -1849,6 +1849,8 @@ if (amountInCents < 50) {
         password,
         confirm_password,
         fingerprint,
+        is_ready,
+        ready_time,	
         via_pickup_time_option,
         via_pickup_time,
         via_pickup_date,
@@ -2132,6 +2134,8 @@ let discount = 0;
           source_lat,
           source_long,
           payment_method,
+          is_ready: 0,
+          ready_time,	
           payment_method_id: payment_methodid,
           created_date: new Date(), // Set current date as created_date
           start_date: parsedStartDate,
@@ -2308,6 +2312,7 @@ let discount = 0;
           vehicle_price: formattedVehiclePrice,
           total_amount: formattedTotalAmount,
           tax: formattedTax,
+          vat: formattedVat,
           
           payment_intent: paymentIntent.id, // Store the Payment Intent ID
           customer_id: stripePaymentMethod.customer, // Store the Customer ID
@@ -2324,6 +2329,8 @@ let discount = 0;
           dest_city,
           source_lat,
           source_long,
+          is_ready:0,
+          ready_time,
           payment_method,
           saved_card_id, // Store the saved card ID
           created_date: new Date(),
@@ -2419,6 +2426,7 @@ let discount = 0;
           vehicle_price: formattedVehiclePrice,
           total_amount: formattedTotalAmount,
           tax: formattedTax,
+          vat: formattedVat,
           
           payment_intent: "", // Store the Payment Intent ID
           customer_id: "", // Store the Customer ID
@@ -2435,6 +2443,8 @@ let discount = 0;
           dest_city,
           source_lat,
           source_long,
+          is_ready:0,
+          ready_time,
           payment_method,
           created_date: new Date(),
           start_date: new Date(date),
@@ -2517,6 +2527,7 @@ let discount = 0;
           vehicle_price: formattedVehiclePrice,
           total_amount: formattedTotalAmount,
           tax: formattedTax,
+          vat: formattedVat,
           
           payment_intent: "", // Store the Payment Intent ID
           customer_id: "", // Store the Customer ID
@@ -2533,6 +2544,8 @@ let discount = 0;
           dest_city,
           source_lat,
           source_long,
+           is_ready:0,
+          ready_time,
           payment_method,
           created_date: new Date(),
           start_date: new Date(date),
@@ -2616,6 +2629,7 @@ let discount = 0;
           vehicle_price: formattedVehiclePrice,
           total_amount: formattedTotalAmount,
           tax: formattedTax,
+          vat: formattedVat,
           
           payment_intent: "", // Store the Payment Intent ID
           customer_id: "", // Store the Customer ID
@@ -2717,6 +2731,7 @@ let discount = 0;
             vehicle_price: formattedVehiclePrice,
             total_amount: formattedTotalAmount,
             tax: formattedTax,
+            vat: formattedVat,
            
             payment_intent: "", // Store the Payment Intent ID
             customer_id: "", // Store the Customer ID
@@ -2733,6 +2748,8 @@ let discount = 0;
             dest_city,
             source_lat,
             source_long,
+             is_ready:0,
+          ready_time,
             payment_method,
             created_date: new Date(),
             start_date: new Date(date),
@@ -2980,7 +2997,9 @@ let discount = 0;
       // Insert order details into the database
       await this.pageModel.insertOrderDetails(orderDetailsRecords);
 
-      const unique_addresses = helpers.getUniqueAddresses(orderDetailsRecords);
+      // const unique_addresses = helpers.getUniqueAddresses(orderDetailsRecords);
+      const unique_addresses = helpers.getUniqueAddresses(orderDetailsRecords, source_full_address);
+
 
       await this.pageModel.insertRequestStages(unique_addresses, requestQuoteId);
 
@@ -3944,11 +3963,16 @@ async getUserTransactions(req, res) {
         userId,
         requestId: t.transaction_id,
       });
+      
 
       if (order) {
         // Attach formatted dates
         t.formatted_start_date = helpers.formatDateToUK(order.start_date);
-        t.formatted_end_date = helpers.formatDateToUK(order.end_date);
+        // t.formatted_end_date = helpers.formatDateToUK(order.end_date);
+        t.formatted_end_date = order.end_date
+  ? helpers.formatDateToUK(order.end_date)
+  : "Pending";
+
 
         // Job status
         const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
@@ -3967,6 +3991,9 @@ async getUserTransactions(req, res) {
         const reviews = await this.rider.getOrderReviews(order.id);
         const paidAmount = await RequestQuoteModel.totalPaidAmount(order.id);
         const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
+        const riderRow = await this.rider.findById(
+            order.assigned_rider
+          );
 
         // Attach stage attachments
         for (let stage of order_stages_arr) {
@@ -3986,14 +4013,19 @@ async getUserTransactions(req, res) {
           });
         }
 
+        const siteSettings = res.locals.adminData;
+        // console.log("siteSettings:",siteSettings)
+
         // Merge order info
         t.order = {
           ...order,
+          siteSettings,
           formatted_start_date: helpers.formatDateToUK(order.start_date),
           formatted_end_date: helpers.formatDateToUK(order.end_date),
           parcels,
           order_stages: order_stages_arr,
           vias,
+          riderRow,
           invoices,
           dueAmount: helpers.formatAmount(dueAmount),
           paidAmount: helpers.formatAmount(paidAmount),
@@ -4013,7 +4045,7 @@ async getUserTransactions(req, res) {
 
       updatedTransactions.push(t);
     }
-    console.log("updatedTransactions:",updatedTransactions)
+    // console.log("updatedTransactions:",updatedTransactions)
 
     return res.status(200).json({
       status: 1,
@@ -4138,10 +4170,16 @@ async getUserTransactions(req, res) {
       }
       // console.log("end",order?.end_date, helpers.formatDateToUK(order?.end_date))
 
+      const formatted_end_date = order?.end_date
+  ? helpers.formatDateToUK(order.end_date)
+  : "Pending";
+
       order = {
         ...order,
         formatted_start_date: helpers.formatDateToUK(order?.start_date),
-        formatted_end_date: helpers.formatDateToUK(order?.end_date),
+        // formatted_end_date: helpers.formatDateToUK(order?.end_date),
+        formatted_end_date: formatted_end_date,
+        
         encodedId: encodedId,
         parcels: parcels,
         order_stages: order_stages_arr,
@@ -4830,7 +4868,7 @@ async getUserTransactions(req, res) {
 
       // ✅ Prevent double payment
       const dueAmount = await RequestQuoteModel.calculateDueAmount(requestId);
-      console.log("dueAmount", dueAmount)
+      // console.log("dueAmount", dueAmount)
       if (dueAmount <= 0) {
         return res.status(200).json({
           status: 0,

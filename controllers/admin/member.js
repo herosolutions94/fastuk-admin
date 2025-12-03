@@ -2,6 +2,9 @@ const fs = require('fs'); // Import the file system module
 const path = require('path'); // For handling file paths
 
 const Member = require('../../models/member');
+const Rider = require("../../models/riderModel");
+const RequestQuoteModel = require("../../models/request-quote"); // Assuming you have this model
+
 const BaseController = require('../baseController');
 const helpers = require("../../utils/helpers");
 const Addresses = require("../../models/api/addressModel");
@@ -10,6 +13,8 @@ class MemberController extends BaseController {
     constructor() {
         super();
         this.addressModel = new Addresses();
+        this.rider = new Rider();
+        this.requestQuoteModel = new RequestQuoteModel();
 
     }
 
@@ -100,23 +105,23 @@ class MemberController extends BaseController {
                 const oldThumbPath = path.join(thumbsDir, currentMember.mem_image);                // console.log('Old Image Path:', oldImagePath); // Log the old image path
 
                 // Check if the old image file exists before trying to delete
-                 // Delete main image if exists
-            if (fs.existsSync(oldImagePath)) {
-                console.log('Deleting old image:', oldImagePath);
-                fs.unlinkSync(oldImagePath);
-                console.log('Old main image deleted successfully');
-            } else {
-                console.log('Old image not found:', oldImagePath);
-            }
+                // Delete main image if exists
+                if (fs.existsSync(oldImagePath)) {
+                    console.log('Deleting old image:', oldImagePath);
+                    fs.unlinkSync(oldImagePath);
+                    console.log('Old main image deleted successfully');
+                } else {
+                    console.log('Old image not found:', oldImagePath);
+                }
 
-            // Delete thumbnail if exists
-            if (fs.existsSync(oldThumbPath)) {
-                console.log('Deleting old thumbnail:', oldThumbPath);
-                fs.unlinkSync(oldThumbPath);
-                console.log('Old thumbnail deleted successfully');
-            } else {
-                console.log('Old thumbnail not found:', oldThumbPath);
-            }
+                // Delete thumbnail if exists
+                if (fs.existsSync(oldThumbPath)) {
+                    console.log('Deleting old thumbnail:', oldThumbPath);
+                    fs.unlinkSync(oldThumbPath);
+                    console.log('Old thumbnail deleted successfully');
+                } else {
+                    console.log('Old thumbnail not found:', oldThumbPath);
+                }
             }
             // If a new image is uploaded, update rider data with the new image filename
             if (memberImage) {
@@ -135,7 +140,7 @@ class MemberController extends BaseController {
 
                 // ✅ Generate the thumbnail using your helper
                 await helpers.generateThumbnail(memberImage, sourceDir, thumbFolder, width, height);
-                console.log('Thumbnail created for:', memberImage);
+                // console.log('Thumbnail created for:', memberImage);
 
                 // Update with new image
                 memberData.mem_image = memberImage;
@@ -157,6 +162,7 @@ class MemberController extends BaseController {
 
     async deleteMember(req, res) {
         const memberId = req.params.id;
+        // console.log('Request to delete member with ID:', memberId); // Log the ID of the member to be deleted
         try {
             // Step 1: Fetch the rider details to get the associated image filename
             const currentMember = (await Member.getMemberById(memberId))[0]; // Fetch current rider details
@@ -167,30 +173,47 @@ class MemberController extends BaseController {
             const memberImage = currentMember.mem_image; // Get the image filename
             // console.log('Member to delete:', currentMember); // Log rider details for debugging
 
+            const activeJobsCount = await this.rider.hasActiveJobsForMember(memberId);
+
+            if (activeJobsCount > 0) {
+                return this.sendError(res, "Cannot delete member. Member has active jobs running.", 200);
+            }
+
+            const dueAmount = await RequestQuoteModel.calculateDueAmount(
+                memberId
+            );
+
+            if (dueAmount > 0) {
+                return this.sendError(res, `Cannot delete member. Member has outstanding balance of £${dueAmount}.`, 200)
+
+
+            }
+
+
             // Step 2: Check if the rider has an associated image
             if (memberImage) {
                 const uploadsDir = path.join(__dirname, '../../uploads');
                 const imagePath = path.join(uploadsDir, businessUserImage);
-                 const thumbPath = path.join(uploadsDir, 'thumbnails', businessUserImage);
+                const thumbPath = path.join(uploadsDir, 'thumbnails', businessUserImage);
                 // console.log('Image Path:', imagePath); // Log the image path
 
                 // Check if the image file exists before trying to delete
                 if (fs.existsSync(imagePath)) {
-                console.log('Deleting main image:', imagePath);
-                fs.unlinkSync(imagePath);
-                console.log('Main image deleted successfully');
-            } else {
-                console.log('Main image not found:', imagePath);
-            }
+                    console.log('Deleting main image:', imagePath);
+                    fs.unlinkSync(imagePath);
+                    console.log('Main image deleted successfully');
+                } else {
+                    console.log('Main image not found:', imagePath);
+                }
 
-            // Delete thumbnail image
-            if (fs.existsSync(thumbPath)) {
-                console.log('Deleting thumbnail image:', thumbPath);
-                fs.unlinkSync(thumbPath);
-                console.log('Thumbnail image deleted successfully');
-            } else {
-                console.log('Thumbnail not found:', thumbPath);
-            }
+                // Delete thumbnail image
+                if (fs.existsSync(thumbPath)) {
+                    console.log('Deleting thumbnail image:', thumbPath);
+                    fs.unlinkSync(thumbPath);
+                    console.log('Thumbnail image deleted successfully');
+                } else {
+                    console.log('Thumbnail not found:', thumbPath);
+                }
             }
 
             // Step 3: Delete the rider from the database
