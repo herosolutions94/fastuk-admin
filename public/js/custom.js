@@ -313,6 +313,48 @@ $(document).ready(function () {
     });
 });
 
+$(document).on('submit', '.cancel-request-form', function (e) {
+    e.preventDefault();
+
+    const $form = $(this);
+    const url = $form.attr('action');
+    const formData = $form.serialize();
+
+    $.ajax({
+        url: url,
+        type: 'POST',
+        data: formData,
+        success: function (res) {
+            if (res.status == 1) {
+                // Show toaster
+                showToast(res.message, 'success');
+
+                // Optionally disable form or update UI
+                $form.find('button[type="submit"]').prop('disabled', true);
+                $form.closest('.card-body').append('<p><strong>Job cancelled and refunded.</strong></p>');
+
+                // Redirect after 2 seconds (optional)
+                setTimeout(function() {
+                    window.location.href = '/admin/cancelled-quotes';
+                }, 2000); // 2 seconds delay to let toast show
+            } else {
+                showToast(res.message, 'error');
+            }
+        },
+        error: function (xhr) {
+            let msg = "An error occurred while processing the cancellation.";
+            try {
+                const res = JSON.parse(xhr.responseText);
+                msg = res.message || msg;
+            } catch (e) {}
+            showToast(msg, 'error');
+            console.error(xhr.responseText);
+        }
+    });
+});
+
+
+
 
 
 

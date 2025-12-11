@@ -644,7 +644,7 @@ class MemberController extends BaseController {
     // console.log(token, 'token')
     // Validate fields
     const { isValid, errors } = validateFields(req.body, requiredFields);
-    console.log("Validation errors:", errors);
+    // console.log("Validation errors:", errors);
     if (!isValid) {
       return res.status(200).json({
         status: 0,
@@ -841,7 +841,7 @@ class MemberController extends BaseController {
           .json({ error: "Amount must be a positive number." });
       }
 
-            console.log("Amount after discounts & tax (decimal):", parsedAmount);
+            // console.log("Amount after discounts & tax (decimal):", parsedAmount);
 
 
       // Create customer on Stripe
@@ -1345,7 +1345,7 @@ if (amountInCents < 50) {
           // console.log("action:", action); 
           switch (action) {
             case "created": {
-              console.log(`🟡 Payment ${paymentId} created for invoice ${invoiceId}`);
+              // console.log(`🟡 Payment ${paymentId} created for invoice ${invoiceId}`);
               const order_id = payment?.metadata?.order_id;
               const type = payment?.metadata?.type || "credit_invoice";
 
@@ -1450,7 +1450,7 @@ if (amountInCents < 50) {
         if (!fs.existsSync(logsDir)) fs.mkdirSync(logsDir);
         const errorFile = path.join(logsDir, `gc_webhook_error_${timestamp}.json`);
         fs.writeFileSync(errorFile, JSON.stringify({ error: error.message, stack: error.stack, body: req.body, }, null, 2), "utf-8");
-        console.log(`⚠️ Error logged to: ${errorFile}`);
+        // console.log(`⚠️ Error logged to: ${errorFile}`);
       } catch (logErr) {
         console.error("⚠️ Failed to write error log:", logErr);
 
@@ -1458,7 +1458,7 @@ if (amountInCents < 50) {
     }
   }
   async handleConfirmedPayment(payment, invoiceId, dbUserId, formattedAmount) {
-    console.log(`✅ Handling confirmed payment ${payment.id} for invoice ${invoiceId}`);
+    // console.log(`✅ Handling confirmed payment ${payment.id} for invoice ${invoiceId}`);
     const order_id = payment?.metadata?.order_id || null; // ✅ FIX ADDED
 
     if (!invoiceId) {
@@ -1496,7 +1496,7 @@ if (amountInCents < 50) {
         type: "credits",
         status: "confirmed"
       });
-      console.log("Transaction recorded");
+      // console.log("Transaction recorded");
       await this.pageModel.insertInCredits({
         user_id: dbUserId,
         type: "user",
@@ -1504,8 +1504,8 @@ if (amountInCents < 50) {
         created_date: helpers.getUtcTimeInSeconds(),
         e_type: "credit",
       });
-      console.log("Credit entry added");
-      console.log(`🎉 Invoice ${invoiceId} marked as paid & credits added.`);
+      // console.log("Credit entry added");
+      // console.log(`🎉 Invoice ${invoiceId} marked as paid & credits added.`);
     } else {
       console.error(`❌ Failed to update invoice ${invoiceId}`);
     }
@@ -1513,7 +1513,7 @@ if (amountInCents < 50) {
 
   async handleOrderPayment(payment, orderId, userId, res) {
     try {
-      console.log(`✅ Handling GoCardless order payment for order ${orderId}`);
+      // console.log(`✅ Handling GoCardless order payment for order ${orderId}`);
 
       const orderDetails = await RequestQuoteModel.getOrderDetailsById(orderId);
       if (!orderDetails) {
@@ -1617,7 +1617,7 @@ if (amountInCents < 50) {
         response: `GoCardless Payment Successful for Order: ${orderId}`,
       });
 
-      console.log(`🎉 Order ${orderId} marked paid & notifications sent.`);
+      // console.log(`🎉 Order ${orderId} marked paid & notifications sent.`);
 
     } catch (err) {
       console.error("❌ Error in handleOrderPayment:", err);
@@ -1799,10 +1799,15 @@ if (amountInCents < 50) {
     this.tokenModel = new Token();
 
     try {
+      let payment_intent_id = null;
+let payment_methodid = null;
       // Destructure necessary fields from req.body
       const {
         token,
         payment_intent_customer_id,
+        // payment_intent_id,   // coming from frontend
+        payment_intent_id: frontend_payment_intent_id,
+  customer_id,
         selectedVehicle,
         remote_price,
         rider_price,
@@ -1998,15 +2003,6 @@ if (amountInCents < 50) {
         "email-verify",
         templateData
       );
-      //     console.log("Sending verification email to:", member.email, subject,
-      // "email-verify",
-      // templateData);return;
-
-
-
-
-
-      // Fetch payment methods for the user
 
       let parcelsArr = [];
       let viasArr = [];
@@ -2104,8 +2100,10 @@ let discount = 0;
       // console.log("Remote price",formattedRemotePrice)
       // console.log("Remote price",remote_price)
       let clientSecret = "";
-      let payment_intent_id = payment_intent_customer_id;
-      let payment_methodid = payment_method_id;
+      // let payment_intent_id = payment_intent_customer_id;
+       payment_methodid = payment_method_id;
+      // let payment_intent = payment_intent_id;
+      let payment_intent = frontend_payment_intent_id; 
       let requestQuoteId = "";
       // console.log("payment_method:", payment_method);return;
 
@@ -2118,9 +2116,14 @@ let discount = 0;
           total_amount: formattedTotalAmount,
           tax: formattedTax,
           vat: formattedVat,
+
+           // ⭐ ADD THESE THREE FIELDS
+        payment_intent: payment_intent,      // <-- store Stripe paymentIntent.id
+        customer_id: customer_id,            // <-- store Stripe customer_id returned from create-payment-intent
+        payment_method_id: payment_methodid, // <-- frontend already sends this
           
-          payment_intent: payment_intent_customer_id,
-          customer_id: payment_intent_customer_id,
+          // payment_intent: payment_intent_customer_id,
+          // customer_id: payment_intent_customer_id,
           source_postcode,
           source_address: source_full_address,
           source_name,
@@ -2301,7 +2304,8 @@ let discount = 0;
             paymentStatus: paymentIntent.status,
           });
         }
-        payment_intent_id = paymentIntent.id;
+        // payment_intent_id = paymentIntent.id;
+        payment_intent = paymentIntent.id;
         payment_methodid = stripe_payment_method_id;
         // Prepare the object for requestQuoteId insertion
 
@@ -2314,7 +2318,9 @@ let discount = 0;
           tax: formattedTax,
           vat: formattedVat,
           
-          payment_intent: paymentIntent.id, // Store the Payment Intent ID
+          // payment_intent: paymentIntent.id, // Store the Payment Intent ID
+          payment_intent: payment_intent,
+
           customer_id: stripePaymentMethod.customer, // Store the Customer ID
           payment_method_id: stripe_payment_method_id, // Store the Stripe Payment Method ID
           source_postcode,
@@ -2860,6 +2866,7 @@ let discount = 0;
         distance: parcel.distance,
         parcelType: parcel.parcelType,
         postcode: parcel.postcode,
+        parcel_round_trip: parcel.parcel_round_trip || 0, 
       }));
       // console.log("parcelRecords:", parcelRecords);return;
       // console.log("requestQuoteId:", requestQuoteId);return;
@@ -3500,6 +3507,99 @@ let discount = 0;
       });
     }
   };
+
+  cancelJobRequest = async (req, res) => {
+  try {
+    const { token, order_id, reason } = req.body;
+
+    if (!token) {
+      return res.status(200).json({ status: 0, msg: "Token is required." });
+    }
+
+    // Validate user token
+    const userResponse = await this.validateTokenAndGetMember(token, "user");
+    if (userResponse.status === 0) {
+      return res.status(200).json(userResponse);
+    }
+
+    const member = userResponse.user;
+
+    if (!order_id) {
+      return res.status(200).json({ status: 0, msg: "Order ID is required." });
+    }
+
+    // FETCH ORDER MAIN DETAILS
+    let order = await this.member.getOrderDetailsByIdforcancelRequest({ requestId: order_id });
+
+    if (!order) {
+      return res.status(200).json({ status: 0, msg: "Invalid order!" });
+    }
+
+    // ---------- FETCH RELATED ORDER DETAILS ----------
+    const viasCount = await this.rider.countViasBySourceCompleted(order.id);
+    const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
+    const vias = await this.rider.getViasByQuoteId(order.id);
+    const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
+    const reviews = await this.rider.getOrderReviews(order.id);
+    const order_stages_arr = await this.rider.getRequestOrderStages(order.id);
+
+    // ---------- MERGE DATA INTO ORDER ----------
+    order = {
+      ...order,
+      formatted_start_date: helpers.formatDateToUK(order?.start_date),
+      parcels,
+      vias,
+      invoices,
+      viasCount,
+      reviews,
+      order_stages: order_stages_arr,
+    };
+
+    // ---------- SAVE CANCELLATION REQUEST ----------
+    const cancelResult = await this.member.updateRequestQuoteData(order_id, {
+      cancel_reason: reason,
+      is_cancelled: "requested",
+    });
+
+    if (!cancelResult) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Failed to submit cancel request.",
+      });
+    }
+
+    // ---------- SEND EMAIL NOTIFICATION ----------
+    const adminData = res.locals.adminData;
+
+    await helpers.sendEmail(
+      adminData.receiving_site_email,
+      "Cancel Request Received - FastUK",
+      "cancel-request",
+      {
+        adminData: adminData,
+        order: order,
+        reason: reason,
+        requestedBy: member,
+      }
+    );
+
+    // ---------- FINAL API RESPONSE ----------
+    return res.status(200).json({
+      status: 1,
+      msg: "Your cancel request has been submitted successfully",
+      order: order,
+    });
+
+  } catch (error) {
+    console.error("Error cancelling job request:", error.message);
+    return res.status(500).json({
+      status: 0,
+      msg: "Server error.",
+      details: error.message,
+    });
+  }
+};
+
   updateProfile = async (req, res) => {
     try {
       const {
@@ -4134,7 +4234,7 @@ async getUserTransactions(req, res) {
 
       const formattedPaidAmount = helpers.formatAmount(paidAmount);
       const formattedDueAmount = helpers.formatAmount(dueAmount);
-      console.log("vias:", vias); // Add this line to log the decoded ID
+      // console.log("vias:", vias); // Add this line to log the decoded ID
 
 
       // Fetch attachments for each stage
@@ -4241,7 +4341,7 @@ async getUserTransactions(req, res) {
       const { token, memType } = req.body;
       // console.log(token)
       const { tracking_id } = req.params;
-      console.log("tracking_id:", tracking_id);
+      // console.log("tracking_id:", tracking_id);
 
       let paymentMethods = [];
       if (!tracking_id) {
@@ -4257,7 +4357,7 @@ async getUserTransactions(req, res) {
         tracking_id: tracking_id,
       });
 
-      console.log("Order from DB:", order); // Add this line to log the order fetched from the database
+      // console.log("Order from DB:", order); // Add this line to log the order fetched from the database
 
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Order not found." });
@@ -4270,7 +4370,7 @@ async getUserTransactions(req, res) {
       const order_stages_arr = await this.rider.getRequestOrderStages(order.id);
 
 
-      console.log("order_stages_arr:", order_stages_arr)
+      // console.log("order_stages_arr:", order_stages_arr)
 
       order = {
         ...order,
@@ -4284,7 +4384,7 @@ async getUserTransactions(req, res) {
       };
 
       const siteSettings = res.locals.adminData;
-      console.log("order:", order);
+      // console.log("order:", order);
 
       // Return the order details along with parcels and vias
       return res.status(200).json({
@@ -4757,7 +4857,7 @@ async getUserTransactions(req, res) {
       const notificationResult = await this.member.getNotificationById(id);
       const notification = notificationResult; // Access the first object in the array
 
-      console.log("Notification from DB", notification);
+      // console.log("Notification from DB", notification);
       if (
         !notification ||
         notification.user_id !== user.id ||
@@ -4803,7 +4903,7 @@ async getUserTransactions(req, res) {
 
       // ✅ Prevent double payment
       const dueAmount = await RequestQuoteModel.calculateDueAmount(requestId);
-      console.log("dueAmount payment intent", dueAmount, requestId)
+      // console.log("dueAmount payment intent", dueAmount, requestId)
 
       if (dueAmount <= 0) {
         return res.status(200).json({

@@ -66,6 +66,15 @@ class VehicleModel extends BaseModel {
             throw error;
         }
     }
+
+    static async getSelectedVehicleById(vehicleId) {
+  const [rows] = await pool.query(
+    `SELECT * FROM vehicles WHERE id = ? LIMIT 1`,
+    [vehicleId]
+  );
+  return rows.length ? rows[0] : null;
+}
+
     static async getVehicleById(id) {
         const [vehicle] = await pool.query(`SELECT * FROM ${this.tableName} WHERE id = ?`, [id]);
         return vehicle; // This should be an object, not an array
@@ -110,9 +119,9 @@ class VehicleModel extends BaseModel {
     LIMIT 1
   `;
   const [rows] = await pool.query(categoryQuery, [vehicleId]);
-    console.log("vehicleId:", vehicleId);
+    // console.log("vehicleId:", vehicleId);
 
-  console.log("rows:", rows);
+//   console.log("rows:", rows);
   return rows.length ? rows[0] : null;
 }
 

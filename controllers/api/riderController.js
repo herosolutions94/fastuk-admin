@@ -795,6 +795,14 @@ class RiderController extends BaseController {
       }
       // console.log(requestQuote)
 
+      // NEW: Prevent assignment if request is already cancelled & approved
+      if (requestQuote.is_cancelled === "approved") {
+        return res.status(200).json({
+          status: 0,
+          msg: "This request has been cancelled and cannot be accepted."
+        });
+      }
+
       const selectedVehicle = requestQuote.selected_vehicle;
 
       // Check if selected vehicle is among assigned categories
@@ -858,7 +866,7 @@ class RiderController extends BaseController {
             order_stages: order_stages_arr,
             rider_name: loggedInUser?.full_name,
             start_date: helpers.formatDateToUK(request_row?.start_date),
-            assigned_sub_categories: assignedSubCategories
+            assigned_sub_categories: assignedSubCategories,
 
           };
         }
@@ -1457,6 +1465,11 @@ class RiderController extends BaseController {
         ? await VehicleModel.getVehicleCategoryById(order.selected_vehicle)
         : null;
 
+      const selectedVehicle = order?.selected_vehicle
+        ? await VehicleModel.getSelectedVehicleById(order?.selected_vehicle)
+        : null;
+
+
       const categoryInfo = order.selected_vehicle
         ? await VehicleModel.getCategoryAndMainCategoryById(order.selected_vehicle)
         : null;
@@ -1503,6 +1516,7 @@ class RiderController extends BaseController {
         reviews: reviews,
         dueAmount: dueAmount,
         vehicle,
+        selectedVehicle,
         source_attachments: source_attachments,
         destination_attachments: destination_attachments,
         category_name: categoryInfo?.category_name || null,
@@ -2123,6 +2137,14 @@ class RiderController extends BaseController {
       }
 
       const requestData = request[0];
+
+      // ⛔ NEW: Prevent marking as ready if order is cancelled
+      if (requestData.is_cancelled === "approved") {
+        return res.status(200).json({
+          status: 0,
+          msg: "This request has been cancelled and cannot be marked as ready."
+        });
+      }
 
       // 4️⃣ Fetch the user who created the request
       const user = await this.rider.getUserById(requestData?.user_id);
@@ -3679,6 +3701,14 @@ class RiderController extends BaseController {
       if (!request_row) {
         return res.status(200).json({ status: 0, msg: "Order not found" });
       }
+
+      // ❗ NEW — Block rider from updating cancelled-approved orders
+      if (request_row?.is_cancelled === "approved") {
+        return res.status(200).json({
+          status: 0,
+          msg: "This order has been cancelled and cannot be updated.",
+        });
+      }
       const encodedId = helpers.doEncode(String(order_id));
       // console.log(riderId, request_row?.id, encodedId);
       // console.log("request_row",request_row)
@@ -3707,6 +3737,10 @@ class RiderController extends BaseController {
 
       await this.rider.updateParcelStatus(stageRow.id, status);
 
+      const selectedVehicle = request_row?.selected_vehicle
+        ? await VehicleModel.getSelectedVehicleById(request_row?.selected_vehicle)
+        : null;
+
       // Recalculate the job status based on current stages
       const jobStatus = await helpers.updateRequestQuoteJobStatus(order_id);
       // console.log("jobStatussss:",jobStatus)
@@ -3724,10 +3758,13 @@ class RiderController extends BaseController {
 
       let orderDetails = await this.getCompleteOrderObject(riderId, request_row?.id, encodedId);
 
+
+
       // Attach updated jobStatus to orderDetails
       orderDetails = {
         ...orderDetails,
         jobStatus, // <-- include the updated status here
+        selectedVehicle
       };
 
       return res.json({

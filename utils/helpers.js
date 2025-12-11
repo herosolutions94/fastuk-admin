@@ -68,19 +68,62 @@ module.exports = {
   //     throw error;
   //   }
   // },
-  getUniqueAddresses: function (data, topAddress = null) { 
+//   getUniqueAddresses: function (data, topAddress = null) { 
+//   const allAddresses = [];
+
+//   data.forEach(item => {
+//     allAddresses.push({
+//       address: item.source_address,
+//       lat: item.source_lat,
+//       lng: item.source_lng
+//     });
+//     allAddresses.push({
+//       address: item.destination_address,
+//       lat: item.destination_lat,
+//       lng: item.destination_lng
+//     });
+//   });
+
+//   // Remove duplicates
+//   const unique = allAddresses.filter(
+//     (addr, index, self) =>
+//       index === self.findIndex(
+//         a => a.address === addr.address && a.lat === addr.lat && a.lng === addr.lng
+//       )
+//   );
+
+//   // Separate the top address if provided
+//   let top = [];
+//   let rest = unique;
+
+//   if (topAddress) {
+//     top = rest.filter(a => a.address === topAddress);
+//     rest = rest.filter(a => a.address !== topAddress);
+//   }
+
+//   // Sort the rest alphabetically
+//   rest.sort((a, b) => a.address.localeCompare(b.address));
+
+//   // Put the top address first
+//   return [...top, ...rest];
+// },
+
+
+getUniqueAddresses: function (data, topAddress = null) { 
   const allAddresses = [];
 
   data.forEach(item => {
     allAddresses.push({
       address: item.source_address,
       lat: item.source_lat,
-      lng: item.source_lng
+      lng: item.source_lng,
+      is_source: true
     });
     allAddresses.push({
       address: item.destination_address,
       lat: item.destination_lat,
-      lng: item.destination_lng
+      lng: item.destination_lng,
+      is_source: false
     });
   });
 
@@ -97,17 +140,18 @@ module.exports = {
   let rest = unique;
 
   if (topAddress) {
-    top = rest.filter(a => a.address === topAddress);
-    rest = rest.filter(a => a.address !== topAddress);
+    // Prioritize addresses where source_address === topAddress
+    top = rest.filter(a => a.address === topAddress && a.is_source);
+    rest = rest.filter(a => !(a.address === topAddress && a.is_source));
   }
 
-  // Sort the rest alphabetically
+  // Sort the rest alphabetically by address
   rest.sort((a, b) => a.address.localeCompare(b.address));
 
-  // Put the top address first
+  // Put the top addresses first
   return [...top, ...rest];
-},
-
+}
+  ,
   getOptimizedAddresses: async function (addresses) {
     if (!addresses || addresses.length < 2) {
       throw new Error("At least 2 addresses required");
@@ -237,19 +281,20 @@ module.exports = {
   updateRequestQuoteJobStatus: async function (orderId) {
 
     const dueAmount = await RequestQuoteModel.calculateDueAmount(orderId);
-    console.log("dueAmount:", dueAmount);
+    // console.log("dueAmount:", dueAmount);
 
 
     // 0. Fetch current job status first
     const [rqRows] = await pool.query(
-      "SELECT status, is_ready FROM request_quote WHERE id = ?",
+      "SELECT status, is_ready, is_cancelled FROM request_quote WHERE id = ?",
       [orderId]
     );
 
     if (!rqRows || rqRows.length === 0) return;
     const currentStatus = rqRows[0].status;
 const isReady = parseInt(rqRows[0].is_ready) || 0; // new check
-    console.log("currentStatus:", currentStatus, "isReady:", isReady);
+const isCancelled = rqRows[0].is_cancelled;
+    // console.log("currentStatus:", currentStatus, "isReady:", isReady);
     // 1. Fetch all stages for this order
     const [stages] = await pool.query(
       "SELECT id, status FROM order_stages WHERE order_id = ? ORDER BY id ASC",
@@ -262,20 +307,19 @@ const isReady = parseInt(rqRows[0].is_ready) || 0; // new check
     // 2. Determine stage progress
     const hasStarted = stages.some(s => s.status !== "pending");
     const allCompleted = stages.every(s => s.status === "completed");
-    console.log("DB is_ready:", isReady, "allCompleted:", allCompleted);
+    // console.log("DB is_ready:", isReady, "allCompleted:", allCompleted);
 
 
     // console.log(hasStarted, allCompleted)
 
     let newStatus = currentStatus;
 
-    // **********************************************
-    // ⭐ YOUR NEW CONDITION
-    // If job is accepted, all stages completed, but payment pending → pending_payment
-    // **********************************************
-    // 3. Determine new status
+// ⭐ If cancelled → override everything and stop
+if (isCancelled === "approved") {
+    return "cancelled";
+}
      // 3️⃣ Priority condition: if is_ready = 1 and job not completed → in_progress
-  if (isReady === 1 && !allCompleted) {
+   if (isReady === 1 && !allCompleted) {
     newStatus = "in_progress";
   } 
   // Job accepted, all stages completed, payment pending
@@ -297,6 +341,7 @@ const isReady = parseInt(rqRows[0].is_ready) || 0; // new check
   else {
     newStatus = "new";
   }
+  console.log("Determined newStatus:", newStatus);
 
 
     // if (newStatus !== currentStatus) {
@@ -1045,8 +1090,10 @@ calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_
     // console.log("Transaction Data:", transactionData);
     const query = `
     INSERT INTO transactions (
-      user_id, amount, payment_method, transaction_id, created_time, status
-    ) VALUES (?, ?, ?, ?, ?, ?)
+      user_id, amount, payment_method, transaction_id, created_time, status,
+      stripe_refund_id,
+      stripe_refund_json, payment_intent
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
     const values = [
@@ -1059,6 +1106,10 @@ calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_
         : null,
       transactionData.created_time,
       transactionData.status,
+       // OPTIONAL FIELDS (NULL if not provided)
+    transactionData.stripe_refund_id || null,
+    transactionData.stripe_refund_json || null,
+    transactionData.payment_intent || null,
     ];
 
     try {

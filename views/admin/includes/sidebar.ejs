@@ -313,12 +313,23 @@
 
       <li class="sidebar-item">
         <a
+          href="/admin/cancelled-quotes"
+          class="<%= currentPath === 'cancelled-quotes' ? 'active sidebar-link' : 'sidebar-link' %>">
+          <i class="fa-sharp fa-light fa-unlock-alt"></i>
+          <span class="hide-menu">Cancelled Quotes</span></a
+        >
+      </li>
+
+      <li class="sidebar-item">
+        <a
           href="/admin/change-password-form"
           class="<%= currentPath === 'change-password-form' ? 'active sidebar-link' : 'sidebar-link' %>">
           <i class="fa-sharp fa-light fa-unlock-alt"></i>
           <span class="hide-menu">Change Password</span></a
         >
       </li>
+
+
     </ul>
   </nav>
   <div class="sidebar-footer hide-menu">

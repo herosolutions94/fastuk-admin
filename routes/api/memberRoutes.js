@@ -51,6 +51,7 @@ router.post('/save-business-user-credits', upload, (req, res) => memberControlle
 router.post('/save-business-user-credits', upload, (req, res) => memberController.saveBusinessUserCredits(req, res));
 router.get("/check-credit-invoices", upload, (req, res) => memberController.checkAndInsertInvoices(req, res));
 router.post("/check-credit-invoices", upload, (req, res) => memberController.checkAndInsertInvoices(req, res));
+router.post("/cancel-request", upload, (req, res) => memberController.cancelJobRequest(req, res));
 router.post("/get-invoices", upload, (req, res) => memberController.getInvoices(req, res));
 
 
