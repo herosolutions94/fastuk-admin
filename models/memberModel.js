@@ -122,7 +122,9 @@ class MemberModel extends BaseModel {
     const query = `UPDATE request_quote SET ${setClause} WHERE id = ?`;
 
     // Execute the query, adding the memberId to the values array
-    await pool.query(query, [...values, requestId]);
+    const [result] = await pool.query(query, [...values, requestId]);
+
+  return result; 
   }
 
   async updateOtp(memberId, otp) {
@@ -416,6 +418,59 @@ GROUP BY
       throw new Error("Database query failed.");
     }
   }
+
+  async getOrderDetailsByIdforcancelRequest({ requestId }) {
+  try {
+    const query = `
+      SELECT 
+        rq.*, 
+        
+        -- USER (member)
+        u.full_name AS user_name,
+        u.mem_image AS user_image,
+        u.email AS user_email,
+        u.mem_phone AS user_phone,
+        
+        -- RIDER
+        r.full_name AS rider_name,
+        r.mem_image AS rider_image,
+        r.email AS rider_email,
+        r.mem_phone AS rider_phone,
+
+        COALESCE(SUM(rp.distance), 0) AS total_distance
+
+      FROM request_quote rq
+
+      -- Correct member join
+      LEFT JOIN members u 
+        ON rq.user_id = u.id
+
+      -- Correct rider join
+      LEFT JOIN riders r 
+        ON rq.assigned_rider = r.id
+
+      LEFT JOIN request_parcels rp 
+        ON rq.id = rp.request_id
+
+      WHERE rq.id = ?
+      GROUP BY 
+        rq.id, 
+        u.full_name, u.mem_image, u.email, u.mem_phone,
+        r.full_name, r.mem_image, r.email, r.mem_phone
+    `;
+
+    const [rows] = await pool.query(query, [requestId]);
+
+    if (rows.length === 0) return null;
+
+    return rows[0];
+
+  } catch (error) {
+    console.error("Error in getOrderDetailsById:", error);
+    throw new Error("Database query failed.");
+  }
+}
+
   async updateRequestData(requestId, data) {
     const keys = Object.keys(data); // ['otp', 'expire_time']
     const values = Object.values(data); // [newOtp, newExpireTime]

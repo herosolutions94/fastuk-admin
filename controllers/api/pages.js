@@ -754,7 +754,33 @@ class PagesController extends BaseController {
 
   async getVehiclesByCategoryId(req, res) {
     const { categoryId } = req.params;
-    const { totalWeight, totalHeight, totalQuantity, totalLength } = req.body; // ✅ get constraints
+  // const { totalWeight, totalQuantity, maxLength, maxWidth, maxHeight } = req.body;
+  // console.log(req.body, 'req.body in getVehiclesByCategoryId');
+
+  let { parcelsArr, totalWeight, totalQuantity, maxLength, maxWidth, maxHeight } = req.body;
+
+if (!parcelsArr || parcelsArr.length === 0) {
+  return res.status(400).json({ status: 0, msg: "Missing parcel data" });
+}
+
+// Parse parcelsArr if it's a string
+if (typeof parcelsArr === "string") {
+  parcelsArr = JSON.parse(parcelsArr);
+}
+
+
+
+  console.log(parcelsArr, 'parcelsArr in getVehiclesByCategoryId');
+
+
+
+  // if (!totalWeight || !totalQuantity || !maxLength || !maxWidth || !maxHeight) {
+  //   return res.status(200).json({
+  //     status: 0,
+  //     msg: "Missing parcel data"
+  //   });
+  // }
+
 
     try {
       // Step 1: Check if category exists
@@ -767,44 +793,33 @@ class PagesController extends BaseController {
       // Step 2: Fetch all vehicles in that category
       const vehiclesResult = await VehicleAdminModel.getVehicleByVehicleCategoryId(categoryId);
 
-      // Step 3: Apply filtering based on constraints
-      // const matchingVehicles = vehiclesResult.filter(v =>
-      //   Number(v.max_height) >= totalHeight &&
-      //   Number(v.max_length) >= totalLength &&
-      //   Number(v.load_capacity) >= totalWeight &&
-      //   Number(v.no_of_pallets) >= totalQuantity
-      // );
 
-      const matchingVehicles = vehiclesResult.filter(v => {
-        const maxHeight = Number(v.max_height);
-        const maxLength = Number(v.max_length);
-        const loadCapacity = Number(v.load_capacity);
-        const noOfPallets = Number(v.no_of_pallets);
+      // console.log("vehiclesResult by category id:", vehiclesResult);
 
-        return (
-          maxHeight >= Number(req.body.totalHeight) &&
-          maxLength >= Number(req.body.totalLength) &&
-          loadCapacity >= Number(req.body.totalWeight) &&
-          noOfPallets >= Number(req.body.totalQuantity)
-        );
-      });
+      const hasOnlyDocuments = parcelsArr.every(p => p.parcelType === "document");
 
+      const matchingVehicles = vehiclesResult.filter(vehicle => {
+        const vehicleMaxHeight = Number(vehicle.max_height);
+      const vehicleMaxLength = Number(vehicle.max_length);
+      const vehicleMaxWidth = Number(vehicle.max_width || vehicle.max_width_inch || 0);
+      const loadCapacity = Number(vehicle.load_capacity);
+      const palletCount = Number(vehicle.no_of_pallets);
 
-      // console.log("totalWeight", req.body.totalWeight);
-      // vehicles.forEach(v =>
-      //   console.log(
-      //     "vehicle:", v.id,
-      //     "load_capacity:", v.load_capacity,
-      //     "max_height:", v.max_height,
-      //     "max_length:", v.max_length,
-      //     "no_of_pallets:", v.no_of_pallets,
-          
-      //   )
-      // );
+       // 👇 If parcel type is ONLY "document"
+  if (hasOnlyDocuments) {
+    return loadCapacity >= totalWeight; // ONLY weight check
+  }
 
+      return (
+        loadCapacity >= totalWeight &&
+        palletCount >= totalQuantity &&
+        vehicleMaxLength >= maxLength &&
+        vehicleMaxWidth >= maxWidth &&
+        vehicleMaxHeight >= maxHeight
+      );
+    });
 
-
-
+       
 
       if (matchingVehicles.length === 0) {
         return res.status(200).json({
@@ -859,64 +874,69 @@ class PagesController extends BaseController {
   };
 
   async getAvailableVehicleCategories(req, res) {
-    const { totalWeight, totalHeight, totalQuantity, totalLength } = req.body;
-    // console.log("req.body w,h,q,l:", req.body)
+
+      const { totalWeight, totalQuantity, maxLength, maxWidth, maxHeight , parcelsArr} = req.body;
+      // console.log(req.body, 'req.body in getAvailableVehicleCategories');
+
+  //      if (!totalWeight || !totalQuantity || maxLength === undefined || maxWidth === undefined || maxHeight === undefined) {
+  //   return res.status(200).json({
+  //     status: 0,
+  //     msg: "Invalid or missing parcel data"
+  //   });
+  // }
+
+
+let parcels = [];
+
+if (parcelsArr) {
+  parcels = Array.isArray(parcelsArr) ? parcelsArr : JSON.parse(parcelsArr);
+}
+
+const isAllDocuments =
+  parcels.length > 0 &&
+  parcels.every(p => p.parcelType === "document");
+
+// console.log("isAllDocuments:", isAllDocuments);
+
 
     try {
       const vehicleModel = new VehicleModel();
       // Fetch all active vehicles
       const vehicles = await vehicleModel.getActiveVehicles();
-      // console.log("vehicles:",vehicles)
+
+      // console.log("All vehicles:", vehicles.map(v => ({ title: v.title, load_capacity: v.load_capacity, no_of_pallets: v.no_of_pallets, max_length: v.max_length, max_width: v.max_width, max_height: v.max_height })));
 
 
-      // Filter vehicles based on constraints
-      // const matchingVehicles = vehicles.filter(v =>
-      //   Number(v.max_height) >= totalHeight &&
-      //   Number(v.max_length) >= totalLength &&
-      //   Number(v.load_capacity) >= totalWeight &&
-      //   Number(v.no_of_pallets) >= totalQuantity
+const matchingVehicles = vehicles.filter(v => {
 
-      // );
+       const loadCapacity = Number(v.load_capacity);
+       if (isAllDocuments) {
+    // Only weight matters for documents
+    return loadCapacity >= Number(totalWeight);
+  }
+      const palletCount = Number(v.no_of_pallets);
+      const vehicleMaxLength = Number(v.max_length);
+      const vehicleMaxWidth = Number(v.max_width || 0);
+      const vehicleMaxHeight = Number(v.max_height);
 
-      const matchingVehicles = vehicles.filter(v => {
-  const maxHeight = Number(v.max_height);
-  const maxLength = Number(v.max_length);
-  const loadCapacity = Number(v.load_capacity);
-  const noOfPallets = Number(v.no_of_pallets);
+      
 
-  return (
-    maxHeight >= Number(req.body.totalHeight) &&
-    maxLength >= Number(req.body.totalLength) &&
-    loadCapacity >= Number(req.body.totalWeight) &&
-    noOfPallets >= Number(req.body.totalQuantity)
-  );
-});
+      return (
+        loadCapacity >= totalWeight &&
+        palletCount >= totalQuantity &&
+        vehicleMaxLength >= maxLength &&
+        vehicleMaxWidth >= maxWidth &&
+        vehicleMaxHeight >= maxHeight
+      );
+    });
 
-
-      // vehicles.forEach(v =>
-      //   console.log(
-      //     "vehicle:", v.id,
-      //     "load_capacity:", v.load_capacity,
-      //     "max_height:", v.max_height,
-      //     "max_length:", v.max_length,
-      //     "no_of_pallets:", v.no_of_pallets,
-          
-      //   )
-      // );
-
-
-
-      //       console.log("totalWeight", req.body.totalWeight);
-      // vehicles.forEach(v =>
-      //   console.log(
-      //     "vehicle:", v.id,
-      //     "load_capacity:", v.load_capacity,
-      //     "type:", typeof v.load_capacity
-      //   )
-      // );
-
-// console.log("All vehicles:", vehicles);
-// console.log("Matching vehicles:", matchingVehicles);
+    if (matchingVehicles.length === 0) {
+      return res.status(200).json({
+        status: 0,
+        msg: "No available vehicle categories match the parcel dimensions."
+      });
+    }
+     
 
       if (matchingVehicles.length > 0) {
         // Extract unique category IDs
@@ -927,6 +947,9 @@ class PagesController extends BaseController {
         // Fetch only categories that match those IDs
         const vehicleCategories = await VehicleCategoryModel.getVehicleCategoriesById(categoryIds);
         // console.log("vehicleCategories:",vehicleCategories)
+
+        // console.log("Vehicle result:", vehicles);
+
 
 
         return res.status(200).json({

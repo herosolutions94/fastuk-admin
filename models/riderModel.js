@@ -7,89 +7,89 @@ const moment = require('moment');
 
 
 class RiderModel extends BaseModel {
-    constructor() {
-        super('riders'); // Pass the table name to the BaseModel constructor
+  constructor() {
+    super('riders'); // Pass the table name to the BaseModel constructor
+  }
+
+  // Method to check if an email exists (find by email)
+  async findByEmail(email) {
+    try {
+      const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE is_deleted !=1 AND email = ?`, [email]);
+      return rows.length ? rows[0] : null; // Return the first result or null
+    } catch (error) {
+      throw new Error(`Error fetching rider by email from ${this.tableName}: ${error.message}`);
+    }
+  }
+
+  // Method to check if an email already exists
+  async emailExists(email) {
+    try {
+      const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE email = ?`, [email]);
+      return rows.length > 0; // Returns true if email exists, false otherwise
+    } catch (error) {
+      throw new Error(`Error checking if email exists in ${this.tableName}: ${error.message}`);
+    }
+  }
+
+  // Method to create a new rider with validation
+  async createRider(data) {
+    if (await this.findByEmail(data.email)) {
+      throw new Error(`Email ${data.email} is already in use.`);
     }
 
-    // Method to check if an email exists (find by email)
-    async findByEmail(email) {
-        try {
-            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE is_deleted !=1 AND email = ?`, [email]);
-            return rows.length ? rows[0] : null; // Return the first result or null
-        } catch (error) {
-            throw new Error(`Error fetching rider by email from ${this.tableName}: ${error.message}`);
-        }
-    }
-
-    // Method to check if an email already exists
-    async emailExists(email) {
-        try {
-            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE email = ?`, [email]);
-            return rows.length > 0; // Returns true if email exists, false otherwise
-        } catch (error) {
-            throw new Error(`Error checking if email exists in ${this.tableName}: ${error.message}`);
-        }
-    }
-
-    // Method to create a new rider with validation
-    async createRider(data) {
-        if (await this.findByEmail(data.email)) {
-            throw new Error(`Email ${data.email} is already in use.`);
-        }
-
-        return this.create(data);  // Call the BaseModel's create method
-    }
-    async findById(riderId) {
-        const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
-        const [rows] = await pool.query(query, [riderId]);
-        // console.log(rows)
+    return this.create(data);  // Call the BaseModel's create method
+  }
+  async findById(riderId) {
+    const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
+    const [rows] = await pool.query(query, [riderId]);
+    // console.log(rows)
     return rows.length ? rows[0] : null; // Return the first result or null
-    }
+  }
 
 
-    // Function to update rider's verified status and set OTP to null
-    async updateRiderVerification(riderId) {
-        const query = `UPDATE riders SET mem_verified = 1, otp = NULL WHERE id = ?`;
-        await pool.query(query, [riderId]);
-    }
+  // Function to update rider's verified status and set OTP to null
+  async updateRiderVerification(riderId) {
+    const query = `UPDATE riders SET mem_verified = 1, otp = NULL WHERE id = ?`;
+    await pool.query(query, [riderId]);
+  }
 
-    async updateRiderData(riderId, data) {
-        // Extract keys and values from the data object
-        const keys = Object.keys(data); // ['otp', 'expire_time']
-        const values = Object.values(data); // [newOtp, newExpireTime]
+  async updateRiderData(riderId, data) {
+    // Extract keys and values from the data object
+    const keys = Object.keys(data); // ['otp', 'expire_time']
+    const values = Object.values(data); // [newOtp, newExpireTime]
 
-        // Construct the SET clause dynamically
-        const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
+    // Construct the SET clause dynamically
+    const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
 
-        // Build the query dynamically
-        const query = `UPDATE ${this.tableName} SET ${setClause} WHERE id = ?`;
+    // Build the query dynamically
+    const query = `UPDATE ${this.tableName} SET ${setClause} WHERE id = ?`;
 
-        // Execute the query, adding the memberId to the values array
-        await pool.query(query, [...values, riderId]);
-    }
-    async updateOrderStageData(stage_id, data) {
-        // Extract keys and values from the data object
-        const keys = Object.keys(data); // ['otp', 'expire_time']
-        const values = Object.values(data); // [newOtp, newExpireTime]
+    // Execute the query, adding the memberId to the values array
+    await pool.query(query, [...values, riderId]);
+  }
+  async updateOrderStageData(stage_id, data) {
+    // Extract keys and values from the data object
+    const keys = Object.keys(data); // ['otp', 'expire_time']
+    const values = Object.values(data); // [newOtp, newExpireTime]
 
-        // Construct the SET clause dynamically
-        const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
+    // Construct the SET clause dynamically
+    const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
 
-        // Build the query dynamically
-        const query = `UPDATE order_stages SET ${setClause} WHERE id = ?`;
+    // Build the query dynamically
+    const query = `UPDATE order_stages SET ${setClause} WHERE id = ?`;
 
-        // Execute the query, adding the memberId to the values array
-        await pool.query(query, [...values, stage_id]);
-    }
-async getRequestQuotesByCity(categoryIds, lat, lng) {
+    // Execute the query, adding the memberId to the values array
+    await pool.query(query, [...values, stage_id]);
+  }
+  async getRequestQuotesByCity(categoryIds, lat, lng) {
     if (!Array.isArray(categoryIds) || categoryIds.length === 0) {
-        return [];
+      return [];
     }
 
     // Convert lat/lng to numbers to avoid RADIANS(NULL)
-   lat = parseFloat(lat);
-lng = parseFloat(lng);
-if (isNaN(lat) || isNaN(lng)) return [];
+    lat = parseFloat(lat);
+    lng = parseFloat(lng);
+    if (isNaN(lat) || isNaN(lng)) return [];
 
     const placeholders = categoryIds.map(() => "?").join(",");
 
@@ -110,6 +110,8 @@ if (isNaN(lat) || isNaN(lng)) return [];
             ON rq.selected_vehicle = rvc.category_id
         WHERE 
             rq.assigned_rider IS NULL
+            AND (rq.is_cancelled IS NULL OR rq.is_cancelled != 'approved')
+
             AND rvc.category_id IN (${placeholders})
         HAVING radius_distance <= 30
         ORDER BY rq.start_date DESC, rq.created_date DESC, radius_distance ASC;
@@ -117,34 +119,34 @@ if (isNaN(lat) || isNaN(lng)) return [];
     `;
 
     const params = [
-        lat,
-        lng,
-        lat,
-        ...categoryIds
+      lat,
+      lng,
+      lat,
+      ...categoryIds
     ];
-//     console.log("categoryIds:", categoryIds);
-// console.log("lat:", lat);
-// console.log("lng:", lng);
+    //     console.log("categoryIds:", categoryIds);
+    // console.log("lat:", lat);
+    // console.log("lng:", lng);
 
     const [rows] = await pool.query(query, params);
     // console.log("rows in Jobs",rows)
     return rows;
-}
+  }
 
 
 
-async getCityLatLng(cityName) {
+  async getCityLatLng(cityName) {
     const query = `SELECT latitude, longitude FROM cities WHERE name = ? LIMIT 1`;
     const [rows] = await pool.query(query, [cityName]);
     return rows.length ? rows[0] : null;
-}
+  }
 
 
 
 
 
-    // Fetch vias for a request_quote
-    async getViasByQuoteId  (quoteId)  {
+  // Fetch vias for a request_quote
+  async getViasByQuoteId(quoteId) {
     const query = `
         SELECT * FROM vias
         WHERE request_id = ?
@@ -152,76 +154,76 @@ async getCityLatLng(cityName) {
     const [rows] = await pool.query(query, [quoteId]);
     // console.log("vias rows:", rows)
     return rows;
-};
+  };
 
-async updateOtp(memberId, otp) {
+  async updateOtp(memberId, otp) {
     const query = `UPDATE ${this.tableName} SET otp = ? WHERE id = ?`;
     const values = [otp, memberId];
     await pool.query(query, values); // Updates the OTP for the member
-}
-  
+  }
 
-// Fetch parcels for a request_quote
-async getParcelsByQuoteId (quoteId) {
+
+  // Fetch parcels for a request_quote
+  async getParcelsByQuoteId(quoteId) {
     const query = `
         SELECT * FROM request_parcels
         WHERE request_id = ?
     `;
     const [rows] = await pool.query(query, [quoteId]);
     return rows;
-};
-async getParcelDetailsByQuoteId (quoteId) {
+  };
+  async getParcelDetailsByQuoteId(quoteId) {
     const query = `
         SELECT * FROM order_details
         WHERE order_id = ?
     `;
     const [rows] = await pool.query(query, [quoteId]);
     return rows;
-};
-async getRequestOrderStages(quoteId) {
-  const query = `
+  };
+  async getRequestOrderStages(quoteId) {
+    const query = `
     SELECT * FROM order_stages
     WHERE order_id = ?
   `;
-  const [stages] = await pool.query(query, [quoteId]);
+    const [stages] = await pool.query(query, [quoteId]);
 
-  // fetch attachments for each stage
-  for (let stage of stages) {
-    const [attachments] = await pool.query(
-      `SELECT * FROM order_stages_attachments WHERE stage_id = ?`,
-      [stage.id]
-    );
-    stage.attachments = attachments; // ✅ add as array
-  }
+    // fetch attachments for each stage
+    for (let stage of stages) {
+      const [attachments] = await pool.query(
+        `SELECT * FROM order_stages_attachments WHERE stage_id = ?`,
+        [stage.id]
+      );
+      stage.attachments = attachments; // ✅ add as array
+    }
 
-  return stages;
-};
-async getRequestOrderStageRow (quoteId,stage_id) {
+    return stages;
+  };
+  async getRequestOrderStageRow(quoteId, stage_id) {
     const query = `
         SELECT * FROM order_stages
         WHERE order_id = ? AND id = ?
     `;
-    const [rows] = await pool.query(query, [quoteId,stage_id]);
+    const [rows] = await pool.query(query, [quoteId, stage_id]);
     // console.log("rows",rows)
     return rows[0];
-};
+  };
 
-async getRequestQuoteById(requestId) {
+  async getRequestQuoteById(requestId) {
     const query = `SELECT * FROM request_quote WHERE id = ?`;
     const [rows] = await pool.query(query, [requestId]);
     // console.log("Request:",rows)
     return rows[0]; // Return the first row if it exists
-}
+  }
 
-async getRequestQuoteByUserId(userId) {
-  // console.log("userId:",userId)
+  async getRequestQuoteByUserId(userId) {
+    // console.log("userId:",userId)
     const query = `SELECT * FROM request_quote WHERE user_id = ?`;
     const [rows] = await pool.query(query, [userId]);
     // console.log("Request:",rows)
     return rows[0]; // Return the first row if it exists
-}
+  }
 
-async assignRiderAndUpdateStatus(riderId, requestId) {
+  async assignRiderAndUpdateStatus(riderId, requestId) {
     // console.log(requestId,riderId)
     // Get current date in YYYY-MM-DD format
     const assignedDate = new Date().toISOString().split('T')[0];
@@ -244,8 +246,8 @@ async assignRiderAndUpdateStatus(riderId, requestId) {
     const [result] = await pool.query(query, [riderId, assignedDate, endTime, updatedTime, requestId]);
     // console.log("endTime:", endTime)
     return result; // Contains affectedRows and other info
-}
-async UpdateOrderStatus(riderId, requestId,request_status) {
+  }
+  async UpdateOrderStatus(riderId, requestId, request_status) {
     // console.log(requestId,riderId)
     // Get current date in YYYY-MM-DD format
     const status_date = new Date().toISOString().split('T')[0];
@@ -261,13 +263,13 @@ async UpdateOrderStatus(riderId, requestId,request_status) {
         WHERE 
             id = ?`;
 
-    const [result] = await pool.query(query, [status_date, request_status,updatedTime, requestId]);
-    return result; 
-}
+    const [result] = await pool.query(query, [status_date, request_status, updatedTime, requestId]);
+    return result;
+  }
 
-async getOrdersByRiderAndStatus({ riderId, status }) {
+  async getOrdersByRiderAndStatus({ riderId, status }) {
     try {
-        let query = `
+      let query = `
             SELECT 
                 rq.*, 
                 m.full_name AS user_name, 
@@ -289,48 +291,48 @@ async getOrdersByRiderAndStatus({ riderId, status }) {
                 rq.assigned_rider = ?
             
         `;
-        const values = [riderId];
+      const values = [riderId];
 
-        if (status) {
-      switch (status) {
-        case 'completed':
-          query += ` AND rq.status = ?`;
-          values.push('completed');
-          break;
-        case 'in_progress':
-          query += ` AND rq.status != ?`;
-          values.push('completed');
-          break;
-        default:
-          query += ` AND rq.status = ?`;
-          values.push(status);
+      if (status) {
+        switch (status) {
+          case 'completed':
+            query += ` AND rq.status = ?`;
+            values.push('completed');
+            break;
+          case 'in_progress':
+            query += ` AND rq.status != ?`;
+            values.push('completed');
+            break;
+          default:
+            query += ` AND rq.status = ?`;
+            values.push(status);
+        }
       }
-    }
 
-    query += `
+      query += `
       GROUP BY 
         rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
       ORDER BY 
         rq.id DESC
     `;
 
-          // console.log("Fetching orders for rider:", riderId, "with status:", status);
+      // console.log("Fetching orders for rider:", riderId, "with status:", status);
 
 
-        const [rows] = await pool.query(query, values);
-        // console.log("orders rows:",rows)
+      const [rows] = await pool.query(query, values);
+      // console.log("orders rows:",rows)
 
-        return rows; // Return the list of orders with user and parcel details
+      return rows; // Return the list of orders with user and parcel details
     } catch (err) {
-        console.error("Error fetching orders:", err.message);
-        throw new Error("Failed to fetch orders.");
+      console.error("Error fetching orders:", err.message);
+      throw new Error("Failed to fetch orders.");
     }
-}
+  }
 
-async getOrderDetailsById( {assignedRiderId, requestId}) {
+  async getOrderDetailsById({ assignedRiderId, requestId }) {
     try {
-        // Query to fetch the order by ID
-        const query = `SELECT 
+      // Query to fetch the order by ID
+      const query = `SELECT 
     rq.*, 
     m.full_name AS user_name, 
     m.mem_image AS user_image,
@@ -353,37 +355,37 @@ WHERE
 GROUP BY 
     rq.id, m.full_name, m.mem_image, m.email, m.mem_phone;
 `;
-        
-        // Execute the query using the connection pool
-        const [rows, fields] = await pool.query(query, [assignedRiderId, requestId]);
-        // console.log("assignedRiderId:",assignedRiderId,"requestId:",requestId)
-        // console.log("rows:",rows)
-        // console.log("query:",query)
 
-        // If no rows are returned, the order doesn't exist
-        if (rows.length === 0) {
-            return null;
-        }
+      // Execute the query using the connection pool
+      const [rows, fields] = await pool.query(query, [assignedRiderId, requestId]);
+      // console.log("assignedRiderId:",assignedRiderId,"requestId:",requestId)
+      // console.log("rows:",rows)
+      // console.log("query:",query)
 
-        // Return the order details (first row since we expect a single result)
-        return rows[0];
+      // If no rows are returned, the order doesn't exist
+      if (rows.length === 0) {
+        return null;
+      }
+
+      // Return the order details (first row since we expect a single result)
+      return rows[0];
     } catch (error) {
-        console.error("Error in getOrderDetailsById:", error);
-        throw new Error("Database query failed.");
+      console.error("Error in getOrderDetailsById:", error);
+      throw new Error("Database query failed.");
     }
 
 
 
-}
+  }
 
-async getRidersByCity(city) {
+  async getRidersByCity(city) {
     const query = `SELECT id,email FROM riders WHERE city = ?`;
     const [rows] = await pool.query(query, [city]);
     return rows; // Returns an array of riders
   }
-  async getWithdrawalPamentMethods(mem_id,type) {
+  async getWithdrawalPamentMethods(mem_id, type) {
     const query = `SELECT * FROM mem_withdrawal_methods WHERE mem_id = ? and payment_method = ?`;
-    const [rows] = await pool.query(query, [mem_id,type]);
+    const [rows] = await pool.query(query, [mem_id, type]);
     return rows; // Returns an array of riders
   }
   async getOrderReviews(request_id) {
@@ -403,15 +405,15 @@ async getRidersByCity(city) {
     `;
     const [rows] = await pool.query(query, [request_id]);
     return rows; // Returns an array of reviews with member details
-}
+  }
 
-  async getWithdrawalPamentMethodRow(mem_id,id) {
+  async getWithdrawalPamentMethodRow(mem_id, id) {
     const query = `SELECT * FROM mem_withdrawal_methods WHERE mem_id = ? and id = ?`;
-    const [rows] = await pool.query(query, [mem_id,id]);
+    const [rows] = await pool.query(query, [mem_id, id]);
     return rows; // Returns an array of riders
   }
 
-getRequestById = async (id, riderId) => {
+  getRequestById = async (id, riderId) => {
     // console.log(id,riderId);return;
     const query = `
       SELECT 
@@ -431,8 +433,8 @@ getRequestById = async (id, riderId) => {
     const [rows] = await pool.query(query, values);
     return rows;
   };
-  
- updateSourceRequestStatus = async (id, updates) => {
+
+  updateSourceRequestStatus = async (id, updates) => {
     const { is_picked, picked_time } = updates;
     const updatedTime = helpers.getUtcTimeInSeconds();
 
@@ -461,24 +463,24 @@ getRequestById = async (id, riderId) => {
     return rows;
   };
 
-  createInvoiceEntry = async (requestId, charges, amountType, status,type, via_id, paymentType,payment_intent_id, payment_method_id, payment_method) => {
+  createInvoiceEntry = async (requestId, charges, amountType, status, type, via_id, paymentType, payment_intent_id, payment_method_id, payment_method) => {
     const ukDate = getUtcTimeInSeconds();
     // console.log([requestId, type, charges, amountType, status, ukDate, via_id, paymentType, payment_intent_id,payment_method_id, payment_method]);return;
     try {
 
-        
+
 
       const query = `
         INSERT INTO invoices (request_id, type, amount, amount_type, status, created_date, via_id, payment_type, payment_intent_id, payment_method_id, payment_method)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `;
-      
-      const values = [requestId, type, charges, amountType, status, ukDate, via_id, paymentType, payment_intent_id,payment_method_id, payment_method];
-    //   console.log("values:",values)
-      
+
+      const values = [requestId, type, charges, amountType, status, ukDate, via_id, paymentType, payment_intent_id, payment_method_id, payment_method];
+      //   console.log("values:",values)
+
       // Execute the query to insert the data into the invoices table
       const [result] = await pool.query(query, values);
-    //   console.log(result,"Result")
+      //   console.log(result,"Result")
       // Return the result, typically the inserted record ID
       return result;
     } catch (error) {
@@ -496,14 +498,14 @@ getRequestById = async (id, riderId) => {
 
 
     try {
-        const [result] = await pool.query(query, values);
-        return result;
+      const [result] = await pool.query(query, values);
+      return result;
     } catch (error) {
       console.error('Error creating invoice:', error);
       return null;
     }
   };
-createRequestReview = async (data) => {
+  createRequestReview = async (data) => {
     const columns = Object.keys(data);
     const values = Object.values(data);
 
@@ -513,73 +515,73 @@ createRequestReview = async (data) => {
 
 
     try {
-        const [result] = await pool.query(query, values);
-        return result;
+      const [result] = await pool.query(query, values);
+      return result;
     } catch (error) {
       console.error('Error creating invoice:', error);
       return null;
     }
   };
   updateWithdrawalMethod = async (data, whereCondition) => {
-  // Extract columns and values from the data object
-  const columns = Object.keys(data);
-  const values = Object.values(data);
+    // Extract columns and values from the data object
+    const columns = Object.keys(data);
+    const values = Object.values(data);
 
-  // Generate the SQL query dynamically
-  const setClause = columns.map((column) => `${column} = ?`).join(', ');
+    // Generate the SQL query dynamically
+    const setClause = columns.map((column) => `${column} = ?`).join(', ');
 
-  // Assuming `whereCondition` is an object with one key-value pair, e.g., { id: 123 }
-  const whereColumn = Object.keys(whereCondition)[0];
-  const whereValue = Object.values(whereCondition)[0];
+    // Assuming `whereCondition` is an object with one key-value pair, e.g., { id: 123 }
+    const whereColumn = Object.keys(whereCondition)[0];
+    const whereValue = Object.values(whereCondition)[0];
 
-  const query = `UPDATE mem_withdrawal_methods SET ${setClause} WHERE ${whereColumn} = ?`;
+    const query = `UPDATE mem_withdrawal_methods SET ${setClause} WHERE ${whereColumn} = ?`;
 
-  try {
-    // Add the `whereValue` to the end of the values array
-    const [result] = await pool.query(query, [...values, whereValue]);
-    return result;
-  } catch (error) {
-    console.error('Error updating withdrawal method:', error);
-    return null;
-  }
-};
+    try {
+      // Add the `whereValue` to the end of the values array
+      const [result] = await pool.query(query, [...values, whereValue]);
+      return result;
+    } catch (error) {
+      console.error('Error updating withdrawal method:', error);
+      return null;
+    }
+  };
 
-deleteWithdrawalMethod = async (whereCondition) => {
-  // Extract columns and values from the whereCondition object
-  const whereColumns = Object.keys(whereCondition);
-  const whereValues = Object.values(whereCondition);
+  deleteWithdrawalMethod = async (whereCondition) => {
+    // Extract columns and values from the whereCondition object
+    const whereColumns = Object.keys(whereCondition);
+    const whereValues = Object.values(whereCondition);
 
-  // Generate the WHERE clause dynamically
-  const whereClause = whereColumns.map((column) => `${column} = ?`).join(' AND ');
+    // Generate the WHERE clause dynamically
+    const whereClause = whereColumns.map((column) => `${column} = ?`).join(' AND ');
 
-  // Construct the SQL query
-  const query = `DELETE FROM mem_withdrawal_methods WHERE ${whereClause}`;
-// console.log(query,whereValues,whereCondition);return;
-  try {
-    const [result] = await pool.query(query, whereValues);
-    return result;
-  } catch (error) {
-    console.error('Error deleting withdrawal method:', error);
-    return null;
-  }
-};
-getEarningsBefore3Days = async () => {
-  const query = `
+    // Construct the SQL query
+    const query = `DELETE FROM mem_withdrawal_methods WHERE ${whereClause}`;
+    // console.log(query,whereValues,whereCondition);return;
+    try {
+      const [result] = await pool.query(query, whereValues);
+      return result;
+    } catch (error) {
+      console.error('Error deleting withdrawal method:', error);
+      return null;
+    }
+  };
+  getEarningsBefore3Days = async () => {
+    const query = `
     SELECT *
 FROM earnings
 WHERE created_time <= UNIX_TIMESTAMP(UTC_TIMESTAMP()) - (3 * 24 * 60 * 60) AND status='pending'
   `;
 
-  try {
-    const [results] = await pool.query(query);
-    return results;
-  } catch (error) {
-    console.error('Error fetching earnings:', error);
-    return [];
-  }
-};
-getAllEarnings = async () => {
-  const query = `
+    try {
+      const [results] = await pool.query(query);
+      return results;
+    } catch (error) {
+      console.error('Error fetching earnings:', error);
+      return [];
+    }
+  };
+  getAllEarnings = async () => {
+    const query = `
     SELECT
     e.id AS id,
     e.user_id,
@@ -595,15 +597,15 @@ JOIN riders r ON e.user_id = r.id
 ORDER BY e.created_time DESC;
   `;
 
-  try {
-    const [results] = await pool.query(query);
-    return results;
-  } catch (error) {
-    console.error('Error fetching earnings:', error);
-    return [];
-  }
-};
-static async getEarningById(id) {
+    try {
+      const [results] = await pool.query(query);
+      return results;
+    } catch (error) {
+      console.error('Error fetching earnings:', error);
+      return [];
+    }
+  };
+  static async getEarningById(id) {
     const [transaction] = await pool.query(
       `SELECT * FROM earnings WHERE id = ?`,
       [id]
@@ -611,33 +613,33 @@ static async getEarningById(id) {
     return transaction; // This should be an object, not an array
   }
   static async updateEarningData(id, data) {
-        // Extract keys and values from the data object
-        const keys = Object.keys(data); // ['otp', 'expire_time']
-        const values = Object.values(data); // [newOtp, newExpireTime]
+    // Extract keys and values from the data object
+    const keys = Object.keys(data); // ['otp', 'expire_time']
+    const values = Object.values(data); // [newOtp, newExpireTime]
 
-        // Construct the SET clause dynamically
-        const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
+    // Construct the SET clause dynamically
+    const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
 
-        // Build the query dynamically
-        const query = `UPDATE earnings SET ${setClause} WHERE id = ?`;
+    // Build the query dynamically
+    const query = `UPDATE earnings SET ${setClause} WHERE id = ?`;
 
-        // Execute the query, adding the memberId to the values array
-        await pool.query(query, [...values, id]);
-    }
-async updateEarningStatusToCleared(earningId) {
-  const query = `UPDATE earnings SET status = 'cleared' WHERE id = ?`;
-
-  try {
-    const [result] = await pool.query(query, [earningId]);
-    return result;
-  } catch (error) {
-    console.error(`Error updating status for ID ${earningId}:`, error);
-    return null;
+    // Execute the query, adding the memberId to the values array
+    await pool.query(query, [...values, id]);
   }
-}
+  async updateEarningStatusToCleared(earningId) {
+    const query = `UPDATE earnings SET status = 'cleared' WHERE id = ?`;
 
-// Clear all earnings older than 10 minutes
-async clearEarningsOlderThan10Minutes() {
+    try {
+      const [result] = await pool.query(query, [earningId]);
+      return result;
+    } catch (error) {
+      console.error(`Error updating status for ID ${earningId}:`, error);
+      return null;
+    }
+  }
+
+  // Clear all earnings older than 10 minutes
+  async clearEarningsOlderThan10Minutes() {
     const query = `
       UPDATE earnings
       SET status = 'cleared'
@@ -681,7 +683,7 @@ async clearEarningsOlderThan10Minutes() {
     }
   }
 
-  
+
   updateRequestQuoteSourceCompleted = async (id) => {
     const updatedTime = helpers.getUtcTimeInSeconds();
 
@@ -691,34 +693,34 @@ async clearEarningsOlderThan10Minutes() {
        updated_time = ?
       WHERE id = ? 
     `;
-    
+
     const values = [updatedTime, id];
-    
+
     const [rows] = await pool.query(query, values);
-    
+
     return rows; // This returns the number of affected rows
   };
 
   async updateRequestQuoteTime(requestId) {
     try {
-        const query = `
+      const query = `
             UPDATE request_quote
             SET updated_time = ?
             WHERE id = ?;
         `;
 
-        // Get the current UTC time in seconds
-        const updatedTime = helpers.getUtcTimeInSeconds();
+      // Get the current UTC time in seconds
+      const updatedTime = helpers.getUtcTimeInSeconds();
 
-        // Execute the query
-        const [result] = await pool.query(query, [updatedTime, requestId]);
+      // Execute the query
+      const [result] = await pool.query(query, [updatedTime, requestId]);
 
-        return result.affectedRows > 0; // Return true if the row was updated
+      return result.affectedRows > 0; // Return true if the row was updated
     } catch (error) {
-        console.error("Error updating updated_time in request_quote:", error);
-        throw error; // Re-throw the error for higher-level handling
+      console.error("Error updating updated_time in request_quote:", error);
+      throw error; // Re-throw the error for higher-level handling
     }
-}
+  }
 
   updateRequestQuoteDestinationCompleted = async (id) => {
 
@@ -730,38 +732,38 @@ async clearEarningsOlderThan10Minutes() {
       updated_time = ?
       WHERE id = ? 
     `;
-    
+
     const values = [updatedTime, id];
-    
+
     const [rows] = await pool.query(query, values);
-    
+
     return rows; // This returns the number of affected rows
   };
 
   getInvoicesByRequestId = async (requestId) => {
     try {
-        const query = 'SELECT * FROM invoices WHERE request_id = ?';
-        const [rows] = await pool.query(query, [requestId]);
-        return rows; // Returns the list of invoices
+      const query = 'SELECT * FROM invoices WHERE request_id = ?';
+      const [rows] = await pool.query(query, [requestId]);
+      return rows; // Returns the list of invoices
     } catch (error) {
-        console.error("Error fetching invoices:", error);
-        throw new Error("Failed to fetch invoices");
+      console.error("Error fetching invoices:", error);
+      throw new Error("Failed to fetch invoices");
     }
-};
- getInvoicesById = async (invoice_id) => {
+  };
+  getInvoicesById = async (invoice_id) => {
     try {
-        const query = 'SELECT * FROM invoices WHERE id = ?';
-        const [rows] = await pool.query(query, [invoice_id]);
-        return rows.length > 0 ? rows[0] : null; // Returns the list of invoices
+      const query = 'SELECT * FROM invoices WHERE id = ?';
+      const [rows] = await pool.query(query, [invoice_id]);
+      return rows.length > 0 ? rows[0] : null; // Returns the list of invoices
     } catch (error) {
-        console.error("Error fetching invoices:", error);
-        throw new Error("Failed to fetch invoices");
+      console.error("Error fetching invoices:", error);
+      throw new Error("Failed to fetch invoices");
     }
-};
+  };
 
- getInvoiceByOrderStageAndType= async (request_id, via_id, amount_type) => {
-  try {
-    const sql = `
+  getInvoiceByOrderStageAndType = async (request_id, via_id, amount_type) => {
+    try {
+      const sql = `
       SELECT *
       FROM invoices
       WHERE request_id = ?
@@ -770,82 +772,82 @@ async clearEarningsOlderThan10Minutes() {
       LIMIT 1
     `;
 
-    const [rows] = await pool.query(sql, [request_id, via_id, amount_type]);
+      const [rows] = await pool.query(sql, [request_id, via_id, amount_type]);
 
-    return rows.length > 0 ? rows[0] : null;
+      return rows.length > 0 ? rows[0] : null;
 
-  } catch (error) {
-    console.error("Error fetching invoice:", error);
-    return null; // or throw error if you want
-  }
-}
-
-
-async updateRequestInvoice(invoice_id, data) {
-        // Extract keys and values from the data object
-        const keys = Object.keys(data); // ['otp', 'expire_time']
-        const values = Object.values(data); // [newOtp, newExpireTime]
-
-        // Construct the SET clause dynamically
-        const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
-
-        // Build the query dynamically
-        const query = `UPDATE invoices SET ${setClause} WHERE id = ?`;
-
-        // Execute the query, adding the memberId to the values array
-        await pool.query(query, [...values, invoice_id]);
+    } catch (error) {
+      console.error("Error fetching invoice:", error);
+      return null; // or throw error if you want
     }
+  }
 
-async getViaByRequestAndId(requestId, viaId) {
+
+  async updateRequestInvoice(invoice_id, data) {
+    // Extract keys and values from the data object
+    const keys = Object.keys(data); // ['otp', 'expire_time']
+    const values = Object.values(data); // [newOtp, newExpireTime]
+
+    // Construct the SET clause dynamically
+    const setClause = keys.map(key => `${key} = ?`).join(', '); // e.g., "otp = ?, expire_time = ?"
+
+    // Build the query dynamically
+    const query = `UPDATE invoices SET ${setClause} WHERE id = ?`;
+
+    // Execute the query, adding the memberId to the values array
+    await pool.query(query, [...values, invoice_id]);
+  }
+
+  async getViaByRequestAndId(requestId, viaId) {
     try {
-        const query = `
+      const query = `
             SELECT * 
             FROM vias 
             WHERE request_id = ? AND id = ?;
         `;
-        const [rows] = await pool.query(query, [requestId, viaId]);
-        return rows.length > 0 ? rows[0] : null; // Return the first row if found, else null
+      const [rows] = await pool.query(query, [requestId, viaId]);
+      return rows.length > 0 ? rows[0] : null; // Return the first row if found, else null
     } catch (error) {
-        console.error("Error fetching via by request and ID:", error);
-        throw error;
+      console.error("Error fetching via by request and ID:", error);
+      throw error;
     }
-}
+  }
 
-async updateViaStatus(viaId, updateData) {
+  async updateViaStatus(viaId, updateData) {
 
     try {
 
-        const query = `
+      const query = `
             UPDATE vias 
             SET is_picked = ?, picked_time = ? 
             WHERE id = ?;
         `;
-        const [result] = await pool.query(query, [
-            updateData.is_picked,
-            updateData.picked_time,
-            viaId,
-        ]);
+      const [result] = await pool.query(query, [
+        updateData.is_picked,
+        updateData.picked_time,
+        viaId,
+      ]);
 
-        return result.affectedRows > 0; // Return true if rows were updated
+      return result.affectedRows > 0; // Return true if rows were updated
     } catch (error) {
-        console.error("Error updating via status:", error);
-        throw error;
+      console.error("Error updating via status:", error);
+      throw error;
     }
-}
+  }
 
 
-updateViaSourceCompleted = async (id) => {
+  updateViaSourceCompleted = async (id) => {
 
     const query = `
       UPDATE vias 
       SET source_completed = 1 
       WHERE id = ? 
     `;
-    
+
     const values = [id];
-    
+
     const [rows] = await pool.query(query, values);
-    
+
     return rows; // This returns the number of affected rows
   };
 
@@ -865,47 +867,47 @@ updateViaSourceCompleted = async (id) => {
         ORDER BY i.id ASC;
     `;
     try {
-        const [rows] = await pool.query(query, [requestId]);
-        
-        // If rows are found, you can map them to the required format
-        const invoices = rows.map(row => {
-            return {
-                request_id: row.request_id,
-                via_id: row.via_id,
-                handball_charges: row.handball_charges,
-                waiting_charges: row.waiting_charges,
-                address: row.address ? row.address : null // Ensures no undefined addresses
-            };
-        });
+      const [rows] = await pool.query(query, [requestId]);
 
-        return invoices;
+      // If rows are found, you can map them to the required format
+      const invoices = rows.map(row => {
+        return {
+          request_id: row.request_id,
+          via_id: row.via_id,
+          handball_charges: row.handball_charges,
+          waiting_charges: row.waiting_charges,
+          address: row.address ? row.address : null // Ensures no undefined addresses
+        };
+      });
+
+      return invoices;
     } catch (error) {
-        throw new Error(`Error fetching grouped invoices: ${error.message}`);
+      throw new Error(`Error fetching grouped invoices: ${error.message}`);
     }
-}
+  }
 
 
-async  getDueAmountByRequestId(requestId) {
+  async getDueAmountByRequestId(requestId) {
     try {
       // Query to sum the amount where status = 0
       const query = 'SELECT SUM(amount) AS dueAmount FROM invoices WHERE request_id = ? AND status = 0';
-      
+
       // Execute the query using the connection pool
       const [rows] = await pool.query(query, [requestId]);
-  
+
       // If rows contain results, return the sum of the amount
       if (rows && rows.length > 0) {
         return rows[0].dueAmount || 0; // Return the sum or 0 if no amounts are found
       }
-  
+
       return 0; // Default value if no due amount is found
     } catch (error) {
       console.error("Error fetching due amount:", error);
       throw new Error("Failed to fetch due amount.");
     }
-}
+  }
 
- async countViasBySourceCompleted(requestId) {
+  async countViasBySourceCompleted(requestId) {
     try {
       const [rows] = await pool.query(
         `SELECT COUNT(*) AS viasCount
@@ -913,8 +915,8 @@ async  getDueAmountByRequestId(requestId) {
          WHERE request_id = ? AND (source_completed = 0 || source_completed = null)`,
         [requestId] // Provide the requestId as an array
       );
-      
-    //   console.log("Raw rows result:", rows);
+
+      //   console.log("Raw rows result:", rows);
       return rows[0].viasCount; // Extract the count value
     } catch (error) {
       console.error("Error fetching vias count:", error);
@@ -932,14 +934,14 @@ async  getDueAmountByRequestId(requestId) {
     const [result] = await pool.query(query, values);
 
     if (result.affectedRows === 0) {
-        throw new Error("Rider not found or update failed.");
+      throw new Error("Rider not found or update failed.");
     }
 
     return result.affectedRows;
-}
+  }
 
-// Get the last 3 completed orders for the rider
-async getCompletedOrdersByRider(riderId) {
+  // Get the last 3 completed orders for the rider
+  async getCompletedOrdersByRider(riderId) {
     const query = `
       SELECT 
         rq.*, 
@@ -967,7 +969,7 @@ async getCompletedOrdersByRider(riderId) {
       LIMIT 3
     `;
     const values = [riderId, 'completed']; // Provide both values for placeholders
-  
+
     try {
       const [rows] = await pool.query(query, values);
       return rows;
@@ -976,8 +978,8 @@ async getCompletedOrdersByRider(riderId) {
       throw new Error("Database query failed.");
     }
   }
-  
-  
+
+
   // Get the total count of all orders for a rider with status 'completed' or 'accepted'
   async getTotalOrdersByStatus(riderId) {
     const query = `
@@ -986,7 +988,7 @@ async getCompletedOrdersByRider(riderId) {
       WHERE assigned_rider = ? AND (status = 'completed' OR status = 'accepted')
     `;
     const values = [riderId];
-  
+
     try {
       const [rows] = await pool.query(query, values);
       return rows[0].total_orders; // Return the total count
@@ -997,24 +999,24 @@ async getCompletedOrdersByRider(riderId) {
   }
 
   async getCurrentOrdersByStatus(riderId) {
-  const query = `
+    const query = `
     SELECT COUNT(*) AS total_orders
     FROM request_quote
     WHERE assigned_rider = ? 
       AND status != 'completed'
   `;
-  const values = [riderId];
+    const values = [riderId];
 
-  try {
-    const [rows] = await pool.query(query, values);
-    return rows[0].total_orders; // ✅ consistent with alias
-  } catch (error) {
-    console.error("Error fetching total orders:", error.message);
-    throw new Error("Database query failed.");
+    try {
+      const [rows] = await pool.query(query, values);
+      return rows[0].total_orders; // ✅ consistent with alias
+    } catch (error) {
+      console.error("Error fetching total orders:", error.message);
+      throw new Error("Database query failed.");
+    }
   }
-}
 
-  
+
   // Get the total count of completed orders for a rider
   async getTotalCompletedOrders(riderId) {
     const query = `
@@ -1023,7 +1025,7 @@ async getCompletedOrdersByRider(riderId) {
       WHERE assigned_rider = ? AND status = 'completed'
     `;
     const values = [riderId];
-  
+
     try {
       const [rows] = await pool.query(query, values);
       return rows[0].total_completed_orders; // Return the total count of completed orders
@@ -1034,21 +1036,21 @@ async getCompletedOrdersByRider(riderId) {
   }
 
   async getRiderClearedEarningsSum(riderId) {
-  try {
-    const [rows] = await pool.query(
-      `SELECT SUM(amount) as net_income 
+    try {
+      const [rows] = await pool.query(
+        `SELECT SUM(amount) as net_income 
        FROM earnings 
        WHERE user_id = ? AND type = 'credit' AND status = 'cleared'`,
-      [riderId]
-    );
+        [riderId]
+      );
 
-    // rows[0].net_income can be null if no records exist, so default to 0
-    return parseFloat(rows[0].net_income || 0);
-  } catch (error) {
-    console.error('Error fetching cleared earnings:', error);
-    throw error;
+      // rows[0].net_income can be null if no records exist, so default to 0
+      return parseFloat(rows[0].net_income || 0);
+    } catch (error) {
+      console.error('Error fetching cleared earnings:', error);
+      throw error;
+    }
   }
-}
 
 
   async getRiderEarnings(riderId) {
@@ -1058,7 +1060,7 @@ async getCompletedOrdersByRider(riderId) {
         `SELECT SUM(amount) as net_income FROM earnings WHERE user_id = ? and type='credit'`,
         [riderId]
       );
-  
+
       // Get available balance: sum of all 'credit' earnings - sum of all 'debit' earnings
       const [availableBalanceResult] = await pool.query(
         `SELECT 
@@ -1070,7 +1072,7 @@ async getCompletedOrdersByRider(riderId) {
         WHERE user_id = ?`,
         [riderId]
       );
-      
+
 
       // Get total withdrawn amount from withdraw_requests table
       const [withdrawnAmountResult] = await pool.query(
@@ -1080,11 +1082,11 @@ async getCompletedOrdersByRider(riderId) {
         [riderId]
       );
       // console.log("withdrawnAmountResult:",withdrawnAmountResult)
-      
-  
+
+
       // Get all earnings data for the rider
       const [earnings] = await pool.query('SELECT * FROM earnings WHERE user_id = ? ORDER BY id DESC', [riderId]);
-  
+
       // Return the calculated values along with the earnings data
       return {
         netIncome: netIncomeResult[0].net_income || 0, // Default to 0 if no result
@@ -1123,8 +1125,8 @@ async getCompletedOrdersByRider(riderId) {
         helpers.getUtcTimeInSeconds(), // updated_at
       ];
 
-      
-  
+
+
       const [result] = await pool.query(query, values); // Assuming you're using a MySQL pool
       // console.log("result:",result,"values:",values)
       return result; // Return the inserted row
@@ -1151,15 +1153,15 @@ async getCompletedOrdersByRider(riderId) {
     }
   }
 
-  async updateDrivingLicense  (riderId, filename) {
+  async updateDrivingLicense(riderId, filename) {
     const sql = "UPDATE riders SET driving_license = ? WHERE id = ?";
     return pool.query(sql, [filename, riderId]);
   }
 
   async getRiderLicenseById(riderId) {
-  const [rows] = await pool.query("SELECT driving_license FROM riders WHERE id = ?", [riderId]);
-  return rows.length ? rows[0] : null;
-}
+    const [rows] = await pool.query("SELECT driving_license FROM riders WHERE id = ?", [riderId]);
+    return rows.length ? rows[0] : null;
+  }
 
 
   async createWithdrawDetail(withdrawalId, earningId, created_at, updated_at) {
@@ -1208,74 +1210,74 @@ async getCompletedOrdersByRider(riderId) {
     const query = "DELETE FROM rider_attachments WHERE rider_id = ?";
     await pool.query(query, [riderId]);
   }
-  
+
   async insertAttachment(riderId, filename, type) {
     const query = "INSERT INTO rider_attachments (rider_id, filename, type) VALUES (?, ?, ?)";
     await pool.query(query, [riderId, filename, type]);
   }
 
   async getSubCategoriesByRiderId(riderId) {
-  const query = `
+    const query = `
     SELECT v.id
     FROM rider_vehicle_categories rvc
     JOIN vehicles v ON v.id = rvc.category_id
     WHERE rvc.rider_id = ?
   `;
-  const [rows] = await pool.query(query, [riderId]);
-  // console.log("rows:",rows)
+    const [rows] = await pool.query(query, [riderId]);
+    // console.log("rows:",rows)
 
-  return rows.map(row => row.id); // Return only names in array
-}
+    return rows.map(row => row.id); // Return only names in array
+  }
 
-async getRiderCategoriesById(rider_id) {
-  const query = `
+  async getRiderCategoriesById(rider_id) {
+    const query = `
     SELECT category_id 
     FROM rider_vehicle_categories
     WHERE rider_id = ?
   `;
-  // console.log(query,rider_id)
-  const [rows] = await pool.query(query, [rider_id]);
-  return rows.map(r => r.category_id);
-}
-
-
-async getOrderStages(orderId) {
-  const query = `SELECT * FROM order_stages WHERE order_id = ?`;
-  const [rows] = await pool.query(query, [orderId]);
-  return rows;
-}
-
-
-async updateParcelStatus(id, status) {
-  const arrival_time = helpers.getUtcTimeInSeconds(); // Only set if status is 'arrived'
-  const updated_time = helpers.getUtcTimeInSeconds(); // Always update for any action
-
-  // Build query depending on status
-  let query, values;
-
-  if (status === "arrived") {
-    query = `UPDATE order_stages 
-             SET status = ?, arrival_time = ?, updated_time = ?
-             WHERE id = ?`;
-    values = [status, arrival_time, updated_time, id];
-  } else {
-    query = `UPDATE order_stages 
-             SET status = ?, updated_time = ?
-             WHERE id = ?`;
-    values = [status, updated_time, id];
+    // console.log(query,rider_id)
+    const [rows] = await pool.query(query, [rider_id]);
+    return rows.map(r => r.category_id);
   }
 
-  // console.log("SQL:", query, values);
-  return pool.query(query, values);
-}
 
- async getUserById(userId) {
-        const query = `SELECT * FROM members WHERE id = ?`;
-        const [rows] = await pool.query(query, [userId]);
-        // console.log(rows)
-    return rows.length ? rows[0] : null; // Return the first result or null
+  async getOrderStages(orderId) {
+    const query = `SELECT * FROM order_stages WHERE order_id = ?`;
+    const [rows] = await pool.query(query, [orderId]);
+    return rows;
+  }
+
+
+  async updateParcelStatus(id, status) {
+    const arrival_time = helpers.getUtcTimeInSeconds(); // Only set if status is 'arrived'
+    const updated_time = helpers.getUtcTimeInSeconds(); // Always update for any action
+
+    // Build query depending on status
+    let query, values;
+
+    if (status === "arrived") {
+      query = `UPDATE order_stages 
+             SET status = ?, arrival_time = ?, updated_time = ?
+             WHERE id = ?`;
+      values = [status, arrival_time, updated_time, id];
+    } else {
+      query = `UPDATE order_stages 
+             SET status = ?, updated_time = ?
+             WHERE id = ?`;
+      values = [status, updated_time, id];
     }
-    // Mark a single order as ready
+
+    // console.log("SQL:", query, values);
+    return pool.query(query, values);
+  }
+
+  async getUserById(userId) {
+    const query = `SELECT * FROM members WHERE id = ?`;
+    const [rows] = await pool.query(query, [userId]);
+    // console.log(rows)
+    return rows.length ? rows[0] : null; // Return the first result or null
+  }
+  // Mark a single order as ready
   async markOrderReady(orderId) {
     const readyTime = helpers.getUtcTimeInSeconds();
     await pool.query(
@@ -1284,15 +1286,15 @@ async updateParcelStatus(id, status) {
     );
     return readyTime;
   }
-async getVehicleById(userId) {
-        const query = `SELECT * FROM vehicles WHERE id = ?`;
-        const [rows] = await pool.query(query, [userId]);
-        // console.log(rows)
+  async getVehicleById(userId) {
+    const query = `SELECT * FROM vehicles WHERE id = ?`;
+    const [rows] = await pool.query(query, [userId]);
+    // console.log(rows)
     return rows.length ? rows[0] : null; // Return the first result or null
-    }
+  }
 
-    // Check if rider has active jobs (request_quote status != 'completed')
-async hasActiveJobs(riderId) {
+  // Check if rider has active jobs (request_quote status != 'completed')
+  async hasActiveJobs(riderId) {
     const query = `
       SELECT COUNT(*) AS activeCount
       FROM request_quote
@@ -1303,7 +1305,7 @@ async hasActiveJobs(riderId) {
     return rows[0].activeCount;
   }
 
-async hasActiveJobsForMember(memberId) {
+  async hasActiveJobsForMember(memberId) {
     const query = `
       SELECT COUNT(*) AS activeCount
       FROM request_quote
@@ -1311,11 +1313,11 @@ async hasActiveJobsForMember(memberId) {
     `;
     const [rows] = await pool.query(query, [memberId]);
     return rows[0].activeCount;
-}
+  }
 
 
   // Check if user has pending invoices (via request_id from request_quote)
-async hasPendingInvoices(memberId) {
+  async hasPendingInvoices(memberId) {
     const query = `
       SELECT COUNT(*) AS pendingCount
       FROM invoices i
@@ -1323,13 +1325,13 @@ async hasPendingInvoices(memberId) {
       WHERE rq.user_id = ? AND i.status = 'pending'
     `;
     const [rows] = await pool.query(query, [memberId]);
-        // console.log("rows:",rows)
+    // console.log("rows:",rows)
 
     return rows[0].pendingCount;
   }
 
   // Deactivate rider or member account
-async deactivateRider(riderId, reason) {
+  async deactivateRider(riderId, reason) {
     const query = `
       UPDATE riders
       SET deactivated_reason = ?, is_deactivated = 1
@@ -1338,7 +1340,7 @@ async deactivateRider(riderId, reason) {
     return pool.query(query, [reason, riderId]);
   }
 
-async deactivateMember(memberId, reason) {
+  async deactivateMember(memberId, reason) {
     const query = `
       UPDATE members
       SET deactivated_reason = ?, is_deactivated = 1
@@ -1351,23 +1353,6 @@ async deactivateMember(memberId, reason) {
 
 
 
-  
-  
-  
-  
-  
-  
-  
-  
-
-
-  
-  
-  
-  
-  
-
-  
 
 
 
@@ -1378,7 +1363,24 @@ async deactivateMember(memberId, reason) {
 
 
 
-  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 }
 

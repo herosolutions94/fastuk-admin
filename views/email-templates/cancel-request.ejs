@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cancel Request Update</title>
+</head>
+<body style="margin:0;padding:20px;background:#f4f4f4;">
+  <div style="max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:8px;border:1px solid #d4e0df;">
+
+    <!-- Logo -->
+    <div style="text-align:center;">
+      <img src="<%= adminData.logo %>" alt="Logo" style="width:120px;" />
+    </div>
+
+    <h2 style="color:#ed1c24;font-weight:600;margin-top:30px;">
+      <% if (requestedBy) { %>
+        Cancellation Request Received
+      <% } else { %>
+        Cancellation Request <%= statusText %>
+      <% } %>
+    </h2>
+
+    <!-- If REQUESTED BY USER -->
+    <% if (requestedBy) { %>
+      <p><strong>Requested By:</strong> <%= requestedBy.full_name %></p>
+      <p><strong>Email:</strong> <%= requestedBy.email %></p>
+      <p><strong>Phone:</strong> <%= requestedBy.mem_phone %></p>
+
+      <p>
+        <strong>Reason for Cancellation:</strong><br />
+        <em><%= reason %></em>
+      </p>
+    <% } %>
+
+    <!-- If ADMIN APPROVED or REJECTED -->
+    <% if (!requestedBy) { %>
+      <p>
+        The cancellation request for this order has been 
+        <strong><%= statusText %></strong>.
+      </p>
+
+      <% if (cancellation_payment_charges) { %>
+        <p>
+          <strong>Refund Amount:</strong> £<%= cancellation_payment_charges %>
+        </p>
+      <% } %>
+    <% } %>
+
+    <!-- Order Details -->
+    <h3 style="margin-top:25px;font-weight:600;">Order Details</h3>
+    <p>
+      <strong>Booking ID:</strong> <%= order.booking_id %> <br />
+      <strong>Tracking ID:</strong> <%= order.tracking_id %> <br />
+      <strong>Pickup Location:</strong> <%= order.source_address %>, <%= order.source_city %> <br />
+      <strong>Drop-off Location:</strong> <%= order.dest_address %>, <%= order.dest_city %>
+    </p>
+
+    <!-- Parcels -->
+    <table style="width:100%;margin-top:20px;border-collapse:collapse;border:1px solid #ddd;">
+      <thead>
+        <tr style="background:#ed1c24;color:white;">
+          <th style="padding:13px;">Parcel</th>
+          <th style="padding:13px;">Source</th>
+          <th style="padding:13px;">Destination</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% if (order.parcels && order.parcels.length > 0) { %>
+          <% order.parcels.forEach(parcel => { %>
+            <tr>
+              <td style="padding:13px;">
+                <strong><%= parcel.parcel_number %></strong><br />
+                <%= [
+                  parcel.length,
+                  parcel.width,
+                  parcel.height,
+                  parcel.weight,
+                  parcel.quantity
+                ].filter(Boolean).join(" x ") %>
+              </td>
+              <td style="padding:13px;"><%= parcel.source_address %></td>
+              <td style="padding:13px;"><%= parcel.destination_address %></td>
+            </tr>
+          <% }); %>
+        <% } else { %>
+          <tr>
+            <td colspan="3" style="padding:13px;text-align:center;">No parcels found.</td>
+          </tr>
+        <% } %>
+      </tbody>
+    </table>
+
+  </div>
+</body>
+</html>

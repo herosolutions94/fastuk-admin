@@ -69,6 +69,41 @@ class RequestQuoteModel extends BaseModel {
     }
 }
 
+static async getCancelledQuotesWithMembers(whereConditions) {
+  try {
+    let query = `
+      SELECT 
+        rq.*, 
+        m.id AS user_id, 
+        m.full_name AS member_name, 
+        m.mem_image AS member_image,
+        m.email AS member_email,
+        m.mem_phone AS member_phone,
+        r.id AS rider_id,
+        r.full_name AS rider_name,
+        r.mem_image AS rider_image
+      FROM ${this.tableName} rq
+      INNER JOIN members m ON rq.user_id = m.id
+      LEFT JOIN riders r ON rq.assigned_rider = r.id
+    `;
+
+    // Add WHERE conditions
+    if (Array.isArray(whereConditions) && whereConditions.length > 0) {
+      query += ` WHERE ${whereConditions.join(" AND ")} `;
+    }
+
+    query += ` GROUP BY rq.id`;
+
+    const [rows] = await pool.query(query);
+    return rows;
+
+  } catch (error) {
+    console.error("Error fetching request quotes with members:", error);
+    throw error;
+  }
+}
+
+
 
     static async getOrderDetailsById(orderId) {
     try {
