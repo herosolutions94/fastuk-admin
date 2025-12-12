@@ -3915,9 +3915,10 @@ let discount = 0;
       // Fetch requests for which the assigned rider is this user and status is 'accepted'
       const memberOrders = await this.member.getOrdersByUserAndStatus({
         userId: member.id,
-        status: "not_completed",
+        status: "in_progress",
         limit: 3,
       });
+      console.log("memberOrders:", memberOrders);
 
       const memberCurrentOrders = await this.member.getOrdersByUserAndStatus({
         userId: member.id,
@@ -3933,10 +3934,7 @@ let discount = 0;
           userId: member.id,
           status: "accepted",
         });
-
-
-      // console.log("User Orders before encoding:", memberOrders);
-
+        
       // Encode the `id` for each order
       const ordersWithEncodedIds = memberOrders.map((order) => {
         const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string

@@ -124,7 +124,7 @@ class MemberModel extends BaseModel {
     // Execute the query, adding the memberId to the values array
     const [result] = await pool.query(query, [...values, requestId]);
 
-  return result; 
+    return result;
   }
 
   async updateOtp(memberId, otp) {
@@ -193,14 +193,25 @@ class MemberModel extends BaseModel {
             query += ` AND rq.status = ?`;
             values.push("completed");
             break;
+          case "not_completed":
+            // CASE 1
+            query += `
+            AND rq.status != 'completed'
+            AND rq.is_cancelled != 'approved'
+          `;
+            break;
+
           case "in_progress":
-            query += ` AND rq.status != ?`;
-            values.push("completed");
-            break;
-          case "not_completed": // <-- new case
-            query += ` AND rq.status != ?`;
-            values.push("completed");
-            break;
+          query += `
+            AND rq.status != 'completed'
+            AND (rq.is_cancelled != 'approved' OR rq.is_cancelled IS NULL)
+            AND DATE(rq.start_date) >= CURRENT_DATE()
+          `;
+          console.log("in_progress query:", query);
+          break;
+         
+
+
           default:
             query += ` AND rq.status = ?`;
             values.push(status);
@@ -420,8 +431,8 @@ GROUP BY
   }
 
   async getOrderDetailsByIdforcancelRequest({ requestId }) {
-  try {
-    const query = `
+    try {
+      const query = `
       SELECT 
         rq.*, 
         
@@ -459,17 +470,17 @@ GROUP BY
         r.full_name, r.mem_image, r.email, r.mem_phone
     `;
 
-    const [rows] = await pool.query(query, [requestId]);
+      const [rows] = await pool.query(query, [requestId]);
 
-    if (rows.length === 0) return null;
+      if (rows.length === 0) return null;
 
-    return rows[0];
+      return rows[0];
 
-  } catch (error) {
-    console.error("Error in getOrderDetailsById:", error);
-    throw new Error("Database query failed.");
+    } catch (error) {
+      console.error("Error in getOrderDetailsById:", error);
+      throw new Error("Database query failed.");
+    }
   }
-}
 
   async updateRequestData(requestId, data) {
     const keys = Object.keys(data); // ['otp', 'expire_time']
