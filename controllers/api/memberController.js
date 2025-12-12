@@ -1893,6 +1893,8 @@ let payment_methodid = null;
       let token_arr = {};
       let member = null; // 🟩 Add this
 
+      let isSignup = false;
+
 
       if (token) {
         if (memType === "rider") {
@@ -1952,6 +1954,8 @@ let payment_methodid = null;
           otp,
         });
 
+        isSignup = true; // Mark as signup
+
         // console.log("User created with ID:", userId);
       }
       else if (token === undefined || token === "") {
@@ -1986,6 +1990,8 @@ let payment_methodid = null;
         // console.log("Token stored for user:", userId);
         token_arr = { authToken, type: "user" };
       }
+      // Send email **only if this is signup**
+if (isSignup) {
       let adminData = res.locals.adminData;
       const otp = Math.floor(100000 + Math.random() * 900000);
 
@@ -2003,6 +2009,7 @@ let payment_methodid = null;
         "email-verify",
         templateData
       );
+    }
 
       let parcelsArr = [];
       let viasArr = [];
