@@ -113,9 +113,13 @@ static async getCancelledQuotesWithMembers(whereConditions) {
             m.id AS user_id, 
             m.full_name AS member_name, 
             m.mem_image AS member_dp, 
+            m.mem_phone AS mem_phone, 
+            m.email AS mem_email, 
             r.id AS rider_id, 
             r.full_name AS rider_name, 
-            r.mem_image AS rider_dp
+            r.mem_image AS rider_dp,
+            r.mem_phone AS rider_phone,
+            r.email AS rider_email
         FROM ${this.tableName} rq
         LEFT JOIN members m ON rq.user_id = m.id
         LEFT JOIN riders r ON rq.assigned_rider = r.id

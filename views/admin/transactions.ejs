@@ -48,7 +48,7 @@
             </div>
             </a>
             </td>
-            <td><p>£<%= transaction.amount %></p></td>
+            <td><p><%= helpers?.format_amount(transaction.amount) %></p></td>
             <td><p><%= transaction.payment_method %></p></td>
             <td><p><%= helpers.convertUtcToUkFormat(transaction.created_time) %></p></td>
             <td>

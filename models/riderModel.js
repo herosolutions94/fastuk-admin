@@ -110,13 +110,16 @@ class RiderModel extends BaseModel {
             ON rq.selected_vehicle = rvc.category_id
         WHERE 
             rq.assigned_rider IS NULL
-            AND (rq.is_cancelled IS NULL OR rq.is_cancelled != 'approved')
+AND COALESCE(rq.is_cancelled, '') <> 'approved'
 
             AND rvc.category_id IN (${placeholders})
         HAVING radius_distance <= 30
-        ORDER BY rq.start_date DESC, rq.created_date DESC, radius_distance ASC;
+    ORDER BY rq.created_date DESC, radius_distance ASC;
 
     `;
+            // ORDER BY rq.start_date DESC, rq.created_date DESC, radius_distance ASC;
+
+
 
     const params = [
       lat,
