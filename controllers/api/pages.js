@@ -466,12 +466,12 @@ class PagesController extends BaseController {
       // console.log("attachments:", attachments)
       // Combine the content and multi_text data
       const jsonResponse = {
-        siteSettings,
+        // siteSettings,
         vehicles: vehicles,
         content: formData,
         cities,
         attachments,
-        drivingLicense: drivingLicense
+        // drivingLicense: drivingLicense
       };
 
       // Return data in JSON format
@@ -754,32 +754,32 @@ class PagesController extends BaseController {
 
   async getVehiclesByCategoryId(req, res) {
     const { categoryId } = req.params;
-  // const { totalWeight, totalQuantity, maxLength, maxWidth, maxHeight } = req.body;
-  // console.log(req.body, 'req.body in getVehiclesByCategoryId');
+    // const { totalWeight, totalQuantity, maxLength, maxWidth, maxHeight } = req.body;
+    // console.log(req.body, 'req.body in getVehiclesByCategoryId');
 
-  let { parcelsArr, totalWeight, totalQuantity, maxLength, maxWidth, maxHeight } = req.body;
+    let { parcelsArr, totalWeight, totalQuantity, maxLength, maxWidth, maxHeight } = req.body;
 
-if (!parcelsArr || parcelsArr.length === 0) {
-  return res.status(400).json({ status: 0, msg: "Missing parcel data" });
-}
+    if (!parcelsArr || parcelsArr.length === 0) {
+      return res.status(400).json({ status: 0, msg: "Missing parcel data" });
+    }
 
-// Parse parcelsArr if it's a string
-if (typeof parcelsArr === "string") {
-  parcelsArr = JSON.parse(parcelsArr);
-}
-
-
-
-  console.log(parcelsArr, 'parcelsArr in getVehiclesByCategoryId');
+    // Parse parcelsArr if it's a string
+    if (typeof parcelsArr === "string") {
+      parcelsArr = JSON.parse(parcelsArr);
+    }
 
 
 
-  // if (!totalWeight || !totalQuantity || !maxLength || !maxWidth || !maxHeight) {
-  //   return res.status(200).json({
-  //     status: 0,
-  //     msg: "Missing parcel data"
-  //   });
-  // }
+    // console.log(parcelsArr, 'parcelsArr in getVehiclesByCategoryId');
+
+
+
+    // if (!totalWeight || !totalQuantity || !maxLength || !maxWidth || !maxHeight) {
+    //   return res.status(200).json({
+    //     status: 0,
+    //     msg: "Missing parcel data"
+    //   });
+    // }
 
 
     try {
@@ -792,6 +792,7 @@ if (typeof parcelsArr === "string") {
 
       // Step 2: Fetch all vehicles in that category
       const vehiclesResult = await VehicleAdminModel.getVehicleByVehicleCategoryId(categoryId);
+      // console.log("vehiclesResult:",vehiclesResult)
 
 
       // console.log("vehiclesResult by category id:", vehiclesResult);
@@ -800,26 +801,27 @@ if (typeof parcelsArr === "string") {
 
       const matchingVehicles = vehiclesResult.filter(vehicle => {
         const vehicleMaxHeight = Number(vehicle.max_height);
-      const vehicleMaxLength = Number(vehicle.max_length);
-      const vehicleMaxWidth = Number(vehicle.max_width || vehicle.max_width_inch || 0);
-      const loadCapacity = Number(vehicle.load_capacity);
-      const palletCount = Number(vehicle.no_of_pallets);
+        const vehicleMaxLength = Number(vehicle.max_length);
+        const vehicleMaxWidth = Number(vehicle.max_width || vehicle.max_width_inch || 0);
+        const loadCapacity = Number(vehicle.load_capacity);
+        const palletCount = Number(vehicle.no_of_pallets);
 
-       // 👇 If parcel type is ONLY "document"
-  if (hasOnlyDocuments) {
-    return loadCapacity >= totalWeight; // ONLY weight check
-  }
+        // 👇 If parcel type is ONLY "document"
+        if (hasOnlyDocuments) {
+          return loadCapacity >= totalWeight; // ONLY weight check
+        }
 
-      return (
-        loadCapacity >= totalWeight &&
-        palletCount >= totalQuantity &&
-        vehicleMaxLength >= maxLength &&
-        vehicleMaxWidth >= maxWidth &&
-        vehicleMaxHeight >= maxHeight
-      );
-    });
+        return (
+          loadCapacity >= totalWeight
+          // &&
+          // palletCount >= totalQuantity &&
+          // vehicleMaxLength >= maxLength &&
+          // vehicleMaxWidth >= maxWidth &&
+          // vehicleMaxHeight >= maxHeight
+        );
+      });
 
-       
+
 
       if (matchingVehicles.length === 0) {
         return res.status(200).json({
@@ -873,106 +875,137 @@ if (typeof parcelsArr === "string") {
     });
   };
 
-  async getAvailableVehicleCategories(req, res) {
+  // async getAvailableVehicleCategories(req, res) {
 
-      const { totalWeight, totalQuantity, maxLength, maxWidth, maxHeight , parcelsArr} = req.body;
-      // console.log(req.body, 'req.body in getAvailableVehicleCategories');
+  //   const { totalWeight, totalQuantity, maxLength, maxWidth, maxHeight, parcelsArr } = req.body;
+  //   // console.log(req.body, 'req.body in getAvailableVehicleCategories');
 
-  //      if (!totalWeight || !totalQuantity || maxLength === undefined || maxWidth === undefined || maxHeight === undefined) {
-  //   return res.status(200).json({
-  //     status: 0,
-  //     msg: "Invalid or missing parcel data"
-  //   });
+  //   //      if (!totalWeight || !totalQuantity || maxLength === undefined || maxWidth === undefined || maxHeight === undefined) {
+  //   //   return res.status(200).json({
+  //   //     status: 0,
+  //   //     msg: "Invalid or missing parcel data"
+  //   //   });
+  //   // }
+
+
+  //   let parcels = [];
+
+  //   if (parcelsArr) {
+  //     parcels = Array.isArray(parcelsArr) ? parcelsArr : JSON.parse(parcelsArr);
+  //   }
+
+  //   const isAllDocuments =
+  //     parcels.length > 0 &&
+  //     parcels.every(p => p.parcelType === "document");
+
+
+
+  //   try {
+  //     const vehicleModel = new VehicleModel();
+  //     // Fetch all active vehicles
+  //     const vehicles = await vehicleModel.getActiveVehicles();
+
+  //     // console.log("All vehicles:", vehicles.map(v => ({ title: v.title, load_capacity: v.load_capacity, no_of_pallets: v.no_of_pallets, max_length: v.max_length, max_width: v.max_width, max_height: v.max_height })));
+
+
+  //     const matchingVehicles = vehicles.filter(v => {
+
+  //       const loadCapacity = Number(v.load_capacity);
+  //       if (isAllDocuments) {
+  //         // Only weight matters for documents
+  //         return loadCapacity >= Number(totalWeight);
+  //       }
+  //       // const palletCount = Number(v.no_of_pallets);
+  //       // const vehicleMaxLength = Number(v.max_length);
+  //       // const vehicleMaxWidth = Number(v.max_width || 0);
+  //       // const vehicleMaxHeight = Number(v.max_height);
+
+
+
+  //       return (
+  //         loadCapacity >= Number(totalWeight)
+  //         // && palletCount >= totalQuantity &&
+  //         // vehicleMaxLength >= maxLength &&
+  //         // vehicleMaxWidth >= maxWidth &&
+  //         // vehicleMaxHeight >= maxHeight
+  //       );
+  //     });
+  //     // console.log("matchingVehicles",matchingVehicles)
+  //     if (matchingVehicles.length === 0) {
+  //       return res.status(200).json({
+  //         status: 0,
+  //         msg: "No available vehicle categories match the parcel dimensions."
+  //       });
+  //     }
+
+
+  //     if (matchingVehicles.length > 0) {
+  //       // Extract unique category IDs
+  //       const categoryIds = [...new Set(matchingVehicles.map(v => v.vehicle_category_id))];
+  //       // console.log("categoryIds:", categoryIds)
+
+
+  //       // Fetch only categories that match those IDs
+  //       const vehicleCategories = await VehicleCategoryModel.getVehicleCategoriesById(categoryIds);
+  //       // console.log("vehicleCategories:",vehicleCategories)
+
+  //       // console.log("Vehicle result:", vehicles);
+
+
+
+  //       return res.status(200).json({
+  //         status: 1,
+  //         msg: "Available vehicle categories fetched successfully!",
+  //         vehicleCategories: vehicleCategories
+  //       });
+  //     } else {
+  //       return res.status(200).json({
+  //         status: 0,
+  //         msg: "No available vehicle categories found for the given criteria."
+  //       });
+  //     }
+  //   } catch (error) {
+  //     console.error("Error fetching available vehicle categories:", error.message);
+  //     return res.status(500).json({
+  //       status: 0,
+  //       msg: "Internal Server Error",
+  //       details: error.message
+  //     });
+  //   }
   // }
 
-
-let parcels = [];
-
-if (parcelsArr) {
-  parcels = Array.isArray(parcelsArr) ? parcelsArr : JSON.parse(parcelsArr);
-}
-
-const isAllDocuments =
-  parcels.length > 0 &&
-  parcels.every(p => p.parcelType === "document");
-
-// console.log("isAllDocuments:", isAllDocuments);
+  async getAvailableVehicleCategories(req, res) {
+        // console.log('REQ BODY:', req.body); // DEBUG
 
 
     try {
-      const vehicleModel = new VehicleModel();
-      // Fetch all active vehicles
-      const vehicles = await vehicleModel.getActiveVehicles();
+      const { totalWeight } = req.body;
+      if (totalWeight === undefined || totalWeight === null) {
+        return res.status(200).json({
+        status: 0,
+        msg: "totalWeight is required"
+      });
+    }
 
-      // console.log("All vehicles:", vehicles.map(v => ({ title: v.title, load_capacity: v.load_capacity, no_of_pallets: v.no_of_pallets, max_length: v.max_length, max_width: v.max_width, max_height: v.max_height })));
+     const vehicleModel = new VehicleModel();
 
 
-const matchingVehicles = vehicles.filter(v => {
+      const categories =
+        await vehicleModel.getVehicleCategoriesByWeight(totalWeight);
+        // console.log("categories:",categories)
 
-       const loadCapacity = Number(v.load_capacity);
-       if (isAllDocuments) {
-    // Only weight matters for documents
-    return loadCapacity >= Number(totalWeight);
-  }
-      const palletCount = Number(v.no_of_pallets);
-      const vehicleMaxLength = Number(v.max_length);
-      const vehicleMaxWidth = Number(v.max_width || 0);
-      const vehicleMaxHeight = Number(v.max_height);
-
-      
-
-      return (
-        loadCapacity >= totalWeight &&
-        palletCount >= totalQuantity &&
-        vehicleMaxLength >= maxLength &&
-        vehicleMaxWidth >= maxWidth &&
-        vehicleMaxHeight >= maxHeight
-      );
-    });
-
-    if (matchingVehicles.length === 0) {
       return res.status(200).json({
-        status: 0,
-        msg: "No available vehicle categories match the parcel dimensions."
+        status: 1,
+        vehicleCategories: categories,
+        msg: 'Vehicle categories fetched successfully'
       });
-    }
-     
 
-      if (matchingVehicles.length > 0) {
-        // Extract unique category IDs
-        const categoryIds = [...new Set(matchingVehicles.map(v => v.vehicle_category_id))];
-        // console.log("categoryIds:", categoryIds)
-
-
-        // Fetch only categories that match those IDs
-        const vehicleCategories = await VehicleCategoryModel.getVehicleCategoriesById(categoryIds);
-        // console.log("vehicleCategories:",vehicleCategories)
-
-        // console.log("Vehicle result:", vehicles);
-
-
-
-        return res.status(200).json({
-          status: 1,
-          msg: "Available vehicle categories fetched successfully!",
-          vehicleCategories: vehicleCategories
-        });
-      } else {
-        return res.status(200).json({
-          status: 0,
-          msg: "No available vehicle categories found for the given criteria."
-        });
-      }
     } catch (error) {
-      console.error("Error fetching available vehicle categories:", error.message);
-      return res.status(500).json({
-        status: 0,
-        msg: "Internal Server Error",
-        details: error.message
-      });
+      console.error(error);
+      return this.sendError(res, 'Server error');
     }
-  }
 
+  }
 
 
 

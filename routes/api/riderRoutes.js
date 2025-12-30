@@ -41,6 +41,9 @@ router.post('/change-order-request-status', upload, riderController.changeOrderR
 router.post('/parcel-status-update', upload, riderController.parcelStatusChange.bind(riderController));
 router.post('/update-parcel-status', upload, riderController.updateParcelStatus.bind(riderController));
 router.get('/clear-earnings', upload, riderController.clearOldEarnings.bind(riderController));
+router.get('/generate-missing-qrcodes', upload, riderController.generateMissingQRCodes.bind(riderController));
+router.post("/get-rider-info/:user_name", riderController.getRiderByUsername.bind(riderController));
+
 
 
 

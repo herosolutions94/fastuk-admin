@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Rider Reached Pickup Location</title>
+  </head>
+  <body style="margin: 0; padding: 20px; background-color: #f4f4f4">
+    <div
+      style="
+        max-width: 900px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #d4e0df;
+      ">
+      <!-- Logo -->
+      <table style="width: 100%; border-spacing: 0">
+        <tr>
+          <td style="text-align: center">
+            <img
+              src="<%= adminData.logo %>"
+              alt="Logo"
+              style="width: 100px" />
+          </td>
+        </tr>
+      </table>
+
+      <!-- Message -->
+      <% if (order.parcels && order.parcels.length) { %>
+<table
+  style="
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+    border: 1px solid #ddd;
+  ">
+  <thead>
+    <tr style="background-color: #ed1c24; color: #fff">
+      <th style="padding: 13px">Parcel</th>
+      <th style="padding: 13px">Pickup</th>
+      <th style="padding: 13px">Destination</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% order.parcels.forEach(parcel => { %>
+    <tr>
+      <td style="padding: 13px"><%= parcel.parcel_number %></td>
+      <td style="padding: 13px"><%= parcel.source_address %></td>
+      <td style="padding: 13px"><%= parcel.destination_address %></td>
+    </tr>
+    <% }) %>
+  </tbody>
+</table>
+<% } %>
+        <table style="width: 100%; margin-top: 30px; border-collapse: collapse">
+            <tr>
+            <td style="padding: 10px">
+                <p>
+                Good news! Your rider has reached the pickup location at
+                <strong><%= address %></strong>.
+                </p>
+                <p>
+                <strong style="font-weight: 600">Tracking ID:</strong> <%=
+                order.tracking_id %>
+                </p>
+                <p>
+                <strong style="font-weight: 600">Booking ID:</strong> <%=
+                order.booking_id %>
+                </p>
+                <p>
+                <strong style="font-weight: 600">Assigned Rider:</strong> <%=
+                order.rider_name %>
+                </p>
+            </td>
+            </tr>
+
+      <!-- Locations -->
+      <table style="width: 100%; margin-top: 10px">
+        <tr>
+          <td style="width: 50%; padding: 10px">
+            <strong>Pickup Location</strong><br />
+            <%= order.source_address %>, <%= order.source_city %><br />
+            <%= order.source_postcode %>
+          </td>
+
+          <td style="width: 50%; padding: 10px">
+            <strong>Drop-off Location</strong><br />
+            <%= order.dest_address %>, <%= order.dest_city %><br />
+            <%= order.dest_postcode %>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Parcels -->
+      <table
+        style="
+          width: 100%;
+          margin-top: 20px;
+          border-collapse: collapse;
+          border: 1px solid #ddd;
+        ">
+        <thead>
+          <tr style="background-color: #ed1c24; color: #fff">
+            <th style="padding: 13px">Parcel</th>
+            <th style="padding: 13px">Pickup</th>
+            <th style="padding: 13px">Destination</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% order.parcels.forEach(parcel => { %>
+          <tr>
+            <td style="padding: 13px">
+              <%= parcel.parcel_number %>
+            </td>
+            <td style="padding: 13px">
+              <%= parcel.source_address %>
+            </td>
+            <td style="padding: 13px">
+              <%= parcel.destination_address %>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <!-- CTA -->
+      <div style="text-align: center; margin-top: 20px">
+        <a
+          href="https://fastukcouriers.com/order-track?tracking_id=<%= order.tracking_id %>"
+          style="
+            display: inline-block;
+            background: #077eff;
+            color: #fff;
+            text-decoration: none;
+            padding: 12px 35px;
+            border-radius: 50px;
+            font-weight: 500;
+          ">
+          Track Your Order
+        </a>
+
+        <p style="font-size: 14px; color: #555; margin-top: 10px">
+          Thank you for choosing our service.
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

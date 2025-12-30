@@ -46,7 +46,7 @@ class ReportsController extends BaseController {
 		    JOIN request_quote rq ON t.transaction_id = rq.id 
 		    WHERE t.transaction_id IS NOT NULL 
 		    AND t.transaction_id != 0 
-		    AND rq.status = 'completed' 
+		    AND rq.status = 'paid' 
 		    AND ${dateConditionRequests.replace(/created_at/g, 'rq.created_date')}`
 		);
 
@@ -60,7 +60,7 @@ class ReportsController extends BaseController {
 	    const earningsCount = earningsCountResult?.length > 0 ? earningsCountResult[0].earnings : 0;
 	    const transactionsCount = transactionsCountResult?.length > 0 ? transactionsCountResult[0].transactions : 0;
 	    const withdrawResult = withdrawAmountResult?.length > 0 ? withdrawAmountResult[0].amount : 0;
-		console.log("withdrawResult:",withdrawAmountResult)
+		// console.log("withdrawResult:",withdrawAmountResult)
 		return res.status(200).json({
 	        status: 1,
 	         stats: {
@@ -86,7 +86,7 @@ class ReportsController extends BaseController {
 	            JOIN request_quote rq ON t.transaction_id = rq.id 
 	            WHERE t.transaction_id IS NOT NULL 
 	            AND t.transaction_id != 0 
-	            AND rq.status = 'completed'
+	            AND rq.status = 'paid'
 	        `);
 	        const [withdrawAmountResult] = await pool.query('SELECT SUM(amount) AS amount FROM withdraw_requests WHERE status=?',['cleared']);
 

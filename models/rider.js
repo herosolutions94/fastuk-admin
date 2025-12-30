@@ -33,6 +33,7 @@ class Rider {
         LEFT JOIN members m ON rq.user_id = m.id
         WHERE rq.assigned_rider = ?
         AND rq.status != 'completed'
+        AND (is_cancelled IS NULL OR is_cancelled != 'approved')
     `;
 
     const [rows] = await pool.query(query, [riderId]);

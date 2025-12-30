@@ -614,7 +614,7 @@ class MemberController extends BaseController {
       price
     } = req.body;
 
-// console.log("paymentIntent called with body:", req.body);
+    // console.log("paymentIntent called with body:", req.body);
 
     const requiredFields = [
       "selectedVehicle",
@@ -666,11 +666,12 @@ class MemberController extends BaseController {
       let total_amount = order_amount_details?.totalAmount;
       let taxAmount = order_amount_details?.taxAmount;
       let vatAmount = order_amount_details?.vatAmount;
-      
+
       let grandTotal = order_amount_details?.grandTotal;
 
       let userId;
       let token_arr = {};
+      let isSignup = false; // <-- flag to track signup
       // Handle user authentication/creation
       if (token) {
         if (!token) {
@@ -712,7 +713,7 @@ class MemberController extends BaseController {
         }
 
         // Check if user already exists
-        const userExist = await this.member.emailExists(email);
+        const userExist = await this.member.findByEmail(email);
         if (userExist) {
           return res
             .status(200)
@@ -731,6 +732,8 @@ class MemberController extends BaseController {
           created_at: helpers.create_current_date(),
           otp,
         });
+
+        isSignup = true; // <-- mark as signup
 
         // console.log("User created with ID:", userId);
       }
@@ -761,22 +764,25 @@ class MemberController extends BaseController {
         // console.log("Token stored for user:", userId);
         token_arr = { authToken, type: "user" };
       }
-      let adminData = res.locals.adminData;
-      const otp = Math.floor(100000 + Math.random() * 900000);
+      // Send email **only on signup**
+      if (isSignup) {
+        let adminData = res.locals.adminData;
+        const otp = Math.floor(100000 + Math.random() * 900000);
 
-      const subject = "Verify Your Email - " + adminData.site_name;
-      const templateData = {
-        username: full_name, // Pass username
-        otp: otp, // Pass OTP
-        adminData,
-      };
+        const subject = "Verify Your Email - " + adminData.site_name;
+        const templateData = {
+          username: full_name, // Pass username
+          otp: otp, // Pass OTP
+          adminData,
+        };
 
-      const result = await helpers.sendEmail(
-        email,
-        subject,
-        "email-verify",
-        templateData
-      );
+        const result = await helpers.sendEmail(
+          email,
+          subject,
+          "email-verify",
+          templateData
+        );
+      }
 
       // console.log("result:", result);
       if (
@@ -824,14 +830,14 @@ class MemberController extends BaseController {
         }
 
         formattedTotalPrice = total_amount - discount;
-        
+
         formattedTotalPrice = parseFloat(formattedTotalPrice.toFixed(2));
       }
 
       // console.log("formattedTotalPrice api:", formattedTotalPrice);
-// console.log("taxAmount api:", taxAmount);
+      // console.log("taxAmount api:", taxAmount);
 
-// console.log("grandTotal before promo api:", grandTotal);
+      // console.log("grandTotal before promo api:", grandTotal);
 
       // Handle payment logic
       const parsedAmount = parseFloat(formattedTotalPrice);
@@ -841,7 +847,7 @@ class MemberController extends BaseController {
           .json({ error: "Amount must be a positive number." });
       }
 
-            // console.log("Amount after discounts & tax (decimal):", parsedAmount);
+      // console.log("Amount after discounts & tax (decimal):", parsedAmount);
 
 
       // Create customer on Stripe
@@ -863,13 +869,13 @@ class MemberController extends BaseController {
 
 
       // Stripe minimum amount check (example for USD/GBP = 50 cents/pence)
-if (amountInCents < 50) {
-  return res.status(200).json({
-    status: 0,
-    message: "Total amount is too low for Stripe. Must be at least $0.50 / £0.50.",
-    finalAmount: parsedAmount
-  });
-}
+      if (amountInCents < 50) {
+        return res.status(200).json({
+          status: 0,
+          message: "Total amount is too low for Stripe. Must be at least $0.50 / £0.50.",
+          finalAmount: parsedAmount
+        });
+      }
       const paymentIntent = await stripe.paymentIntents.create({
         amount: amountInCents,
         currency: "usd",
@@ -1027,7 +1033,7 @@ if (amountInCents < 50) {
                 // ✅ ensure proper numeric formatting
                 total_amount: helpers.formatAmount(orderDetails.total_amount),
                 tax: helpers.formatAmount(orderDetails.tax),
-              
+
                 distance: helpers.formatAmount(orderDetails.distance),
               };
               await helpers.sendEmail(
@@ -1054,6 +1060,7 @@ if (amountInCents < 50) {
             payment_method: "paypal",
             transaction_id: orderDetails?.id,
             created_time: created_time,
+            status: "paid",
             payment_intent_id: payerID,
             payment_method_id: "",
             type: "Request Quote",
@@ -1142,6 +1149,7 @@ if (amountInCents < 50) {
               payment_method: "paypal",
               transaction_id: 0,
               created_time: helpers.getUtcTimeInSeconds(),
+              status: "paid",
               payment_intent_id: payerID,
               payment_method_id: "",
               type: "credits",
@@ -1223,6 +1231,7 @@ if (amountInCents < 50) {
             payment_method: "paypal",
             transaction_id: orderDetails?.id,
             created_time: created_time,
+            status: "paid",
             payment_intent_id: payerID,
             payment_method_id: "",
             type: "Invoice",
@@ -1365,6 +1374,7 @@ if (amountInCents < 50) {
                   payment_method: "gocardless",
                   transaction_id: order_id && !isNaN(order_id) ? parseInt(order_id, 10) : null,
                   created_time: helpers.getUtcTimeInSeconds(),
+                  status: "paid",
                   payment_intent_id: "",
                   payment_method_id: payment.links?.mandate || "",
                   type: "Request Quote",
@@ -1398,6 +1408,7 @@ if (amountInCents < 50) {
                   payment_method: "gocardless",
                   transaction_id: orderId,
                   created_time: helpers.getUtcTimeInSeconds(),
+                  status: "paid",
                   payment_intent_id: "",
                   payment_method_id: payment.links?.mandate || "",
                   type: "Request Quote",
@@ -1491,6 +1502,7 @@ if (amountInCents < 50) {
         payment_method: "gocardless",
         transaction_id: order_id && !isNaN(order_id) ? parseInt(order_id, 10) : null,
         created_time: helpers.getUtcTimeInSeconds(),
+        status: "paid",
         payment_intent_id: "",
         payment_method_id: payment.links?.mandate || "",
         type: "credits",
@@ -1557,7 +1569,7 @@ if (amountInCents < 50) {
             start_date: helpers.formatDateToUK(orderDetails.start_date),
             total_amount: helpers.formatAmount(orderDetails.total_amount),
             tax: helpers.formatAmount(orderDetails.tax),
-            
+
             distance: helpers.formatAmount(orderDetails.distance),
           };
 
@@ -1580,6 +1592,7 @@ if (amountInCents < 50) {
         payment_method: "gocardless",
         transaction_id: orderDetails?.id,
         created_time,
+        status: "paid",
         payment_intent_id: payment.id,
         payment_method_id: payment.links?.mandate || "",
         type: "Request Quote",
@@ -1800,14 +1813,14 @@ if (amountInCents < 50) {
 
     try {
       let payment_intent_id = null;
-let payment_methodid = null;
+      let payment_methodid = null;
       // Destructure necessary fields from req.body
       const {
         token,
         payment_intent_customer_id,
         // payment_intent_id,   // coming from frontend
         payment_intent_id: frontend_payment_intent_id,
-  customer_id,
+        customer_id,
         selectedVehicle,
         remote_price,
         rider_price,
@@ -1855,7 +1868,7 @@ let payment_methodid = null;
         confirm_password,
         fingerprint,
         is_ready,
-        ready_time,	
+        ready_time,
         via_pickup_time_option,
         via_pickup_time,
         via_pickup_date,
@@ -1934,7 +1947,7 @@ let payment_methodid = null;
         }
 
         // Check if user already exists
-        const userExist = await this.member.emailExists(email);
+        const userExist = await this.member.findByEmail(email);
         if (userExist) {
           return res
             .status(200)
@@ -1991,25 +2004,25 @@ let payment_methodid = null;
         token_arr = { authToken, type: "user" };
       }
       // Send email **only if this is signup**
-if (isSignup) {
-      let adminData = res.locals.adminData;
-      const otp = Math.floor(100000 + Math.random() * 900000);
+      if (isSignup) {
+        let adminData = res.locals.adminData;
+        const otp = Math.floor(100000 + Math.random() * 900000);
 
-      const subject = "Verify Your Email - " + adminData.site_name;
-      const templateData = {
-        username: full_name, // Pass username
-        otp: otp, // Pass OTP
-        adminData,
-      };
-      // console.log("Sending verification email to:", email);
+        const subject = "Verify Your Email - " + adminData.site_name;
+        const templateData = {
+          username: full_name, // Pass username
+          otp: otp, // Pass OTP
+          adminData,
+        };
+        // console.log("Sending verification email to:", email);
 
-      const result = await helpers.sendEmail(
-        email,
-        subject,
-        "email-verify",
-        templateData
-      );
-    }
+        const result = await helpers.sendEmail(
+          email,
+          subject,
+          "email-verify",
+          templateData
+        );
+      }
 
       let parcelsArr = [];
       let viasArr = [];
@@ -2037,10 +2050,10 @@ if (isSignup) {
       // console.log("order_amount_details:", order_amount_details);return;
       let total_distance = order_amount_details?.totalDistance;
       let total_amount = Number(order_amount_details.totalAmount);
-let taxAmount = Number(order_amount_details.taxAmount);
-let vatAmount = Number(order_amount_details.vatAmount);
-let grandTotal = Number(order_amount_details.grandTotal);
-      
+      let taxAmount = Number(order_amount_details.taxAmount);
+      let vatAmount = Number(order_amount_details.vatAmount);
+      let grandTotal = Number(order_amount_details.grandTotal);
+
       // console.log(order_amount_details);return;
       const parsedStartDate = date ? new Date(date) : null;
 
@@ -2059,11 +2072,11 @@ let grandTotal = Number(order_amount_details.grandTotal);
       const formattedVehiclePrice = parseFloat(price || 0);
       let formattedTotalAmount = parseFloat(grandTotal || 0);
       const formattedTax = parseFloat(taxAmount || 0);
-const formattedVat = parseFloat(vatAmount || 0);
+      const formattedVat = parseFloat(vatAmount || 0);
 
-      
 
-let discount = 0;
+
+      let discount = 0;
 
       // console.log(formattedTotalAmount,formattedTax);return;
       if (
@@ -2098,7 +2111,7 @@ let discount = 0;
         // console.log("formattedTax :", formattedTax);
 
         // ✅ Ensure numeric addition
-        formattedTotalAmount = parseFloat(formattedTotalAmount) + parseFloat(taxAmount)+ parseFloat(vatAmount);
+        formattedTotalAmount = parseFloat(formattedTotalAmount) + parseFloat(taxAmount) + parseFloat(vatAmount);
         // console.log("formattedTotalAmount type:", formattedTotalAmount);return;
 
         formattedTotalAmount = parseFloat(formattedTotalAmount);
@@ -2108,9 +2121,9 @@ let discount = 0;
       // console.log("Remote price",remote_price)
       let clientSecret = "";
       // let payment_intent_id = payment_intent_customer_id;
-       payment_methodid = payment_method_id;
+      payment_methodid = payment_method_id;
       // let payment_intent = payment_intent_id;
-      let payment_intent = frontend_payment_intent_id; 
+      let payment_intent = frontend_payment_intent_id;
       let requestQuoteId = "";
       // console.log("payment_method:", payment_method);return;
 
@@ -2124,11 +2137,11 @@ let discount = 0;
           tax: formattedTax,
           vat: formattedVat,
 
-           // ⭐ ADD THESE THREE FIELDS
-        payment_intent: payment_intent,      // <-- store Stripe paymentIntent.id
-        customer_id: customer_id,            // <-- store Stripe customer_id returned from create-payment-intent
-        payment_method_id: payment_methodid, // <-- frontend already sends this
-          
+          // ⭐ ADD THESE THREE FIELDS
+          payment_intent: payment_intent,      // <-- store Stripe paymentIntent.id
+          customer_id: customer_id,            // <-- store Stripe customer_id returned from create-payment-intent
+          payment_method_id: payment_methodid, // <-- frontend already sends this
+
           // payment_intent: payment_intent_customer_id,
           // customer_id: payment_intent_customer_id,
           source_postcode,
@@ -2145,7 +2158,7 @@ let discount = 0;
           source_long,
           payment_method,
           is_ready: 0,
-          ready_time,	
+          ready_time,
           payment_method_id: payment_methodid,
           created_date: new Date(), // Set current date as created_date
           start_date: parsedStartDate,
@@ -2324,7 +2337,7 @@ let discount = 0;
           total_amount: formattedTotalAmount,
           tax: formattedTax,
           vat: formattedVat,
-          
+
           // payment_intent: paymentIntent.id, // Store the Payment Intent ID
           payment_intent: payment_intent,
 
@@ -2342,7 +2355,7 @@ let discount = 0;
           dest_city,
           source_lat,
           source_long,
-          is_ready:0,
+          is_ready: 0,
           ready_time,
           payment_method,
           saved_card_id, // Store the saved card ID
@@ -2440,7 +2453,7 @@ let discount = 0;
           total_amount: formattedTotalAmount,
           tax: formattedTax,
           vat: formattedVat,
-          
+
           payment_intent: "", // Store the Payment Intent ID
           customer_id: "", // Store the Customer ID
           payment_method_id: "", // Store the Stripe Payment Method ID
@@ -2456,7 +2469,7 @@ let discount = 0;
           dest_city,
           source_lat,
           source_long,
-          is_ready:0,
+          is_ready: 0,
           ready_time,
           payment_method,
           created_date: new Date(),
@@ -2541,7 +2554,7 @@ let discount = 0;
           total_amount: formattedTotalAmount,
           tax: formattedTax,
           vat: formattedVat,
-          
+
           payment_intent: "", // Store the Payment Intent ID
           customer_id: "", // Store the Customer ID
           payment_method_id: "", // Store the Stripe Payment Method ID
@@ -2557,7 +2570,7 @@ let discount = 0;
           dest_city,
           source_lat,
           source_long,
-           is_ready:0,
+          is_ready: 0,
           ready_time,
           payment_method,
           created_date: new Date(),
@@ -2643,7 +2656,7 @@ let discount = 0;
           total_amount: formattedTotalAmount,
           tax: formattedTax,
           vat: formattedVat,
-          
+
           payment_intent: "", // Store the Payment Intent ID
           customer_id: "", // Store the Customer ID
           payment_method_id: "", // Store the Stripe Payment Method ID
@@ -2745,7 +2758,7 @@ let discount = 0;
             total_amount: formattedTotalAmount,
             tax: formattedTax,
             vat: formattedVat,
-           
+
             payment_intent: "", // Store the Payment Intent ID
             customer_id: "", // Store the Customer ID
             payment_method_id: "", // Store the Stripe Payment Method ID
@@ -2761,8 +2774,8 @@ let discount = 0;
             dest_city,
             source_lat,
             source_long,
-             is_ready:0,
-          ready_time,
+            is_ready: 0,
+            ready_time,
             payment_method,
             created_date: new Date(),
             start_date: new Date(date),
@@ -2873,7 +2886,7 @@ let discount = 0;
         distance: parcel.distance,
         parcelType: parcel.parcelType,
         postcode: parcel.postcode,
-        parcel_round_trip: parcel.parcel_round_trip || 0, 
+        parcel_round_trip: parcel.parcel_round_trip || 0,
       }));
       // console.log("parcelRecords:", parcelRecords);return;
       // console.log("requestQuoteId:", requestQuoteId);return;
@@ -3101,7 +3114,7 @@ let discount = 0;
               // ✅ ensure proper numeric formatting
               total_amount: helpers.formatAmount(orderRow.total_amount),
               tax: helpers.formatAmount(orderRow.tax),
-              
+
               distance: helpers.formatAmount(orderRow.distance),
             };
             // console.log("siteSettings:",siteSettings)
@@ -3140,6 +3153,7 @@ let discount = 0;
           payment_method: payment_method,
           transaction_id: requestQuoteId,
           created_time: created_time,
+          status: "paid",
           payment_intent_id: payment_intent_id,
           payment_method_id: payment_methodid,
           type: "Request Quote",
@@ -3214,7 +3228,7 @@ let discount = 0;
               // ✅ ensure proper numeric formatting
               total_amount: helpers.formatAmount(orderRow.total_amount),
               tax: helpers.formatAmount(orderRow.tax),
-             
+
               distance: helpers.formatAmount(orderRow.distance),
             };
             await helpers.sendEmail(
@@ -3239,6 +3253,7 @@ let discount = 0;
           payment_method: payment_method,
           transaction_id: requestQuoteId,
           created_time: created_time,
+          status: "paid",
           payment_intent_id: payment_intent_id,
           payment_method_id: payment_methodid,
           type: "Request Quote",
@@ -3338,10 +3353,13 @@ let discount = 0;
         latest_notifications: latestNotifications,
       };
       // console.log("latestNotifications:",memberData?.latest_notifications)
+      const siteSettings = res.locals.adminData;
+      // console.log("siteSettings:",siteSettings)
 
       return res.status(200).json({
         status: 1,
         member: memberData,
+        site_settings: siteSettings,
         notifications_count: unreadCount,
       });
     } catch (error) {
@@ -3516,96 +3534,104 @@ let discount = 0;
   };
 
   cancelJobRequest = async (req, res) => {
-  try {
-    const { token, order_id, reason } = req.body;
+    try {
+      const { token, order_id, reason } = req.body;
 
-    if (!token) {
-      return res.status(200).json({ status: 0, msg: "Token is required." });
-    }
+      if (!token) {
+        return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
 
-    // Validate user token
-    const userResponse = await this.validateTokenAndGetMember(token, "user");
-    if (userResponse.status === 0) {
-      return res.status(200).json(userResponse);
-    }
+      // Validate user token
+      const userResponse = await this.validateTokenAndGetMember(token, "user");
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse);
+      }
 
-    const member = userResponse.user;
+      const member = userResponse.user;
 
-    if (!order_id) {
-      return res.status(200).json({ status: 0, msg: "Order ID is required." });
-    }
+      if (!order_id) {
+        return res.status(200).json({ status: 0, msg: "Order ID is required." });
+      }
 
-    // FETCH ORDER MAIN DETAILS
-    let order = await this.member.getOrderDetailsByIdforcancelRequest({ requestId: order_id });
+      // FETCH ORDER MAIN DETAILS
+      let order = await this.member.getOrderDetailsByIdforcancelRequest({ requestId: order_id });
 
-    if (!order) {
-      return res.status(200).json({ status: 0, msg: "Invalid order!" });
-    }
+      if (!order) {
+        return res.status(200).json({ status: 0, msg: "Invalid order!" });
+      }
 
-    // ---------- FETCH RELATED ORDER DETAILS ----------
-    const viasCount = await this.rider.countViasBySourceCompleted(order.id);
-    const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
-    const vias = await this.rider.getViasByQuoteId(order.id);
-    const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
-    const reviews = await this.rider.getOrderReviews(order.id);
-    const order_stages_arr = await this.rider.getRequestOrderStages(order.id);
+      // ---------- CHECK IF CANCEL ALREADY REQUESTED ----------
+      if (order.is_cancelled === "requested") {
+        return res.status(200).json({
+          status: 0,
+          msg: "A cancel request has already been submitted for this order.",
+        });
+      }
 
-    // ---------- MERGE DATA INTO ORDER ----------
-    order = {
-      ...order,
-      formatted_start_date: helpers.formatDateToUK(order?.start_date),
-      parcels,
-      vias,
-      invoices,
-      viasCount,
-      reviews,
-      order_stages: order_stages_arr,
-    };
+      // ---------- FETCH RELATED ORDER DETAILS ----------
+      const viasCount = await this.rider.countViasBySourceCompleted(order.id);
+      const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
+      const vias = await this.rider.getViasByQuoteId(order.id);
+      const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
+      const reviews = await this.rider.getOrderReviews(order.id);
+      const order_stages_arr = await this.rider.getRequestOrderStages(order.id);
 
-    // ---------- SAVE CANCELLATION REQUEST ----------
-    const cancelResult = await this.member.updateRequestQuoteData(order_id, {
-      cancel_reason: reason,
-      is_cancelled: "requested",
-    });
+      // ---------- MERGE DATA INTO ORDER ----------
+      order = {
+        ...order,
+        formatted_start_date: helpers.formatDateToUK(order?.start_date),
+        parcels,
+        vias,
+        invoices,
+        viasCount,
+        reviews,
+        order_stages: order_stages_arr,
+      };
 
-    if (!cancelResult) {
+      // ---------- SAVE CANCELLATION REQUEST ----------
+      const cancelResult = await this.member.updateRequestQuoteData(order_id, {
+        cancel_reason: reason,
+        is_cancelled: "requested",
+      });
+
+      if (!cancelResult) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Failed to submit cancel request.",
+        });
+      }
+
+      // ---------- SEND EMAIL NOTIFICATION ----------
+      const adminData = res.locals.adminData;
+
+      await helpers.sendEmail(
+        adminData.receiving_site_email,
+        "Cancel Request Received - FastUK",
+        "cancel-request",
+        {
+          adminData: adminData,
+          order: order,
+          reason: reason,
+          requestedBy: member,
+        }
+      );
+
+      // ---------- FINAL API RESPONSE ----------
       return res.status(200).json({
+        status: 1,
+        msg: "Your cancel request has been submitted successfully",
+        order: order,
+      });
+
+    } catch (error) {
+      console.error("Error cancelling job request:", error.message);
+      return res.status(500).json({
         status: 0,
-        msg: "Failed to submit cancel request.",
+        msg: "Server error.",
+        details: error.message,
       });
     }
-
-    // ---------- SEND EMAIL NOTIFICATION ----------
-    const adminData = res.locals.adminData;
-
-    await helpers.sendEmail(
-      adminData.receiving_site_email,
-      "Cancel Request Received - FastUK",
-      "cancel-request",
-      {
-        adminData: adminData,
-        order: order,
-        reason: reason,
-        requestedBy: member,
-      }
-    );
-
-    // ---------- FINAL API RESPONSE ----------
-    return res.status(200).json({
-      status: 1,
-      msg: "Your cancel request has been submitted successfully",
-      order: order,
-    });
-
-  } catch (error) {
-    console.error("Error cancelling job request:", error.message);
-    return res.status(500).json({
-      status: 0,
-      msg: "Server error.",
-      details: error.message,
-    });
-  }
-};
+  };
 
   updateProfile = async (req, res) => {
     try {
@@ -3630,7 +3656,7 @@ let discount = 0;
         business_type,
         parcel_type,
         parcel_weight,
-       
+
         shipment_volume,
         delivery_speed,
       } = req.body; // Assuming token and user data are sent in the request body
@@ -3677,7 +3703,7 @@ let discount = 0;
             ...updatedData,
             mem_city: city,
             designation: designation,
-           
+
             business_name: business_name,
             business_type: business_type,
             parcel_type: parcel_type,
@@ -3767,7 +3793,7 @@ let discount = 0;
             });
           });
         }
-         if (Array.isArray(attachments_ob.other_documents)) {
+        if (Array.isArray(attachments_ob.other_documents)) {
           attachments_ob.other_documents.forEach((doc) => {
             attachments.push({
               rider_id: userId,
@@ -3925,7 +3951,7 @@ let discount = 0;
         status: "in_progress",
         limit: 3,
       });
-      console.log("memberOrders:", memberOrders);
+      // console.log("memberOrders:", memberOrders);
 
       const memberCurrentOrders = await this.member.getOrdersByUserAndStatus({
         userId: member.id,
@@ -3941,12 +3967,27 @@ let discount = 0;
           userId: member.id,
           status: "accepted",
         });
-        
+
       // Encode the `id` for each order
-      const ordersWithEncodedIds = memberOrders.map((order) => {
-        const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string
-        return { ...order, encodedId }; // Add encodedId to each order
-      });
+      // const ordersWithEncodedIds = memberOrders.map((order) => {
+      //   const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string
+      //   return { ...order, encodedId }; // Add encodedId to each order
+      // });
+
+      const ordersWithEncodedIds = await Promise.all(
+        memberOrders.map(async (order) => {
+
+          const encodedId = helpers.doEncode(String(order.id));
+
+          const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
+
+          return {
+            ...order,
+            encodedId,
+            jobStatus
+          };
+        })
+      );
 
       // console.log("Member Orders with Encoded IDs:", ordersWithEncodedIds);
 
@@ -3956,7 +3997,7 @@ let discount = 0;
         msg: "Orders fetched successfully.",
         orders: ordersWithEncodedIds,
         memberCurrentOrders: memberCurrentOrders?.length,
-        total_active_orders: memberTotalAcceptedOrders?.length,
+        // total_active_orders: memberTotalAcceptedOrders?.length,
         total_orders: memberTotalOrders?.length,
         total_invoices: userInvoices?.length,
       });
@@ -4037,131 +4078,133 @@ let discount = 0;
       });
     }
   };
-async getUserTransactions(req, res) {
-  try {
-    const { token, memType } = req.body;
+  async getUserTransactions(req, res) {
+    try {
+      const { token, memType } = req.body;
 
-    if (!token) {
-      return res.status(200).json({ status: 0, msg: "Token is required." });
-    }
+      if (!token) {
+        return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
 
-    if (memType === "rider") {
-      return res.status(200).json({ status: 0, msg: "Invalid member type." });
-    }
+      if (memType === "rider") {
+        return res.status(200).json({ status: 0, msg: "Invalid member type." });
+      }
 
-    const userResponse = await this.validateTokenAndGetMember(token, memType);
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
 
-    if (userResponse.status === 0) {
-      return res.status(200).json(userResponse);
-    }
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse);
+      }
 
-    const member = userResponse.user;
-    const userId = member.id;
+      const member = userResponse.user;
+      const userId = member.id;
 
-    // Fetch all transactions
-    const transactions = await helpers.getTransaction(userId);
-    const updatedTransactions = [];
+      // Fetch all transactions
+      const transactions = await helpers.getTransaction(userId);
+      const updatedTransactions = [];
 
-    for (const t of transactions) {
-      // Fetch order details
-      const order = await this.member.getUserOrderDetailsById({
-        userId,
-        requestId: t.transaction_id,
-      });
-      
-
-      if (order) {
-        // Attach formatted dates
-        t.formatted_start_date = helpers.formatDateToUK(order.start_date);
-        // t.formatted_end_date = helpers.formatDateToUK(order.end_date);
-        t.formatted_end_date = order.end_date
-  ? helpers.formatDateToUK(order.end_date)
-  : "Pending";
+      for (const t of transactions) {
+        // Fetch order details
+        const order = await this.member.getUserOrderDetailsById({
+          userId,
+          requestId: t.transaction_id,
+        });
 
 
-        // Job status
-        const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
+        if (order) {
+          // Attach formatted dates
+          t.formatted_start_date = helpers.formatDateToUK(order.start_date);
+          // t.formatted_end_date = helpers.formatDateToUK(order.end_date);
+          t.formatted_end_date = order.end_date
+            ? helpers.formatDateToUK(order.end_date)
+            : "Will be available after rider accepts the order";
 
-        // Category info
-        const categoryInfo = order.selected_vehicle
-          ? await Vehicle.getCategoryAndMainCategoryById(order.selected_vehicle)
-          : null;
 
-        // Vias, parcels, stages, attachments, invoices, reviews, payments
-        const viasCount = await this.rider.countViasBySourceCompleted(order.id);
-        const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
-        const order_stages_arr = await this.rider.getRequestOrderStages(order.id);
-        const vias = await this.rider.getViasByQuoteId(order.id);
-        const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
-        const reviews = await this.rider.getOrderReviews(order.id);
-        const paidAmount = await RequestQuoteModel.totalPaidAmount(order.id);
-        const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
-        const riderRow = await this.rider.findById(
+          // Job status
+          const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
+
+          // Category info
+          const categoryInfo = order.selected_vehicle
+            ? await Vehicle.getCategoryAndMainCategoryById(order.selected_vehicle)
+            : null;
+
+          // Vias, parcels, stages, attachments, invoices, reviews, payments
+          const viasCount = await this.rider.countViasBySourceCompleted(order.id);
+          const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
+          const order_stages_arr = await this.rider.getRequestOrderStages(order.id);
+          const vias = await this.rider.getViasByQuoteId(order.id);
+          const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
+          const reviews = await this.rider.getOrderReviews(order.id);
+          const paidAmount = await RequestQuoteModel.totalPaidAmount(order.id);
+          const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
+          const riderRow = await this.rider.findById(
             order.assigned_rider
           );
 
-        // Attach stage attachments
-        for (let stage of order_stages_arr) {
-          stage.attachments = await helpers.getDataFromDB("order_stages_attachments", { stage_id: stage.id });
+          // Attach stage attachments
+          for (let stage of order_stages_arr) {
+            stage.attachments = await helpers.getDataFromDB("order_stages_attachments", { stage_id: stage.id });
+          }
+
+          // Attach source & destination attachments
+          const source_attachments = await helpers.getDataFromDB("request_quote_attachments", { request_id: order.id, type: "source" });
+          const destination_attachments = await helpers.getDataFromDB("request_quote_attachments", { request_id: order.id, type: "destination" });
+
+          // Attach via attachments
+          for (let via of vias) {
+            via.attachments = await helpers.getDataFromDB("request_quote_attachments", {
+              request_id: order.id,
+              type: "via",
+              via_id: via.id,
+            });
+          }
+
+          const siteSettings = res.locals.adminData;
+          // console.log("siteSettings:",siteSettings)
+
+          // Merge order info
+          t.order = {
+            ...order,
+            siteSettings,
+            formatted_start_date: helpers.formatDateToUK(order.start_date),
+            formatted_end_date: order.end_date
+              ? helpers.formatDateToUK(order.end_date)
+              : "Will be available after rider accepts the order",
+            parcels,
+            order_stages: order_stages_arr,
+            vias,
+            riderRow,
+            invoices,
+            dueAmount: helpers.formatAmount(dueAmount),
+            paidAmount: helpers.formatAmount(paidAmount),
+            viasCount,
+            reviews,
+            source_attachments,
+            destination_attachments,
+            category_name: categoryInfo?.category_name || null,
+            main_category_name: categoryInfo?.main_category_name || null,
+            jobStatus,
+          };
+        } else {
+          t.formatted_start_date = null;
+          t.formatted_end_date = null;
+          t.order = null;
         }
 
-        // Attach source & destination attachments
-        const source_attachments = await helpers.getDataFromDB("request_quote_attachments", { request_id: order.id, type: "source" });
-        const destination_attachments = await helpers.getDataFromDB("request_quote_attachments", { request_id: order.id, type: "destination" });
-
-        // Attach via attachments
-        for (let via of vias) {
-          via.attachments = await helpers.getDataFromDB("request_quote_attachments", {
-            request_id: order.id,
-            type: "via",
-            via_id: via.id,
-          });
-        }
-
-        const siteSettings = res.locals.adminData;
-        // console.log("siteSettings:",siteSettings)
-
-        // Merge order info
-        t.order = {
-          ...order,
-          siteSettings,
-          formatted_start_date: helpers.formatDateToUK(order.start_date),
-          formatted_end_date: helpers.formatDateToUK(order.end_date),
-          parcels,
-          order_stages: order_stages_arr,
-          vias,
-          riderRow,
-          invoices,
-          dueAmount: helpers.formatAmount(dueAmount),
-          paidAmount: helpers.formatAmount(paidAmount),
-          viasCount,
-          reviews,
-          source_attachments,
-          destination_attachments,
-          category_name: categoryInfo?.category_name || null,
-          main_category_name: categoryInfo?.main_category_name || null,
-          jobStatus,
-        };
-      } else {
-        t.formatted_start_date = null;
-        t.formatted_end_date = null;
-        t.order = null;
+        updatedTransactions.push(t);
       }
+      // console.log("updatedTransactions:",updatedTransactions)
 
-      updatedTransactions.push(t);
+      return res.status(200).json({
+        status: 1,
+        transactions: updatedTransactions,
+      });
+
+    } catch (error) {
+      console.error("Error fetching member transactions:", error);
+      return res.status(500).json({ status: 0, msg: "Internal Server Error" });
     }
-    // console.log("updatedTransactions:",updatedTransactions)
-
-    return res.status(200).json({
-      status: 1,
-      transactions: updatedTransactions,
-    });
-
-  } catch (error) {
-    console.error("Error fetching member transactions:", error);
-    return res.status(500).json({ status: 0, msg: "Internal Server Error" });
   }
-}
 
 
   async getUserOrderDetailsByEncodedId(req, res) {
@@ -4206,6 +4249,11 @@ async getUserTransactions(req, res) {
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Order not found." });
       }
+
+      const riderRow = await this.rider.findById(order.assigned_rider);
+      const attachments = await this.rider.getRiderAttachments(riderRow?.id); // Add this method in your model
+      const qrCode = attachments.find(att => att.type === 'qr_code');
+      // Organize attachments by type for easier access in EJS
 
       // Check if the assigned rider matches the logged-in rider
       if (order.user_id !== member.id) {
@@ -4276,15 +4324,16 @@ async getUserTransactions(req, res) {
       // console.log("end",order?.end_date, helpers.formatDateToUK(order?.end_date))
 
       const formatted_end_date = order?.end_date
-  ? helpers.formatDateToUK(order.end_date)
-  : "Pending";
+        ? helpers.formatDateToUK(order.end_date)
+        : "Will be available after rider accepts the order";
 
       order = {
         ...order,
         formatted_start_date: helpers.formatDateToUK(order?.start_date),
         // formatted_end_date: helpers.formatDateToUK(order?.end_date),
         formatted_end_date: formatted_end_date,
-        
+        qrCode,
+
         encodedId: encodedId,
         parcels: parcels,
         order_stages: order_stages_arr,
@@ -5208,6 +5257,7 @@ async getUserTransactions(req, res) {
           payment_method: payment_method,
           transaction_id: requestId,
           created_time: created_time,
+          status: "paid",
           payment_intent_id: payment_intent_id,
           payment_method_id: payment_method_id,
           type: "Invoice",
@@ -5260,26 +5310,31 @@ async getUserTransactions(req, res) {
         );
       }
 
-      const distance = parseFloat(order.distance || 0); // in km
-const riderPrice = parseFloat(order.rider_price || 0); // price per km
+      if (parseFloat(dueAmountchk) <= 0) {
 
-const formattedRiderAmount = parseFloat((distance * riderPrice)); // multiply and format
-if (formattedAmount > 0) {
-  const created_time = Math.floor(Date.now() / 1000); // UTC seconds
-const earningsData = {
-    user_id: order?.assigned_rider,
-    amount: formattedRiderAmount,
-    type: "credit",
-    status: "pending",
-    created_time
-  };
+        const distance = parseFloat(order.distance || 0); // in km
+        const riderPrice = parseFloat(order.rider_price || 0); // price per km
 
-  const insertedEarnings = await helpers.insertEarnings(earningsData);
+        const formattedRiderAmount = parseFloat((distance * riderPrice)); // multiply and format
+        if (formattedAmount > 0) {
+          const created_time = Math.floor(Date.now() / 1000); // UTC seconds
+          const earningsData = {
+            user_id: order?.assigned_rider,
+            amount: formattedRiderAmount,
+            type: "credit",
+            status: "pending",
+            created_time
+          };
 
-  if (!insertedEarnings) {
-    console.log("Failed to insert earnings for rider:", rider.user.id);
-  }
-}
+          const insertedEarnings = await helpers.insertEarnings(earningsData);
+
+          if (!insertedEarnings) {
+            console.log("Failed to insert earnings for rider:", rider.user.id);
+          }
+        }
+      } else {
+        console.log("Due amount not cleared yet. Earnings will not be inserted.");
+      }
 
       // console.log(result,'result')
       // Handle response
@@ -5485,6 +5540,7 @@ const earningsData = {
             payment_method,
             transaction_id: 0,
             created_time: helpers.getUtcTimeInSeconds(),
+            status: "paid",
             payment_intent_id: payment_intent,
             payment_method_id: payment_methodid,
             type: "credits",

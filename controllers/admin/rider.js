@@ -24,7 +24,9 @@ class RiderController extends BaseController {
       // Fetch earnings sequentially for each rider
       for (let rider of riders) {
         const earningsData = await this.riderModel.getRiderEarnings(rider.id);
-        rider.available_balance = earningsData.availableBalance; // Add balance field to each rider
+        rider.available_balance = helpers.formatAmount(
+        earningsData.availableBalance
+      ); // Add balance field to each rider
       }
 
       // Render with updated riders' data
@@ -51,6 +53,8 @@ class RiderController extends BaseController {
       if (rider) {
         const attachments = await Rider.getRiderAttachments(riderId); // Add this method in your model
         // Organize attachments by type for easier access in EJS
+        console.log("attachments:",attachments)
+        
 
 
         const attachmentMap = {};
@@ -275,7 +279,7 @@ class RiderController extends BaseController {
       const activeJobsCount = await this.riderModel.hasActiveJobs(riderId);
 
             if (activeJobsCount > 0) {
-                return this.sendError(res, "Cannot delete rider. Rider has active jobs running.", 200);
+                return this.sendError(res, "Cannot delete rider. Rider has active jobs running.", 400);
             }
 
       // const riderImage = currentRider.driving_license; // Get the image filename

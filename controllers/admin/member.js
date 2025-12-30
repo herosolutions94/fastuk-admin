@@ -21,7 +21,15 @@ class MemberController extends BaseController {
     // Method to get the riders and render them in the view
     async getMembers(req, res) {
         try {
-            const members = await Member.getAllMembers([{ field: 'mem_type', operator: '=', value: 'user' }, { field: 'is_deleted', operator: '!=', value: 1 }]);
+            const members = await Member.getAllMembers([
+                { field: 'mem_type', operator: '=', value: 'user' }, 
+                { field: 'is_deleted', operator: '!=', value: 1 }
+            
+            ]
+            ,
+            'id',  // order by id
+            'DESC' // newest first
+            );
             // console.log('Fetched Riders:', riders); // Log the fetched riders
 
             // if (members && members.length > 0) {
@@ -176,7 +184,7 @@ class MemberController extends BaseController {
             const activeJobsCount = await this.rider.hasActiveJobsForMember(memberId);
 
             if (activeJobsCount > 0) {
-                return this.sendError(res, "Cannot delete member. Member has active jobs running.", 200);
+                return this.sendError(res, "Cannot delete member. Member has active jobs running.", 400);
             }
 
             const dueAmount = await RequestQuoteModel.calculateDueAmount(
@@ -184,7 +192,7 @@ class MemberController extends BaseController {
             );
 
             if (dueAmount > 0) {
-                return this.sendError(res, `Cannot delete member. Member has outstanding balance of £${dueAmount}.`, 200)
+                return this.sendError(res, `Cannot delete member. Member has outstanding balance of £${dueAmount}.`, 400)
 
 
             }
@@ -193,8 +201,8 @@ class MemberController extends BaseController {
             // Step 2: Check if the rider has an associated image
             if (memberImage) {
                 const uploadsDir = path.join(__dirname, '../../uploads');
-                const imagePath = path.join(uploadsDir, businessUserImage);
-                const thumbPath = path.join(uploadsDir, 'thumbnails', businessUserImage);
+                const imagePath = path.join(uploadsDir, memberImage);
+                const thumbPath = path.join(uploadsDir, 'thumbnails', memberImage);
                 // console.log('Image Path:', imagePath); // Log the image path
 
                 // Check if the image file exists before trying to delete

@@ -9,48 +9,126 @@
         </ul>
       </div>
     </div>
+    <div class="bulk-actions" style="margin-bottom: 15px;">
+  <button
+    id="bulkActionBtn"
+    class="btn btn-primary"
+    disabled
+  >
+    Batch Payment
+  </button>
+</div>
+
     <div class="dashTable">
       <table class="dataTable display" id="basic-1">
         <thead>
           <tr class="table-scnd-row blog-table">
+            <th width="5%">
+              <input type="checkbox" id="select-all" />
+            </th>
             <th width="10%">Sr#</th>
-            <th width="30%">User</th>
-            <th width="15%">Amount</th>
-            <th width="15%">Type</th>
-            <th width="15%">Status</th>
-            <th width="15%">Created Time</th>
+            <th width="15%">User</th>
+            <th width="10%">Amount</th>
+            <th width="10%">Available Balance</th>
+            <th width="10%">Net Income</th>
+            <th width="10%">Total Withdrawl Amount</th>
+            <th width="10%">Type</th>
+            <th width="10%">Status</th>
+            <th width="10%">Created Time</th>
           </tr>
         </thead>
         <tbody>
-          <% if (earnings && earnings.length > 0) { %> <%
-          earnings.forEach((earning, index) => { %>
-          <tr class="bottom-cntnt" id="earning-<%= earning.id %>">
-            <td><p><%= index + 1 %></p></td>
-            <td>
-              <div class="flex">
-                <div class="image-blog">
-                  <img
-                    src="<%= helpers.getImage(earning.mem_image) %>"
-                    alt="User Image"
-                    class="img-responsive" />
-                </div>
-                <p><%= earning.rider_name %></p>
-              </div>
-            </td>
-            <td><p>£<%= earning.amount %></p></td>
-            <td><p><%= earning.type %></p></td>
-            <td><p><%- helpers.getEarningStatus(earning.status) %></p></td>
-            <td>
-              <p><%= helpers.convertUtcToUkFormat(earning.created_time) %></p>
-            </td>
-          </tr>
-          <% }) %> <% } else { %>
-          <tr>
-            <td colspan="8"><p>No earnings found.</p></td>
-          </tr>
-          <% } %>
+          <% if (earnings && earnings.length> 0) { %> <% earnings.forEach((earning, index)=> { %>
+              <tr class="bottom-cntnt" id="earning-<%= earning.id %>">
+                <td>
+                  <input type="checkbox" class="row-checkbox" value="<%= earning.id %>" />
+                </td>
+                <td>
+                  <p>
+                    <%= index + 1 %>
+                  </p>
+                </td>
+                <td>
+                  <div class="flex">
+                    <div class="image-blog">
+                      <img src="<%= helpers.getImage(earning.mem_image) %>" alt="User Image" class="img-responsive" />
+                    </div>
+                    <p>
+                      <%= earning.rider_name %>
+                    </p>
+                  </div>
+                </td>
+                <td>
+                  <p>
+                    <%= helpers.format_amount(earning.amount) %>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    <%= helpers.format_amount(earning.availableBalance) %>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    <%= helpers.format_amount(earning.netIncome) %>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    <%= helpers.format_amount(earning.totalWithdrawn) %>
+                  </p>
+                </td>
+                <td>
+                  <p>
+                    <%= earning.type %>
+                  </p>
+                </td>
+                <td>
+                  <p><%- helpers.getEarningStatus(earning.status) %></p>
+                </td>
+                <td>
+                  <p>
+                    <%= helpers.convertUtcToUkFormat(earning.created_time) %>
+                  </p>
+                </td>
+              </tr>
+              <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="8">
+                      <p>No earnings found.</p>
+                    </td>
+                  </tr>
+                  <% } %>
         </tbody>
       </table>
     </div>
   </div>
 </section>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+
+  const bulkBtn = document.getElementById('bulkActionBtn');
+  const table = document.getElementById('basic-1');
+
+  function toggleButton() {
+    const checked = table.querySelectorAll('.row-checkbox:checked').length;
+    bulkBtn.disabled = checked === 0;
+  }
+
+  // Row checkbox click
+  table.addEventListener('change', (e) => {
+    if (e.target.classList.contains('row-checkbox')) {
+      toggleButton();
+    }
+  });
+
+  // Select all checkbox
+  const selectAll = document.getElementById('select-all');
+  if (selectAll) {
+    selectAll.addEventListener('change', toggleButton);
+  }
+
+});
+</script>

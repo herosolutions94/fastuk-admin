@@ -16,16 +16,46 @@ class EarningsController extends BaseController {
 
     
     async getEarnings(req, res) {
-        try {
-          const earnings = await this.rider.getAllEarnings();
-          console.log("earnings:",earnings)
-      
-          res.render('admin/earnings', { earnings: earnings });
-        } catch (error) {
-          console.error('Error fetching Transactions with members:', error);
-          res.render('admin/transactions', { transactions: [] }); // Render empty array on error
+  try {
+    // Get all riders earnings base data
+    const riders = await this.rider.getAllEarnings();
+
+    if (!riders || riders.length === 0) {
+      return res.render('admin/earnings', { earnings: [] });
+    }
+
+    // Enrich each rider with calculated earnings
+    const earnings = await Promise.all(
+      riders.map(async (rider) => {
+
+        const earningsData = await this.rider.getRiderEarnings(rider.rider_id);
+
+        if (!earningsData) {
+          return {
+            ...rider,
+            netIncome: helpers.formatAmount(0),
+            availableBalance: helpers.formatAmount(0),
+            totalWithdrawn: helpers.formatAmount(0)
+          };
         }
-      }
+
+        return {
+          ...rider,
+          netIncome: helpers.formatAmount(earningsData.netIncome),
+          availableBalance: helpers.formatAmount(earningsData.availableBalance),
+          totalWithdrawn: helpers.formatAmount(earningsData.totalWithdrawn)
+        };
+      })
+    );
+
+    res.render('admin/earnings', { earnings });
+
+  } catch (error) {
+    console.error('Error fetching earnings:', error);
+    res.render('admin/earnings', { earnings: [] });
+  }
+}
+
       async deleteEarning(req, res) {
         const earningId = req.params.id;
         try {

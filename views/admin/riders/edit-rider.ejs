@@ -25,7 +25,7 @@
               <div class="col-md-6">
                 <div class="txtGrp">
                   <label class="form-label" for="email">Email:</label>
-                  <input type="text" class="input" name="email" value="<%= rider.email %>" required />
+                  <input type="text" class="input" name="email" value="<%= rider.email %>" readonly />
                 </div>
               </div>
               <div class="col-md-6">
@@ -82,8 +82,7 @@
               <div class="col-md-6">
                 <div class="txtGrp">
                   <label class="form-label" for="utr_num">UTR Number:</label>
-                  <input type="text" class="input" name="utr_num"
-                    value="<%= rider.utr_num %>" required />
+                  <input type="text" class="input" name="utr_num" value="<%= rider.utr_num %>" required />
                 </div>
               </div>
               <div class="col-md-6">
@@ -114,167 +113,162 @@
               <div class="clearfix"></div>
 
               <div class="text">
-        <h3>Live Jobs</h3>
-      </div>
+                <h3>Live Jobs</h3>
+              </div>
 
               <div class="dashTable">
-            <table class="dataTable display" id="basic-1">
-                <thead>
-                  
+                <table class="dataTable display" id="basic-1">
+                  <thead>
+
                     <tr class="table-scnd-row">
-                        <th width="25%">
-                            <p>#</p>
-                        </th>
-                        <th width="10%">
-                            <p>Booking id</p>
-                        </th>
-                        <!-- <th width="15%">
+                      <th width="25%">
+                        <p>#</p>
+                      </th>
+                      <th width="10%">
+                        <p>Booking id</p>
+                      </th>
+                      <!-- <th width="15%">
               <p>Email</p>
             </th>
             <th width="10%">
               <p>Phone No</p>
             </th> -->
-                        <th width="10%">
-                            <p>Distance</p>
-                        </th>
-                        <th width="20%">
-                            <p>Pickup Location</p>
-                        </th>
-                        <th width="20%">
-                            <p>Drop-off Location</p>
-                        </th>
-                        <th width="10%">
-                            <p>Status</p>
-                        </th>
-                        <th width="9%">
-                            <p>Action</p>
-                        </th>
+                      <th width="10%">
+                        <p>Distance</p>
+                      </th>
+                      <th width="20%">
+                        <p>Pickup Location</p>
+                      </th>
+                      <th width="20%">
+                        <p>Drop-off Location</p>
+                      </th>
+                      <th width="10%">
+                        <p>Status</p>
+                      </th>
+                      <th width="9%">
+                        <p>Action</p>
+                      </th>
                     </tr>
-                </thead>
-                <tbody>
+                  </thead>
+                  <tbody>
                     <% if (liveJobs && liveJobs.length> 0) { %> <% liveJobs.forEach((job, index)=> { %>
-                            <tr class="bottom-cntnt" id="rider-<%= editRiderId %>">
-                                <td>
-                                  <a href="/admin/members/edit/<%= job.user_id %>" target="_blank"
-                      rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
-                                    <div class="flex">
-                                        <div class="image">
-                                            <img src="<%= helpers.getImage(job.member_image) %>" alt="User Image" />
-                                        </div>
-                                        <div class="custm-cntnt">
-                                            <p><strong>
-                                                    <%= job.member_name %>
-                                                </strong></p>
-                                            <p>
-                                                <%= job.member_email %>
-                                            </p>
-                                            <p>
-                                                <%= job.member_phone %>
-                                            </p>
-                                            <p><small>
-                                                    Updated at <%= helpers.timesAgo(job.updated_time) %>
-                                                </small></p>
-                                        </div>
-                                    </div>
-                                    </a>
-                                </td>
+                        <tr class="bottom-cntnt" id="rider-<%= editRiderId %>">
+                          <td>
+                            <a href="/admin/members/edit/<%= job.user_id %>" target="_blank" rel="noopener noreferrer"
+                              style="text-decoration: none; color: inherit;">
+                              <div class="flex">
+                                <div class="image">
+                                  <img src="<%= helpers.getImage(job.member_image) %>" alt="User Image" />
+                                </div>
+                                <div class="custm-cntnt">
+                                  <p><strong>
+                                      <%= job.member_name %>
+                                    </strong></p>
+                                  <p>
+                                    <%= job.member_email %>
+                                  </p>
+                                  <p>
+                                    <%= job.member_phone %>
+                                  </p>
+                                  <p><small>
+                                      Updated at <%= helpers.timesAgo(job.updated_time) %>
+                                    </small></p>
+                                </div>
+                              </div>
+                            </a>
+                          </td>
 
-                                <td>
-                                    <p>
-                                        <%= job.booking_id %>
-                                    </p>
-                                </td>
+                          <td>
+                            <p>
+                              <%= job.booking_id %>
+                            </p>
+                          </td>
 
-                                <td>
-                                    <p>
-                                        <%= job.distance %>km
-                                    </p>
-                                </td>
+                          <td>
+                            <p>
+                              <%= job.distance %>km
+                            </p>
+                          </td>
 
-                                <td>
-                                    <p>
-                                        <%= job.source_address %>
-                                    </p>
-                                </td>
+                          <td>
+                            <p>
+                              <%= job.source_address %>
+                            </p>
+                          </td>
 
-                                <td>
-                                    <p>
-                                        <%= job.dest_address %>
-                                    </p>
-                                </td>
+                          <td>
+                            <p>
+                              <%= job.dest_address %>
+                            </p>
+                          </td>
 
-                                <td>
-                                    <p>
-                                        <%= job.status %>
-                                    </p>
-                                </td>
-                                <td>
-              <div class="btn-group">
-                <button
-                  type="button"
-                  class="dropdown-toggle"
-                  data-toggle="dropdown">
-                  <i class="fa fa-ellipsis-h"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-primary" role="menu">
-                  
-                  <li>
-                    <a
-                      href="/admin//job-detail/<%= job.id %>"
-                      class="btn btn-danger">
-                      View Job Details
-                    </a>
-                  </li>
-                  
-                </ul>
-              </div>
-            </td>
+                          <td>
+                            <p>
+                              <%= job.status %>
+                            </p>
+                          </td>
+                          <td>
+                            <div class="btn-group">
+                              <button type="button" class="dropdown-toggle" data-toggle="dropdown">
+                                <i class="fa fa-ellipsis-h"></i>
+                              </button>
+                              <ul class="dropdown-menu dropdown-primary" role="menu">
+
+                                <li>
+                                  <a href="/admin//job-detail/<%= job.id %>" class="btn btn-danger">
+                                    View Job Details
+                                  </a>
+                                </li>
+
+                              </ul>
+                            </div>
+                          </td>
+                        </tr>
+
+                        <% }) %>
+                          <% } else { %>
+                            <tr>
+                              <td colspan="8">
+                                <p>No live jobs found.</p>
+                              </td>
                             </tr>
-
-                            <% }) %>
-                                <% } else { %>
-                                    <tr>
-                                        <td colspan="8">
-                                            <p>No live jobs found.</p>
-                                        </td>
-                                    </tr>
-                                    <% } %>
-                </tbody>
-            </table>
-        </div>
-        <div class="text">
-        <h3>Earnings</h3>
-      </div>
-        <div class="dashTable">
-            <table class="dataTable display" id="basic-1">
-                <thead>
+                            <% } %>
+                  </tbody>
+                </table>
+              </div>
+              <div class="text">
+                <h3>Earnings</h3>
+              </div>
+              <div class="dashTable">
+                <table class="dataTable display" id="basic-1">
+                  <thead>
                     <tr class="table-scnd-row">
-                        <th width="20%">
-                            <p>#</p>
-                        </th>
-                        <!-- <th width="10%">
+                      <th width="20%">
+                        <p>#</p>
+                      </th>
+                      <!-- <th width="10%">
                             <p>User</p>
                         </th> -->
-                        
-                        <th width="20%">
-                            <p>Amount</p>
-                        </th>
-                        <th width="20%">
-                            <p>Type</p>
-                        </th>
-                        <th width="20%">
-                            <p>Status</p>
-                        </th>
-                        <th width="20%">
-                            <p>Created Time</p>
-                        </th>
-                        
+
+                      <th width="20%">
+                        <p>Amount</p>
+                      </th>
+                      <th width="20%">
+                        <p>Type</p>
+                      </th>
+                      <th width="20%">
+                        <p>Status</p>
+                      </th>
+                      <th width="20%">
+                        <p>Created Time</p>
+                      </th>
+
                     </tr>
-                </thead>
-                <tbody>
+                  </thead>
+                  <tbody>
                     <% if (earnings && earnings.length> 0) { %> <% earnings.forEach((earning, index)=> { %>
-                            <tr class="bottom-cntnt" id="rider-<%= editRiderId %>">
-                                <!-- <td>
+                        <tr class="bottom-cntnt" id="rider-<%= editRiderId %>">
+                          <!-- <td>
                                   
                                     <div class="flex">
                                         <div class="image">
@@ -285,50 +279,54 @@
                                    
                                 </td> -->
 
-                                <!-- <td>
+                          <!-- <td>
                                     <p>
                                         <%= earning.rider_name %>
                                     </p>
                                 </td> -->
-                                <td><p><%= index + 1 %></p></td>
+                          <td>
+                            <p>
+                              <%= index + 1 %>
+                            </p>
+                          </td>
 
-                                <td>
-                                    <p>
-                                        <%= earning.amount %>
-                                    </p>
-                                </td>
+                          <td>
+                            <p>
+                              <%= earning.amount %>
+                            </p>
+                          </td>
 
-                                <td>
-                                    <p>
-                                        <%= earning.type %>
-                                    </p>
-                                </td>
+                          <td>
+                            <p>
+                              <%= earning.type %>
+                            </p>
+                          </td>
 
-                                <td>
-                                    <p>
-                                        <%- helpers.getEarningStatus(earning.status) %>
-                                    </p>
-                                </td>
+                          <td>
+                            <p>
+                              <%- helpers.getEarningStatus(earning.status) %>
+                            </p>
+                          </td>
 
-                                <td>
-                                    <p>
-                                        <%= helpers.convertUtcToUkFormat(earning.created_time) %>
-                                    </p>
-                                </td>
-                                
+                          <td>
+                            <p>
+                              <%= helpers.convertUtcToUkFormat(earning.created_time) %>
+                            </p>
+                          </td>
+
+                        </tr>
+
+                        <% }) %>
+                          <% } else { %>
+                            <tr>
+                              <td colspan="8">
+                                <p>No earnings found.</p>
+                              </td>
                             </tr>
-
-                            <% }) %>
-                                <% } else { %>
-                                    <tr>
-                                        <td colspan="8">
-                                            <p>No earnings found.</p>
-                                        </td>
-                                    </tr>
-                                    <% } %>
-                </tbody>
-            </table>
-        </div>
+                            <% } %>
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         </div>
@@ -384,34 +382,34 @@
             </div>
           </div>
           <div class="col-md-4">
-  <div class="card">
-    <div class="card-body preview">
-      <div class="row">
-        <div class="col-md-12">
-          <h5 class="card-title">Signature</h5>
+            <div class="card">
+              <div class="card-body preview">
+                <div class="row">
+                  <div class="col-md-12">
+                    <h5 class="card-title">Signature</h5>
 
-          <div class="blog_img">
-            <% if (attachments.signature) { %>
-              <img src="<%= helpers.getImage(attachments.signature) %>" 
-                   alt="Signature Image" class="card-img-top" />
-            <% } %>
+                    <div class="blog_img">
+                      <% if (attachments.signature) { %>
+                        <img src="<%= helpers.getImage(attachments.signature) %>" alt="Signature Image"
+                          class="card-img-top" />
+                        <% } %>
+                    </div>
+
+                    <!-- Upload disabled -->
+                    <div class="in-upload">
+                      <button type="button" class="uploadImg" disabled style="cursor:not-allowed; opacity:0.5;">
+                        <i class="fa-regular fa-image"></i> Address Proof (Not Editable)
+                      </button>
+
+                      <input type="file" class="uploadFile" name="signature" disabled />
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
-
-          <!-- Upload disabled -->
-          <div class="in-upload">
-            <button type="button" class="uploadImg" disabled 
-              style="cursor:not-allowed; opacity:0.5;">
-              <i class="fa-regular fa-image"></i> Address Proof (Not Editable)
-            </button>
-
-            <input type="file" class="uploadFile" name="signature" disabled />
-          </div>
-
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
 
           <div class="col-md-4">
             <div class="card">
@@ -432,6 +430,30 @@
                       </button>
                       <input type="file" class="uploadFile" name="self_picture"
                         value="<%= attachments.self_picture ? attachments.self_picture : '' %>" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-md-4">
+            <div class="card">
+              <div class="card-body preview">
+                <div class="row">
+                  <div class="col-md-12">
+                    <h5 class="card-title">QR code</h5>
+                    <div class="blog_img">
+                      <% if (attachments.qr_code) { %>
+                        <img src="/uploads/qr_codes/<%= attachments.qr_code %>" alt="QR Code" class="card-img-top" />
+
+
+                        <% } %>
+                    </div>
+                    <div class="in-upload">
+                      <button type="button" class="uploadImg">
+                        <i class="fa-regular fa-image"></i>QR code(Not Editable)
+                      </button>
+                      <input type="file" class="uploadFile" name="qr_code" disabled />
                     </div>
                   </div>
                 </div>
@@ -548,89 +570,89 @@
         <div class="clearfix"></div>
         <div class="row">
           <div class="card">
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-12">
-                    <h5 class="card-title">Other Documents</h5>
-                    <div class="blog_img multiple_rider_attachments"
-                      style="overflow-x:auto; white-space:nowrap; padding-bottom:1em;">
-                      <% if (Array.isArray(attachments.other_documents)) { %>
-                        <% attachments.other_documents.forEach((doc_pic, index)=> { %>
-                          <div class="img_show" style="display:inline-block; position:relative; margin-right:8px">
-                            <div class="inner">
-                              <img src="/uploads/<%= doc_pic.filename %>" style="width:150px; height:auto;" />
-                              <span class="x_btn deleteServerImage crosBtn" data-id="<%= doc_pic.id %>"
-                                data-rider_id="<%= doc_pic.rider_id %>">
-                              </span>
-                            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-12">
+                  <h5 class="card-title">Other Documents</h5>
+                  <div class="blog_img multiple_rider_attachments"
+                    style="overflow-x:auto; white-space:nowrap; padding-bottom:1em;">
+                    <% if (Array.isArray(attachments.other_documents)) { %>
+                      <% attachments.other_documents.forEach((doc_pic, index)=> { %>
+                        <div class="img_show" style="display:inline-block; position:relative; margin-right:8px">
+                          <div class="inner">
+                            <img src="/uploads/<%= doc_pic.filename %>" style="width:150px; height:auto;" />
+                            <span class="x_btn deleteServerImage crosBtn" data-id="<%= doc_pic.id %>"
+                              data-rider_id="<%= doc_pic.rider_id %>">
+                            </span>
                           </div>
-                          <% }) %>
-                            <% } %>
+                        </div>
+                        <% }) %>
+                          <% } %>
 
-                    </div>
-                    <div class="in-upload">
+                  </div>
+                  <div class="in-upload">
 
-                      <input type="file" id="rider_pictures" name="other_documents"
-                        value="<%= attachments.other_documents ? attachments.other_documents : '' %>" class="" multiple
-                        accept="image/*" />
-                      <div id="picturesPreview" class="d-flex flex-wrap gap-2 mt-3"></div>
+                    <input type="file" id="rider_pictures" name="other_documents"
+                      value="<%= attachments.other_documents ? attachments.other_documents : '' %>" class="" multiple
+                      accept="image/*" />
+                    <div id="picturesPreview" class="d-flex flex-wrap gap-2 mt-3"></div>
 
-                      <div id="uploadLoader"></div>
-                    </div>
+                    <div id="uploadLoader"></div>
                   </div>
                 </div>
               </div>
-              
-              <hr />
-              
             </div>
+
+            <hr />
+
+          </div>
           <div class="col-md-12">
-                          <% if (rider.vehicle_type && rider.vehicle_type.toLowerCase() === "van") { %>
+            <% if (rider.vehicle_type && rider.vehicle_type.toLowerCase()==="van" ) { %>
 
-            <div class="card">
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-12">
-                    <h5 class="card-title">Front/Back and Side Pictures</h5>
-                    <div class="blog_img multiple_rider_attachments"
-                      style="overflow-x:auto; white-space:nowrap; padding-bottom:1em;">
-                      <% if (Array.isArray(attachments.pictures)) { %>
-                        <% attachments.pictures.forEach((att_pic, index)=> { %>
-                          <div class="img_show" style="display:inline-block; position:relative; margin-right:8px">
-                            <div class="inner">
-                              <img src="/uploads/<%= att_pic.filename %>" style="width:150px; height:auto;" />
-                              <span class="x_btn deleteServerImage crosBtn" data-id="<%= att_pic.id %>"
-                                data-rider_id="<%= att_pic.rider_id %>">
-                              </span>
+              <div class="card">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h5 class="card-title">Front/Back and Side Pictures</h5>
+                      <div class="blog_img multiple_rider_attachments"
+                        style="overflow-x:auto; white-space:nowrap; padding-bottom:1em;">
+                        <% if (Array.isArray(attachments.pictures)) { %>
+                          <% attachments.pictures.forEach((att_pic, index)=> { %>
+                            <div class="img_show" style="display:inline-block; position:relative; margin-right:8px">
+                              <div class="inner">
+                                <img src="/uploads/<%= att_pic.filename %>" style="width:150px; height:auto;" />
+                                <span class="x_btn deleteServerImage crosBtn" data-id="<%= att_pic.id %>"
+                                  data-rider_id="<%= att_pic.rider_id %>">
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                          <% }) %>
-                            <% } %>
+                            <% }) %>
+                              <% } %>
 
-                    </div>
-                    <div class="in-upload">
+                      </div>
+                      <div class="in-upload">
 
-                      <input type="file" id="rider_pictures" name="pictures"
-                        value="<%= attachments.pictures ? attachments.pictures : '' %>" class="" multiple
-                        accept="image/*" />
-                      <div id="picturesPreview" class="d-flex flex-wrap gap-2 mt-3"></div>
+                        <input type="file" id="rider_pictures" name="pictures"
+                          value="<%= attachments.pictures ? attachments.pictures : '' %>" class="" multiple
+                          accept="image/*" />
+                        <div id="picturesPreview" class="d-flex flex-wrap gap-2 mt-3"></div>
 
-                      <div id="uploadLoader"></div>
+                        <div id="uploadLoader"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                <hr />
+
               </div>
-              
-              <hr />
-              
-            </div>
-            <% } %>
-            
-            <div class="card-footer text-end">
-                <button class="webBtn" type="submit">
-                  Update <i class="spinner hidden"></i>
-                </button>
-              </div>
+              <% } %>
+
+                <div class="card-footer text-end">
+                  <button class="webBtn" type="submit">
+                    Update <i class="spinner hidden"></i>
+                  </button>
+                </div>
           </div>
         </div>
       </form>

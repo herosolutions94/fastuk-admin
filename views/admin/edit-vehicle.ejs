@@ -9,9 +9,7 @@
         </ul>
       </div>
       <div class="text text2">
-        <a href="/admin/vehicles-list" class="webBtn mdBtn greenBtn"
-          ><i class="fa-regular fa-arrow-left"></i>Cancel</a
-        >
+        <a href="/admin/vehicles-list" class="webBtn mdBtn greenBtn"><i class="fa-regular fa-arrow-left"></i>Cancel</a>
       </div>
     </div>
     <div class="dashTable">
@@ -20,11 +18,7 @@
           <h5>Vehicle Block</h5>
         </div>
         <div class="card-body full_width">
-          <form
-            id="editServiceForm"
-            class="frmAjax"
-            action="/admin/vehicles/update/<%= vehicle.id %>"
-            method="post"
+          <form id="editServiceForm" class="frmAjax" action="/admin/vehicles/update/<%= vehicle.id %>" method="post"
             enctype="multipart/form-data">
             <div class="row">
               <div class="col-md-3">
@@ -34,20 +28,14 @@
                     <div class="blog_img">
                       <% if (imageFilenames && imageFilenames[0]) { %>
 
-                      <img
-                        src="<%= helpers.getImage(imageFilenames[0]) %>"
-                        class="card-img-top"
-                        alt="" />
-                      <% } %>
+                        <img src="<%= helpers.getImage(imageFilenames[0]) %>" class="card-img-top" alt="" />
+                        <% } %>
                     </div>
                     <div class="in-upload">
                       <button type="button" class="uploadImg">
                         <i class="fa-regular fa-image"></i>choose another image
                       </button>
-                      <input
-                        type="file"
-                        name="vehicle_image"
-                        value="<%= editVehicleId ? vehicle.vehicle_image : '' %>"
+                      <input type="file" name="vehicle_image" value="<%= editVehicleId ? vehicle.vehicle_image : '' %>"
                         class="uploadFile" />
                     </div>
                   </div>
@@ -58,298 +46,227 @@
                   <div class="col-md-12">
                     <div class="txtGrp media st_sp">
                       <label class="form-label">Status</label>
-                      <div
-                        class="txtGrp-body text-end icon-state switch-outline">
+                      <div class="txtGrp-body text-end icon-state switch-outline">
                         <!-- <label class="switch">
                           <span
                             class="switch-state bg-primary"></span>
                         </label> -->
                         <select name="status" class="input">
-                          <option value="1" <%= vehicle.status == 1 ? 'selected' : '' %>>Active</option>
-                          <option value="0" <%= vehicle.status == 0 ? 'selected' : '' %>>Inactive</option>
-                      </select>
+                          <option value="1" <%=vehicle.status==1 ? 'selected' : '' %>>Active</option>
+                          <option value="0" <%=vehicle.status==0 ? 'selected' : '' %>>Inactive</option>
+                        </select>
                       </div>
                     </div>
                   </div>
 
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="title"
-                        >Name<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="title"
-                        type="text"
-                        name="title"
+                      <label class="form-label" for="title">Name<abbr class="required" title="required">*</abbr></label>
+                      <input class="input" id="title" type="text" name="title"
                         value="<%= editVehicleId ? vehicle.title : '' %>" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="price"
-                        >Price<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="price"
-                        type="text"
-                        name="price"
+                      <label class="form-label" for="price">Price<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="price" type="text" name="price"
                         value="<%= editVehicleId ? vehicle.price : '' %>" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="detail"
-                        >Business User Price<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="business_user_price"
-                        type="text"
-                        name="business_user_price"
+                      <label class="form-label" for="detail">Business User Price<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="business_user_price" type="text" name="business_user_price"
                         value="<%= editVehicleId ? vehicle.business_user_price : '' %>" />
                     </div>
                   </div>
-                    <div class="col-md-6">
-                      <div class="txtGrp">
-                        <label class="form-label" for="detail"
-                          >Rider Price<abbr class="required" title="required"
-                            >*</abbr
-                          ></label
-                        >
-                        <input
-                          class="input"
-                          id="admin_price"
-                          type="text"
-                          name="admin_price"
-                          value="<%= editVehicleId ? vehicle.admin_price : '' %>" />
-                      </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="detail">Rider Price<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="admin_price" type="text" name="admin_price"
+                        value="<%= editVehicleId ? vehicle.admin_price : '' %>" />
                     </div>
-                    <div class="col-md-6">
-                      <div class="txtGrp">
-                        <label class="form-label" for="detail"
-                          >Waiting charges(For 15 minutes)<abbr class="required" title="required"
-                            >*</abbr
-                          ></label
-                        >
-                        <input
-                          class="input"
-                          id="waiting_charges"
-                          type="text"
-                          name="waiting_charges"
-                          value="<%= editVehicleId ? vehicle.waiting_charges : '' %>" />
-                      </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="detail">Waiting charges(For 15 minutes)<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="waiting_charges" type="text" name="waiting_charges"
+                        value="<%= editVehicleId ? vehicle.waiting_charges : '' %>" />
                     </div>
-                    <div class="col-md-6">
-                      <div class="txtGrp">
-                        <label class="form-label" for="detail"
-                          >Handball charges<abbr class="required" title="required"
-                            >*</abbr
-                          ></label
-                        >
-                        <input
-                          class="input"
-                          id="handball_charges"
-                          type="text"
-                          name="handball_charges"
-                          value="<%= editVehicleId ? vehicle.handball_charges : '' %>" />
-                      </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="detail">Handball charges<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="handball_charges" type="text" name="handball_charges"
+                        value="<%= editVehicleId ? vehicle.handball_charges : '' %>" />
                     </div>
-                    <div class="col-md-6">
-                      <div class="txtGrp">
-                        <label class="form-label" for="detail"
-                          >Cancellation charges<abbr class="required" title="required"
-                            >*</abbr
-                          ></label
-                        >
-                        <input
-                          class="input"
-                          id="cancellation_charges"
-                          type="text"
-                          name="cancellation_charges"
-                          value="<%= editVehicleId ? vehicle.cancellation_charges : '' %>" />
-                      </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="detail">Cancellation charges<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="cancellation_charges" type="text" name="cancellation_charges"
+                        value="<%= editVehicleId ? vehicle.cancellation_charges : '' %>" />
                     </div>
-                    <div class="col-md-6">
-                      <div class="txtGrp">
-                        <label class="form-label" for="detail"
-                          >Minimum mileage<abbr class="required" title="required"
-                            >*</abbr
-                          ></label
-                        >
-                        <input
-                          class="input"
-                          id="min_mileage"
-                          type="text"
-                          name="min_mileage"
-                          value="<%= editVehicleId ? vehicle.min_mileage : '' %>" />
-                      </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="detail">Minimum mileage<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="min_mileage" type="text" name="min_mileage"
+                        value="<%= editVehicleId ? vehicle.min_mileage : '' %>" />
                     </div>
-                    <div class="col-md-6">
-                      <div class="txtGrp">
-                        <label class="form-label" for="detail"
-                          >Minimum Price<abbr class="required" title="required"
-                            >*</abbr
-                          ></label
-                        >
-                        <input
-                          class="input"
-                          id="min_price"
-                          type="text"
-                          name="min_price"
-                          value="<%= editVehicleId ? vehicle.min_price : '' %>" />
-                      </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="detail">Minimum Price<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="min_price" type="text" name="min_price"
+                        value="<%= editVehicleId ? vehicle.min_price : '' %>" />
                     </div>
-                    <div class="col-md-6">
-                      <div class="txtGrp">
-                        <label class="form-label" for="title"
-                          >Weight<abbr class="required" title="required"
-                            >*</abbr
-                          ></label
-                        >
-                        <input
-                          class="input"
-                          id="weight"
-                          type="text"
-                          name="weight"
-                          value="<%= editVehicleId ? vehicle.weight : '' %>" />
-                      </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title">Weight<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="weight" type="text" name="weight"
+                        value="<%= editVehicleId ? vehicle.weight : '' %>" />
                     </div>
-                    <div class="col-md-6">
-                      <div class="txtGrp">
-                        <label class="form-label" for="title"
-                          >Distance<abbr class="required" title="required"
-                            >*</abbr
-                          ></label
-                        >
-                        <input
-                          class="input"
-                          id="distance"
-                          type="text"
-                          name="distance"
-                          value="<%= editVehicleId ? vehicle.distance : '' %>" />
-                      </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="title">Distance<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="distance" type="text" name="distance"
+                        value="<%= editVehicleId ? vehicle.distance : '' %>" />
                     </div>
+                  </div>
 
-                    <div class="col-md-6">
-                      <div class="txtGrp">
-                        <label class="form-label" for="vehicle_category_id">
-                          Vehicle Category <abbr class="required" title="required">*</abbr>
-                        </label>
-                        <select name="vehicle_category_id" id="vehicle_category_id" class="input" required>
-                          <% if (vehicleCategories && vehicleCategories.length) { %>
-                            <% vehicleCategories.forEach(category => { %>
-                              <option value="<%= category.id %>" 
-                                <%= vehicle.vehicle_category_id === category.id ? 'selected' : '' %>>
-                                <%= category.vehicle_name %>
-                              </option>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="vehicle_category_id">
+                        Vehicle Category <abbr class="required" title="required">*</abbr>
+                      </label>
+                      <select name="vehicle_category_id" id="vehicle_category_id" class="input" required>
+                        <% if (vehicleCategories && vehicleCategories.length) { %>
+                          <% vehicleCategories.forEach(category=> { %>
+                            <option value="<%= category.id %>" <%=vehicle.vehicle_category_id===category.id ? 'selected'
+                              : '' %>>
+                              <%= category.vehicle_name %>
+                            </option>
                             <% }); %>
-                          <% } else { %>
-                            <option value="">No categories found</option>
-                          <% } %>
-                        </select>
-                      </div>
+                              <% } else { %>
+                                <option value="">No categories found</option>
+                                <% } %>
+                      </select>
                     </div>
-                    <div class="clearfix"></div>
+                  </div>
+                  <div class="clearfix"></div>
                   <div class="col-md-6">
 
                     <div class="txtGrp">
-                      <label class="form-label" for="load_capacity"
-                        >Maximum load capacity(Kgs)<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="load_capacity"
-                        type="text"
-                        name="load_capacity"
+                      <label class="form-label" for="load_capacity">Maximum load capacity(Kgs)<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="load_capacity" type="text" name="load_capacity"
                         value="<%= editVehicleId ? vehicle.load_capacity : '' %>" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="no_of_pallets"
-                        >Maximum number of pallets(quantity)<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="no_of_pallets"
-                        type="text"
-                        name="no_of_pallets"
+                      <label class="form-label" for="no_of_pallets">Maximum number of pallets(quantity)<abbr
+                          class="required" title="required">*</abbr></label>
+                      <input class="input" id="no_of_pallets" type="text" name="no_of_pallets"
                         value="<%= editVehicleId ? vehicle.no_of_pallets : '' %>" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="max_height"
-                        >Maximum height<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="max_height"
-                        type="text"
-                        name="max_height"
+                      <label class="form-label" for="max_height">Maximum height<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="max_height" type="text" name="max_height"
                         value="<%= editVehicleId ? vehicle.max_height : '' %>" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="max_length"
-                        >Maximum length<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="max_length"
-                        type="text"
-                        name="max_length"
+                      <label class="form-label" for="max_length">Maximum length<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="max_length" type="text" name="max_length"
                         value="<%= editVehicleId ? vehicle.max_length : '' %>" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="max_width"
-                        >Maximum Width<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="max_width"
-                        type="text"
-                        name="max_width"
+                      <label class="form-label" for="max_width">Maximum Width<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="max_width" type="text" name="max_width"
                         value="<%= editVehicleId ? vehicle.max_width : '' %>" />
                     </div>
                   </div>
-                  <div class="clearfix"></div>
-                    
-                    
+                  <div class="card-body preview multi-image-block">
+                    <h5 class="card-title">Vehicle Images</h5>
+
+                    <div class="multi-preview existing-images" style="display:flex; flex-wrap:wrap; gap:10px;">
+                      <% if (multipleImages && multipleImages.length) { %>
+                        <% multipleImages.forEach(img=> { %>
+                          <div class="img-box" style="position:relative;" data-id="<%= img.id %>">
+
+                            <!-- ❌ Delete button -->
+                            <span class="delete-image" data-id="<%= img.id %>" style="
+            position:absolute;
+            top:-6px;
+            right:-6px;
+            background:#ff4d4d;
+            color:#fff;
+            width:20px;
+            height:20px;
+            border-radius:50%;
+            font-size:14px;
+            cursor:pointer;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+          ">×</span>
+
+                            <img src="<%= helpers.getImage(img.image) %>"
+                              style="width:100px;height:100px;object-fit:cover;border-radius:5px;" />
+                          </div>
+                          <% }) %>
+                            <% } %>
+                    </div>
+                    <!-- ✅ NEW images preview ONLY -->
+                    <div class="multi-preview new-images" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
+
+
+                    <div class="in-upload mt-2">
+                      <button type="button" class="uploadImg">
+                        <i class="fa-regular fa-image"></i>Choose Images
+                      </button>
+                      <input type="file" name="vehicle_images" class="uploadFile" multiple style="display:none;" />
+                    </div>
                   </div>
+
+                  <div class="clearfix"></div>
+
+
                 </div>
               </div>
             </div>
-            <div class="card-footer text-end">
-              <button class="webBtn" type="submit">
-                Update Content <i class="spinner hidden"></i>
-              </button>
-            </div>
-          </form>
         </div>
-        <hr />
+        <div class="card-footer text-end">
+          <button class="webBtn" type="submit">
+            Update Content <i class="spinner hidden"></i>
+          </button>
+        </div>
+        </form>
       </div>
+      <hr />
     </div>
+  </div>
   </div>
 </section>

@@ -382,7 +382,7 @@ class MemberController extends BaseController {
           .status(200)
           .json({ status: 0, msg: "Invalid email format." });
       }
-      let existingUser = await this.member.findByEmail(email);
+      let existingUser = await this.member.findByEmailforLogin(email);
 
       // Check if the rider exists by email
       if (!existingUser) {

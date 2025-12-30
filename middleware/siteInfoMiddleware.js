@@ -9,8 +9,9 @@ const siteInfoMiddleware = async(req, res, next) => {
         const [rows] = await pool.query('SELECT * FROM tbl_admin LIMIT 1')
 
         if (rows.length > 0){
-            const adminData = rows[0];
-            res.locals.adminData = adminData;
+            // const adminData = rows[0];
+            const { password, ...adminWithoutPassword } = rows[0];
+            res.locals.adminData = adminWithoutPassword;
         }else{
             res.locals.adminData = {
                 site_name: 'Default Site Name',
