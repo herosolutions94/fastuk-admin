@@ -23,6 +23,8 @@ const crypto = require("crypto");
 const helpers = require("../../utils/helpers");
 const moment = require("moment");
 const pool = require("../../config/db-connection");
+const QRCode = require("qrcode");
+
 
 class RiderController extends BaseController {
   constructor() {
@@ -35,6 +37,91 @@ class RiderController extends BaseController {
     this.member_model = new MemberModel();
     this.vehicleModel = new VehicleModel();
   }
+
+
+
+   async generateMissingQRCodes(req, res) {
+  try {
+    const riders = await this.rider.getAllRiders(); // MUST include email
+    const qrFolder = path.join(__dirname, "../../uploads/qr_codes");
+
+    if (!fs.existsSync(qrFolder)) {
+      fs.mkdirSync(qrFolder, { recursive: true });
+    }
+
+    for (const rider of riders) {
+      // safety checks
+      if (!rider.email) {
+        console.warn(`Skipping rider ${rider.id}: email missing`);
+        continue;
+      }
+
+      if (!rider.qr_code) {
+        // ✅ AWAIT is mandatory
+        const user_name = rider.user_name
+          ? rider.user_name
+          : await this.generateUniqueUsername(rider.email);
+
+        const qrRedirectUrl = `${process.env.FRONTEND_URL}/rider/verify/${user_name}`;
+        const qrImageName = `rider_${user_name}.png`;
+        const qrImagePath = path.join(qrFolder, qrImageName);
+
+        await QRCode.toFile(qrImagePath, qrRedirectUrl);
+
+        await this.rider.saveAttachments([{
+          rider_id: rider.id,
+          filename: qrImageName,
+          type: "qr_code"
+        }]);
+
+        // Optional: store username if missing
+        if (!rider.user_name) {
+          await this.rider.updateUsername(rider.id, user_name);
+        }
+
+        console.log(`QR code generated for ${rider.full_name}`);
+      }
+    }
+
+    return res.status(200).json({
+      status: 1,
+      msg: "Missing QR codes generated successfully."
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      status: 0,
+      msg: "Error generating QR codes",
+      error: error.message
+    });
+  }
+}
+
+
+  async generateUniqueUsername(email) {
+  if (!email || typeof email !== "string") {
+    throw new Error("Email is required to generate username");
+  }
+
+  const baseUsername = email
+    .split("@")[0]
+    .toLowerCase()
+    .replace(/[^a-z0-9._]/g, "") || "rider";
+
+  let username = baseUsername;
+  let counter = 1;
+
+  while (await this.rider.findByUsername(username)) {
+    username = `${baseUsername}${counter}`;
+    counter++;
+  }
+
+  return username;
+}
+
+
+
 
   async registerRider(req, res) {
     try {
@@ -195,9 +282,27 @@ class RiderController extends BaseController {
 
       cleanedData.customer_id = customer.id;
       cleanedData.vehicle_type = vehicle_type;
+      // Generate unique username from email
+const user_name = await this.generateUniqueUsername(cleanedData.email);
+cleanedData.user_name = user_name;
+
+
       // Create the rider
       const riderId = await this.rider.createRider(cleanedData);
       // console.log('cleanedData:', cleanedData); return;
+      // Ensure folder exists
+      const qrFolder = path.join(__dirname, "../../uploads/qr_codes");
+      if (!fs.existsSync(qrFolder)) {
+        fs.mkdirSync(qrFolder, { recursive: true });
+      }
+
+      // Save QR code
+      const qrImagePath = path.join(qrFolder, `rider_${riderId}.png`);
+      const qrRedirectUrl = `${process.env.FRONTEND_URL}/rider/verify/${riderId}`;
+
+      await QRCode.toFile(qrImagePath, qrRedirectUrl);
+
+
 
       let signatureFileName = null;
 
@@ -224,6 +329,13 @@ class RiderController extends BaseController {
       // Save attachments
       const documents = JSON.parse(req.body.documents || "{}");
       const attachments = [];
+
+      // Add QR code to attachments array
+      attachments.push({
+        rider_id: riderId,
+        filename: `rider_${riderId}.png`,
+        type: "qr_code"
+      });
 
       if (driving_license) {
         attachments.push({ rider_id: riderId, filename: driving_license, type: 'driving_license' });
@@ -320,6 +432,8 @@ class RiderController extends BaseController {
 
       const token = helpers.generateToken(`${(riderId, "rider")}`);
 
+
+
       // Store the token in the tokens table
       await this.tokenModel.storeToken(
         riderId,
@@ -357,6 +471,47 @@ class RiderController extends BaseController {
       });
     }
   }
+
+  async getRiderByUsername(req, res) {
+  try {
+    const { user_name } = req.params;
+    // console.log(req.params)
+
+    if (!user_name) {
+      return res.status(400).json({
+        status: 0,
+        msg: "Username is required"
+      });
+    }
+
+    const rider = await this.rider.findByUsernameWithDetails(user_name);
+    const siteSettings = res.locals.adminData;
+
+    // console.log("rider:",rider)
+
+    if (!rider) {
+      return res.status(404).json({
+        status: 0,
+        msg: "Rider not found"
+      });
+    }
+
+    return res.status(200).json({
+      status: 1,
+      data: rider,
+      site_settings: siteSettings
+    });
+
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      status: 0,
+      msg: "Error fetching rider",
+      error: error.message
+    });
+  }
+}
+
 
   generatePseudoFingerprint(req) {
     const userAgent = req.headers["user-agent"] || "";
@@ -856,9 +1011,15 @@ class RiderController extends BaseController {
           request_row.id
         );
         const order_stages_arr = await this.rider.getRequestOrderStages(request_row.id);
+
+        const categoryInfo = request_row.selected_vehicle
+          ? await VehicleModel.getCategoryAndMainCategoryById(request_row.selected_vehicle)
+          : null;
+
         if (user) {
           request_row = {
             ...request_row,
+            categoryInfo,
             user_name: user?.full_name,
             user_image: user?.mem_image,
             vias: vias,
@@ -2116,7 +2277,7 @@ class RiderController extends BaseController {
   markRiderOrdersReady = async (req, res) => {
     // console.log('hy');
     try {
-      const { token, mem_type, request_id } = req.body;
+      const { token, mem_type, request_id, stage_id } = req.body;
       // console.log("req.body:", req.body)
 
       // 1️⃣ Validate rider token
@@ -2135,8 +2296,18 @@ class RiderController extends BaseController {
       if (!request || request.length === 0) {
         return res.status(200).json({ status: 0, msg: "Request not found." });
       }
+      const member_row = await this.member.findById(request[0].user_id);
 
-      const requestData = request[0];
+
+      const stage_row = await this.rider.getRequestOrderStageRow(
+        request_id,
+        stage_id
+      );
+      if (!stage_row) {
+        return res.status(200).json({ status: 0, msg: "Request is not found." });
+      }
+
+      let requestData = request[0];
 
       // ⛔ NEW: Prevent marking as ready if order is cancelled
       if (requestData.is_cancelled === "approved") {
@@ -2145,6 +2316,9 @@ class RiderController extends BaseController {
           msg: "This request has been cancelled and cannot be marked as ready."
         });
       }
+      const parcels_arr = await this.rider.getParcelDetailsByQuoteId(
+        request_id
+      );
 
       // 4️⃣ Fetch the user who created the request
       const user = await this.rider.getUserById(requestData?.user_id);
@@ -2154,6 +2328,44 @@ class RiderController extends BaseController {
 
       // 5️⃣ Mark the order as ready
       const readyTime = await this.rider.markOrderReady(request_id);
+
+      // 8️⃣ Build complete order object for email/notification
+      requestData = {
+        ...requestData,
+        parcels: parcels_arr || [],
+        rider_name: rider.user?.full_name || ""
+      };
+      let adminData = res.locals.adminData;
+
+      const encodedId = helpers.doEncode(String(request_id));
+
+      await helpers.sendEmail(
+        member_row.email,
+        "Rider reached pickup location: " + stage_row.address,
+        "rider-reached-location",
+        {
+          adminData,
+          order: requestData,
+          type: "user",
+          address: stage_row.address,
+          rider: rider.user
+
+        }
+      );
+      let notificationText = `Your rider has reached the pickup location: ${stage_row.address}.`;
+      const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
+
+
+      // const notificationText = `Your request #${order.id} has been marked as completed.`;
+
+      await helpers.storeNotification(
+        requestData.user_id, // The user ID from request_quote
+        member_row?.mem_type, // The user's member type
+        rider.user.id,
+        notificationText,
+        orderDetailsLink
+      );
+
 
       // 🔥 THEN get final order object (NOW includes updated job_status)
       let updatedOrder = await this.getCompleteOrderObject(
@@ -2482,28 +2694,33 @@ class RiderController extends BaseController {
           order_id,
           "completed"
         );
-      }
 
-      // Assuming requestData contains distance and selected_vehicle/rider price info
-      const distance = parseFloat(requestData.distance || 0); // in km
-      const riderPrice = parseFloat(requestData.rider_price || 0); // price per km
 
-      const formattedAmount = parseFloat((distance * riderPrice)); // multiply and format
-      if (formattedAmount > 0) {
-        const created_time = Math.floor(Date.now() / 1000); // UTC seconds
-        const earningsData = {
-          user_id: rider.user.id,
-          amount: formattedAmount,
-          type: "credit",
-          status: "pending",
-          created_time
-        };
+        // Assuming requestData contains distance and selected_vehicle/rider price info
+        const distance = parseFloat(requestData.distance || 0); // in km
+        const riderPrice = parseFloat(requestData.rider_price || 0); // price per km
 
-        const insertedEarnings = await helpers.insertEarnings(earningsData);
+        const formattedAmount = parseFloat((distance * riderPrice)); // multiply and format
+        if (formattedAmount > 0) {
+          const created_time = Math.floor(Date.now() / 1000); // UTC seconds
+          const earningsData = {
+            user_id: rider.user.id,
+            amount: formattedAmount,
+            type: "credit",
+            status: "pending",
+            created_time
+          };
 
-        if (!insertedEarnings) {
-          console.log("Failed to insert earnings for rider:", rider.user.id);
+          const insertedEarnings = await helpers.insertEarnings(earningsData);
+
+          if (!insertedEarnings) {
+            console.log("Failed to insert earnings for rider:", rider.user.id);
+          }
         }
+      } else {
+        console.log(
+          "Not inserting earnings: either not last stage or due amount is not 0."
+        );
       }
 
 
@@ -3224,10 +3441,21 @@ class RiderController extends BaseController {
       );
 
       // console.log(completedOrders);
-      const ordersWithEncodedIds = completedOrders.map((order) => {
-        const encodedId = helpers.doEncode(String(order.id)); // Convert order.id to a string
-        return { ...order, encodedId }; // Add encodedId to each order
-      });
+      const ordersWithEncodedIds = await Promise.all(
+  completedOrders.map(async (order) => {
+
+    const encodedId = helpers.doEncode(String(order.id));
+
+    const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
+
+    return {
+      ...order,
+      encodedId,
+      jobStatus
+    };
+  })
+);
+
 
       const currentOrders = await this.rider.getCurrentOrdersByStatus(riderId);
 
@@ -3242,7 +3470,7 @@ class RiderController extends BaseController {
 
       const earningsData = await this.rider.getRiderEarnings(riderId);
 
-      const formattedAvailableBalance = parseFloat(
+      const formattedAvailableBalance = helpers.formatAmount(
         earningsData.availableBalance
       );
 
@@ -3250,6 +3478,7 @@ class RiderController extends BaseController {
       const SumOfClearedEarnings = await this.rider.getRiderClearedEarningsSum(
         riderId
       );
+
 
       // Return the response with the fetched orders and total order counts
       return res.status(200).json({
@@ -3260,7 +3489,8 @@ class RiderController extends BaseController {
         totalOrders, // Total number of 'completed' or 'accepted' orders
         totalCompletedOrders, // Total number of 'completed' orders
         SumOfClearedEarnings,
-        availableBalance: formattedAvailableBalance
+        availableBalance: formattedAvailableBalance,
+        
       });
     } catch (error) {
       console.error("Error fetching rider dashboard orders:", error.message);

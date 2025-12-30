@@ -27,7 +27,8 @@ class RequestQuoteController extends BaseController {
 
       const requestQuotesWithMembers =
         await RequestQuote.getRequestQuotesWithMembers([
-          "rq.status = 'completed'"
+          "rq.status = 'completed'",
+           "(rq.is_cancelled IS NULL OR rq.is_cancelled NOT IN ('requested', 'approved'))"
         ]);
 
       // console.log('Completed Request Quotes:', requestQuotesWithMembers);
@@ -47,10 +48,11 @@ class RequestQuoteController extends BaseController {
 
       const requestQuotesWithMembers =
         await RequestQuote.getRequestQuotesWithMembers([
-          "rq.status = 'accepted'"
+          "rq.status = 'accepted'",
+          "(rq.is_cancelled IS NULL OR rq.is_cancelled NOT IN ('requested', 'approved'))"
         ]);
 
-      console.log('Request Quotes:', requestQuotesWithMembers);
+      // console.log('Request Quotes:', requestQuotesWithMembers);
 
       res.render("admin/request-quotes", {
         requestQuotes: requestQuotesWithMembers,
@@ -68,10 +70,11 @@ class RequestQuoteController extends BaseController {
       const requestQuotesWithMembers =
         await RequestQuote.getRequestQuotesWithMembers([
           "rq.status = 'paid'",
-           "rq.start_date >= CURDATE()"
+           "rq.start_date >= CURDATE()",
+           "(rq.is_cancelled IS NULL OR rq.is_cancelled NOT IN ('requested', 'approved'))"
         ]);
 
-      console.log('Upcoming Request Quotes:', requestQuotesWithMembers);
+      // console.log('Upcoming Request Quotes:', requestQuotesWithMembers);
 
       res.render("admin/request-quotes", {
         requestQuotes: requestQuotesWithMembers,

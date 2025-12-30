@@ -13,6 +13,19 @@ class MemberModel extends BaseModel {
   async findByEmail(email) {
     try {
       const [rows] = await pool.query(
+        `SELECT 1 FROM ${this.tableName} WHERE is_deleted != 1 AND email = ? LIMIT 1`,
+        [email]
+      );
+      return rows.length ? rows[0] : null; // Return the first result or null
+    } catch (error) {
+      throw new Error(
+        `Error fetching member by email from ${this.tableName}: ${error.message}`
+      );
+    }
+  }
+  async findByEmailforLogin(email) {
+    try {
+      const [rows] = await pool.query(
         `SELECT * FROM ${this.tableName} WHERE is_deleted != 1 AND email = ?`,
         [email]
       );
@@ -26,7 +39,7 @@ class MemberModel extends BaseModel {
   async findByPhone(mem_phone) {
     try {
       const [rows] = await pool.query(
-        `SELECT * FROM ${this.tableName} WHERE is_deleted != 1 AND mem_phone = ?`,
+        `SELECT 1 FROM ${this.tableName} WHERE is_deleted != 1 AND mem_phone = ? LIMIT 1`,
         [mem_phone]
       );
       return rows.length ? rows[0] : null; // Return the first result or null
@@ -40,7 +53,7 @@ class MemberModel extends BaseModel {
   async findByOtp(otp) {
     try {
       const [rows] = await pool.query(
-        `SELECT * FROM ${this.tableName} WHERE otp = ?`,
+        `SELECT 1 FROM ${this.tableName} WHERE otp = ? LIMIT 1`,
         [otp]
       );
       return rows.length ? rows[0] : null; // Return the first result or null
@@ -55,7 +68,7 @@ class MemberModel extends BaseModel {
   async emailExists(email) {
     try {
       const [rows] = await pool.query(
-        `SELECT * FROM ${this.tableName} WHERE email = ?`,
+        `SELECT 1 FROM ${this.tableName} WHERE email = ? LIMIT 1`,
         [email]
       );
       return rows.length > 0; // Returns true if email exists, false otherwise
@@ -88,7 +101,11 @@ class MemberModel extends BaseModel {
     const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
     const [rows] = await pool.query(query, [memberId]);
     // console.log(rows)
-    return rows.length ? rows[0] : null; // Return the first result or null
+    if (!rows.length) return null;
+
+    const { password, ...memberWithoutPassword } = rows[0];
+    return memberWithoutPassword;
+    // return rows.length ? rows[0] : null; // Return the first result or null
   }
 
   // Function to update rider's verified status and set OTP to null
@@ -184,6 +201,8 @@ class MemberModel extends BaseModel {
         `;
 
       const values = [userId];
+      const todayUK = helpers.formatDateToUK(new Date()); // e.g. "16/12/2025"
+
 
       // Add status condition if it's not empty
       if (status) {
@@ -193,23 +212,35 @@ class MemberModel extends BaseModel {
             query += ` AND rq.status = ?`;
             values.push("completed");
             break;
+
           case "not_completed":
-            // CASE 1
             query += `
-            AND rq.status != 'completed'
-            AND rq.is_cancelled != 'approved'
-          `;
+    AND rq.status != 'completed'
+    AND (rq.is_cancelled IS NULL OR rq.is_cancelled != 'approved')
+  `;
             break;
 
           case "in_progress":
-          query += `
-            AND rq.status != 'completed'
+            query += `
+            AND rq.status NOT IN ('completed', 'pending')
             AND (rq.is_cancelled != 'approved' OR rq.is_cancelled IS NULL)
-            AND DATE(rq.start_date) >= CURRENT_DATE()
           `;
-          console.log("in_progress query:", query);
-          break;
-         
+            // console.log("in_progress query:", query);
+
+            break;
+          case "cancelled":
+            query += ` AND rq.is_cancelled = ?`;
+            values.push("approved");
+            break;
+
+          case "pending":
+            query += `
+    AND rq.status = 'pending'
+    AND (rq.is_cancelled IS NULL OR rq.is_cancelled != 'approved')
+  `;
+            break;
+
+
 
 
           default:
@@ -266,7 +297,7 @@ ON
 WHERE 
     rq.user_id = ? 
     AND rq.id = ? 
-    AND rq.status != 'pending'  
+     
 GROUP BY 
     rq.id, m.full_name, m.mem_image, m.email, m.mem_phone;
 `;

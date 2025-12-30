@@ -21,6 +21,67 @@ class RiderModel extends BaseModel {
     }
   }
 
+  async findByUsername(user_name) {
+    const query = `SELECT id FROM riders WHERE user_name = ? LIMIT 1`;
+    const [rows] = await pool.query(query, [user_name]);
+    return rows[0];
+  }
+  async findByUsernameWithDetails(user_name) {
+    // 1. Get rider + attachments
+    const query = `
+    SELECT 
+      r.*, 
+      ra.id AS attachment_id,
+      ra.filename AS attachment_filename,
+      ra.type AS attachment_type
+    FROM riders r
+    LEFT JOIN rider_attachments ra
+      ON r.id = ra.rider_id
+    WHERE r.user_name = ?
+  `;
+
+    const [rows] = await pool.query(query, [user_name]);
+
+    if (!rows.length) return null;
+
+    // Group attachments
+    const rider = {
+      ...rows[0],
+      attachments: rows
+        .filter(r => r.attachment_id)
+        .map(r => ({
+          id: r.attachment_id,
+          filename: r.attachment_filename,
+          type: r.attachment_type
+        }))
+    };
+
+    delete rider.attachment_id;
+    delete rider.attachment_filename;
+    delete rider.attachment_type;
+
+    // 2. Get single vehicle_image from vehicles table based on vehicle_type
+    if (rider.vehicle_type) {
+      const vehicleQuery = `
+      SELECT vehicle_image
+      FROM vehicles
+      WHERE title = ?
+      LIMIT 1
+    `;
+      const [vehicleRows] = await pool.query(vehicleQuery, [rider.vehicle_type]);
+      rider.vehicle_image = vehicleRows.length ? vehicleRows[0].vehicle_image : null;
+    } else {
+      rider.vehicle_image = null;
+    }
+
+    return rider;
+  }
+
+
+
+
+
+
   // Method to check if an email already exists
   async emailExists(email) {
     try {
@@ -45,6 +106,40 @@ class RiderModel extends BaseModel {
     // console.log(rows)
     return rows.length ? rows[0] : null; // Return the first result or null
   }
+  async getAllRiders() {
+    const query = "SELECT id, full_name, email, user_name FROM riders";
+    const [rows] = await pool.query(query); // mysql2 returns [rows, fields]
+    return rows;
+  }
+
+  // Save attachments
+  async saveAttachments(attachments) {
+    const query = `
+            INSERT INTO rider_attachments (rider_id, filename, type)
+            VALUES (?, ?, ?)
+        `;
+    for (const att of attachments) {
+      await pool.query(query, [att.rider_id, att.filename, att.type]);
+    }
+  }
+
+  async updateUsername(riderId, user_name) {
+    try {
+      const query = `
+      UPDATE riders
+      SET user_name = ?
+      WHERE id = ?
+    `;
+      const [result] = await pool.query(query, [user_name, riderId]);
+      return result.affectedRows > 0;
+    } catch (err) {
+      if (err.code === "ER_DUP_ENTRY") {
+        return false;
+      }
+      throw err;
+    }
+  }
+
 
 
   // Function to update rider's verified status and set OTP to null
@@ -110,14 +205,14 @@ class RiderModel extends BaseModel {
             ON rq.selected_vehicle = rvc.category_id
         WHERE 
             rq.assigned_rider IS NULL
-AND COALESCE(rq.is_cancelled, '') <> 'approved'
+AND COALESCE(rq.is_cancelled, '') NOT IN ('approved', 'requested')
 
             AND rvc.category_id IN (${placeholders})
         HAVING radius_distance <= 30
     ORDER BY rq.created_date DESC, radius_distance ASC;
 
     `;
-            // ORDER BY rq.start_date DESC, rq.created_date DESC, radius_distance ASC;
+    // ORDER BY rq.start_date DESC, rq.created_date DESC, radius_distance ASC;
 
 
 
@@ -231,7 +326,14 @@ AND COALESCE(rq.is_cancelled, '') <> 'approved'
     // Get current date in YYYY-MM-DD format
     const assignedDate = new Date().toISOString().split('T')[0];
     const updatedTime = helpers.getUtcTimeInSeconds();
-    const endTime = helpers.addTwoDaysToDate();
+    // const endTime = helpers.addTwoDaysToDate();
+
+    // Fetch start_date from DB first
+    const [rows] = await pool.query('SELECT start_date FROM request_quote WHERE id = ?', [requestId]);
+    if (!rows.length) throw new Error('Request not found');
+
+    const startDate = rows[0].start_date;
+    const endDate = helpers.addThreeDaysToDate(startDate);
 
 
     const query = `
@@ -246,7 +348,7 @@ AND COALESCE(rq.is_cancelled, '') <> 'approved'
         WHERE 
             id = ?`; // Ensure the current status is 'paid'
 
-    const [result] = await pool.query(query, [riderId, assignedDate, endTime, updatedTime, requestId]);
+    const [result] = await pool.query(query, [riderId, assignedDate, endDate, updatedTime, requestId]);
     // console.log("endTime:", endTime)
     return result; // Contains affectedRows and other info
   }
@@ -964,7 +1066,8 @@ ORDER BY e.created_time DESC;
       ON 
         rq.id = rp.request_id
       WHERE 
-        rq.assigned_rider = ? AND rq.status != ?
+        rq.assigned_rider = ? AND 
+        (rq.status = 'completed' OR rq.is_cancelled = 'approved')
       GROUP BY 
         rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
       ORDER BY 
@@ -1003,12 +1106,15 @@ ORDER BY e.created_time DESC;
 
   async getCurrentOrdersByStatus(riderId) {
     const query = `
-    SELECT COUNT(*) AS total_orders
-    FROM request_quote
-    WHERE assigned_rider = ? 
-      AND status != 'completed'
-  `;
+      SELECT COUNT(*) AS total_orders
+      FROM request_quote
+      WHERE assigned_rider = ?
+        AND status != 'completed'
+        AND (is_cancelled IS NULL OR is_cancelled != 'approved')
+    `;
     const values = [riderId];
+
+
 
     try {
       const [rows] = await pool.query(query, values);

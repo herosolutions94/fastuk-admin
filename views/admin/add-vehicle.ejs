@@ -9,9 +9,7 @@
         </ul>
       </div>
       <div class="text text2">
-        <a href="/admin/vehicles-list" class="webBtn mdBtn greenBtn"
-          ><i class="fa-regular fa-arrow-left"></i>Cancel</a
-        >
+        <a href="/admin/vehicles-list" class="webBtn mdBtn greenBtn"><i class="fa-regular fa-arrow-left"></i>Cancel</a>
       </div>
     </div>
     <div class="dashTable">
@@ -20,11 +18,7 @@
           <h5>Vehicle Block</h5>
         </div>
         <div class="card-body full_width">
-          <form
-            id="addVehicleForm"
-            class="frmAjax"
-            action="/admin/add-vehicles"
-            method="post"
+          <form id="addVehicleForm" class="frmAjax" action="/admin/add-vehicles" method="post"
             enctype="multipart/form-data">
             <div class="row">
               <div class="col-md-3">
@@ -32,19 +26,13 @@
                   <div class="card-body preview">
                     <h5 class="card-title">Image</h5>
                     <div class="blog_img">
-                      <img
-                        src="/images/no-image.svg"
-                        class="card-img-top"
-                        alt="" />
+                      <img src="/images/no-image.svg" class="card-img-top" alt="" />
                     </div>
                     <div class="in-upload">
                       <button type="button" class="uploadImg">
                         <i class="fa-regular fa-image"></i>choose another image
                       </button>
-                      <input
-                        type="file"
-                        name="vehicle_image"
-                        class="uploadFile" />
+                      <input type="file" name="vehicle_image" class="uploadFile" />
                     </div>
                   </div>
                 </div>
@@ -54,8 +42,7 @@
                   <div class="col-md-12">
                     <div class="txtGrp media st_sp">
                       <label class="form-label">Status</label>
-                      <div
-                        class="txtGrp-body text-end icon-state switch-outline">
+                      <div class="txtGrp-body text-end icon-state switch-outline">
                         <!-- <label class="switch">
                           <span
                             class="switch-state bg-primary"></span>
@@ -70,16 +57,8 @@
 
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="title"
-                        >Name<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="title"
-                        type="text"
-                        name="title" />
+                      <label class="form-label" for="title">Name<abbr class="required" title="required">*</abbr></label>
+                      <input class="input" id="title" type="text" name="title" />
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -89,244 +68,160 @@
                       </label>
                       <select name="vehicle_category_id" id="vehicle_category_id" class="input" required>
                         <% if (vehicleCategories && vehicleCategories.length) { %>
-                          <% vehicleCategories.forEach(category => { %>
-                            <option value="<%= category.id %>"><%= category.vehicle_name %></option>
-                          <% }); %>
-                        <% } else { %>
-                          <option value="">No categories found</option>
-                        <% } %>
+                          <% vehicleCategories.forEach(category=> { %>
+                            <option value="<%= category.id %>">
+                              <%= category.vehicle_name %>
+                            </option>
+                            <% }); %>
+                              <% } else { %>
+                                <option value="">No categories found</option>
+                                <% } %>
                       </select>
                     </div>
                   </div>
-                  
+
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="detail"
-                        >Price<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="price"
-                        type="text"
-                        name="price" />
+                      <label class="form-label" for="detail">Price<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="price" type="text" name="price" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="detail"
-                        >Business User Price<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="business_user_price"
-                        type="text"
-                        name="business_user_price" />
+                      <label class="form-label" for="detail">Business User Price<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="business_user_price" type="text" name="business_user_price" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="detail"
-                        >Rider Price<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="admin_price"
-                        type="text"
-                        name="admin_price" />
+                      <label class="form-label" for="detail">Rider Price<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="admin_price" type="text" name="admin_price" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="detail"
-                        >Waiting charges(For 15 minutes)<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="waiting_charges"
-                        type="text"
-                        name="waiting_charges" />
+                      <label class="form-label" for="detail">Waiting charges(For 15 minutes)<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="waiting_charges" type="text" name="waiting_charges" />
                     </div>
                   </div>
 
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="detail"
-                        >Handball charges<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="handball_charges"
-                        type="text"
-                        name="handball_charges" />
+                      <label class="form-label" for="detail">Handball charges<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="handball_charges" type="text" name="handball_charges" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="detail"
-                        >Cancellation charges<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="cancellation_charges"
-                        type="text"
-                        name="cancellation_charges" />
+                      <label class="form-label" for="detail">Cancellation charges<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="cancellation_charges" type="text" name="cancellation_charges" />
                     </div>
                   </div>
 
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="detail"
-                        >Minimum mileage<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="min_mileage"
-                        type="text"
-                        name="min_mileage" />
+                      <label class="form-label" for="detail">Minimum mileage<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="min_mileage" type="text" name="min_mileage" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="detail"
-                        >Minimum Price<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="min_price"
-                        type="text"
-                        name="min_price" />
+                      <label class="form-label" for="detail">Minimum Price<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="min_price" type="text" name="min_price" />
                     </div>
                   </div>
                   <div class="col-md-6">
 
                     <div class="txtGrp">
-                      <label class="form-label" for="detail"
-                        >Weight<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="weight"
-                        type="text"
-                        name="weight" />
+                      <label class="form-label" for="detail">Weight<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="weight" type="text" name="weight" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="detail"
-                        >Distance<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="distance"
-                        type="text"
-                        name="distance" />
+                      <label class="form-label" for="detail">Distance<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="distance" type="text" name="distance" />
                     </div>
                   </div>
                   <div class="clearfix"></div>
                   <div class="col-md-6">
 
                     <div class="txtGrp">
-                      <label class="form-label" for="load_capacity"
-                        >Maximum load capacity(Kgs)<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="load_capacity"
-                        type="text"
-                        name="load_capacity" />
+                      <label class="form-label" for="load_capacity">Maximum load capacity(Kgs)<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="load_capacity" type="text" name="load_capacity" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="no_of_pallets"
-                        >Maximum number of pallets(quantity)<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="no_of_pallets"
-                        type="text"
-                        name="no_of_pallets" />
+                      <label class="form-label" for="no_of_pallets">Maximum number of pallets(quantity)<abbr
+                          class="required" title="required">*</abbr></label>
+                      <input class="input" id="no_of_pallets" type="text" name="no_of_pallets" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="max_height"
-                        >Maximum height<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="max_height"
-                        type="text"
-                        name="max_height" />
+                      <label class="form-label" for="max_height">Maximum height<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="max_height" type="text" name="max_height" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="max_length"
-                        >Maximum Length<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="max_length"
-                        type="text"
-                        name="max_length" />
+                      <label class="form-label" for="max_length">Maximum Length<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="max_length" type="text" name="max_length" />
                     </div>
                   </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
-                      <label class="form-label" for="max_width"
-                        >Maximum Width<abbr class="required" title="required"
-                          >*</abbr
-                        ></label
-                      >
-                      <input
-                        class="input"
-                        id="max_width"
-                        type="text"
-                        name="max_width" />
+                      <label class="form-label" for="max_width">Maximum Width<abbr class="required"
+                          title="required">*</abbr></label>
+                      <input class="input" id="max_width" type="text" name="max_width" />
                     </div>
+                    <div class="card-body preview multi-image-block">
+                      <h5 class="card-title">Vehicle Images</h5>
+
+                      <!-- NEW images preview -->
+                      <div class="multi-preview new-images" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
+
+                      <!-- Upload -->
+                      <div class="in-upload mt-2">
+                        <button type="button" class="uploadImg">
+                          <i class="fa-regular fa-image"></i> Choose Images
+                        </button>
+
+                        <input type="file" name="vehicle_images" class="uploadFile" multiple style="display:none;" />
+
+                      </div>
+                    </div>
+
+
                   </div>
-                  <div class="clearfix"></div>
                 </div>
+                <div class="clearfix"></div>
               </div>
             </div>
-            <div class="card-footer text-end">
-              <button class="webBtn" type="submit">
-                Update Content <i class="spinner hidden"></i>
-              </button>
-            </div>
-          </form>
         </div>
-        <hr />
+        <div class="card-footer text-end">
+          <button class="webBtn" type="submit">
+            Update Content <i class="spinner hidden"></i>
+          </button>
+        </div>
+        </form>
       </div>
+      <hr />
     </div>
+  </div>
   </div>
 </section>

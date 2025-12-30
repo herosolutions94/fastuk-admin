@@ -195,23 +195,48 @@ getUniqueAddresses: function (data, topAddress = null) {
       order_number: index + 1,
     }));
   },
-  getRequestOrderStatus: function (status) {
-    if (status === 'accepted') {
-      return 'Accepted';
-    } else if (status === 'on-way-pickup') {
-      return 'On way to (Collection/pickup)';
-    } else if (status === 'on-site-pickup') {
-      return 'On site (collection/pickup)';
-    } else if (status === 'loaded') {
-      return 'Loaded';
-    } else if (status === 'on-site-delivery') {
-      return 'On site (delivery/destination)';
-    } else if (status === 'delivered') {
-      return 'Delivered';
-    } else {
-      return 'Active';
-    }
-  },
+  getRequestOrderStatus: function (status, is_cancelled) {
+
+  // Highest priority: cancellation
+  if (is_cancelled === "approved") {
+    return "Cancelled";
+  }
+
+  if (status === "accepted") {
+    return "Accepted";
+  } 
+  else if (status === "in_progress") {
+    return "In Progress";
+  } 
+  else if (status === "on-way-pickup") {
+    return "On way to (Collection/Pickup)";
+  } 
+  else if (status === "on-site-pickup") {
+    return "On site (Collection/Pickup)";
+  } 
+  else if (status === "loaded") {
+    return "Loaded";
+  } 
+  else if (status === "on-site-delivery") {
+    return "On site (Delivery/Destination)";
+  } 
+  else if (status === "delivered") {
+    return "Delivered";
+  } 
+  else if (status === "completed") {
+    return "Completed";
+  } 
+  else if (status === "pending_payment") {
+    return "Pending Payment";
+  } 
+  else if (status === "new") {
+    return "New";
+  } 
+  else {
+    return "Active";
+  }
+}
+  ,
   getRequestOrderStatusText: function (status) {
     switch (status) {
       case 'accepted': return 'Accepted';
@@ -259,22 +284,32 @@ getUniqueAddresses: function (data, topAddress = null) {
   },
 
   format_amount: function (amount) {
-  // If amount is null, undefined, or not a number, default to 0
-  if (amount == null || isNaN(amount)) {
+
+  // Convert safely
+  let num = Number(amount);
+
+  // Handle null / NaN
+  if (!num || isNaN(num)) {
     return "£0.00";
   }
 
-  amount = String(amount);
-
-  // Ensure always 2 decimals but without rounding
-  if (amount.includes(".")) {
-    let [int, dec] = amount.split(".");
-    dec = dec.substring(0, 2); // take only first 2 digits, NO ROUNDING
-    return `£${int}.${dec.padEnd(2, "0")}`;
-  } else {
-    return `£${amount}.00`;
+  // ✅ FIX: Normalize negative zero
+  if (Object.is(num, -0)) {
+    num = 0;
   }
+
+  // Convert back to string for truncation
+  let str = String(num);
+
+  if (str.includes(".")) {
+    let [int, dec] = str.split(".");
+    dec = dec.substring(0, 2);
+    return `£${int}.${dec.padEnd(2, "0")}`;
+  }
+
+  return `£${str}.00`;
 }
+
 
   ,
 
@@ -318,6 +353,11 @@ const isCancelled = rqRows[0].is_cancelled;
 if (isCancelled === "approved") {
     return "cancelled";
 }
+
+// ⭐ NEW: If already pending → keep pending
+if (currentStatus === "pending") {
+  return "pending";
+}
      // 3️⃣ Priority condition: if is_ready = 1 and job not completed → in_progress
    if (isReady === 1 && !allCompleted) {
     newStatus = "in_progress";
@@ -341,7 +381,7 @@ if (isCancelled === "approved") {
   else {
     newStatus = "new";
   }
-  console.log("Determined newStatus:", newStatus);
+  // console.log("Determined newStatus:", newStatus);
 
 
     // if (newStatus !== currentStatus) {
@@ -864,6 +904,14 @@ calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_
     console.log("currentDate:", currentDate)
     return currentDate;
   },
+  addThreeDaysToDate: function(startDate) {
+    // Convert startDate to a Date object if it's a string
+    const date = new Date(startDate);
+    // Add 3 days
+    date.setDate(date.getDate() + 3);
+    // Return in YYYY-MM-DD format
+    return date.toISOString().split('T')[0];
+  },
 
 
   convertUtcToUKTime: function (utcTimeInSeconds) {
@@ -1092,8 +1140,8 @@ calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_
     INSERT INTO transactions (
       user_id, amount, payment_method, transaction_id, created_time, status,
       stripe_refund_id,
-      stripe_refund_json, payment_intent
-    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      stripe_refund_json, payment_intent, payment_intent_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `;
 
     const values = [
@@ -1110,6 +1158,7 @@ calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_
     transactionData.stripe_refund_id || null,
     transactionData.stripe_refund_json || null,
     transactionData.payment_intent || null,
+    transactionData.payment_intent_id || null,
     ];
 
     try {

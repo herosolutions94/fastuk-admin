@@ -16,6 +16,10 @@ router.get('/vehicles-list', ensureAuthenticated,checkAccessMiddleware(15), vehi
 router.get('/vehicles/edit/:id', ensureAuthenticated,checkAccessMiddleware(15), upload, vehicleController.editVehicle.bind(vehicleController)); // Edit form
 router.post('/vehicles/update/:id', ensureAuthenticated,checkAccessMiddleware(15), upload, vehicleController.updateVehicle.bind(vehicleController)); // Update rider
 router.delete('/vehicles/delete/:id', ensureAuthenticated,checkAccessMiddleware(15), vehicleController.deleteVehicle.bind(vehicleController));
+router.delete('/vehicles/delete-image/:id', ensureAuthenticated,checkAccessMiddleware(15), vehicleController.deleteVehicleImage.bind(vehicleController));
+
+
+
 
 
 

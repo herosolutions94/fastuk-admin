@@ -28,7 +28,7 @@ class CancelledQuoteController extends BaseController {
     try {
       const requestQuotesWithMembers =
         await RequestQuote.getRequestQuotesWithMembers([
-          "rq.is_cancelled IN ('requested', 'approved', 'rejected')"
+          "rq.is_cancelled IN ('requested', 'approved')"
         ]);
 
       res.render("admin/cancelled-quotes", {
@@ -133,7 +133,7 @@ if (
             transaction_id: request_id,
             payment_intent: refundResponse.payment_intent,
             created_time: helpers.getUtcTimeInSeconds(),
-            status: "completed",
+            status: "refunded",
             stripe_refund_id: refundResponse.id || null
           });
 

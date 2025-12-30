@@ -2,7 +2,7 @@ const pool = require('../config/db-connection'); // Ensure this is promise-based
 const helpers = require('../utils/helpers');
 
 class Member {
-    static async getAllMembers(conditions = []) {
+    static async getAllMembers(conditions = [], orderBy = 'id', order = 'DESC') {
     try {
         let query = 'SELECT * FROM members';
         let params = [];
@@ -14,6 +14,10 @@ class Member {
             });
 
             query += ' WHERE ' + conditionStrings.join(' AND ');
+        }
+        // Add ORDER BY
+        if (orderBy) {
+            query += ` ORDER BY ${orderBy} ${order}`; // e.g., ORDER BY id DESC
         }
 
         const [rows] = await pool.query(query, params);

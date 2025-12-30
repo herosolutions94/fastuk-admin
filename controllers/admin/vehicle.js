@@ -19,12 +19,12 @@ class VehicleController extends BaseController {
         this.vehicleCategories = new VehicleCategories();
     }
 
-    async renderAddVehiclePage (req, res) {
+    async renderAddVehiclePage(req, res) {
         try {
             const vehicleCategories = await VehicleCategories.getAllVehicleCategories();
             // console.log("vehicleCategories:",vehicleCategories)
 
-            res.render('admin/add-vehicle',{
+            res.render('admin/add-vehicle', {
                 vehicleCategories
             }); // Render the add-testimonial.ejs file
         } catch (error) {
@@ -60,9 +60,13 @@ class VehicleController extends BaseController {
 
 
             const vehicleImage = req.files && req.files["vehicle_image"] ? req.files["vehicle_image"][0].filename : '';
-            // console.log("req.file:",req.file);  // To check if the file is being uploaded
-            if(vehicleImage){
-                 const sourceDir = path.join(__dirname, '../../uploads');
+
+            // Multiple images
+            const vehicleImages = req.files && req.files["vehicle_images"] ? req.files["vehicle_images"] : [];
+
+
+            if (vehicleImage) {
+                const sourceDir = path.join(__dirname, '../../uploads');
                 const thumbFolder = 'thumbnails';
                 const width = 300;
                 const height = 300;
@@ -72,7 +76,7 @@ class VehicleController extends BaseController {
                 console.log('Thumbnail created for:', vehicleImage);
 
                 // Update with new image
-               
+
             }
 
 
@@ -104,21 +108,37 @@ class VehicleController extends BaseController {
 
             // Validation for empty fields
             if (!validateRequiredFields(cleanedData)) {
-                return res.status(200).json({ status: 0, msg: 'All fields are required!',message:"All fields are required!" });
+                return res.status(200).json({ status: 0, msg: 'All fields are required!', message: "All fields are required!" });
             }
             // Create the rider
             const vehicleId = await this.vehicle.createVehicle(cleanedData);
             // console.log('Created Vehicle ID:', vehicleId); // Log the created rider ID
+            // Insert multiple images into vehicle_multiple_images
+            if (vehicleImages.length > 0) {
+                const imageInsertPromises = vehicleImages.map(async (file) => {
+                    // Optional: generate thumbnail
+                    await helpers.generateThumbnail(file.filename, path.join(__dirname, '../../uploads'), 'thumbnails', 300, 300);
+
+                    // Insert into vehicle_multiple_images table
+                    return this.vehicle.insertMultipleImage({
+                        vehicle_id: vehicleId,
+                        image: file.filename
+                    });
+                });
+
+                await Promise.all(imageInsertPromises);
+            }
+
 
 
             // Verify OTP was stored properly
-        const createdVehicle = await this.vehicle.findById(vehicleId);
-        // console.log('Created vehicle:', createdVehicle); // Log the created rider
-        res.json({
-            status: 1,
-            message: 'Vehicle added successfully!',
-            redirect_url: '/admin/vehicles-list'
-        });
+            const createdVehicle = await this.vehicle.findById(vehicleId);
+            // console.log('Created vehicle:', createdVehicle); // Log the created rider
+            res.json({
+                status: 1,
+                message: 'Vehicle added successfully!',
+                redirect_url: '/admin/vehicles-list'
+            });
 
 
         } catch (error) {
@@ -128,7 +148,7 @@ class VehicleController extends BaseController {
                 error: error.message
             });
         }
-    ;
+        ;
     }
     async getVehicles(req, res) {
         try {
@@ -136,13 +156,13 @@ class VehicleController extends BaseController {
             // console.log('Fetched Riders:', riders); // Log the fetched riders
 
             // if (vehicles && vehicles.length > 0) {
-                // Corrected res.render with only two arguments
-                res.render('admin/vehicles', { vehicles: vehicles || [] });
-            
+            // Corrected res.render with only two arguments
+            res.render('admin/vehicles', { vehicles: vehicles || [] });
+
             // } else {
             //     this.sendError(res, 'No vehicles found');
             // }
-            }catch (error) {
+        } catch (error) {
             console.error('Error fetching vehicles:', error); // Log the error for debugging
             this.sendError(res, 'Failed to fetch vehicles');
         }
@@ -152,7 +172,7 @@ class VehicleController extends BaseController {
         try {
             const vehicleId = req.params.id;  // Get the rider ID from the request parameters
             // console.log('Fetching vehicle with ID:', vehicleId); // Log the ID
-    
+
             // Fetch the rider by ID
             const vehicle = (await Vehicle.getVehicleById(vehicleId))[0]; // Extract the first rider if it's returned as an array
             // console.log('Fetched vehicle:', vehicle); // Log fetched rider data
@@ -162,20 +182,28 @@ class VehicleController extends BaseController {
 
             // console.log('Vehicle data before rendering:', vehicle); // Log the rider data
 
-    
+            if (!vehicle) {
+                return res.redirect('/admin/vehicles-list');
+            }
+
+            // ✅ Fetch multiple images
+            const vehicleMultipleImages = await Vehicle.getVehicleMultipleImages(vehicleId);
+
+
             // Check if rider exists
             if (vehicle) {
                 // Assuming `result` is defined properly, or you should use rider.rider_image
                 res.render('admin/edit-vehicle', {
-                    vehicle, 
+                    vehicle,
                     vehicleCategories,
-                    editVehicleId: vehicleId, 
+                    editVehicleId: vehicleId,
                     imageFilenames: [vehicle.vehicle_image], // Make sure to access the rider image correctly
+                    multipleImages: vehicleMultipleImages,
                     status: vehicle.status // Pass the status to the view
 
                 });
             } else {
-            res.redirect('/admin/vehicles-list'); // 🔁 change this path as per your route
+                res.redirect('/admin/vehicles-list'); // 🔁 change this path as per your route
             }
         } catch (error) {
             console.error('Error fetching vehicle:', error); // Log the error for debugging
@@ -187,19 +215,14 @@ class VehicleController extends BaseController {
         try {
             const vehicleId = req.params.id;
             const vehicleData = req.body;
-    
+
+
             // Fetch the current testimonial details
             const currentVehicle = (await Vehicle.getVehicleById(vehicleId))[0];
-    
-            // Debugging output
-            // console.log('Current Vehicle:', currentVehicle);
-            
+
             // Check if a new image is uploaded
             const vehicleImage = req.files && req.files["vehicle_image"] ? req.files["vehicle_image"][0].filename : null;
-    
-            // Debugging output
-            // console.log('New service image:', vehicleImage);
-    
+
             // Handle image replacement
             if (vehicleImage) {
                 // If there is an old image, delete it
@@ -207,7 +230,7 @@ class VehicleController extends BaseController {
                     const oldImagePath = path.join(__dirname, '../../uploads/', currentVehicle.vehicle_image);
                     const oldThumbPath = path.join(__dirname, '../../uploads/thumbnails/', currentVehicle.vehicle_image);
 
-                    
+
                     // Check if the old image file exists before trying to delete
                     if (fs.existsSync(oldImagePath)) {
                         fs.unlink(oldImagePath, (err) => {
@@ -221,17 +244,17 @@ class VehicleController extends BaseController {
                         console.log('Old image file not found:', oldImagePath);
                     }
                     // Delete old thumbnail if it exists
-                if (fs.existsSync(oldThumbPath)) {
-                    fs.unlink(oldThumbPath, (err) => {
-                        if (err) console.error('Error deleting old thumbnail:', err);
-                        else console.log('Old thumbnail deleted successfully');
-                    });
-                } else {
-                    console.log('Old thumbnail file not found:', oldThumbPath);
+                    if (fs.existsSync(oldThumbPath)) {
+                        fs.unlink(oldThumbPath, (err) => {
+                            if (err) console.error('Error deleting old thumbnail:', err);
+                            else console.log('Old thumbnail deleted successfully');
+                        });
+                    } else {
+                        console.log('Old thumbnail file not found:', oldThumbPath);
+                    }
+
                 }
-            
-                }
-    
+
                 // Update the vehicle data with the new image filename
                 vehicleData.vehicle_image = vehicleImage;
             } else {
@@ -256,10 +279,22 @@ class VehicleController extends BaseController {
                 // Retain old image
                 vehicleData.vehicle_image = currentVehicle.vehicle_image;
             }
-    
+
+            // 4️⃣ Handle multiple images
+        const newImages = req.files && req.files["vehicle_images"] ? req.files["vehicle_images"] : [];
+
+        if (newImages.length > 0) {
+            const promises = newImages.map(async (file) => {
+                await helpers.generateThumbnail(file.filename, path.join(__dirname, '../../uploads'), 'thumbnails', 300, 300);
+                return this.vehicle.insertMultipleImage({ vehicle_id: vehicleId, image: file.filename });
+            });
+            await Promise.all(promises);
+        }
+
+
             // Update the service in the database
             await Vehicle.updateVehicle(vehicleId, vehicleData);
-    
+
             // Respond with success
             res.json({
                 status: 1,
@@ -274,7 +309,7 @@ class VehicleController extends BaseController {
             });
         }
     }
-    
+
     async deleteVehicle(req, res) {
         const vehicleId = req.params.id;
         try {
@@ -307,7 +342,7 @@ class VehicleController extends BaseController {
                 } else {
                     console.log('Image file not found:', imagePath); // Log if the image file doesn't exist
                 }
-                 if (fs.existsSync(thumbPath)) {
+                if (fs.existsSync(thumbPath)) {
                     fs.unlink(thumbPath, (err) => {
                         if (err) console.error('Error deleting thumbnail:', err);
                         else console.log('Thumbnail deleted successfully');
@@ -326,7 +361,7 @@ class VehicleController extends BaseController {
                     status: 1,
                     message: 'Vehicle deleted successfully!',
                     redirect_url: '/admin/vehicles-list'
-                });            
+                });
             } else {
                 this.sendError(res, 'Failed to delete vehicle');
             }
@@ -338,9 +373,50 @@ class VehicleController extends BaseController {
             });
         }
     }
-    
+
+    async deleteVehicleImage(req, res) {
+    try {
+        const imageId = req.params.id;
+        let imagePath, thumbPath;
+
+        // Try to fetch image from DB
+        const image = await Vehicle.getVehicleImageById(imageId);
+
+        if (image && image.image) {
+            // ✅ Image exists in DB
+            imagePath = path.join(__dirname, '../../uploads/', image.image);
+            thumbPath = path.join(__dirname, '../../uploads/thumbnails/', image.image);
+
+            if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
+            if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+
+            // Delete from DB
+            await Vehicle.deleteVehicleImageById(imageId);
+        } else {
+            // ❌ Image not in DB → maybe temporary upload
+            // Assume imageId is actually the filename in this case
+            imagePath = path.join(__dirname, '../../uploads/', imageId);
+            thumbPath = path.join(__dirname, '../../uploads/thumbnails/', imageId);
+
+            if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
+            if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+            // No DB operation
+        }
+
+        res.json({ status: 1, message: 'Image deleted successfully' });
+
+    } catch (error) {
+        console.error(error);
+        res.json({ status: 0, message: 'Failed to delete image' });
+    }
+}
+
+
+
+
 }
 
 
 
 module.exports = VehicleController;
+

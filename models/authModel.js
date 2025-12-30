@@ -15,6 +15,10 @@ class AdminModel extends BaseModel {
         const query = `SELECT * FROM ?? WHERE user_name = ?`;
         const [rows] = await pool.query(query, [this.tableName, user_name]);
         return rows.length ? rows[0] : null; // Return admin if found, otherwise null
+//         if (!rows.length) return null;
+
+//   const { password, ...rowsWithoutPassword } = rows[0];
+//   return rowsWithoutPassword;
     }
 
     async findById(userId) {
