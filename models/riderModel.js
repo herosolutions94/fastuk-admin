@@ -26,15 +26,76 @@ class RiderModel extends BaseModel {
     const [rows] = await pool.query(query, [user_name]);
     return rows[0];
   }
+  // async findByUsernameWithDetails(user_name) {
+  //   // 1. Get rider + attachments
+  //   const query = `
+  //   SELECT 
+  //     r.*, 
+  //     ra.id AS attachment_id,
+  //     ra.filename AS attachment_filename,
+  //     ra.type AS attachment_type
+  //   FROM riders r
+  //   LEFT JOIN rider_attachments ra
+  //     ON r.id = ra.rider_id
+  //   WHERE r.user_name = ?
+  // `;
+
+  //   const [rows] = await pool.query(query, [user_name]);
+
+  //   if (!rows.length) return null;
+
+  //   // Group attachments
+  //   const rider = {
+  //     ...rows[0],
+  //     attachments: rows
+  //       .filter(r => r.attachment_id)
+  //       .map(r => ({
+  //         id: r.attachment_id,
+  //         filename: r.attachment_filename,
+  //         type: r.attachment_type
+  //       }))
+  //   };
+
+  //   delete rider.attachment_id;
+  //   delete rider.attachment_filename;
+  //   delete rider.attachment_type;
+
+  //   // 2. Get single vehicle_image from vehicles table based on vehicle_type
+  //   if (rider.vehicle_type) {
+  //     const vehicleQuery = `
+  //     SELECT vehicle_image
+  //     FROM vehicles
+  //     WHERE title = ?
+  //     LIMIT 1
+  //   `;
+  //     const [vehicleRows] = await pool.query(vehicleQuery, [rider.vehicle_type]);
+  //     rider.vehicle_image = vehicleRows.length ? vehicleRows[0].vehicle_image : null;
+  //   } else {
+  //     rider.vehicle_image = null;
+  //   }
+
+  //   return rider;
+  // }
+
   async findByUsernameWithDetails(user_name) {
     // 1. Get rider + attachments
     const query = `
     SELECT 
-      r.*, 
+      r.*,
+      v.id AS vehicle_id,
+      v.title AS vehicle_title,
+      v.vehicle_image,
+      v.load_capacity,
+      v.max_length,
+      v.max_width,
+      v.max_height,
+      v.distance, 
       ra.id AS attachment_id,
       ra.filename AS attachment_filename,
       ra.type AS attachment_type
     FROM riders r
+    LEFT JOIN vehicles v
+      ON r.vehicle_id = v.id
     LEFT JOIN rider_attachments ra
       ON r.id = ra.rider_id
     WHERE r.user_name = ?
@@ -47,6 +108,18 @@ class RiderModel extends BaseModel {
     // Group attachments
     const rider = {
       ...rows[0],
+       vehicle: rows[0].vehicle_id
+      ? {
+          id: rows[0].vehicle_id,
+          title: rows[0].vehicle_title,
+          image: rows[0].vehicle_image,
+          load_capacity: rows[0].load_capacity,
+          max_length: rows[0].max_length,
+          max_width: rows[0].max_width,
+          max_height: rows[0].max_height,
+          distance: rows[0].distance
+        }
+      : null,
       attachments: rows
         .filter(r => r.attachment_id)
         .map(r => ({
@@ -60,19 +133,28 @@ class RiderModel extends BaseModel {
     delete rider.attachment_filename;
     delete rider.attachment_type;
 
-    // 2. Get single vehicle_image from vehicles table based on vehicle_type
-    if (rider.vehicle_type) {
-      const vehicleQuery = `
-      SELECT vehicle_image
-      FROM vehicles
-      WHERE title = ?
-      LIMIT 1
-    `;
-      const [vehicleRows] = await pool.query(vehicleQuery, [rider.vehicle_type]);
-      rider.vehicle_image = vehicleRows.length ? vehicleRows[0].vehicle_image : null;
-    } else {
-      rider.vehicle_image = null;
-    }
+     delete rider.vehicle_id;
+  delete rider.vehicle_title;
+  delete rider.vehicle_image;
+  delete rider.load_capacity;
+  delete rider.max_length;
+  delete rider.max_width;
+  delete rider.max_height;
+  delete rider.distance;
+
+    // // 2. Get single vehicle_image from vehicles table based on vehicle_type
+    // if (rider.vehicle_type) {
+    //   const vehicleQuery = `
+    //   SELECT vehicle_image
+    //   FROM vehicles
+    //   WHERE title = ?
+    //   LIMIT 1
+    // `;
+    //   const [vehicleRows] = await pool.query(vehicleQuery, [rider.vehicle_type]);
+    //   rider.vehicle_image = vehicleRows.length ? vehicleRows[0].vehicle_image : null;
+    // } else {
+    //   rider.vehicle_image = null;
+    // }
 
     return rider;
   }

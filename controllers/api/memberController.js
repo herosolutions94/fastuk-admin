@@ -905,6 +905,109 @@ class MemberController extends BaseController {
       });
     }
   }
+
+  async paymentIntentForPendingOrders(req, res) {
+    const {
+
+      payment_method_id,
+      order_id
+    } = req.body;
+
+    // console.log("paymentIntent called with body:", req.body);
+
+
+
+    const requestQuote = await RequestQuoteModel.getRequestQuoteById(order_id);
+    if (!requestQuote) {
+      return res
+        .status(200)
+        .json({ status: 0, msg: "Request quote not found." });
+    }
+    const userRow = await this.member.findById(requestQuote?.user_id);
+
+
+    try {
+
+      const total_amount = requestQuote[0]?.total_amount;
+      console.log(requestQuote,total_amount)
+
+      // console.log("result:", result);
+      if (
+        total_amount == undefined ||
+        total_amount == null ||
+        parseFloat(total_amount) <= 5
+      ) {
+        return res.status(200).json({
+          status: 0,
+          message: "Price should be greater than 5",
+        });
+      }
+
+
+      // Handle payment logic
+      const parsedAmount = parseFloat(total_amount);
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        return res
+          .status(200)
+          .json({ error: "Amount must be a positive number." });
+      }
+
+      // console.log("Amount after discounts & tax (decimal):", parsedAmount);
+
+
+      // Create customer on Stripe
+      const stripeCustomer = await stripe.customers.create({
+        username: userRow?.full_name,
+        email: userRow?.email,
+      });
+
+      // Retrieve payment method
+      const paymentMethod = await stripe.paymentMethods.retrieve(
+        payment_method_id
+      );
+
+
+
+      // Create payment intent
+      const amountInCents = Math.round(parsedAmount * 100);
+
+
+
+      // Stripe minimum amount check (example for USD/GBP = 50 cents/pence)
+      if (amountInCents < 50) {
+        return res.status(200).json({
+          status: 0,
+          message: "Total amount is too low for Stripe. Must be at least $0.50 / £0.50.",
+          finalAmount: parsedAmount
+        });
+      }
+      const paymentIntent = await stripe.paymentIntents.create({
+        amount: amountInCents,
+        currency: "usd",
+        payment_method: payment_method_id,
+        customer: stripeCustomer.id,
+        setup_future_usage: "off_session",
+      });
+      // console.log(paymentIntent,finalAmount,paymentIntent)
+
+      // Respond with payment details
+      return res.status(200).json({
+        status: 1,
+        user_id: userRow?.id,
+        customer_id: stripeCustomer.id,
+        payment_intent_id: paymentIntent.id,
+        client_secret: paymentIntent.client_secret,
+        finalAmount: parsedAmount,
+      });
+    } catch (error) {
+      console.error("Error creating payment intent:", error);
+      return res.status(200).json({
+        status: 0,
+        message: "Failed to create payment intent",
+        error: error.message,
+      });
+    }
+  }
   async updateApplePaymentStatus(req, res) {
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
     const sig = req.headers["stripe-signature"];
@@ -1800,6 +1903,77 @@ class MemberController extends BaseController {
   //     console.error("❌ Error confirming payment:", err.message);
   //   }
   // }
+
+
+  async createRequestQuoteForPendingJobs(req, res) {
+    this.tokenModel = new Token();
+
+    try {
+      let payment_intent_id = null;
+      let payment_methodid = null;
+      // Destructure necessary fields from req.body
+      const {
+
+        payment_intent_id: frontend_payment_intent_id,
+        customer_id,
+        order_id,
+
+        payment_method,
+        payment_method_id,
+
+      } = req.body;
+
+      let clientSecret = "";
+      payment_methodid = payment_method_id;
+      let payment_intent = frontend_payment_intent_id;
+      const requestQuote = await RequestQuoteModel.getRequestQuoteById(order_id);
+    if (!requestQuote) {
+      return res
+        .status(200)
+        .json({ status: 0, msg: "Request quote not found." });
+    }
+      const userRow = await this.member.findById(requestQuote?.user_id);
+
+      if (payment_method === "credit-card") {
+        const updateData = {
+          user_id: userRow?.id,
+
+          payment_intent: payment_intent,      // <-- store Stripe paymentIntent.id
+          customer_id: customer_id,            // <-- store Stripe customer_id returned from create-payment-intent
+          payment_method_id: payment_methodid, // <-- frontend already sends this
+          status:'paid'
+
+        };
+
+        await this.member.updateRequestQuoteData(
+          order_id,
+          updateData
+        );
+
+      }
+
+      // Send success response
+      res.status(200).json({
+        status: 1,
+        order_id: order_id,
+        msg:
+          payment_method === "apple-pay"
+            ? "Request Quote created, now you'll be redirected to apple pay for transaction!"
+            : "Your order has been successfully created!",
+        data: {
+          requestId: helpers.doEncode(order_id),
+        },
+      });
+
+    } catch (error) {
+      console.error("Error in createRequestQuote:", error);
+      res.status(200).json({
+        error: "Internal server error",
+        details: error.message,
+        // stack: error.stack, // 👈 include stack trace temporarily
+      });
+    }
+  }
 
 
 
@@ -4416,6 +4590,9 @@ class MemberController extends BaseController {
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Order not found." });
       }
+
+      const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
+
       const viasCount = await this.rider.countViasBySourceCompleted(order.id);
       const parcels = await this.rider.getParcelDetailsByQuoteId(order.id); // Assuming order.quote_id is the relevant field
       const vias = await this.rider.getViasByQuoteId(order.id);
@@ -4429,6 +4606,7 @@ class MemberController extends BaseController {
       order = {
         ...order,
         formatted_start_date: helpers.formatDateToUK(order?.start_date),
+        jobStatus,
         parcels: parcels,
         vias: vias,
         invoices: invoices,

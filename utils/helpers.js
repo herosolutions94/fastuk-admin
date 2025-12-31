@@ -450,7 +450,7 @@ calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_
     if (remote_price === null || remote_price === 'null' || remote_price === '' || remote_price === undefined) {
       remote_price = 0;
     }
-        console.log("remote_price:", remote_price);
+        // console.log("remote_price:", remote_price);
 
 
     // 3️⃣ Apply mileage condition
@@ -473,7 +473,7 @@ calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_
     const vatAmount = parseFloat((totalAmount * vatPercentage) / 100);
     const grandTotal = parseFloat(totalAmount + taxAmount+ vatAmount);
 
-    console.log("Total Amount:", totalAmount,taxAmount,vatAmount,grandTotal);
+    // console.log("Total Amount:", totalAmount,taxAmount,vatAmount,grandTotal);
 
     return {
       totalDistance,

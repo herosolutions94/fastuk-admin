@@ -40,85 +40,85 @@ class RiderController extends BaseController {
 
 
 
-   async generateMissingQRCodes(req, res) {
-  try {
-    const riders = await this.rider.getAllRiders(); // MUST include email
-    const qrFolder = path.join(__dirname, "../../uploads/qr_codes");
+  async generateMissingQRCodes(req, res) {
+    try {
+      const riders = await this.rider.getAllRiders(); // MUST include email
+      const qrFolder = path.join(__dirname, "../../uploads/qr_codes");
 
-    if (!fs.existsSync(qrFolder)) {
-      fs.mkdirSync(qrFolder, { recursive: true });
-    }
-
-    for (const rider of riders) {
-      // safety checks
-      if (!rider.email) {
-        console.warn(`Skipping rider ${rider.id}: email missing`);
-        continue;
+      if (!fs.existsSync(qrFolder)) {
+        fs.mkdirSync(qrFolder, { recursive: true });
       }
 
-      if (!rider.qr_code) {
-        // ✅ AWAIT is mandatory
-        const user_name = rider.user_name
-          ? rider.user_name
-          : await this.generateUniqueUsername(rider.email);
-
-        const qrRedirectUrl = `${process.env.FRONTEND_URL}/rider/verify/${user_name}`;
-        const qrImageName = `rider_${user_name}.png`;
-        const qrImagePath = path.join(qrFolder, qrImageName);
-
-        await QRCode.toFile(qrImagePath, qrRedirectUrl);
-
-        await this.rider.saveAttachments([{
-          rider_id: rider.id,
-          filename: qrImageName,
-          type: "qr_code"
-        }]);
-
-        // Optional: store username if missing
-        if (!rider.user_name) {
-          await this.rider.updateUsername(rider.id, user_name);
+      for (const rider of riders) {
+        // safety checks
+        if (!rider.email) {
+          console.warn(`Skipping rider ${rider.id}: email missing`);
+          continue;
         }
 
-        console.log(`QR code generated for ${rider.full_name}`);
+        if (!rider.qr_code) {
+          // ✅ AWAIT is mandatory
+          const user_name = rider.user_name
+            ? rider.user_name
+            : await this.generateUniqueUsername(rider.email);
+
+          const qrRedirectUrl = `${process.env.FRONTEND_URL}/rider/verify/${user_name}`;
+          const qrImageName = `rider_${user_name}.png`;
+          const qrImagePath = path.join(qrFolder, qrImageName);
+
+          await QRCode.toFile(qrImagePath, qrRedirectUrl);
+
+          await this.rider.saveAttachments([{
+            rider_id: rider.id,
+            filename: qrImageName,
+            type: "qr_code"
+          }]);
+
+          // Optional: store username if missing
+          if (!rider.user_name) {
+            await this.rider.updateUsername(rider.id, user_name);
+          }
+
+          console.log(`QR code generated for ${rider.full_name}`);
+        }
       }
+
+      return res.status(200).json({
+        status: 1,
+        msg: "Missing QR codes generated successfully."
+      });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        status: 0,
+        msg: "Error generating QR codes",
+        error: error.message
+      });
     }
-
-    return res.status(200).json({
-      status: 1,
-      msg: "Missing QR codes generated successfully."
-    });
-
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      status: 0,
-      msg: "Error generating QR codes",
-      error: error.message
-    });
   }
-}
 
 
   async generateUniqueUsername(email) {
-  if (!email || typeof email !== "string") {
-    throw new Error("Email is required to generate username");
+    if (!email || typeof email !== "string") {
+      throw new Error("Email is required to generate username");
+    }
+
+    const baseUsername = email
+      .split("@")[0]
+      .toLowerCase()
+      .replace(/[^a-z0-9._]/g, "") || "rider";
+
+    let username = baseUsername;
+    let counter = 1;
+
+    while (await this.rider.findByUsername(username)) {
+      username = `${baseUsername}${counter}`;
+      counter++;
+    }
+
+    return username;
   }
-
-  const baseUsername = email
-    .split("@")[0]
-    .toLowerCase()
-    .replace(/[^a-z0-9._]/g, "") || "rider";
-
-  let username = baseUsername;
-  let counter = 1;
-
-  while (await this.rider.findByUsername(username)) {
-    username = `${baseUsername}${counter}`;
-    counter++;
-  }
-
-  return username;
-}
 
 
 
@@ -138,6 +138,7 @@ class RiderController extends BaseController {
         city,
         vehicle_owner,
         vehicle_type,
+        vehicle_id,
         mem_verified,
         vehicle_registration_num,
         driving_license_num,
@@ -191,6 +192,8 @@ class RiderController extends BaseController {
       if (vehicle_owner === "yes") {
 
         const vehicleData = {
+          vehicle_id: vehicle_id ? parseInt(vehicle_id) : null,   // ✅ STORE ID
+
           vehicle_type:
             typeof vehicle_type === "string" ? vehicle_type.trim() : "",
           vehicle_registration_num:
@@ -204,6 +207,14 @@ class RiderController extends BaseController {
           // driving_license:
           //   typeof driving_license === "string" ? driving_license.trim() : "",
         }
+
+        if (!vehicleData.vehicle_id || isNaN(vehicleData.vehicle_id)) {
+          return res.status(200).json({
+            status: 0,
+            msg: "Valid vehicle is required."
+          });
+        }
+
 
 
         if (!validateRequiredFields(vehicleData)) {
@@ -283,8 +294,8 @@ class RiderController extends BaseController {
       cleanedData.customer_id = customer.id;
       cleanedData.vehicle_type = vehicle_type;
       // Generate unique username from email
-const user_name = await this.generateUniqueUsername(cleanedData.email);
-cleanedData.user_name = user_name;
+      const user_name = await this.generateUniqueUsername(cleanedData.email);
+      cleanedData.user_name = user_name;
 
 
       // Create the rider
@@ -473,44 +484,45 @@ cleanedData.user_name = user_name;
   }
 
   async getRiderByUsername(req, res) {
-  try {
-    const { user_name } = req.params;
-    // console.log(req.params)
+    try {
+      const { user_name } = req.params;
+      // console.log(req.params)
 
-    if (!user_name) {
-      return res.status(400).json({
+      if (!user_name) {
+        return res.status(400).json({
+          status: 0,
+          msg: "Username is required"
+        });
+      }
+
+      const rider = await this.rider.findByUsernameWithDetails(user_name);
+      const siteSettings = res.locals.adminData;
+      // console.log("rider:", rider)
+
+      // console.log("rider:",rider)
+
+      if (!rider) {
+        return res.status(404).json({
+          status: 0,
+          msg: "Rider not found"
+        });
+      }
+
+      return res.status(200).json({
+        status: 1,
+        data: rider,
+        site_settings: siteSettings
+      });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
         status: 0,
-        msg: "Username is required"
+        msg: "Error fetching rider",
+        error: error.message
       });
     }
-
-    const rider = await this.rider.findByUsernameWithDetails(user_name);
-    const siteSettings = res.locals.adminData;
-
-    // console.log("rider:",rider)
-
-    if (!rider) {
-      return res.status(404).json({
-        status: 0,
-        msg: "Rider not found"
-      });
-    }
-
-    return res.status(200).json({
-      status: 1,
-      data: rider,
-      site_settings: siteSettings
-    });
-
-  } catch (error) {
-    console.error(error);
-    return res.status(500).json({
-      status: 0,
-      msg: "Error fetching rider",
-      error: error.message
-    });
   }
-}
 
 
   generatePseudoFingerprint(req) {
@@ -3442,19 +3454,19 @@ cleanedData.user_name = user_name;
 
       // console.log(completedOrders);
       const ordersWithEncodedIds = await Promise.all(
-  completedOrders.map(async (order) => {
+        completedOrders.map(async (order) => {
 
-    const encodedId = helpers.doEncode(String(order.id));
+          const encodedId = helpers.doEncode(String(order.id));
 
-    const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
+          const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
 
-    return {
-      ...order,
-      encodedId,
-      jobStatus
-    };
-  })
-);
+          return {
+            ...order,
+            encodedId,
+            jobStatus
+          };
+        })
+      );
 
 
       const currentOrders = await this.rider.getCurrentOrdersByStatus(riderId);
@@ -3490,7 +3502,7 @@ cleanedData.user_name = user_name;
         totalCompletedOrders, // Total number of 'completed' orders
         SumOfClearedEarnings,
         availableBalance: formattedAvailableBalance,
-        
+
       });
     } catch (error) {
       console.error("Error fetching rider dashboard orders:", error.message);
