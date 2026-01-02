@@ -47,6 +47,7 @@ class EarningsController extends BaseController {
         };
       })
     );
+    // console.log("earnings:",earnings)
 
     res.render('admin/earnings', { earnings });
 
