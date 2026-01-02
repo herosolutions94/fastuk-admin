@@ -29,6 +29,7 @@ router.post('/test-notification', (req, res) => memberController.testNotificatio
 router.post('/create-simple-payment-intent', upload, (req, res) => memberController.createSimplePaymentIntent(req, res));
 router.post('/save-request-quote', upload, (req, res) => memberController.createRequestQuote(req, res));
 router.post('/save-quote-pending-jobs', upload, (req, res) => memberController.createRequestQuoteForPendingJobs(req, res));
+router.post('/delete-order', upload, (req, res) => memberController.deleteOrder(req, res));
 
 router.post('/update-user-phone-number', upload, (req, res) => memberController.updateUserPhoneNumber(req, res));
 router.post('/resend-otp-phone-number', upload, (req, res) => memberController.resendOtpUserPhoneNumber(req, res));

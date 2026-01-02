@@ -663,7 +663,7 @@ class MemberController extends BaseController {
       const dueAmount = await RequestQuoteModel.calculateDueAmount(
               member.id
             );
-            console.log(dueAmount,"dueAmount");
+            // console.log(dueAmount,"dueAmount");
 
       if (dueAmount > 0) {
         return res.status(200).json({

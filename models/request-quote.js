@@ -211,6 +211,17 @@ class RequestQuoteModel extends BaseModel {
         return requestQuote; // This should be an object, not an array
     }
 
+    static async deleteRequestQuote(order_id) {
+    try {
+      const query = "DELETE FROM request_quote WHERE id = ?";
+      const [result] = await pool.query(query, [order_id]);
+      return result;
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      throw error;
+    }
+  }
+
     static async deleteRequestQuoteById(id) {
         try {
             const [result] = await pool.query(`DELETE FROM ${this.tableName} WHERE id = ?`, [id]);

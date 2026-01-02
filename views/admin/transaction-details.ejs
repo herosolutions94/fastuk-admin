@@ -4,7 +4,7 @@
       <div class="text">
         <h3>Transaction Details</h3>
         <ul>
-          <li><a href="/admin/dashbaord">Home</a></li>
+           <li><a href="/admin/dashboard">Dashboard</a></li>
           <li class="active"><a href="">Booking ID: <%= transactions.booking_id %></a></li>
         </ul>
       </div>
@@ -70,7 +70,7 @@
               <div class="invoice-row">
                 <div class="invoice-label">Distance:</div>
                 <div class="invoice-value">
-                  <%= transactions.distance %>
+                  <%= transactions.distance.toFixed(2) %>
                 </div>
               </div>
 

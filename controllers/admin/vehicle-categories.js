@@ -40,7 +40,7 @@ class VehicleCategoriesController extends BaseController {
 
         // ✅ Generate the thumbnail using your helper
         await helpers.generateThumbnail(vehicleCategoryImage, sourceDir, thumbFolder, width, height);
-        console.log('Thumbnail created for:', vehicleCategoryImage);
+        // console.log('Thumbnail created for:', vehicleCategoryImage);
 
       }
 
@@ -192,7 +192,7 @@ class VehicleCategoriesController extends BaseController {
 
         // ✅ Generate the thumbnail using your helper
         await helpers.generateThumbnail(vehicleCategoryImage, sourceDir, thumbFolder, width, height);
-        console.log('Thumbnail created for:', vehicleCategoryImage);
+        // console.log('Thumbnail created for:', vehicleCategoryImage);
 
         // Update with new image
         vehicleCategoryData.vehicle_category_image = vehicleCategoryImage;
