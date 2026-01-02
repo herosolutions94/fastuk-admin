@@ -4,8 +4,8 @@
       <div class="text">
         <h3>Reviews</h3>
         <ul>
-          <li><a href="">Home</a></li>
-          <li class="active"><a href="">Reviews</a></li>
+          <li><a href="/admin/dashbaord">Home</a></li>
+          <!-- <li class="active"><a href="">Reviews</a></li> -->
         </ul>
       </div>
     </div>
@@ -27,7 +27,7 @@
               <p>Created Date</p>
             </th>
             <th width="15%">
-              <p>Request</p>
+              <p>Request Id</p>
             </th>
             <th width="10%">
               <p>Action</p>
@@ -55,9 +55,10 @@
             </td>
             <td>
               <p>
-                <a href="/admin/order-detail/<%= review.request_id %>"
-                  >Request</a
-                >
+                <a href="/admin/job-detail/<%= review.request_id %>"
+                  class="text-primary fw-semibold text-decoration-underline">
+                  #<%= review.request_id %>
+                </a>
               </p>
             </td>
             <td>
@@ -79,6 +80,7 @@
                       href="#"
                       class="delete-item"
                       data-id="<%= review.id %>"
+                      data-row="review"
                       data-url="/admin/reviews/delete/<%= review.id %>">
                       <i class="fa fa-trash" aria-hidden="true"></i> Delete
                     </a>

@@ -53,7 +53,7 @@ class RiderController extends BaseController {
       if (rider) {
         const attachments = await Rider.getRiderAttachments(riderId); // Add this method in your model
         // Organize attachments by type for easier access in EJS
-        console.log("attachments:",attachments)
+        // console.log("attachments:",attachments)
         
 
 

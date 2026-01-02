@@ -4,8 +4,8 @@
       <div class="text">
         <h3>Transactions</h3>
         <ul>
-          <li><a href="">Home</a></li>
-          <li class="active"><a href="">Transactions</a></li>
+          <li><a href="/admin/dashboard">Dashboard</a></li>
+          <!-- <li class="active"><a href="">Transactions</a></li> -->
         </ul>
       </div>
     </div>
@@ -23,55 +23,78 @@
           </tr>
         </thead>
         <tbody>
-          <% if (transactions && transactions.length > 0) { %> 
-          <% transactions.forEach((transaction, index) => { %>
-          <tr class="bottom-cntnt" id="transaction-<%= transaction.id %>">
-            <td><p><%= index + 1 %></p></td>
-            <td>
-            <% if (transaction.transaction_id !=0) { %>
-              <p>
-                <a href="/admin/job-detail/<%= transaction.transaction_id %>" target="_blank"
-                      rel="noopener noreferrer" style="text-decoration: none; color: inherit;"><%= transaction?.booking_id %></a>
-              </p>
-              </td>
-              <% } else{ %>
-              N/A
-              <% }  %>
-            <td>
-              <a href="/admin/members/edit/<%= transaction?.user_id %>" target="_blank" rel="noopener noreferrer"
-                    style="text-decoration: none; color: inherit;">
-              <div class="flex">
-              <div class="image-blog">
-                <img src="<%= helpers.getImage(transaction.mem_image) %>" alt="User Image" class="img-responsive"/>
-              </div>
-              <p><%= transaction.member_name %></p>
-            </div>
-            </a>
-            </td>
-            <td><p><%= helpers?.format_amount(transaction.amount) %></p></td>
-            <td><p><%= transaction.payment_method %></p></td>
-            <td><p><%= helpers.convertUtcToUkFormat(transaction.created_time) %></p></td>
-            <td>
-              <div class="btn-group">
-                <button type="button" class="dropdown-toggle" data-toggle="dropdown">
-                  <i class="fa fa-ellipsis-h"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-primary" role="menu">
-                  <li>
-<a href="/admin/transactions/view/<%= transaction.id %>">
-                      <i class="fa fa-trash" aria-hidden="true"></i> View
-                    </a>
-                  </li>
-                </ul>
-              </div>
-            </td>
-          </tr>
-          <% }) %> 
-          <% } else { %>
-          <tr>
-            <td colspan="8"><p>No transactions found.</p></td>
-          </tr>
-          <% } %>
+          <% if (transactions && transactions.length> 0) { %>
+            <% transactions.forEach((transaction, index)=> { %>
+              <tr class="bottom-cntnt" id="transaction-<%= transaction.id %>">
+                <td>
+                  <p>
+                    <%= index + 1 %>
+                  </p>
+                </td>
+                <td>
+                  <% if (transaction.transaction_id !=0) { %>
+                    <p>
+                      <a href="/admin/job-detail/<%= transaction.transaction_id %>" target="_blank"
+                        rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
+                        <%= transaction?.booking_id %>
+                      </a>
+                    </p>
+                </td>
+                <% } else{ %>
+                  N/A
+                  <% } %>
+                    <td>
+                      <a href="/admin/members/edit/<%= transaction?.user_id %>" target="_blank"
+                        rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
+                        <div class="flex">
+                          <div class="image-blog">
+                            <img src="<%= helpers.getImage(transaction.mem_image) %>" alt="User Image"
+                              class="img-responsive" />
+                          </div>
+                          <p>
+                            <%= transaction.member_name %>
+                          </p>
+                        </div>
+                      </a>
+                    </td>
+                    <td>
+                      <p>
+                        <%= helpers?.format_amount(transaction.amount) %>
+                      </p>
+                    </td>
+                    <td>
+                      <p>
+                        <%= transaction.payment_method %>
+                      </p>
+                    </td>
+                    <td>
+                      <p>
+                        <%= helpers.convertUtcToUkFormat(transaction.created_time) %>
+                      </p>
+                    </td>
+                    <td>
+                      <div class="btn-group">
+                        <button type="button" class="dropdown-toggle" data-toggle="dropdown">
+                          <i class="fa fa-ellipsis-h"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-primary" role="menu">
+                          <li>
+                            <a href="/admin/transactions/view/<%= transaction.id %>">
+                              <i class="fa fa-trash" aria-hidden="true"></i> View
+                            </a>
+                          </li>
+                        </ul>
+                      </div>
+                    </td>
+              </tr>
+              <% }) %>
+                <% } else { %>
+                  <tr>
+                    <td colspan="8">
+                      <p>No transactions found.</p>
+                    </td>
+                  </tr>
+                  <% } %>
         </tbody>
       </table>
     </div>

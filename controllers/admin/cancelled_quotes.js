@@ -152,7 +152,7 @@ if (
 await this.member.updateRequestQuoteData(request_id, updateData);
 // console.log("Request quote updated successfully", updateData);
 
-      console.log("Request quote updated successfully");
+      // console.log("Request quote updated successfully");
 
       const adminData = res.locals.adminData;
 

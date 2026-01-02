@@ -45,7 +45,7 @@ class ServiceController extends BaseController {
 
                 // ✅ Generate the thumbnail using your helper
                 await helpers.generateThumbnail(serviceImage, sourceDir, thumbFolder, width, height);
-                console.log('Thumbnail created for:', serviceImage);        
+                // console.log('Thumbnail created for:', serviceImage);        
                
             }
 
@@ -197,7 +197,7 @@ class ServiceController extends BaseController {
 
                 // ✅ Generate the thumbnail using your helper
                 await helpers.generateThumbnail(serviceImage, sourceDir, thumbFolder, width, height);
-                console.log('Thumbnail created for:', serviceImage);
+                // console.log('Thumbnail created for:', serviceImage);
 
                 // Update with new image
                 serviceData.service_image = serviceImage;

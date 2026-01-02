@@ -2,6 +2,8 @@
 const BaseController = require("../baseController");
 const Member = require("../../models/memberModel");
 const Rider = require("../../models/riderModel");
+const adminRider = require("../../models/rider");
+
 const VehicleModel = require("../../models/api/vehicleModel");
 const Vehicle = require("../../models/vehicle");
 const VehicleCategoryModel = require("../../models/vehicle-categories");
@@ -38,6 +40,7 @@ class MemberController extends BaseController {
     super();
     this.member = new Member();
     this.rider = new Rider();
+    this.adminRider = new adminRider();
     this.pageModel = new PageModel();
     this.requestQuoteModel = new RequestQuoteModel();
     this.tokenModel = new Token();
@@ -929,7 +932,7 @@ class MemberController extends BaseController {
     try {
 
       const total_amount = requestQuote[0]?.total_amount;
-      console.log(requestQuote,total_amount)
+      console.log(requestQuote, total_amount)
 
       // console.log("result:", result);
       if (
@@ -1917,7 +1920,7 @@ class MemberController extends BaseController {
         payment_intent_id: frontend_payment_intent_id,
         customer_id,
         order_id,
-
+        saved_card_id,
         payment_method,
         payment_method_id,
 
@@ -1927,39 +1930,184 @@ class MemberController extends BaseController {
       payment_methodid = payment_method_id;
       let payment_intent = frontend_payment_intent_id;
       const requestQuote = await RequestQuoteModel.getRequestQuoteById(order_id);
-    if (!requestQuote) {
-      return res
-        .status(200)
-        .json({ status: 0, msg: "Request quote not found." });
-    }
+      if (!requestQuote) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Request quote not found." });
+      }
+      // ✅ Check if order is already paid
+      if (requestQuote[0].status === "paid") {
+        return res.status(200).json({
+          status: 0,
+          msg: "This order has already been paid. Payment is not allowed again.",
+        });
+      }
+      // ✅ Check if start_date is in the future
+      const startDate = new Date(requestQuote[0].start_date);
+      const today = new Date();
+
+      // Normalize time (important)
+      startDate.setHours(0, 0, 0, 0);
+      today.setHours(0, 0, 0, 0);
+
+      if (startDate <= today) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Payment is not allowed because the job start date has already passed.",
+        });
+      }
       const userRow = await this.member.findById(requestQuote?.user_id);
+      // ✅ DEFINE IT ONCE
+      const formattedTotalAmount = parseFloat(requestQuote[0].total_amount);
+      if (isNaN(formattedTotalAmount)) {
+        return res.status(200).json({ status: 0, msg: "Invalid total amount." });
+      }
+
+      const userId = requestQuote[0].user_id
 
       if (payment_method === "credit-card") {
         const updateData = {
-          user_id: userRow?.id,
 
-          payment_intent: payment_intent,      // <-- store Stripe paymentIntent.id
+          payment_intent: payment_intent,// <-- store Stripe paymentIntent.id
+          payment_method: "credit-card",
           customer_id: customer_id,            // <-- store Stripe customer_id returned from create-payment-intent
           payment_method_id: payment_methodid, // <-- frontend already sends this
-          status:'paid'
+          status: 'paid'
 
-        };
+        }
 
         await this.member.updateRequestQuoteData(
           order_id,
           updateData
         );
 
+      } else if (payment_method === "saved-card") {
+        if (!saved_card_id) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Card is required." });
+        }
+        // console.log('Saved Card ID before decoding:', saved_card_id);
+
+        // Decode the saved card ID
+        const decodedId = helpers.doDecode(saved_card_id);
+        // console.log('Decoded ID:', decodedId); // Check decoded value
+
+        if (!decodedId) {
+          return res.status(200).json({ status: 0, msg: "Invalid Card." });
+        }
+
+        // Fetch the payment method from the database
+        const paymentMethod =
+          await this.paymentMethodModel.getPaymentMethodById(decodedId);
+        // console.log(paymentMethod,"payment method");
+
+        if (!paymentMethod) {
+          return res.status(200).json({ status: 0, msg: "Card not found." });
+        }
+
+        // Decode Stripe payment method ID stored in the database
+        const stripe_payment_method_id = helpers.doDecode(
+          paymentMethod?.payment_method_id
+        );
+        if (!stripe_payment_method_id) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "Invalid Stripe Payment Method ID." });
+        }
+
+        // Retrieve the payment method details from Stripe
+        let stripePaymentMethod;
+        try {
+          stripePaymentMethod = await stripe.paymentMethods.retrieve(
+            stripe_payment_method_id
+          );
+        } catch (error) {
+          return res.status(200).json({
+            status: 0,
+            msg: "Error retrieving Stripe payment method.",
+            error: error.message,
+          });
+        }
+
+        // Ensure the payment method is attached to a customer
+        if (!stripePaymentMethod || !stripePaymentMethod.customer) {
+          return res.status(200).json({
+            status: 0,
+            msg: "Payment method is not linked to a customer.",
+          });
+        }
+
+        // Create a payment intent to charge the user
+        let paymentIntent;
+        try {
+          paymentIntent = await stripe.paymentIntents.create({
+            amount: Math.round(formattedTotalAmount * 100),
+            currency: "usd",
+            customer: stripePaymentMethod.customer,
+            payment_method: stripe_payment_method_id,
+            confirm: true,
+            use_stripe_sdk: true,
+            automatic_payment_methods: {
+              enabled: true,
+              allow_redirects: "never",
+            },
+            metadata: { user_id: userId },
+          });
+        } catch (error) {
+          console.error("Stripe Error:", error);
+          return res.status(200).json({
+            status: 0,
+            msg: "Error creating payment intent.",
+            error: error.message,
+          });
+        }
+
+        // Check the payment status
+        if (paymentIntent.status !== "succeeded") {
+          return res.status(200).json({
+            status: 0,
+            msg: "Payment failed.",
+            paymentStatus: paymentIntent.status,
+          });
+        }
+        // payment_intent_id = paymentIntent.id;
+        payment_intent = paymentIntent.id;
+        payment_methodid = stripe_payment_method_id;
+        // Prepare the object for requestQuoteId insertion
+
+        const updateData = {
+
+
+          // payment_intent: paymentIntent.id, // Store the Payment Intent ID
+          payment_intent: payment_intent,
+
+          customer_id: stripePaymentMethod.customer, // Store the Customer ID
+          payment_method_id: stripe_payment_method_id, // Store the Stripe Payment Method ID
+
+          payment_method,
+          status: 'paid'
+
+        };
+        await this.member.updateRequestQuoteData(
+          order_id,
+          updateData
+        );
+
+
+
       }
+
+
 
       // Send success response
       res.status(200).json({
         status: 1,
         order_id: order_id,
         msg:
-          payment_method === "apple-pay"
-            ? "Request Quote created, now you'll be redirected to apple pay for transaction!"
-            : "Your order has been successfully created!",
+          payment_method === "paypal"
+            ? "Your order is ready. You will now be redirected to complete the payment."
+            : "Payment successful! Your order is now confirmed.",
         data: {
           requestId: helpers.doEncode(order_id),
         },
@@ -1974,6 +2122,62 @@ class MemberController extends BaseController {
       });
     }
   }
+
+  async deleteOrder(req, res) {
+    try {
+      const { token, memType, order_id } = req.body;
+
+      if (!token) {
+        return res.status(400).json({ status: 0, msg: "Token is required." });
+      }
+
+      if (memType === "rider") {
+        return res.status(200).json({
+          status: 0,
+          msg: "Rider account cannot delete request!",
+        });
+      }
+
+      // Validate token and get member info
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse);
+      }
+
+      const member = userResponse.user; // logged-in member info
+      const userId = member.id;
+
+      if (!order_id) {
+        return res.status(200).json({ status: 0, msg: "Order ID is required." });
+      }
+
+      // Check if order exists and belongs to this member
+      const order = await RequestQuoteModel.getRequestQuoteById(order_id);
+      if (!order || order.user_id !== userId) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Order not found or not authorized.",
+        });
+      }
+
+      // Delete the order
+      await RequestQuoteModel.deleteRequestQuote(order_id);
+
+      return res.status(200).json({
+        status: 1,
+        msg: "Order deleted successfully.",
+      });
+    } catch (error) {
+      console.error("Error deleting order:", error);
+      return res.status(200).json({
+        status: 0,
+        msg: "Internal server error.",
+        error: error.message,
+      });
+    }
+  }
+
+
 
 
 
@@ -4591,6 +4795,13 @@ class MemberController extends BaseController {
         return res.status(200).json({ status: 0, msg: "Order not found." });
       }
 
+      const attachments = await adminRider.getRiderAttachments(order?.assigned_rider); // Add this method in your model
+      const qrCodeAttachment = attachments.find(
+        att => att.type === 'qr_code'
+      );
+
+      // console.log("QR Code attachment:", qrCodeAttachment);
+
       const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
 
       const viasCount = await this.rider.countViasBySourceCompleted(order.id);
@@ -4607,6 +4818,7 @@ class MemberController extends BaseController {
         ...order,
         formatted_start_date: helpers.formatDateToUK(order?.start_date),
         jobStatus,
+        qrCodeAttachment,
         parcels: parcels,
         vias: vias,
         invoices: invoices,
@@ -5964,7 +6176,7 @@ class MemberController extends BaseController {
     let imageUrl =
       "https://lh3.googleusercontent.com/a/ACg8ocKv3R5NekjaraAxt94bLLdWumu8magwLH9YzENjc3eh9t7Crpk=s100";
     const imageName = await helpers.uploadImageFromUrl(imageUrl);
-    console.log(imageName);
+    // console.log(imageName);
     return;
     const { email, username } = req.body;
     let adminData = res.locals.adminData;
