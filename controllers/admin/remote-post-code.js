@@ -30,7 +30,7 @@ class RemotePostCodeController extends BaseController {
                 status,
                 remote_price
             } = req.body;
-            console.log("req.body",req.body);  // To check if name and description are being sent
+            // console.log("req.body",req.body);  // To check if name and description are being sent
 
             // Clean and trim data
             const cleanedData = {
@@ -45,12 +45,12 @@ class RemotePostCodeController extends BaseController {
             }
             // Create the rider
             const remotePostCodeId = await this.remotePostCode.createRemotePostCode(cleanedData);
-            console.log('Created Post Code ID:', remotePostCodeId); // Log the created rider ID
+            // console.log('Created Post Code ID:', remotePostCodeId); // Log the created rider ID
 
 
             // Verify OTP was stored properly
         const createdRemotePostCode = await this.remotePostCode.findById(remotePostCodeId);
-        console.log('Created Post Code:', createdRemotePostCode); // Log the created rider
+        // console.log('Created Post Code:', createdRemotePostCode); // Log the created rider
         res.json({
             status: 1,
             message: 'Post Code added successfully!',
@@ -118,7 +118,7 @@ class RemotePostCodeController extends BaseController {
             const currentRemotePostCode = (await RemotePostCode.getRemotePostCodeById(remotepostCodeId))[0];
     
             // Debugging output
-            console.log('Current Remote Post Code:', currentRemotePostCode);
+            // console.log('Current Remote Post Code:', currentRemotePostCode);
     
             // Update the service in the database
             await RemotePostCode.updateRemotePostCode(remotepostCodeId, remotePostCodeData);
@@ -140,14 +140,14 @@ class RemotePostCodeController extends BaseController {
     
     async deleteRemotePostCode(req, res) {
         const remotepostCodeId = req.params.id;
-        console.log(remotepostCodeId)
+        // console.log(remotepostCodeId)
         try {
             // Step 1: Fetch the rider details to get the associated image filename
             const currentRemotePostCode = (await RemotePostCode.getRemotePostCodeById(remotepostCodeId))[0]; // Fetch current rider details
             if (!currentRemotePostCode) {
                 return this.sendError(res, 'Remote Post Code not found');
             }
-            console.log(currentRemotePostCode)
+            // console.log(currentRemotePostCode)
 
             // Step 3: Delete the rider from the database
             const result = await RemotePostCode.deleteRemotePostCodeById(remotepostCodeId);

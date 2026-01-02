@@ -4,8 +4,8 @@
       <div class="text">
         <h3>Team members</h3>
         <ul>
-          <li><a href="">Home</a></li>
-          <li class="active"><a href="">Team members</a></li>
+           <li><a href="/admin/dashboard">Dashboard</a></li>
+          <!-- <li class="active"><a href="">Team members</a></li> -->
         </ul>
       </div>
       <div class="text text2">
@@ -85,6 +85,7 @@
                       href="#"
                       class="delete-item"
                       data-id="<%= teamMember.id %>"
+                      data-row="teamMember"
                       data-url="/admin/team-members/delete/<%= teamMember.id %>">
                       <i class="fa fa-trash" aria-hidden="true"></i> Delete
                     </a>

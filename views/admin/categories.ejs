@@ -36,7 +36,7 @@
         <tbody>
           <% if (categories && categories.length > 0) { %> <%
           categories.forEach((category, index) => { %>
-          <tr class="bottom-cntnt" id="category-<%= category.id %>">
+          <tr class="bottom-cntnt" id="category-<%= category.rider_category_id %>">
             <td>
               <p><%= index + 1 %></p>
             </td>
@@ -67,7 +67,8 @@
                     <a
                       href="#"
                       class="delete-item"
-                      data-id="<%= category.id %>"
+                      data-id="<%= category.rider_category_id %>"
+                      data-row="category"
                       data-url="/admin/rider/category/delete/<%= rider_id %>/<%= category.rider_category_id %>">
                       <i class="fa fa-trash" aria-hidden="true"></i> Delete
                     </a>

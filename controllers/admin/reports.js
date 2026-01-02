@@ -6,8 +6,8 @@ const helpers = require("../../utils/helpers");
 class ReportsController extends BaseController {
 	async filterCompletedReportsView (req, res) {
 		const {filter}=req.body;
-		console.log(filter);
-		console.log(req.body);
+		// console.log(filter);
+		// console.log(req.body);
 		let dateConditionRequests = '1=1'; // Default: return all rows
 		let dateConditionUnix = '1=1'; // Default: return all rows
 
@@ -32,13 +32,13 @@ class ReportsController extends BaseController {
 		    `SELECT COUNT(*) AS count FROM request_quote WHERE status = ? AND ${dateConditionRequests.replace(/created_at/g, 'created_date')}`,
 		    ['completed']
 		);
-		console.log(`SELECT COUNT(*) AS count FROM request_quote WHERE status = 'completed' AND ${dateConditionRequests.replace(/created_at/g, 'created_date')}`);
+		// console.log(`SELECT COUNT(*) AS count FROM request_quote WHERE status = 'completed' AND ${dateConditionRequests.replace(/created_at/g, 'created_date')}`);
 		// Query for earnings
 		const [earningsCountResult] = await pool.query(
 		    `SELECT SUM(amount) AS earnings FROM earnings WHERE type='credit' AND status = ? AND ${dateConditionUnix.replace(/created_at/g, 'created_time')}`,
 		    ['cleared']
 		);
-		console.log(`SELECT SUM(amount) AS earnings FROM earnings WHERE status = 'cleared' AND ${dateConditionUnix.replace(/created_at/g, 'created_time')}`);
+		// console.log(`SELECT SUM(amount) AS earnings FROM earnings WHERE status = 'cleared' AND ${dateConditionUnix.replace(/created_at/g, 'created_time')}`);
 		// Query for transactions
 		const [transactionsCountResult] = await pool.query(
 		    `SELECT SUM(t.amount) AS transactions 

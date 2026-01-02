@@ -4,8 +4,8 @@
       <div class="text">
         <h3>Sub Admins</h3>
         <ul>
-          <li><a href="/admin/dashboard">Home</a></li>
-          <li class="active"><a href="">Sub Admins</a></li>
+           <li><a href="/admin/dashboard">Dashboard</a></li>
+          <!-- <li class="active"><a href="">Sub Admins</a></li> -->
         </ul>
       </div>
       <div class="text text2">
@@ -38,7 +38,7 @@
         <tbody>
           <% if (subAdmins && subAdmins.length > 0) { %> <% subAdmins.forEach((subAdmin, index) => {
           %>
-          <tr class="bottom-cntnt" id="faq-<%= subAdmin.id %>">
+          <tr class="bottom-cntnt" id="subAdmin-<%= subAdmin.id %>">
             <td>
               <p><%= index + 1 %></p>
             </td>
@@ -76,6 +76,7 @@
                       href="#"
                       class="delete-item"
                       data-id="<%= subAdmin.id %>"
+                      data-row="subAdmin"
                       data-url="/admin/sub-admins/delete/<%= subAdmin.id %>">
                       <i class="fa fa-trash" aria-hidden="true"></i> Delete
                     </a>

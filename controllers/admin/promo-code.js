@@ -37,7 +37,7 @@ class PromoCodeController extends BaseController {
                 expiry_date,
                 status
             } = req.body;
-            console.log("req.body",req.body);  // To check if name and description are being sent
+            // console.log("req.body",req.body);  // To check if name and description are being sent
 
             const validPromoTypes = ['percentage', 'amount'];
 
@@ -59,12 +59,12 @@ class PromoCodeController extends BaseController {
             }
             // Create the rider
             const promoCodeId = await this.promoCode.createPromoCode(cleanedData);
-            console.log('Created Post Code ID:', promoCodeId); // Log the created rider ID
+            // console.log('Created Post Code ID:', promoCodeId); // Log the created rider ID
 
 
             // Verify OTP was stored properly
         const createdPromoCode = await this.promoCode.findById(promoCodeId);
-        console.log('Created Post Code:', createdPromoCode); // Log the created rider
+        // console.log('Created Post Code:', createdPromoCode); // Log the created rider
         res.json({
             status: 1,
             message: 'Post Code added successfully!',
@@ -134,7 +134,7 @@ class PromoCodeController extends BaseController {
             const currentPromoCode = (await PromoCode.getPromoCodeById(promoCodeId))[0];
     
             // Debugging output
-            console.log('Current Remote Post Code:', currentPromoCode);
+            // console.log('Current Remote Post Code:', currentPromoCode);
     
             // Update the service in the database
             await PromoCode.updatePromoCode(promoCodeId, promoCodeData);
@@ -156,14 +156,14 @@ class PromoCodeController extends BaseController {
     
     async deletePromoCode(req, res) {
         const promoCodeId = req.params.id;
-        console.log(promoCodeId)
+        // console.log(promoCodeId)
         try {
             // Step 1: Fetch the rider details to get the associated image filename
             const currentPromoCode = (await PromoCode.getPromoCodeById(promoCodeId))[0]; // Fetch current rider details
             if (!currentPromoCode) {
                 return this.sendError(res, 'Promo Code not found');
             }
-            console.log(currentPromoCode)
+            // console.log(currentPromoCode)
 
             // Step 3: Delete the rider from the database
             const result = await PromoCode.deletePromoCodeById(promoCodeId);

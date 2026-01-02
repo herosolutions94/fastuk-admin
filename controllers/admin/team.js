@@ -218,7 +218,7 @@ class TeamController extends BaseController {
 
                 // ✅ Generate the thumbnail using your helper
                 await helpers.generateThumbnail(teamMemberImage, sourceDir, thumbFolder, width, height);
-                console.log('Thumbnail created for:', teamMemberImage);
+                // console.log('Thumbnail created for:', teamMemberImage);
 
                 // Update with new image
                 teamMemberData.team_mem_image = teamMemberImage;

@@ -47,7 +47,7 @@ class TestimonialController extends BaseController {
 
                 // ✅ Generate the thumbnail using your helper
                 await helpers.generateThumbnail(testimonialImage, sourceDir, thumbFolder, width, height);
-                console.log('Thumbnail created for:', testimonialImage);        
+                // console.log('Thumbnail created for:', testimonialImage);        
                
             }
 
@@ -200,7 +200,7 @@ class TestimonialController extends BaseController {
 
                 // ✅ Generate the thumbnail using your helper
                 await helpers.generateThumbnail(testimonialImage, sourceDir, thumbFolder, width, height);
-                console.log('Thumbnail created for:', testimonialImage);
+                // console.log('Thumbnail created for:', testimonialImage);
 
                 // Update with new image
                 testimonialData.testi_image = testimonialImage;

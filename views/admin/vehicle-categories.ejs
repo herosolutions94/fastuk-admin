@@ -4,8 +4,8 @@
       <div class="text">
         <h3>Vehicle Categories</h3>
         <ul>
-          <li><a href="">Home</a></li>
-          <li class="active"><a href="">Vehicle Categories</a></li>
+          <li><a href="/admin/dashbaord">Home</a></li>
+          <!-- <li class="active"><a href="">Vehicle Categories</a></li> -->
         </ul>
       </div>
       <div class="text text2">
@@ -83,6 +83,7 @@
                       href="#"
                       class="delete-item"
                       data-id="<%= vehicleCategory.id %>"
+                      data-row="vehicleCategory"
                       data-url="/admin/vehicle-categories/delete/<%= vehicleCategory.id %>">
                       <i class="fa fa-trash" aria-hidden="true"></i> Delete
                     </a>
