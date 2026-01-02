@@ -1,4 +1,4 @@
-<section id="dashbaord">
+<section id="dashbaord " class="less_padd">
   <div class="contain-fluid">
     <div class="heading">
       <div class="text">
@@ -87,14 +87,17 @@
 
       </div>
       <!-- Pickup & Drop-off Section -->
-      <div class="row" style="margin-top: 25px;">
+      <div class="row" >
 
         <!-- Pickup -->
         <div class="col-md-6">
           <div class="card" style="border-radius: 12px;">
+            <div class="card-header">
+               <h5>Pickup Location</h5>
+            </div>
             <div class="card-body">
 
-              <h5><strong>Pickup Location</strong></h5>
+             
 
               <p style="margin: 0;">
                 <%= transactions.source_address %>
@@ -116,9 +119,12 @@
         <!-- Drop-off -->
         <div class="col-md-6">
           <div class="card" style="border-radius: 12px;">
+            <div class="card-header">
+               <h5>Drop-off Location</h5>
+            </div>
             <div class="card-body">
 
-              <h5><strong>Drop-off Location</strong></h5>
+             
 
               <p style="margin: 0;">
                 <%= transactions.dest_address %>
@@ -148,7 +154,9 @@
 
             <div class="card-body">
               <% if (parcels?.length> 0) { %>
-                <table class="table table-bordered">
+               <div class="table_u">
+                <div class="u_width">
+                   <table class="table table-bordered">
                   <thead>
                     <tr>
                       <th>Parcel Type</th>
@@ -184,6 +192,8 @@
                       <% }) %>
                   </tbody>
                 </table>
+                </div>
+               </div>
                 <% } else { %>
                   <p>No parcels found for this order.</p>
                   <% } %>
@@ -198,7 +208,7 @@
         <div class="col-md-12">
           <div class="card">
             <div class="card-header">
-              <h2>Billing Summary</h2>
+              <h5>Billing Summary</h5>
 
 
             </div>
