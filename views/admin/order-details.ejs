@@ -24,17 +24,23 @@
                     <div class="d-flex w-100">
                       <a href="/admin/riders/edit/<%= order.assigned_rider %>" target="_blank" rel="noopener noreferrer"
                         style="text-decoration: none; color: inherit;">
-                        <p><strong>Rider: </strong>
+                        <strong>Rider: </strong>
+                        <div class="flex u_flex">
+                          <div class="img">
                           <img src="<%= helpers.getImage(order.rider_dp) %>" alt="User Image" class="user-image"
                             style="width: 50px; height: 50px; border-radius: 50%;">
-                          <%= order.rider_name %>
-                        </p>
-                        <p style="margin: 0;">
+                        </div>
+                        <div class="name">
+                            <%= order.rider_name %>
+                          <p style="margin: 0;">
                             <%= order.rider_email %>
                           </p>
                           <p style="margin: 0;">
                             <%= order.rider_phone %>
                           </p>
+                          </div>
+                        </div>
+                        
                       </a>
                     </div>
                   </div>
@@ -58,18 +64,25 @@
                   <div class="d-flex w-100">
                     <a href="/admin/members/edit/<%= order.user_id %>" target="_blank" rel="noopener noreferrer"
                       style="text-decoration: none; color: inherit;">
-
-                      <p><strong>User: </strong>
-                        <img src="<%= helpers.getImage(order.member_dp) %>" alt="User Image" class="user-image"
+                      <strong>User: </strong>
+                      <div class=" flex u_flex">
+                        <div class="img">
+                          <img src="<%= helpers.getImage(order.member_dp) %>" alt="User Image" class="user-image"
                           style="width: 50px; height: 50px; border-radius: 50%;">
+                        </div>
+                         <div class="name">
+                        
                         <%= order.member_name %>
-                      </p>
-                       <p style="margin: 0;">
+                        <p style="margin: 0;">
                             <%= order.mem_email %>
                           </p>
                           <p style="margin: 0;">
                             <%= order.mem_phone %>
                           </p>
+                      </div>
+                      </div>
+                     
+                       
                     </a>
                   </div>
                 </div>
