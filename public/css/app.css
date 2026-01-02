@@ -8,6 +8,7 @@
   -webkit-box-shadow: 0 0 20px rgba(8, 21, 66, 0.05);
   box-shadow: 0 0 20px rgba(8, 21, 66, 0.05);
 }
+
 .card .card-header {
   background-color: #fff;
   padding: 0px;
@@ -17,33 +18,42 @@
   border-top-right-radius: 15px;
   position: relative;
 }
+
 .card .card-body {
   padding: 0px;
   padding-top: 20px;
   background-color: rgba(0, 0, 0, 0);
 }
+
 .card .card-header h5 {
   font-size: 20px;
 }
+
 .dashTable .list-group {
   padding-left: 0;
   margin-bottom: 0px;
 }
+
 .dashTable .list-group-item h5 {
   margin-bottom: 0;
   color: #3a3f50;
 }
+
 .dashTable .list-group-item {
   padding: 15px;
 }
+
 .dashTable .details-group strong {
   color: #000;
   min-width: 158px;
 }
+
 .dashTable .details-group p {
-  /* display: flex; */
-  justify-content: flex-start;
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
 }
+
 .dashTable .image-blog {
   width: 28px;
   height: 28px;
@@ -53,6 +63,7 @@
   border: 2px solid #fff;
   margin-right: 10px;
 }
+
 .dashTable .image-blog img {
   border-radius: 50%;
   width: 100%;
@@ -62,6 +73,7 @@
   -ms-border-radius: 50%;
   -o-border-radius: 50%;
 }
+
 .dashTable .input {
   display: block;
   width: 100%;
@@ -81,25 +93,31 @@
   -o-transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
   transition: border-color ease-in-out 0.15s, box-shadow ease-in-out 0.15s;
 }
+
 .dashTable textarea.input {
   height: 100px;
   resize: none;
 }
+
 .dashTable .txtGrp {
   margin-bottom: 18px;
 }
+
 .dashTable .txtGrp.neg-marg {
   margin-bottom: 0px;
 }
+
 .dashTable .form-label {
   color: #3a3f50;
   font-size: 14px;
   font-family: "Inter Medium";
 }
+
 .dashTable .required {
-  color: #2d7efa;
+  color: #3e4194;
   padding-left: 8px;
 }
+
 .dashTable button.uploadImg {
   color: #9ba2a7;
   padding: 8px;
@@ -114,13 +132,16 @@
   align-items: center;
   justify-content: center;
 }
+
 .dashTable button.uploadImg i {
   font-size: 18px;
   padding-right: 7px;
 }
+
 .dashTable .editor_card .preview {
   padding-top: 0;
 }
+
 .dashTable .blog_img {
   width: 100%;
   border-radius: 10px;
@@ -128,20 +149,24 @@
   height: 150px;
   overflow: hidden;
 }
+
 .dashTable .blog_img img {
   border-radius: 10px;
   height: 100%;
   object-fit: contain;
 }
+
 .switch-showcase .switch {
   position: relative;
   display: inline-block;
   width: 60px;
   height: 34px;
 }
+
 .switch-showcase .switch input {
   display: none;
 }
+
 .switch-showcase .switch-state {
   border-radius: 20px;
   position: absolute;
@@ -154,18 +179,22 @@
   -webkit-transition: 0.4s;
   transition: 0.4s;
 }
+
 .switch-showcase .switch-state.bg-primary {
-  border: 1px solid #2d7efa;
+  border: 1px solid #3e4194;
   background-color: rgba(0, 0, 0, 0) !important;
 }
+
 .switch-showcase .switch-state.bg-success {
   border: 1px solid #04b440;
   background-color: rgba(0, 0, 0, 0) !important;
 }
+
 .switch-showcase .switch-state.bg-warning {
   border: 1px solid #faab34;
   background-color: rgba(0, 0, 0, 0) !important;
 }
+
 .switch-showcase .switch-state:before {
   position: absolute;
   content: "";
@@ -178,11 +207,13 @@
   transition: 0.4s;
   border-radius: 20px;
 }
+
 .switch-showcase .switch-state:before {
   background-color: #f4f4f4;
   bottom: 3px;
   color: #fff;
 }
+
 .switch-showcase .switch-state:after {
   content: "\f00d";
   font-family: "FontAwesome";
@@ -194,62 +225,76 @@
   transition: 0.4s;
   opacity: 0.3;
 }
-.switch-showcase .switch input:checked + .switch-state.bg-primary {
+
+.switch-showcase .switch input:checked+.switch-state.bg-primary {
   background-color: rgba(0, 0, 0, 0) !important;
-  border: 1px solid #2d7efa;
+  border: 1px solid #3e4194;
 }
-.switch-showcase .switch input:checked + .switch-state.bg-primary:before {
-  background-color: #2d7efa;
+
+.switch-showcase .switch input:checked+.switch-state.bg-primary:before {
+  background-color: #3e4194;
   transform: translateX(26px);
   bottom: 3px;
 }
-.switch-showcase .switch input:checked + .switch-state.bg-success {
+
+.switch-showcase .switch input:checked+.switch-state.bg-success {
   background-color: rgba(0, 0, 0, 0) !important;
   border: 1px solid #04b440;
 }
-.switch-showcase .switch input:checked + .switch-state.bg-success:before {
+
+.switch-showcase .switch input:checked+.switch-state.bg-success:before {
   background-color: #04b440;
   transform: translateX(26px);
   bottom: 3px;
 }
-.switch-showcase .switch input:checked + .switch-state.bg-warning {
+
+.switch-showcase .switch input:checked+.switch-state.bg-warning {
   background-color: rgba(0, 0, 0, 0) !important;
   border: 1px solid #faab34;
 }
-.switch-showcase .switch input:checked + .switch-state.bg-warning:before {
+
+.switch-showcase .switch input:checked+.switch-state.bg-warning:before {
   background-color: #faab34;
   transform: translateX(26px);
   bottom: 3px;
 }
-.switch-showcase .icon-state input:checked + .switch-state:after {
+
+.switch-showcase .icon-state input:checked+.switch-state:after {
   content: "\f00c";
   left: 36px;
   opacity: 1;
   -webkit-transition: 0.4s;
   transition: 0.4s;
 }
-.switch-showcase .switch input:checked + .switch-state:after {
+
+.switch-showcase .switch input:checked+.switch-state:after {
   color: #fff;
 }
+
 .switch-showcase .media {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
+
 .switch-showcase .media label {
   margin-bottom: 0;
 }
+
 .switch-showcase .status_custom {
   display: flex;
   align-items: center;
   gap: 1rem;
 }
+
 .switch-showcase .status_custom label {
   margin-bottom: 0;
 }
+
 .dashTable .card-footer {
   text-align: end;
 }
+
 .dashTable .info {
   position: absolute;
   background: #8080801f !important;
@@ -259,7 +304,8 @@
   top: 29px;
   right: 16px;
 }
-.dashTable .info > i {
+
+.dashTable .info>i {
   width: 18px;
   height: 18px;
   padding-top: 2.4px;
@@ -272,7 +318,8 @@
   padding-left: 0.3px;
   cursor: pointer;
 }
-.dashTable .info > .infoTip {
+
+.dashTable .info>.infoTip {
   position: absolute;
   z-index: 10;
   /* color: #333; */
@@ -295,7 +342,8 @@
   -o-transition: all 0.5s ease;
   transition: all 0.5s ease;
 }
-.dashTable .info > .infoTip:before {
+
+.dashTable .info>.infoTip:before {
   position: absolute;
   content: "";
   left: 120px;
@@ -308,6 +356,7 @@
   -ms-transform: rotate(-45deg);
   transform: rotate(-45deg);
 }
+
 .dashTable .info:hover .infoTip {
   visibility: visible;
   opacity: 1;
@@ -315,9 +364,11 @@
   -o-transition: all 0.5s ease;
   transition: all 0.5s ease;
 }
+
 .strip_it form select.input {
   background-position: right 48px center;
 }
+
 /* ====== */
 button.Bt-btn {
   border-radius: 3px;
@@ -328,21 +379,26 @@ button.Bt-btn {
   width: 124px;
   background: #2c5cea !important;
 }
+
 .Bt-btn i {
   color: #fff;
   margin-right: 10px;
   margin-left: 0 !important;
 }
+
 .dashTable .preview {
   padding-top: 0;
 }
+
 .cke_chrome {
   border-bottom: 1px solid #eee !important;
   border-top: none;
 }
+
 .dashTable .forth_icon {
   width: 17%;
 }
+
 .dashTable .forth_icon.blog_img {
   width: 100%;
   background-color: #eee;
@@ -360,14 +416,17 @@ button.Bt-btn {
   -ms-border-radius: 15px;
   -o-border-radius: 15px;
 }
+
 .dashTable .popup_vid {
   width: 28%;
 }
+
 .dashTable .table-primary {
   background: #f1f4f8;
   color: #000;
   border-color: #bacbe6;
 }
+
 .dashTable tr th a.addNewRowTbl,
 .table .delNewRowTbl {
   padding: 5px;
@@ -380,11 +439,13 @@ button.Bt-btn {
   font-size: 18px;
   background: #009efb;
 }
+
 .dashTable tr th a.addNewRowTbl.badge-primary {
   padding: 2px;
   width: 28px;
   height: 28px;
 }
+
 .login-card {
   min-height: 100vh;
   display: -webkit-box;
@@ -408,6 +469,7 @@ button.Bt-btn {
   margin-bottom: 30px;
   text-align: center;
 }
+
 .login-card .login-main {
   width: 450px;
   padding: 40px;
@@ -417,9 +479,11 @@ button.Bt-btn {
   margin: 0 auto;
   background-color: #fff;
 }
+
 .login-wrapper main {
   padding: 0;
 }
+
 /*_____ webBtn spinner _____*/
 
 .webBtn .spinner,
@@ -444,7 +508,7 @@ button.Bt-btn {
   height: 60px !important;
 }
 
-.webBtn .spinner ~ i {
+.webBtn .spinner~i {
   visibility: hidden;
 }
 
@@ -509,17 +573,19 @@ button.Bt-btn {
     -webkit-transform: rotate(0deg);
     transform: rotate(0deg);
   }
+
   100% {
     -webkit-transform: rotate(-360deg);
     transform: rotate(-360deg);
   }
 }
+
 .dashTable tr th a.full_width {
   width: 100%;
   background: transparent;
 }
 
-.st_sp{
+.st_sp {
   justify-content: unset !important;
   gap: 20px;
 }
