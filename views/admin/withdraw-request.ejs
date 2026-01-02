@@ -4,8 +4,8 @@
         <div class="text">
           <h3>Withdrawl Requests</h3>
           <ul>
-            <li><a href="">Home</a></li>
-            <li class="active"><a href="">Withdrawl Requests</a></li>
+          <li><a href="/admin/dashbaord">Home</a></li>
+            <!-- <li class="active"><a href="">Withdrawl Requests</a></li> -->
           </ul>
         </div>
       </div>
@@ -87,6 +87,7 @@
                         href="#"
                         class="delete-item"
                         data-id="<%= request.id %>"
+                        data-row="request"
                         data-url="/admin/withdraw-request-delete/<%= request.withdrawal_id %>">
                         <i class="fa fa-trash" aria-hidden="true"></i> Delete
                       </a>

@@ -2,10 +2,10 @@
   <div class="contain-fluid">
     <div class="heading">
       <div class="text">
-        <h3>Review Detail</h3>
+        <h3>Review Detail Page</h3>
         <ul>
-          <li><a href="">Home</a></li>
-          <li class="active"><a href="">Review Detail</a></li>
+           <li><a href="/admin/dashboard">Dashboard</a></li>
+          <!-- <li class="active"><a href="">Review Detail</a></li> -->
         </ul>
       </div>
     </div>
@@ -19,35 +19,46 @@
           <div class="list-group details-group">
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>User: </strong><img src="<%= helpers.getImage(review.member_dp) %>" alt="User Image" class="user-image" style="width: 50px; height: 50px; border-radius: 50%;"><%= review.member_name %></p>
+                <p><strong>User: </strong><img src="<%= helpers.getImage(review.member_dp) %>" alt="User Image"
+                    class="user-image" style="width: 50px; height: 50px; border-radius: 50%;">
+                  <%= review.member_name %>
+                </p>
               </div>
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Review Text: </strong><%= review.review %></p>
+                <p><strong>Review Text: </strong>
+                  <%= review.review %>
+                </p>
               </div>
             </div>
             <div class="list-group-item">
               <div class="d-flex w-100">
                 <p><strong>Rating: </strong>
-                  <div class="rateYo" data-rateyo-rating="<%= review.rating %>"></div>
+                <div class="rateYo" data-rateyo-rating="<%= review.rating %>"></div>
                 </p>
               </div>
             </div>
-            
+
             <div class="list-group-item">
               <div class="d-flex w-100">
-                <p><strong>Created Date: </strong><%= helpers.convertUtcToUkFormat(review.created_at) %></p>
+                <p><strong>Created Date: </strong>
+                  <%= helpers.convertUtcToUkFormat(review.created_at) %>
+                </p>
               </div>
             </div>
             <div class="list-group-item">
-              <div class="d-flex w-100">
-                <p><strong>Request Id: </strong><a href="/admin/job-detail/<%= review.request_id %>">Request</a></p>
+              <div class="d-flex align-items-center gap-2">
+                <strong>Request ID:</strong>
+                <a href="/admin/job-detail/<%= review.request_id %>"
+                  class="text-primary fw-semibold text-decoration-underline">
+                  #<%= review.request_id %>
+                </a>
               </div>
             </div>
-            
-            
-      
+
+
+
           </div>
         </div>
       </div>

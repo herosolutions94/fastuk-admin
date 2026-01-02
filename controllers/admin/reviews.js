@@ -37,7 +37,7 @@ class ReviewsController extends BaseController {
             const { id } = req.params; // Get the order ID from the route parameters
     
             const reviewDetails = await Reviews.getReviewDetailsById(id);
-            console.log('reviewDetails:', reviewDetails); // Ensure data is logged here
+            // console.log('reviewDetails:', reviewDetails); // Ensure data is logged here
 
     
             if (reviewDetails) {

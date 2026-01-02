@@ -113,7 +113,7 @@ class BusinessUserController extends BaseController {
 
                 // ✅ Generate the thumbnail using your helper
                 await helpers.generateThumbnail(businessUserImage, sourceDir, thumbFolder, width, height);
-                console.log('Thumbnail created for:', businessUserImage);
+                // console.log('Thumbnail created for:', businessUserImage);
 
                 // Update with new image
                 businessUserData.mem_image = businessUserImage;

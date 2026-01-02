@@ -143,6 +143,7 @@ class MemberModel extends BaseModel {
 
     return result;
   }
+  
 
   async updateOtp(memberId, otp) {
     const query = "UPDATE members SET otp = ? WHERE id = ?";

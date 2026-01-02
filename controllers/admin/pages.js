@@ -554,7 +554,7 @@ class PagesController extends BaseController {
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
-            console.log("json content", jsonContent);
+            // console.log("json content", jsonContent);
 
             // Step 4: Update the database with the new JSON value for "home" key
             await this.pages.updatePageContent('privacy-policy', jsonContent);
@@ -622,7 +622,7 @@ class PagesController extends BaseController {
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
-            console.log("json content", jsonContent);
+            // console.log("json content", jsonContent);
 
             // Step 4: Update the database with the new JSON value for "home" key
             await this.pages.updatePageContent('refund-policy', jsonContent);
@@ -689,7 +689,7 @@ class PagesController extends BaseController {
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
-            console.log("json content", jsonContent);
+            // console.log("json content", jsonContent);
 
             // Step 4: Update the database with the new JSON value for "home" key
             await this.pages.updatePageContent('terms-conditions', jsonContent);
@@ -757,7 +757,7 @@ class PagesController extends BaseController {
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
-            console.log("json content", jsonContent);
+            // console.log("json content", jsonContent);
 
             // Step 4: Update the database with the new JSON value for "home" key
             await this.pages.updatePageContent('charge-aggreement', jsonContent);
@@ -826,7 +826,7 @@ class PagesController extends BaseController {
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
-            console.log("json content", jsonContent);
+            // console.log("json content", jsonContent);
 
             // Step 4: Update the database with the new JSON value for "home" key
             await this.pages.updatePageContent('help-support', jsonContent);
@@ -894,7 +894,7 @@ class PagesController extends BaseController {
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
-            console.log("json content", jsonContent);
+            // console.log("json content", jsonContent);
 
             // Step 4: Update the database with the new JSON value for "home" key
             await this.pages.updatePageContent('faq', jsonContent);
@@ -962,7 +962,7 @@ class PagesController extends BaseController {
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
-            console.log("json content", jsonContent);
+            // console.log("json content", jsonContent);
 
             // Step 4: Update the database with the new JSON value for "home" key
             await this.pages.updatePageContent('login', jsonContent);
@@ -1031,7 +1031,7 @@ class PagesController extends BaseController {
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
-            console.log("json content", jsonContent);
+            // console.log("json content", jsonContent);
 
             // Step 4: Update the database with the new JSON value for "home" key
             await this.pages.updatePageContent('forgot-password', jsonContent);
@@ -1099,7 +1099,7 @@ class PagesController extends BaseController {
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
-            console.log("json content", jsonContent);
+            // console.log("json content", jsonContent);
 
             // Step 4: Update the database with the new JSON value for "home" key
             await this.pages.updatePageContent('sign-up', jsonContent);
@@ -1167,7 +1167,7 @@ class PagesController extends BaseController {
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
-            console.log("json content", jsonContent);
+            // console.log("json content", jsonContent);
 
             // Step 4: Update the database with the new JSON value for "home" key
             await this.pages.updatePageContent('rider-signup', jsonContent);
@@ -1235,7 +1235,7 @@ class PagesController extends BaseController {
 
             // Step 3: Convert updated data to JSON
             const jsonContent = JSON.stringify(formData);
-            console.log("json content", jsonContent);
+            // console.log("json content", jsonContent);
 
             // Step 4: Update the database with the new JSON value for "home" key
             await this.pages.updatePageContent('reset-password', jsonContent);
@@ -1431,10 +1431,10 @@ class PagesController extends BaseController {
 
             // Step 2: Fetch current sec_text values for key 'home'
             const secTextValues = await this.pages.getSecTextValues('home');
-            console.log("Fetched sec_text values:", secTextValues);
+            // console.log("Fetched sec_text values:", secTextValues);
 
             // Log sec_text from form
-            console.log("sec_text from form:", req.body.sec_text);
+            // console.log("sec_text from form:", req.body.sec_text);
 
             // Step 3: Initialize formData with existing content
             const formData = { ...existingContent, ...helpers.sanitizeData(req.body) };

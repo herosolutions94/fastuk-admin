@@ -4,8 +4,8 @@
       <div class="text">
         <h3>Messages</h3>
         <ul>
-          <li><a href="">Home</a></li>
-          <li class="active"><a href="">Message</a></li>
+           <li><a href="/admin/dashboard">Dashboard</a></li>
+          <!-- <li class="active"><a href="">Message</a></li> -->
         </ul>
       </div>
     </div>
@@ -91,6 +91,7 @@
                       href="#"
                       class="delete-item"
                       data-id="<%= message.id %>"
+                      data-row="message"
                       data-url="/admin/messages/delete/<%= message.id %>">
                       <i class="fa fa-trash" aria-hidden="true"></i>Delete
                     </a>
