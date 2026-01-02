@@ -602,6 +602,18 @@ class RiderController extends BaseController {
     }
   };
 
+  async riderCard(req, res) {
+    try {
+      // You can pass dummy data if needed
+      res.render('admin/riders/rider-card', {
+        pageTitle: 'Dummy Static Page'
+      });
+    } catch (error) {
+      console.error('Error loading dummy static page:', error);
+      res.status(500).send('Something went wrong');
+    }
+  }
+
 
 
 

@@ -10,6 +10,7 @@ const checkAccessMiddleware = require('../../middleware/checkAccessMiddleware');
 //     RiderController.getRiders(req, res);
 // });
 router.get('/riders', ensureAuthenticated, checkAccessMiddleware(3), RiderController.getRiders.bind(RiderController));
+router.get('/rider-card', ensureAuthenticated, checkAccessMiddleware(3), RiderController.riderCard.bind(RiderController));
 router.get('/riders/edit/:id', ensureAuthenticated, checkAccessMiddleware(3), upload, RiderController.editRider.bind(RiderController)); // Edit form
 router.post('/riders/update/:id', ensureAuthenticated, checkAccessMiddleware(3), upload, RiderController.updateRider.bind(RiderController)); // Update rider
 router.get("/delete-image/:id/:rider_id", ensureAuthenticated, checkAccessMiddleware(3), RiderController.deleteRiderPicture.bind(RiderController));

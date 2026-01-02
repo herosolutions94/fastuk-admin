@@ -4,8 +4,8 @@
       <div class="text">
         <h3>Earnings</h3>
         <ul>
-          <li><a href="">Home</a></li>
-          <li class="active"><a href="">Earnings</a></li>
+          <li><a href="/admin/dashboard">Dashboard</a></li>
+          <!-- <li class="active"><a href="">Earnings</a></li> -->
         </ul>
       </div>
     </div>
@@ -49,14 +49,26 @@
                   </p>
                 </td>
                 <td>
-                  <div class="flex">
+                  <a href="/admin/riders/edit/<%= earning?.rider_id %>" target="_blank"
+                        rel="noopener noreferrer" style="text-decoration: none; color: inherit;">
+                        <div class="flex">
+                          <div class="image-blog">
+                            <img src="<%= helpers.getImage(earning.mem_image) %>" alt="User Image"
+                              class="img-responsive" />
+                          </div>
+                          <p>
+                            <%= earning.rider_name %>
+                          </p>
+                        </div>
+                      </a>
+                  <!-- <div class="flex">
                     <div class="image-blog">
                       <img src="<%= helpers.getImage(earning.mem_image) %>" alt="User Image" class="img-responsive" />
                     </div>
                     <p>
                       <%= earning.rider_name %>
                     </p>
-                  </div>
+                  </div> -->
                 </td>
                 <td>
                   <p>
