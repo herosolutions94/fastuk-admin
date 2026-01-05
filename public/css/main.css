@@ -2958,6 +2958,10 @@ form .txtGrp .invalid-feedback {
 
 .dashTable table .btn-group ul li i {
   padding-right: 10px;
+  color: #fff;
+}
+
+.dashTable table .btn-group ul li:hover i {
   color: #747b89;
 }
 
