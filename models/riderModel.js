@@ -358,6 +358,7 @@ AND COALESCE(rq.is_cancelled, '') NOT IN ('approved', 'requested')
         WHERE order_id = ?
     `;
     const [rows] = await pool.query(query, [quoteId]);
+    // console.log("parcels rows:", rows)
     return rows;
   };
   async getRequestOrderStages(quoteId) {
