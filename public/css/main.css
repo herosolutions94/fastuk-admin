@@ -4497,23 +4497,47 @@ label.switch {
 
 @media print {
 
-  @page {
-    margin: 0;
-  }
 
-  body {
-    margin: 0;
-    background: white;
-  }
 
-  * {
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
 
   .profile_card {
     background-color: #3f4394 !important;
     color: #fff;
   }
 
+}
+
+.accordion-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #f7f7f7;
+  padding: 12px 15px;
+  cursor: pointer;
+  border-radius: 6px;
+}
+
+.accordion-header h4 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.accordion-header .icon {
+  font-size: 20px;
+  font-weight: bold;
+}
+
+.accordion-body {
+  display: none;
+  padding: 15px;
+}
+
+.accordion-item.active .accordion-body {
+  display: block;
+}
+
+.quote-section.three-cols .quote-card {
+  flex: unset;
+  min-width: unset;
+  width: 100%;
 }
