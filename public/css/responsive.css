@@ -125,7 +125,7 @@
     text-align: center;
     right: 10px;
     top: 18px;
-    background: #2d7efa;
+    background: #3e4194;
     line-height: 23px;
     padding: 5px;
     border-radius: 7px;
@@ -232,5 +232,16 @@
     left: -295px;
   }
 
+  body .left-sidebar .logo {
+    width: 158px;
+  }
+
+  #dashbaord .grids .flex {
+    margin: 0;
+  }
+
+  #dashbaord .grids .flex .col {
+    padding: 10px;
+  }
 
 }
