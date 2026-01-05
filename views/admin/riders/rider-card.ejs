@@ -1,43 +1,58 @@
- <section class="uj_card">
+<section class="uj_card">
     <div class="contain">
         <div class="table_dv">
             <div class="table_cell">
                 <div class="profile_card">
                     <div class="inner">
                         <div class="logos">
-                            <img src="/images/logo.png" alt />
+                            <img src="<%= helpers.getImage(siteSettings.logo_image) %>" alt />
                         </div>
-                        
+
                         <div class="dp_area">
                             <div class="dp">
-                                <img src="/images/t2.png" alt />
+                                <img src="<%= helpers.getImage(rider.mem_image) %>" alt />
                             </div>
                             <div class="name">
-                                <h6>Project Manager</h6>
-                                <h3>Firdous Jamal</h3>
-                                <p>Email: +9764634674</p>
-                                <p>Phone: abc123@gmail.com</p>
+                                <h6>
+                                    <%= siteSettings?.site_name || '' %>
+                                </h6>
+                                <h3>
+                                    <%= rider?.full_name || '' %>
+                                </h3>
+                                <p>Email: <%= rider?.email || '' %>
+                                </p>
+                                <p>Phone: <%= rider?.mem_phone || '' %>
+                                </p>
                             </div>
                             <div class="right">
-                                <img src="/images/qr.png" alt />
+                                <% if (qrCodeAttachment && qrCodeAttachment.filename) { %>
+                                    <img src="/uploads/qr_codes/<%= qrCodeAttachment?.filename %>" alt="QR Code" />
+                                    <% } %>
                             </div>
+
                         </div>
                         <ul class="list">
                             <li>
                                 <strong>City:</strong>
-                                <p>Birmingham</p>
+                                <p>
+                                    <%= rider?.city || '' %>
+                                </p>
                             </li>
                             <li>
                                 <strong>Address:</strong>
-                                <p>block123location</p>
+                                <p>
+                                    <%= siteSettings?.site_address || '' %>
+                                </p>
                             </li>
                             <li>
                                 <strong>Vehicle:</strong>
-                                <p>Midi Van</p>
+                                <p>
+                                    <%= selectedVehicle?.title || '' %>
+                                </p>
                             </li>
                             <li>
                                 <strong>Vehicle Image:</strong>
-                                <img src="/images/o4.png" alt />
+                                <img src="<%= helpers.getImage(selectedVehicle?.vehicle_image) %>" alt />
                             </li>
                         </ul>
                     </div>
@@ -46,3 +61,15 @@
         </div>
     </div>
 </section>
+<script>
+    window.onload = function () {
+        window.print();
+    };
+</script>
+<script>
+  window.onload = function () {
+    setTimeout(() => {
+      window.print();
+    }, 300);
+  };
+</script>

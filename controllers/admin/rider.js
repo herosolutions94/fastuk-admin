@@ -3,6 +3,8 @@ const path = require("path"); // For handling file paths
 
 const Rider = require("../../models/rider");
 const RiderModel = require("../../models/riderModel");
+const VehicleModel = require("../../models/vehicle");
+
 
 const RequestQuoteModel = require("../../models/request-quote"); // Assuming you have this model
 
@@ -15,6 +17,7 @@ class RiderController extends BaseController {
   constructor() {
     super();
     this.riderModel = new RiderModel();
+    this.vehicleModel = new VehicleModel();
   }
 
   async getRiders(req, res) {
@@ -25,8 +28,8 @@ class RiderController extends BaseController {
       for (let rider of riders) {
         const earningsData = await this.riderModel.getRiderEarnings(rider.id);
         rider.available_balance = helpers.formatAmount(
-        earningsData.availableBalance
-      ); // Add balance field to each rider
+          earningsData.availableBalance
+        ); // Add balance field to each rider
       }
 
       // Render with updated riders' data
@@ -54,7 +57,7 @@ class RiderController extends BaseController {
         const attachments = await Rider.getRiderAttachments(riderId); // Add this method in your model
         // Organize attachments by type for easier access in EJS
         // console.log("attachments:",attachments)
-        
+
 
 
         const attachmentMap = {};
@@ -101,7 +104,7 @@ class RiderController extends BaseController {
   }
 
   // Method to handle updating rider information
-   async updateRider(req, res) {
+  async updateRider(req, res) {
     try {
       const riderId = req.params.id;
       const riderData = req.body;
@@ -278,9 +281,9 @@ class RiderController extends BaseController {
 
       const activeJobsCount = await this.riderModel.hasActiveJobs(riderId);
 
-            if (activeJobsCount > 0) {
-                return this.sendError(res, "Cannot delete rider. Rider has active jobs running.", 400);
-            }
+      if (activeJobsCount > 0) {
+        return this.sendError(res, "Cannot delete rider. Rider has active jobs running.", 400);
+      }
 
       // const riderImage = currentRider.driving_license; // Get the image filename
       // console.log('Rider to delete:', currentRider); // Log rider details for debugging
@@ -604,9 +607,34 @@ class RiderController extends BaseController {
 
   async riderCard(req, res) {
     try {
-      // You can pass dummy data if needed
+
+      const riderId = req.params.id;
+
+      const rider = (await Rider.getRiderById(riderId))[0];
+
+      const selectedVehicle = rider?.vehicle_id
+        ? await VehicleModel.getSelectedVehicleById(rider.vehicle_id)
+        : null;
+
+
+      // console.log("selectedVehicle:", selectedVehicle, rider[0]?.vehicle_id);
+
+      const siteSettings = res.locals.adminData;
+
+
+      const attachments = await Rider.getRiderAttachments(riderId); // Add this method in your model
+      const qrCodeAttachment = attachments.find(
+        att => att.type === 'qr_code'
+      );
+      // console.log("qrCodeAttachment:", qrCodeAttachment);
+
       res.render('admin/riders/rider-card', {
-        pageTitle: 'Dummy Static Page'
+        rider,
+        qrCodeAttachment,
+        selectedVehicle,
+        siteSettings,
+        layout: 'admin/print-layout',
+        pageTitle: 'Rider Card'
       });
     } catch (error) {
       console.error('Error loading dummy static page:', error);
