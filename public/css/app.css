@@ -43,6 +43,21 @@
   padding: 15px;
 }
 
+.dashTable .details-group .even_block .flex {
+  justify-content: space-between;
+}
+
+.dashTable .details-group .img_info {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.dashTable .details-group .even_block p {
+  display: block;
+  width: unset;
+}
+
 .dashTable .details-group strong {
   color: #000;
   min-width: 158px;
@@ -471,8 +486,8 @@ button.Bt-btn {
 }
 
 .login-card .login-main {
-  width: 450px;
-  padding: 40px;
+  max-width: 450px;
+  padding: 26px;
   border-radius: 10px;
   -webkit-box-shadow: 0 0 37px rgba(8, 21, 66, 0.05);
   box-shadow: 0 0 37px rgba(8, 21, 66, 0.05);
