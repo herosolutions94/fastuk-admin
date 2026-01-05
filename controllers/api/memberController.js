@@ -4652,6 +4652,7 @@ class MemberController extends BaseController {
 
       const viasCount = await this.rider.countViasBySourceCompleted(order.id);
       const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
+      // console.log("parcels:", parcels);
       const order_stages_arr = await this.rider.getRequestOrderStages(order.id);
       const vias = await this.rider.getViasByQuoteId(order.id);
       const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
