@@ -7,6 +7,8 @@ const baseController = new BaseController(); // Instantiate the BaseController
 const PageModel = require("../../models/api/pages"); // Assuming you have this model
 const MemberModel = require("../../models/memberModel");
 const MessageModel = require("../../models/messageModel");
+const Message = require('../../models/message');
+
 const Token = require("../../models/tokenModel");
 const helpers = require('../../utils/helpers')
 
@@ -630,13 +632,16 @@ class PagesController extends BaseController {
   }
   async save_contact_message(req, res) {
     try {
-      const {
+      let {
         name,
         email,
         phone_number,
         subject,
         message,
       } = req.body;
+
+          email = email?.trim().toLowerCase();
+
 
       if (!email || email == '' || email == null || email == undefined) {
         return res.status(200).json({ status: 0, msg: "Email is required!" });
@@ -646,7 +651,55 @@ class PagesController extends BaseController {
       if (!validateEmail(email)) {
         return res.status(200).json({ status: 0, msg: "Invalid email format." });
       }
-      await this.contact_messages.createMessage({ name: name, email: email, phone_number: phone_number, subject: subject, message: message, created_date: new Date(), status: 0 });
+      // Insert message
+    const messageId = await this.contact_messages.createMessage({
+      name,
+      email,
+      phone_number,
+      subject,
+      message,
+      created_date: new Date(),
+      status: 0,
+    });
+
+      // Construct message object manually (no need to fetch from DB again)
+    const messageObject = {
+      id: messageId,
+      name,
+      email,
+      phone_number,
+      subject,
+      message,
+      created_date: new Date(),
+      status: 0,
+    };
+
+      const adminData = res.locals.adminData;
+      const result = await helpers.sendEmail(
+        adminData?.receiving_site_email,
+        "New Contact Message Received",
+        "contact-message",
+        {
+          adminData,
+          messageData: messageObject,
+          emailType: "admin",
+          helpers
+
+        }
+      );
+
+      await helpers.sendEmail(
+        messageObject.email,
+        "We’ve received your message",
+        "contact-message", // same template
+        {
+          adminData,
+          messageData: messageObject,
+          emailType: "user",
+          helpers
+        }
+      );
+
 
       return res.status(200).json({
         status: 1,
@@ -975,24 +1028,24 @@ class PagesController extends BaseController {
   // }
 
   async getAvailableVehicleCategories(req, res) {
-        // console.log('REQ BODY:', req.body); // DEBUG
+    // console.log('REQ BODY:', req.body); // DEBUG
 
 
     try {
       const { totalWeight } = req.body;
       if (totalWeight === undefined || totalWeight === null) {
         return res.status(200).json({
-        status: 0,
-        msg: "totalWeight is required"
-      });
-    }
+          status: 0,
+          msg: "totalWeight is required"
+        });
+      }
 
-     const vehicleModel = new VehicleModel();
+      const vehicleModel = new VehicleModel();
 
 
       const categories =
         await vehicleModel.getVehicleCategoriesByWeight(totalWeight);
-        // console.log("categories:",categories)
+      // console.log("categories:",categories)
 
       return res.status(200).json({
         status: 1,
