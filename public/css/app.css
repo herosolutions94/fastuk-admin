@@ -486,7 +486,8 @@ button.Bt-btn {
 }
 
 .login-card .login-main {
-  max-width: 450px;
+  max-width: 475px;
+  width: 100%;
   padding: 26px;
   border-radius: 10px;
   -webkit-box-shadow: 0 0 37px rgba(8, 21, 66, 0.05);
