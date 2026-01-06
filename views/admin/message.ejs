@@ -56,9 +56,12 @@
             </td>
 
             <td>
-              <p>
+              <!-- <p>
                 <%= new Date(message.created_date).toLocaleDateString("en-US", {
                 year: "numeric", month: "short", day: "numeric" }) %>
+              </p> -->
+              <p>
+                <%= helpers.formatUKDate(message?.created_date) %>
               </p>
             </td>
 

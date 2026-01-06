@@ -249,6 +249,23 @@ getUniqueAddresses: function (data, topAddress = null) {
     }
   }
   ,
+
+  formatUKDate: function (timestamp) {
+  if (!timestamp) return "";
+
+  const date = new Date(timestamp);
+
+  return date.toLocaleString("en-GB", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  });
+},
+
   updateRequestStatus: async function (id, status) {
     const query = `UPDATE request_quote SET status = ?, request_status = ? WHERE id = ?`;
     const values = [status, status, id];
