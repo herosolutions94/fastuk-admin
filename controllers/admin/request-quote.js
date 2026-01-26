@@ -28,7 +28,7 @@ class RequestQuoteController extends BaseController {
       const requestQuotesWithMembers =
         await RequestQuote.getRequestQuotesWithMembers([
           "rq.status = 'completed'",
-           "(rq.is_cancelled IS NULL OR rq.is_cancelled NOT IN ('requested', 'approved'))"
+          "(rq.is_cancelled IS NULL OR rq.is_cancelled NOT IN ('requested', 'approved'))"
         ]);
 
       // console.log('Completed Request Quotes:', requestQuotesWithMembers);
@@ -70,8 +70,8 @@ class RequestQuoteController extends BaseController {
       const requestQuotesWithMembers =
         await RequestQuote.getRequestQuotesWithMembers([
           "rq.status = 'paid'",
-           "rq.start_date >= CURDATE()",
-           "(rq.is_cancelled IS NULL OR rq.is_cancelled NOT IN ('requested', 'approved'))"
+          "rq.start_date >= CURDATE()",
+          "(rq.is_cancelled IS NULL OR rq.is_cancelled NOT IN ('requested', 'approved'))"
         ]);
 
       // console.log('Upcoming Request Quotes:', requestQuotesWithMembers);
@@ -85,6 +85,26 @@ class RequestQuoteController extends BaseController {
       this.sendError(res, "Failed to fetch request quotes");
     }
   }
+
+  async getLateRequestQuotes(req, res) {
+  try {
+    const requestQuotesWithMembers =
+      await RequestQuote.getRequestQuotesWithMembers([
+        "rq.end_date < CURDATE()",
+        "rq.status != 'completed'",
+        "(rq.is_cancelled IS NULL OR rq.is_cancelled NOT IN ('requested', 'approved'))"
+      ]);
+
+    res.render("admin/request-quotes", {
+      requestQuotes: requestQuotesWithMembers,
+      pageHeading: "Late Jobs"
+    });
+  } catch (error) {
+    console.error("Error fetching late request quotes:", error);
+    this.sendError(res, "Failed to fetch late jobs");
+  }
+}
+
 
   async getOrderDetails(req, res) {
     try {
@@ -102,6 +122,7 @@ class RequestQuoteController extends BaseController {
       // console.log("parcels:",parcels)
 
       const order_stages_arr = await this.rider.getRequestOrderStages(orderDetails.id);
+      // console.log("order_stages_arr:", order_stages_arr)
 
       const vias = await this.rider.getViasByQuoteId(orderDetails.id);
 
@@ -109,6 +130,11 @@ class RequestQuoteController extends BaseController {
       // const invoices = await this.rider.getInvoicesDetailsByRequestId(orderDetails.id);
       const reviews = await this.rider.getOrderReviews(orderDetails.id);
 
+      const riderNotes = await this.rider.getRiderNotes(
+        orderDetails.assigned_rider,
+        orderDetails.id
+      );
+      // console.log("riderNotes:", riderNotes)
       // console.log("invoices:",invoices)
       // console.log("invoices date:",orderDetails?.invoices?.created_date)
       // console.log("reviews:",reviews)
@@ -126,25 +152,25 @@ class RequestQuoteController extends BaseController {
         stage.attachments = stage_attachments;
 
         // Format arrived_time
-  if (stage.arrival_time) {
-    stage.arrived_time_formatted = helpers.convertUtcSecondsToUKTime(stage.arrival_time);
-  } else {
-    stage.arrived_time_formatted = null;
-  }
+        if (stage.arrival_time) {
+          stage.arrived_time_formatted = helpers.convertUtcSecondsToUKTime(stage.arrival_time);
+        } else {
+          stage.arrived_time_formatted = null;
+        }
 
-  // Format loaded_time
-  if (stage.loaded_time) {
-    stage.loaded_time_formatted = helpers.convertUtcSecondsToUKTime(stage.loaded_time);
-  } else {
-    stage.loaded_time_formatted = null;
-  }
+        // Format loaded_time
+        if (stage.loaded_time) {
+          stage.loaded_time_formatted = helpers.convertUtcSecondsToUKTime(stage.loaded_time);
+        } else {
+          stage.loaded_time_formatted = null;
+        }
 
-  // Format completed_time
-  if (stage.completed_time) {
-    stage.completed_time_formatted = helpers.convertUtcSecondsToUKTime(stage.completed_time);
-  } else {
-    stage.completed_time_formatted = null;
-  }
+        // Format completed_time
+        if (stage.completed_time) {
+          stage.completed_time_formatted = helpers.convertUtcSecondsToUKTime(stage.completed_time);
+        } else {
+          stage.completed_time_formatted = null;
+        }
       }
 
       const source_attachments = await helpers.getDataFromDB(
@@ -183,42 +209,42 @@ class RequestQuoteController extends BaseController {
 
       // console.log("categoryInfo:", categoryInfo)
 
-            const invoices = await this.rider.getInvoicesDetailsByRequestId(orderDetails.id);
+      const invoices = await this.rider.getInvoicesDetailsByRequestId(orderDetails.id);
 
 
-  //     const totalAmount = (parseFloat(orderDetails?.total_amount) || 0) +
-  // invoices?.reduce((total, invoice) => {
-  //   // Ensure the charges are treated as numbers
-  //   const handballCharges = parseFloat(invoice.handball_charges) || 0; // Convert to number, default to 0 if NaN
-  //   const waitingCharges = parseFloat(invoice.waiting_charges) || 0; // Convert to number, default to 0 if NaN
-  //   console.log("charges",invoice.handball_charges,invoice.waiting_charges)
-  //   return total + handballCharges + waitingCharges;
-  // }, 0);
+      //     const totalAmount = (parseFloat(orderDetails?.total_amount) || 0) +
+      // invoices?.reduce((total, invoice) => {
+      //   // Ensure the charges are treated as numbers
+      //   const handballCharges = parseFloat(invoice.handball_charges) || 0; // Convert to number, default to 0 if NaN
+      //   const waitingCharges = parseFloat(invoice.waiting_charges) || 0; // Convert to number, default to 0 if NaN
+      //   console.log("charges",invoice.handball_charges,invoice.waiting_charges)
+      //   return total + handballCharges + waitingCharges;
+      // }, 0);
 
-const totalAmount = (parseFloat(orderDetails?.rider_price) * parseFloat(orderDetails?.distance)) +
-  invoices?.reduce((total, invoice) => {
-    // Ensure the charges are treated as numbers
-    const handballCharges = parseFloat(invoice.handball_charges) || 0; // Convert to number, default to 0 if NaN
-    const waitingCharges = parseFloat(invoice.waiting_charges) || 0; // Convert to number, default to 0 if NaN
-    return total + handballCharges + waitingCharges;
-  }, 0);
+      const totalAmount = (parseFloat(orderDetails?.rider_price) * parseFloat(orderDetails?.distance)) +
+        invoices?.reduce((total, invoice) => {
+          // Ensure the charges are treated as numbers
+          const handballCharges = parseFloat(invoice.handball_charges) || 0; // Convert to number, default to 0 if NaN
+          const waitingCharges = parseFloat(invoice.waiting_charges) || 0; // Convert to number, default to 0 if NaN
+          return total + handballCharges + waitingCharges;
+        }, 0);
 
-  // console.log("orderDetails:",orderDetails)
+      // console.log("orderDetails:",orderDetails)
 
-  //  Loop through jobs and add jobStatus
-   
-  
-    const jobStatus = await helpers.updateRequestQuoteJobStatus(orderDetails.id);
+      //  Loop through jobs and add jobStatus
 
-    const subtotal = helpers?.format_amount(
-      (parseFloat(orderDetails?.total_amount || 0) -
-        parseFloat(orderDetails?.tax || 0) -
-        parseFloat(orderDetails?.vat || 0))
-    );
 
-          const siteSettings = res.locals.adminData;
+      const jobStatus = await helpers.updateRequestQuoteJobStatus(orderDetails.id);
 
- 
+      const subtotal = helpers?.format_amount(
+        (parseFloat(orderDetails?.total_amount || 0) -
+          parseFloat(orderDetails?.tax || 0) -
+          parseFloat(orderDetails?.vat || 0))
+      );
+
+      const siteSettings = res.locals.adminData;
+
+
 
 
 
@@ -229,6 +255,7 @@ const totalAmount = (parseFloat(orderDetails?.rider_price) * parseFloat(orderDet
         jobStatus,
         subtotal,
         invoices,
+        riderNotes,
         formatted_start_date: helpers.formatDateToUK(orderDetails.start_date),
         category_name: categoryInfo?.category_name || null,
         main_category_name: categoryInfo?.main_category_name || null,

@@ -6,6 +6,8 @@ const validator = require("validator"); // Importing validator for input validat
 const crypto = require("crypto"); // Importing crypto for encryption and hashing
 const pool = require("../config/db-connection");
 const RequestQuoteModel = require("../models/request-quote");
+
+
 const Vehicle = require('../models/vehicle');
 const vehicleModel = new Vehicle(); // create instance
 
@@ -68,89 +70,89 @@ module.exports = {
   //     throw error;
   //   }
   // },
-//   getUniqueAddresses: function (data, topAddress = null) { 
-//   const allAddresses = [];
+  //   getUniqueAddresses: function (data, topAddress = null) { 
+  //   const allAddresses = [];
 
-//   data.forEach(item => {
-//     allAddresses.push({
-//       address: item.source_address,
-//       lat: item.source_lat,
-//       lng: item.source_lng
-//     });
-//     allAddresses.push({
-//       address: item.destination_address,
-//       lat: item.destination_lat,
-//       lng: item.destination_lng
-//     });
-//   });
+  //   data.forEach(item => {
+  //     allAddresses.push({
+  //       address: item.source_address,
+  //       lat: item.source_lat,
+  //       lng: item.source_lng
+  //     });
+  //     allAddresses.push({
+  //       address: item.destination_address,
+  //       lat: item.destination_lat,
+  //       lng: item.destination_lng
+  //     });
+  //   });
 
-//   // Remove duplicates
-//   const unique = allAddresses.filter(
-//     (addr, index, self) =>
-//       index === self.findIndex(
-//         a => a.address === addr.address && a.lat === addr.lat && a.lng === addr.lng
-//       )
-//   );
+  //   // Remove duplicates
+  //   const unique = allAddresses.filter(
+  //     (addr, index, self) =>
+  //       index === self.findIndex(
+  //         a => a.address === addr.address && a.lat === addr.lat && a.lng === addr.lng
+  //       )
+  //   );
 
-//   // Separate the top address if provided
-//   let top = [];
-//   let rest = unique;
+  //   // Separate the top address if provided
+  //   let top = [];
+  //   let rest = unique;
 
-//   if (topAddress) {
-//     top = rest.filter(a => a.address === topAddress);
-//     rest = rest.filter(a => a.address !== topAddress);
-//   }
+  //   if (topAddress) {
+  //     top = rest.filter(a => a.address === topAddress);
+  //     rest = rest.filter(a => a.address !== topAddress);
+  //   }
 
-//   // Sort the rest alphabetically
-//   rest.sort((a, b) => a.address.localeCompare(b.address));
+  //   // Sort the rest alphabetically
+  //   rest.sort((a, b) => a.address.localeCompare(b.address));
 
-//   // Put the top address first
-//   return [...top, ...rest];
-// },
+  //   // Put the top address first
+  //   return [...top, ...rest];
+  // },
 
 
-getUniqueAddresses: function (data, topAddress = null) { 
-  const allAddresses = [];
+  getUniqueAddresses: function (data, topAddress = null) {
+    const allAddresses = [];
 
-  data.forEach(item => {
-    allAddresses.push({
-      address: item.source_address,
-      lat: item.source_lat,
-      lng: item.source_lng,
-      is_source: true
+    data.forEach(item => {
+      allAddresses.push({
+        address: item.source_address,
+        lat: item.source_lat,
+        lng: item.source_lng,
+        is_source: true
+      });
+      allAddresses.push({
+        address: item.destination_address,
+        lat: item.destination_lat,
+        lng: item.destination_lng,
+        is_source: false
+      });
     });
-    allAddresses.push({
-      address: item.destination_address,
-      lat: item.destination_lat,
-      lng: item.destination_lng,
-      is_source: false
-    });
-  });
 
-  // Remove duplicates
-  const unique = allAddresses.filter(
-    (addr, index, self) =>
-      index === self.findIndex(
-        a => a.address === addr.address && a.lat === addr.lat && a.lng === addr.lng
-      )
-  );
+    // Remove duplicates
+    const unique = allAddresses.filter(
+      (addr, index, self) =>
+        index === self.findIndex(
+          a => a.address === addr.address && a.lat === addr.lat && a.lng === addr.lng
+        )
+    );
 
-  // Separate the top address if provided
-  let top = [];
-  let rest = unique;
+    // Separate the top address if provided
+    let top = [];
+    let rest = unique;
 
-  if (topAddress) {
-    // Prioritize addresses where source_address === topAddress
-    top = rest.filter(a => a.address === topAddress && a.is_source);
-    rest = rest.filter(a => !(a.address === topAddress && a.is_source));
+    if (topAddress) {
+      // Prioritize addresses where source_address === topAddress
+      top = rest.filter(a => a.address === topAddress && a.is_source);
+      rest = rest.filter(a => !(a.address === topAddress && a.is_source));
+    }
+
+    // Sort the rest alphabetically by address
+    rest.sort((a, b) => a.address.localeCompare(b.address));
+
+    // Put the top addresses first
+    return [...top, ...rest];
   }
-
-  // Sort the rest alphabetically by address
-  rest.sort((a, b) => a.address.localeCompare(b.address));
-
-  // Put the top addresses first
-  return [...top, ...rest];
-}
   ,
   getOptimizedAddresses: async function (addresses) {
     if (!addresses || addresses.length < 2) {
@@ -197,45 +199,45 @@ getUniqueAddresses: function (data, topAddress = null) {
   },
   getRequestOrderStatus: function (status, is_cancelled) {
 
-  // Highest priority: cancellation
-  if (is_cancelled === "approved") {
-    return "Cancelled";
-  }
+    // Highest priority: cancellation
+    if (is_cancelled === "approved") {
+      return "Cancelled";
+    }
 
-  if (status === "accepted") {
-    return "Accepted";
-  } 
-  else if (status === "in_progress") {
-    return "In Progress";
-  } 
-  else if (status === "on-way-pickup") {
-    return "On way to (Collection/Pickup)";
-  } 
-  else if (status === "on-site-pickup") {
-    return "On site (Collection/Pickup)";
-  } 
-  else if (status === "loaded") {
-    return "Loaded";
-  } 
-  else if (status === "on-site-delivery") {
-    return "On site (Delivery/Destination)";
-  } 
-  else if (status === "delivered") {
-    return "Delivered";
-  } 
-  else if (status === "completed") {
-    return "Completed";
-  } 
-  else if (status === "pending_payment") {
-    return "Pending Payment";
-  } 
-  else if (status === "new") {
-    return "New";
-  } 
-  else {
-    return "Active";
+    if (status === "accepted") {
+      return "Accepted";
+    }
+    else if (status === "in_progress") {
+      return "In Progress";
+    }
+    else if (status === "on-way-pickup") {
+      return "On way to (Collection/Pickup)";
+    }
+    else if (status === "on-site-pickup") {
+      return "On site (Collection/Pickup)";
+    }
+    else if (status === "loaded") {
+      return "Loaded";
+    }
+    else if (status === "on-site-delivery") {
+      return "On site (Delivery/Destination)";
+    }
+    else if (status === "delivered") {
+      return "Delivered";
+    }
+    else if (status === "completed") {
+      return "Completed";
+    }
+    else if (status === "pending_payment") {
+      return "Pending Payment";
+    }
+    else if (status === "new") {
+      return "New";
+    }
+    else {
+      return "Active";
+    }
   }
-}
   ,
   getRequestOrderStatusText: function (status) {
     switch (status) {
@@ -251,20 +253,20 @@ getUniqueAddresses: function (data, topAddress = null) {
   ,
 
   formatUKDate: function (timestamp) {
-  if (!timestamp) return "";
+    if (!timestamp) return "";
 
-  const date = new Date(timestamp);
+    const date = new Date(timestamp);
 
-  return date.toLocaleString("en-GB", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-    hour12: false,
-  });
-},
+    return date.toLocaleString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+      hour12: false,
+    });
+  },
 
   updateRequestStatus: async function (id, status) {
     const query = `UPDATE request_quote SET status = ?, request_status = ? WHERE id = ?`;
@@ -302,30 +304,30 @@ getUniqueAddresses: function (data, topAddress = null) {
 
   format_amount: function (amount) {
 
-  // Convert safely
-  let num = Number(amount);
+    // Convert safely
+    let num = Number(amount);
 
-  // Handle null / NaN
-  if (!num || isNaN(num)) {
-    return "£0.00";
+    // Handle null / NaN
+    if (!num || isNaN(num)) {
+      return "£0.00";
+    }
+
+    // ✅ FIX: Normalize negative zero
+    if (Object.is(num, -0)) {
+      num = 0;
+    }
+
+    // Convert back to string for truncation
+    let str = String(num);
+
+    if (str.includes(".")) {
+      let [int, dec] = str.split(".");
+      dec = dec.substring(0, 2);
+      return `£${int}.${dec.padEnd(2, "0")}`;
+    }
+
+    return `£${str}.00`;
   }
-
-  // ✅ FIX: Normalize negative zero
-  if (Object.is(num, -0)) {
-    num = 0;
-  }
-
-  // Convert back to string for truncation
-  let str = String(num);
-
-  if (str.includes(".")) {
-    let [int, dec] = str.split(".");
-    dec = dec.substring(0, 2);
-    return `£${int}.${dec.padEnd(2, "0")}`;
-  }
-
-  return `£${str}.00`;
-}
 
 
   ,
@@ -344,8 +346,8 @@ getUniqueAddresses: function (data, topAddress = null) {
 
     if (!rqRows || rqRows.length === 0) return;
     const currentStatus = rqRows[0].status;
-const isReady = parseInt(rqRows[0].is_ready) || 0; // new check
-const isCancelled = rqRows[0].is_cancelled;
+    const isReady = parseInt(rqRows[0].is_ready) || 0; // new check
+    const isCancelled = rqRows[0].is_cancelled;
     // console.log("currentStatus:", currentStatus, "isReady:", isReady);
     // 1. Fetch all stages for this order
     const [stages] = await pool.query(
@@ -366,39 +368,39 @@ const isCancelled = rqRows[0].is_cancelled;
 
     let newStatus = currentStatus;
 
-// ⭐ If cancelled → override everything and stop
-if (isCancelled === "approved") {
-    return "cancelled";
-}
+    // ⭐ If cancelled → override everything and stop
+    if (isCancelled === "approved") {
+      return "cancelled";
+    }
 
-// ⭐ NEW: If already pending → keep pending
-if (currentStatus === "pending") {
-  return "pending";
-}
-     // 3️⃣ Priority condition: if is_ready = 1 and job not completed → in_progress
-   if (isReady === 1 && !allCompleted) {
-    newStatus = "in_progress";
-  } 
-  // Job accepted, all stages completed, payment pending
-  else if (currentStatus === "accepted" && allCompleted && dueAmount > 0) {
-    newStatus = "pending_payment";
-  } 
-  // Job completed and no due left
-  else if (allCompleted && dueAmount === 0 && currentStatus === "completed") {
-    newStatus = "completed";
-  } 
-  // Job accepted but not started
-  else if (currentStatus === "accepted" && !hasStarted) {
-    newStatus = "accepted";
-  } 
-  // Job started but not completed
-  else if (hasStarted) {
-    newStatus = "in_progress";
-  } 
-  else {
-    newStatus = "new";
-  }
-  // console.log("Determined newStatus:", newStatus);
+    // ⭐ NEW: If already pending → keep pending
+    if (currentStatus === "pending") {
+      return "pending";
+    }
+    // 3️⃣ Priority condition: if is_ready = 1 and job not completed → in_progress
+    if (isReady === 1 && !allCompleted) {
+      newStatus = "in_progress";
+    }
+    // Job accepted, all stages completed, payment pending
+    else if (currentStatus === "accepted" && allCompleted && dueAmount > 0) {
+      newStatus = "pending_payment";
+    }
+    // Job completed and no due left
+    else if (allCompleted && dueAmount === 0 && currentStatus === "completed") {
+      newStatus = "completed";
+    }
+    // Job accepted but not started
+    else if (currentStatus === "accepted" && !hasStarted) {
+      newStatus = "accepted";
+    }
+    // Job started but not completed
+    else if (hasStarted) {
+      newStatus = "in_progress";
+    }
+    else {
+      newStatus = "new";
+    }
+    // console.log("Determined newStatus:", newStatus);
 
 
     // if (newStatus !== currentStatus) {
@@ -440,7 +442,7 @@ if (currentStatus === "pending") {
         totalDistance,
         totalAmount,
         taxAmount,
-       
+
         grandTotal
       };
     } catch (error) {
@@ -453,62 +455,62 @@ if (currentStatus === "pending") {
     }
 
   },
-calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_price, selectedVehicle) {
-  try {
-    // 1️⃣ Fetch vehicle row using selectedVehicleId
-    const vehicle = await vehicleModel.findById(selectedVehicle);
-    if (!vehicle) throw new Error("Selected vehicle not found!");
-    // console.log("vehicle:", vehicle);
+  calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_price, selectedVehicle) {
+    try {
+      // 1️⃣ Fetch vehicle row using selectedVehicleId
+      const vehicle = await vehicleModel.findById(selectedVehicle);
+      if (!vehicle) throw new Error("Selected vehicle not found!");
+      // console.log("vehicle:", vehicle);
 
-    const minMileage = parseFloat(vehicle.min_mileage || 0);
-    const minPrice = parseFloat(vehicle.min_price || 0);
+      const minMileage = parseFloat(vehicle.min_mileage || 0);
+      const minPrice = parseFloat(vehicle.min_price || 0);
 
-    // 2️⃣ Handle remote_price
-    if (remote_price === null || remote_price === 'null' || remote_price === '' || remote_price === undefined) {
-      remote_price = 0;
+      // 2️⃣ Handle remote_price
+      if (remote_price === null || remote_price === 'null' || remote_price === '' || remote_price === undefined) {
+        remote_price = 0;
+      }
+      // console.log("remote_price:", remote_price);
+
+
+      // 3️⃣ Apply mileage condition
+      let totalAmount;
+      if (totalDistance > minMileage) {
+        // Normal calculation
+        totalAmount = parseFloat(price) * parseFloat(totalDistance);
+      } else {
+        // Use minimum price
+        totalAmount = parseFloat(minPrice);
+      }
+
+      totalAmount += parseFloat(remote_price);
+
+      // 4️⃣ Apply tax
+      const taxPercentage = parseFloat(siteSettings?.site_processing_fee || 0);
+      const vatPercentage = parseFloat(siteSettings?.vat_amount || 0);
+
+      const taxAmount = parseFloat((totalAmount * taxPercentage) / 100);
+      const vatAmount = parseFloat((totalAmount * vatPercentage) / 100);
+      const grandTotal = parseFloat(totalAmount + vatAmount);
+
+      // console.log("Total Amount:", totalAmount,taxAmount,vatAmount,grandTotal);
+
+      return {
+        totalDistance,
+        totalAmount: totalAmount,
+        taxAmount: taxAmount,
+        vatAmount: vatAmount,
+
+        grandTotal: grandTotal
+      };
+    } catch (error) {
+      console.error("Error parsing order_details JSON:", error.message);
+      return {
+        error: "Invalid JSON format for order_details",
+        tax: 0,
+        total: 0,
+      };
     }
-        // console.log("remote_price:", remote_price);
-
-
-    // 3️⃣ Apply mileage condition
-    let totalAmount;
-    if (totalDistance > minMileage) {
-      // Normal calculation
-      totalAmount = parseFloat(price) * parseFloat(totalDistance);
-    } else {
-      // Use minimum price
-      totalAmount = parseFloat(minPrice);
-    }
-
-    totalAmount += parseFloat(remote_price);
-
-    // 4️⃣ Apply tax
-    const taxPercentage = parseFloat(siteSettings?.site_processing_fee || 0);
-    const vatPercentage = parseFloat(siteSettings?.vat_amount || 0);
-    
-    const taxAmount = parseFloat((totalAmount * taxPercentage) / 100);
-    const vatAmount = parseFloat((totalAmount * vatPercentage) / 100);
-    const grandTotal = parseFloat(totalAmount + taxAmount+ vatAmount);
-
-    // console.log("Total Amount:", totalAmount,taxAmount,vatAmount,grandTotal);
-
-    return {
-      totalDistance,
-      totalAmount: totalAmount,
-      taxAmount: taxAmount,
-      vatAmount: vatAmount,
-    
-      grandTotal: grandTotal
-    };
-  } catch (error) {
-    console.error("Error parsing order_details JSON:", error.message);
-    return {
-      error: "Invalid JSON format for order_details",
-      tax: 0,
-      total: 0,
-    };
-  }
-},
+  },
 
 
   getStatus: function (status) {
@@ -921,7 +923,7 @@ calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_
     console.log("currentDate:", currentDate)
     return currentDate;
   },
-  addThreeDaysToDate: function(startDate) {
+  addThreeDaysToDate: function (startDate) {
     // Convert startDate to a Date object if it's a string
     const date = new Date(startDate);
     // Add 3 days
@@ -929,6 +931,51 @@ calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_
     // Return in YYYY-MM-DD format
     return date.toISOString().split('T')[0];
   },
+
+  // calculateEndDate: function (startDate, totalMiles, milesPerDay = 250) {
+  //   if (!startDate || totalMiles == null) {
+  //     throw new Error("Invalid startDate or distance");
+  //   }
+
+  //   const date = new Date(startDate);
+  //   if (isNaN(date.getTime())) {
+  //     throw new Error("Invalid startDate format");
+  //   }
+
+  //   // ✅ Ensure minimum 1 day
+  //   const daysRequired = Math.max(1, Math.ceil(totalMiles / milesPerDay));
+
+  //   date.setDate(date.getDate() + daysRequired);
+
+  //   return date.toISOString().split("T")[0]; // YYYY-MM-DD
+  // }
+
+calculateEndDate: function (startDate, totalMiles, milesPerDay = 250) {
+  if (!startDate || !totalMiles) {
+    throw new Error("Invalid startDate or distance");
+  }
+
+  const daysRequired = Math.ceil(totalMiles / milesPerDay);
+
+  const date = new Date(startDate);
+  if (isNaN(date.getTime())) {
+    throw new Error("Invalid startDate format");
+  }
+
+  date.setDate(date.getDate() + daysRequired);
+
+  return date; // ✅ RETURN DATE OBJECT
+},
+
+
+toMySQLDateTime: function (date) {
+  if (!(date instanceof Date)) {
+    throw new Error("Expected Date object");
+  }
+  return date.toISOString().slice(0, 19).replace("T", " ");
+}
+
+,
 
 
   convertUtcToUKTime: function (utcTimeInSeconds) {
@@ -1023,13 +1070,47 @@ calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_
     const [result] = await pool.execute(sql, values);
     return result;
   },
-  storeNotification: async function (user_id, mem_type, sender, text, link = null) {
+
+  notificationExists: async function (
+    user_id,
+    mem_type,
+    type,
+    ref_id
+  ) {
+    try {
+      const checkQuery = `
+      SELECT id
+      FROM notifications
+      WHERE user_id = ?
+        AND mem_type = ?
+        AND type = ?
+        AND ref_id = ?
+      LIMIT 1
+    `;
+
+      const [rows] = await pool.query(checkQuery, [
+        user_id,
+        mem_type,
+        type,
+        ref_id
+      ]);
+
+      return rows.length > 0;
+    } catch (error) {
+      console.error("Error checking notification existence:", error.message);
+      throw error;
+    }
+  },
+
+
+  storeNotification: async function (user_id, mem_type, sender, text, link = null, type = null,
+    ref_id = null) {
     // console.log("hi",users)
     try {
       // Prepare the query for inserting the notification
       const insertQuery = `
-            INSERT INTO notifications (user_id, mem_type, sender, text, status, created_date, link)
-            VALUES (?, ?, ?, ?, 0, ?, ?)
+            INSERT INTO notifications (user_id, mem_type, sender, text, status, created_date, link, type, ref_id)
+            VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?)
         `;
 
       // Get the current UTC timestamp
@@ -1042,7 +1123,10 @@ calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_
         sender,
         text,
         created_date,
-        link
+        link,
+        type,
+        ref_id
+
       ]);
 
       // Check if the notification was successfully inserted
@@ -1171,11 +1255,11 @@ calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_
         : null,
       transactionData.created_time,
       transactionData.status,
-       // OPTIONAL FIELDS (NULL if not provided)
-    transactionData.stripe_refund_id || null,
-    transactionData.stripe_refund_json || null,
-    transactionData.payment_intent || null,
-    transactionData.payment_intent_id || null,
+      // OPTIONAL FIELDS (NULL if not provided)
+      transactionData.stripe_refund_id || null,
+      transactionData.stripe_refund_json || null,
+      transactionData.payment_intent || null,
+      transactionData.payment_intent_id || null,
     ];
 
     try {
@@ -1233,16 +1317,29 @@ calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_
 
   insertEarnings: async function (data) {
     try {
+
+      const exists = await this.earningExists(
+        data.order_id,
+        data.user_id,
+        data.earning_type
+      );
+
+      if (exists) {
+        return { skipped: true };
+      }
+
       const query = `
-      INSERT INTO earnings (user_id, amount, type, status, created_time)
-      VALUES (?, ?, ?, ?, ?)
+      INSERT INTO earnings (user_id, amount, type, status, created_time, order_id, earning_type)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
       `;
       const values = [
         data.user_id,
         data.amount,
-        data.type,
+        data.type || 'credit',
         data.status,
         data.created_time,
+        data.order_id,
+        data.earning_type || null
       ];
       const result = await pool.query(query, values);
       // console.log("Full Query Result:", result);
@@ -1253,6 +1350,32 @@ calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_
       return null;
     }
   },
+
+  earningExists: async function (
+    // order_id, 
+    rider_id, earning_type) {
+    try {
+      const query = `
+      SELECT id
+      FROM earnings
+      WHERE user_id = ?
+        AND earning_type = ?
+      LIMIT 1
+    `;
+
+      const [rows] = await pool.query(query, [
+        // order_id,
+        rider_id,
+        earning_type
+      ]);
+
+      return rows.length > 0;
+    } catch (error) {
+      console.error("Error checking earning exists:", error);
+      return false;
+    }
+  },
+
 
   // Function to send an email
   sendEmail: async function (to, subject, templateName, templateData) {

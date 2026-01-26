@@ -65,6 +65,8 @@ $(document).on("change", "#report_filter", function (e) {
 
 
 $(document).on("submit", ".frmAjax", function (e) {
+  console.log("FORM SUBMITTED");
+
   e.preventDefault();
   var frm = this;
   var frmbtn = $(this).find("button[type='submit']");
@@ -277,6 +279,46 @@ $('#frmSetting').on('submit', function (e) {
 //     });
 // });
 
+
+document.addEventListener('DOMContentLoaded', function () {
+
+  document.addEventListener('click', function (e) {
+      console.log('Clicked:', e.target);  // <--- DEBUG
+
+    if (e.target.classList.contains('delete-images')) {
+          console.log('Delete image clicked!');  // <--- DEBUG
+
+
+      e.preventDefault();
+
+      const imageId = e.target.dataset.id;           // image table ID
+      const imageBox = e.target.closest('.img-box'); // wrapper div
+
+      if (!confirm('Are you sure you want to delete this image?')) return;
+
+      $.ajax({
+        type: 'DELETE', // or DELETE if your route supports it
+        url: '/admin/vehicles/delete-image/' + imageId,
+        dataType: "JSON",
+        success: function (response) {
+
+          if (response.status === 1) {
+            // ✅ Remove image from UI
+            imageBox.remove();
+            showToast(response.message, 'success');
+          } else {
+            showToast(response.message || 'Failed to delete image', 'error');
+          }
+
+        },
+        error: function () {
+          showToast('Failed to delete image!', 'error');
+        }
+      });
+    }
+  });
+});
+
 $(document).on('click', '.delete-member', function (e) {
   e.preventDefault();
 
@@ -429,245 +471,57 @@ document.querySelectorAll('.card-body.preview').forEach((previewBlock) => {
     }
   });
 });
-// edit 
-document.addEventListener('DOMContentLoaded', () => {
-
-  document.querySelectorAll('.multi-image-block').forEach(block => {
-
-    const fileInput = block.querySelector('.uploadFile');
-    const uploadBtn = block.querySelector('.uploadImg');
-    const newContainer = block.querySelector('.new-images');
-    const existingContainer = block.querySelector('.existing-images');
-    const form = block.closest('form');
-
-    let selectedFiles = [];
-
-    /* ===============================
-       OPEN FILE DIALOG (SAFE)
-    =============================== */
-    uploadBtn.addEventListener('click', function (e) {
-      e.preventDefault();
-      e.stopPropagation();
-      e.stopImmediatePropagation();
-
-      fileInput.click();
-    }, true);
-
-    /* ===============================
-       FILE SELECT
-    =============================== */
-    fileInput.addEventListener('change', function (e) {
-
-      const files = Array.from(e.target.files);
-
-      files.forEach(file => {
-        if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
-          selectedFiles.push(file);
-          previewImage(file);
-        }
-      });
-
-      // allow selecting same file again
-      fileInput.value = '';
-    });
-
-    /* ===============================
-       IMAGE PREVIEW
-    =============================== */
-    function previewImage(file) {
-      const reader = new FileReader();
-
-      reader.onload = e => {
-        const div = document.createElement('div');
-        div.style.position = 'relative';
-
-        div.innerHTML = `
-          <img src="${e.target.result}"
-               style="width:100px;height:100px;object-fit:cover;border-radius:5px;">
-          <span class="delete-image"
-                style="
-                  position:absolute;
-                  top:-6px;
-                  right:-6px;
-                  background:#ff4d4d;
-                  color:#fff;
-                  width:20px;
-                  height:20px;
-                  border-radius:50%;
-                  cursor:pointer;
-                  display:flex;
-                  align-items:center;
-                  justify-content:center;
-                ">×</span>
-        `;
-
-        div.querySelector('.delete-image').onclick = () => {
-          selectedFiles = selectedFiles.filter(f => f !== file);
-          div.remove();
-        };
-
-        newContainer.appendChild(div);
-      };
-
-      reader.readAsDataURL(file);
-    }
-
-    /* ===============================
-       SYNC FILES BEFORE SUBMIT
-    =============================== */
-    form.addEventListener('submit', e => {
-      e.preventDefault();
-      const dt = new DataTransfer();
-      selectedFiles.forEach(f => dt.items.add(f));
-      fileInput.files = dt.files;
-
-      const formData = new FormData(form);
-      fetch(form.action, {
-        method: form.method,
-        body: formData
-      }).then(res => res.json()).then(data => {
-        if (data.status) window.location.href = data.redirect_url;
-      });
-    });
-
-    /* ===============================
-       DELETE EXISTING IMAGES
-    =============================== */
-    existingContainer?.querySelectorAll('.delete-image').forEach(btn => {
-      btn.addEventListener('click', () => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'delete_images[]';
-        input.value = btn.dataset.id;
-        form.appendChild(input);
-        btn.closest('.img-box').remove();
-      });
-    });
-
-  });
-
-});
-// //add
-document.addEventListener('DOMContentLoaded', () => {
-
-  document.querySelectorAll('.multi-image-block').forEach(block => {
-
-    const fileInput = block.querySelector('.uploadFile'); // vehicle_images input
-    const uploadBtn = block.querySelector('.uploadImg');
-    const previewContainer = block.querySelector('.new-images');
-    const form = block.closest('form');
-
-    let selectedFiles = [];
-
-    // OPEN FILE DIALOG
-    uploadBtn.addEventListener('click', e => {
-      e.preventDefault();
-      fileInput.click();
-    });
-
-    // FILE CHANGE
-    fileInput.addEventListener('change', e => {
-      const files = Array.from(e.target.files);
-
-      files.forEach(file => {
-        // prevent duplicate selection
-        if (!selectedFiles.some(f => f.name === file.name && f.size === file.size)) {
-          selectedFiles.push(file);
-          showPreview(file);
-        }
-      });
-
-      // allow selecting same file again
-      fileInput.value = '';
-    });
-
-    // PREVIEW IMAGE
-    function showPreview(file) {
-      const reader = new FileReader();
-
-      reader.onload = e => {
-        const div = document.createElement('div');
-        div.style.position = 'relative';
-
-        div.innerHTML = `
-          <img src="${e.target.result}" style="width:100px;height:100px;object-fit:cover;border-radius:6px;">
-          <span class="delete-image"
-                style="
-                  position:absolute;
-                  top:-6px;
-                  right:-6px;
-                  background:#ff4d4d;
-                  color:#fff;
-                  width:20px;
-                  height:20px;
-                  border-radius:50%;
-                  cursor:pointer;
-                  display:flex;
-                  align-items:center;
-                  justify-content:center;
-                ">×</span>
-        `;
-
-        // delete image
-        div.querySelector('.delete-image').addEventListener('click', () => {
-          selectedFiles = selectedFiles.filter(f => f !== file);
-          div.remove();
-        });
-
-        previewContainer.appendChild(div);
-      };
-
-      reader.readAsDataURL(file);
-    }
-
-    // SYNC FILES BEFORE FORM SUBMIT
-    if (form) {
-      form.addEventListener('submit', () => {
-        const dt = new DataTransfer();
-        selectedFiles.forEach(f => dt.items.add(f));
-        fileInput.files = dt.files;
-      });
-    }
-
-  });
-
-});
 
 
 
 
 
-document.addEventListener('click', function (e) {
-  if (e.target.classList.contains('delete-image')) {
 
-    e.preventDefault();
 
-    const imageId = e.target.dataset.id;           // image table ID
-    const imageBox = e.target.closest('.img-box'); // wrapper div
 
-    if (!confirm('Are you sure you want to delete this image?')) return;
+// document.addEventListener('DOMContentLoaded', function () {
+//     console.log('DOM fully loaded');  // check this
 
-    $.ajax({
-      type: 'DELETE', // or DELETE if your route supports it
-      url: '/admin/vehicles/delete-image/' + imageId,
-      dataType: "JSON",
-      success: function (response) {
+//   document.addEventListener('click', function (e) {
+//       console.log('Clicked:', e.target);  // <--- DEBUG
 
-        if (response.status === 1) {
-          // ✅ Remove image from UI
-          imageBox.remove();
-          showToast(response.message, 'success');
-        } else {
-          showToast(response.message || 'Failed to delete image', 'error');
-        }
+//     if (e.target.classList.contains('delete-images')) {
+//           console.log('Delete image clicked!');  // <--- DEBUG
 
-      },
-      error: function () {
-        showToast('Failed to delete image!', 'error');
-      }
-    });
-  }
-});
+
+//       e.preventDefault();
+
+//       const imageId = e.target.dataset.id;           // image table ID
+//       const imageBox = e.target.closest('.img-box'); // wrapper div
+
+//       if (!confirm('Are you sure you want to delete this image?')) return;
+
+//       $.ajax({
+//         type: 'POST', // or DELETE if your route supports it
+//         url: '/admin/vehicles/delete-image/' + imageId,
+//         dataType: "JSON",
+//         success: function (response) {
+
+//           if (response.status === 1) {
+//             // ✅ Remove image from UI
+//             imageBox.remove();
+//             showToast(response.message, 'success');
+//           } else {
+//             showToast(response.message || 'Failed to delete image', 'error');
+//           }
+
+//         },
+//         error: function () {
+//           showToast('Failed to delete image!', 'error');
+//         }
+//       });
+//     }
+//   });
+// });
+
+
+
+
 
 $(document).on('click', '.deleteServerImage', function (e) {
   e.preventDefault();

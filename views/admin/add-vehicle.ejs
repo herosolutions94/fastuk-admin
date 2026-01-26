@@ -4,8 +4,8 @@
       <div class="text">
         <h3>Add New Vehicle</h3>
         <ul>
-          <li><a href="">Home</a></li>
-          <li class="active"><a href="">New Vehicle</a></li>
+          <li><a href="/admin/dashbaord">Dashboard</a></li>
+          <!-- <li class="active"><a href="">New Vehicle</a></li> -->
         </ul>
       </div>
       <div class="text text2">
@@ -18,7 +18,7 @@
           <h5>Vehicle Block</h5>
         </div>
         <div class="card-body full_width">
-          <form id="addVehicleForm" class="frmAjax" action="/admin/add-vehicles" method="post"
+          <form class="frmAjax" action="/admin/add-vehicles" method="post"
             enctype="multipart/form-data">
             <div class="row">
               <div class="col-md-3">
@@ -39,21 +39,7 @@
               </div>
               <div class="col-md-9">
                 <div class="row switch-showcase">
-                  <div class="col-md-12">
-                    <div class="txtGrp media st_sp">
-                      <label class="form-label">Status</label>
-                      <div class="txtGrp-body text-end icon-state switch-outline">
-                        <!-- <label class="switch">
-                          <span
-                            class="switch-state bg-primary"></span>
-                        </label> -->
-                        <select name="status" class="txtBox input" required>
-                          <option value="1">Active</option>
-                          <option value="0">Inactive</option>
-                        </select>
-                      </div>
-                    </div>
-                  </div>
+                
 
                   <div class="col-md-6">
                     <div class="txtGrp">
@@ -189,26 +175,51 @@
                           title="required">*</abbr></label>
                       <input class="input" id="max_width" type="text" name="max_width" />
                     </div>
-                    <div class="card-body preview multi-image-block">
+                    <!-- <div class="card-body preview multi-image-block">
                       <h5 class="card-title">Vehicle Images</h5>
 
-                      <!-- NEW images preview -->
                       <div class="multi-preview new-images" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
 
-                      <!-- Upload -->
                       <div class="in-upload mt-2">
                         <button type="button" class="uploadImg">
                           <i class="fa-regular fa-image"></i> Choose Images
                         </button>
 
-                        <input type="file" name="vehicle_images" class="uploadFile" multiple style="display:none;" />
+                        <input type="file" name="vehicle_images" class="" multiple />
 
                       </div>
-                    </div>
+                    </div> -->
 
 
                   </div>
+
+
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="vehicle_images">Vehicle Images<abbr class="required"
+                          title="required"></abbr></label>
+                        <input type="file" name="vehicle_images" class="input" multiple />
+                    </div>
+                  </div>
+
                 </div>
+
+                
+                    <div class="col-md-6">
+                    <div class="txtGrp media st_sp">
+                      <label class="form-label">Status</label>
+                      <div class="txtGrp-body text-end icon-state switch-outline">
+                        <!-- <label class="switch">
+                          <span
+                            class="switch-state bg-primary"></span>
+                        </label> -->
+                        <select name="status" class="txtBox input" required>
+                          <option value="1">Active</option>
+                          <option value="0">Inactive</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
                 <div class="clearfix"></div>
               </div>
             </div>

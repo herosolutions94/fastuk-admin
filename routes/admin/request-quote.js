@@ -13,6 +13,7 @@ const requestQuoteController = new RequestQuoteController();
 router.get('/completed-jobs', ensureAuthenticated, checkAccessMiddleware(5), requestQuoteController.getCompletedRequestQuotes.bind(requestQuoteController));
 router.get('/inprogress-jobs', ensureAuthenticated, checkAccessMiddleware(5), requestQuoteController.getInProgressRequestQuotes.bind(requestQuoteController));
 router.get('/upcoming-jobs', ensureAuthenticated,checkAccessMiddleware(5), requestQuoteController.getUpcomingRequestQuotes.bind(requestQuoteController));
+router.get('/late-quotes', ensureAuthenticated,checkAccessMiddleware(5), requestQuoteController.getLateRequestQuotes.bind(requestQuoteController));
 router.get('/job-detail/:id', ensureAuthenticated,checkAccessMiddleware(5), requestQuoteController.getOrderDetails.bind(requestQuoteController));
 router.delete('/request-quotes/delete/:id', ensureAuthenticated,checkAccessMiddleware(5), requestQuoteController.deleteRequestQuote.bind(requestQuoteController));
 

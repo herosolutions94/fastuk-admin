@@ -4,8 +4,8 @@
       <div class="text">
         <h3>Edit Vehicle</h3>
         <ul>
-          <li><a href="">Home</a></li>
-          <li class="active"><a href="">Edit Vehicle</a></li>
+          <li><a href="/admin/dashbaord">Dashboard</a></li>
+          <!-- <li class="active"><a href="">Edit Vehicle</a></li> -->
         </ul>
       </div>
       <div class="text text2">
@@ -217,7 +217,7 @@
                           <div class="img-box" style="position:relative;" data-id="<%= img.id %>">
 
                             <!-- ❌ Delete button -->
-                            <span class="delete-image" data-id="<%= img.id %>" style="
+                            <span class="delete-images" data-id="<%= img.id %>" style="
             position:absolute;
             top:-6px;
             right:-6px;
@@ -240,15 +240,16 @@
                             <% } %>
                     </div>
                     <!-- ✅ NEW images preview ONLY -->
-                    <div class="multi-preview new-images" style="display:flex; flex-wrap:wrap; gap:10px;"></div>
+                    <!-- <div class="multi-preview new-images" style="display:flex; flex-wrap:wrap; gap:10px;"></div> -->
 
 
-                    <div class="in-upload mt-2">
-                      <button type="button" class="uploadImg">
-                        <i class="fa-regular fa-image"></i>Choose Images
-                      </button>
-                      <input type="file" name="vehicle_images" class="uploadFile" multiple style="display:none;" />
+                    <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="vehicle_images">Vehicle Images<abbr class="required"
+                          title="required"></abbr></label>
+                        <input type="file" name="vehicle_images" class="input" multiple />
                     </div>
+                  </div>
                   </div>
 
                   <div class="clearfix"></div>

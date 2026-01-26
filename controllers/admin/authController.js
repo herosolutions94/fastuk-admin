@@ -86,7 +86,7 @@ class AdminController extends BaseController {
                 site_domain, site_name, site_email, site_address, receiving_site_email, site_noreply_email,
                 site_phone, footer_copyright, site_facebook, site_twitter, site_instagram, site_linkedin, site_youtube,
                 site_spotify, site_etsy,
-                site_sandbox,site_processing_fee,vat_amount
+                site_sandbox,site_processing_fee,vat_amount, rider_percentage
             } = req.body;
 
             // Fetch the current settings from the database to retain existing images if not updated
@@ -125,7 +125,8 @@ class AdminController extends BaseController {
                 thumb_image,
                 site_sandbox,
                 site_processing_fee,
-                vat_amount
+                vat_amount,
+                rider_percentage
             };
 
             // Call the model to update the settings

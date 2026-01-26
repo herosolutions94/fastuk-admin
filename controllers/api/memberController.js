@@ -13,6 +13,9 @@ const RequestQuoteModel = require("../../models/request-quote"); // Assuming you
 const RemotePostCodeModel = require("../../models/remote-post-code"); // Assuming you have this model
 const PromoCodeModel = require("../../models/promo-code");
 
+const { processRiderCharges } = require("../../services/riderChargeService");
+
+
 const moment = require("moment");
 
 const Token = require("../../models/tokenModel");
@@ -2248,6 +2251,7 @@ class MemberController extends BaseController {
         is_ready,
         ready_time,
         via_pickup_time_option,
+        via_delivery_option,
         via_pickup_time,
         via_pickup_date,
         via_pickup_start_date,
@@ -2489,7 +2493,7 @@ class MemberController extends BaseController {
         // console.log("formattedTax :", formattedTax);
 
         // ✅ Ensure numeric addition
-        formattedTotalAmount = parseFloat(formattedTotalAmount) + parseFloat(taxAmount) + parseFloat(vatAmount);
+        formattedTotalAmount = parseFloat(formattedTotalAmount) + parseFloat(vatAmount);
         // console.log("formattedTotalAmount type:", formattedTotalAmount);return;
 
         formattedTotalAmount = parseFloat(formattedTotalAmount);
@@ -3284,6 +3288,7 @@ class MemberController extends BaseController {
           city: via.city,
 
           via_pickup_time_option: via.via_pickup_time_option,
+          via_delivery_option: via.via_delivery_option,
         };
         // console.log("requestQuoteId:", requestQuoteId);return;
 
@@ -4702,6 +4707,11 @@ class MemberController extends BaseController {
       }
       // console.log("end",order?.end_date, helpers.formatDateToUK(order?.end_date))
 
+      const riderNotes = await this.rider.getRiderNotes(
+        order?.assigned_rider,
+        decodedId
+      );
+
       const formatted_end_date = order?.end_date
         ? helpers.formatDateToUK(order.end_date)
         : "Will be available after rider accepts the order";
@@ -4717,6 +4727,7 @@ class MemberController extends BaseController {
         parcels: parcels,
         order_stages: order_stages_arr,
         vias: vias,
+        riderNotes: riderNotes,
         invoices: invoices,
         dueAmount: formattedDueAmount,
         paidAmount: formattedPaidAmount,
@@ -5675,6 +5686,14 @@ class MemberController extends BaseController {
           order?.id,
           "completed"
         );
+
+        await processRiderCharges({
+          order_id: order?.id,
+          rider_id: order.assigned_rider,
+          adminData: res.locals.adminData
+        });
+
+
         const notificationText = `Invoice is paid by the user.Now mark the request as completed`;
         await helpers.storeNotification(
           order.assigned_rider, // The user ID from request_quote
@@ -5714,7 +5733,8 @@ class MemberController extends BaseController {
             amount: formattedRiderAmount,
             type: "credit",
             status: "pending",
-            created_time
+            created_time,
+            order_id: order?.id,
           };
 
           const insertedEarnings = await helpers.insertEarnings(earningsData);
