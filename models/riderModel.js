@@ -26,6 +26,26 @@ class RiderModel extends BaseModel {
     const [rows] = await pool.query(query, [user_name]);
     return rows[0];
   }
+
+  async addOrUpdateRiderNotes({ memType, notes, rider_id, order_id }) {
+    const sql = `
+      INSERT INTO rider_notes
+        (rider_id, order_id, type, notes, created_at, updated_at)
+      VALUES
+        (?, ?, ?, ?, NOW(), NOW())
+      ON DUPLICATE KEY UPDATE
+        type = VALUES(type),
+        notes = VALUES(notes),
+        updated_at = NOW()
+    `;
+
+    await pool.query(sql, [
+      rider_id,
+      order_id,
+      memType,
+      notes
+    ]);
+  }
   // async findByUsernameWithDetails(user_name) {
   //   // 1. Get rider + attachments
   //   const query = `
@@ -108,8 +128,8 @@ class RiderModel extends BaseModel {
     // Group attachments
     const rider = {
       ...rows[0],
-       vehicle: rows[0].vehicle_id
-      ? {
+      vehicle: rows[0].vehicle_id
+        ? {
           id: rows[0].vehicle_id,
           title: rows[0].vehicle_title,
           image: rows[0].vehicle_image,
@@ -119,7 +139,7 @@ class RiderModel extends BaseModel {
           max_height: rows[0].max_height,
           distance: rows[0].distance
         }
-      : null,
+        : null,
       attachments: rows
         .filter(r => r.attachment_id)
         .map(r => ({
@@ -133,14 +153,14 @@ class RiderModel extends BaseModel {
     delete rider.attachment_filename;
     delete rider.attachment_type;
 
-     delete rider.vehicle_id;
-  delete rider.vehicle_title;
-  delete rider.vehicle_image;
-  delete rider.load_capacity;
-  delete rider.max_length;
-  delete rider.max_width;
-  delete rider.max_height;
-  delete rider.distance;
+    delete rider.vehicle_id;
+    delete rider.vehicle_title;
+    delete rider.vehicle_image;
+    delete rider.load_capacity;
+    delete rider.max_length;
+    delete rider.max_width;
+    delete rider.max_height;
+    delete rider.distance;
 
     // // 2. Get single vehicle_image from vehicles table based on vehicle_type
     // if (rider.vehicle_type) {
@@ -406,17 +426,20 @@ AND COALESCE(rq.is_cancelled, '') NOT IN ('approved', 'requested')
 
   async assignRiderAndUpdateStatus(riderId, requestId) {
     // console.log(requestId,riderId)
+
+    // ✅ Current date & time = job accepted moment
+    const acceptedAt = new Date();
     // Get current date in YYYY-MM-DD format
     const assignedDate = new Date().toISOString().split('T')[0];
     const updatedTime = helpers.getUtcTimeInSeconds();
     // const endTime = helpers.addTwoDaysToDate();
 
     // Fetch start_date from DB first
-    const [rows] = await pool.query('SELECT start_date FROM request_quote WHERE id = ?', [requestId]);
+    const [rows] = await pool.query('SELECT distance FROM request_quote WHERE id = ?', [requestId]);
     if (!rows.length) throw new Error('Request not found');
 
-    const startDate = rows[0].start_date;
-    const endDate = helpers.addThreeDaysToDate(startDate);
+    const distance = rows[0].distance;
+    const endDate = helpers.calculateEndDate(acceptedAt, distance);
 
 
     const query = `
@@ -431,10 +454,56 @@ AND COALESCE(rq.is_cancelled, '') NOT IN ('approved', 'requested')
         WHERE 
             id = ?`; // Ensure the current status is 'paid'
 
-    const [result] = await pool.query(query, [riderId, assignedDate, endDate, updatedTime, requestId]);
+    const [result] = await pool.query(query, [riderId,
+      helpers?.toMySQLDateTime(acceptedAt),
+      helpers?.toMySQLDateTime(endDate),
+      updatedTime,
+      requestId]);
     // console.log("endTime:", endTime)
     return result; // Contains affectedRows and other info
   }
+
+  // Sum handball charges ONLY if order belongs to the rider
+  async getTotalHandballCharges(order_id, rider_id) {
+    const query = `
+    SELECT IFNULL(SUM(os.handball_charges), 0) AS total
+    FROM order_stages AS os
+    INNER JOIN request_quote AS rq
+      ON rq.id = os.order_id
+    WHERE os.order_id = ?
+      AND rq.assigned_rider = ?
+  `;
+
+    const [rows] = await pool.query(query, [
+      order_id,
+      rider_id
+    ]);
+
+    // Always safe: IFNULL guarantees value
+    return Number(rows[0]?.total || 0);
+  }
+
+  // Sum waiting charges ONLY if order belongs to the rider
+  async getTotalWaitingCharges(order_id, rider_id) {
+    const query = `
+    SELECT IFNULL(SUM(os.waiting_charges), 0) AS total
+    FROM order_stages AS os
+    INNER JOIN request_quote AS rq
+      ON rq.id = os.order_id
+    WHERE os.order_id = ?
+      AND rq.assigned_rider = ?
+  `;
+
+    const [rows] = await pool.query(query, [
+      order_id,
+      rider_id
+    ]);
+
+    return Number(rows[0]?.total || 0);
+  }
+
+
+
   async UpdateOrderStatus(riderId, requestId, request_status) {
     // console.log(requestId,riderId)
     // Get current date in YYYY-MM-DD format
@@ -565,6 +634,23 @@ GROUP BY
 
 
   }
+
+  async getRidersByCityAndVehicle(city, vehicleId) {
+    console.log("model", city, vehicleId)
+    const query = `
+    SELECT r.id, r.email
+    FROM riders r
+    INNER JOIN vehicles v ON v.id = r.vehicle_id
+    WHERE r.city = ?
+      AND r.vehicle_id = ?
+      AND v.status = 'active'
+  `;
+
+    const [rows] = await pool.query(query, [city, vehicleId]);
+    console.log("rows", rows)
+    return rows;
+  }
+
 
   async getRidersByCity(city) {
     const query = `SELECT id,email FROM riders WHERE city = ?`;
@@ -1338,6 +1424,24 @@ ORDER BY e.created_time DESC;
           AND status = 'cleared'
       `;
       const [results] = await pool.query(query, [userId]); // Assuming you're using a MySQL pool
+      return results;
+    } catch (error) {
+      console.error("Error fetching cleared earnings:", error);
+      return null;
+    }
+  }
+
+  async getRiderNotes(riderId, orderId) {
+    try {
+      const query = `
+        SELECT * 
+        FROM rider_notes 
+        WHERE rider_id = ? 
+          AND order_id = ? 
+
+      `;
+      const [results] = await pool.query(query, [riderId, orderId]); // Assuming you're using a MySQL pool
+      console.log("results:", results)
       return results;
     } catch (error) {
       console.error("Error fetching cleared earnings:", error);

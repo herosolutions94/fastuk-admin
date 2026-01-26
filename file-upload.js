@@ -137,6 +137,7 @@ const upload = multer({
     { name: 'other_documents', maxCount: 10 }, // multiple images
     { name: 'signature', maxCount: 1 },
     { name: 'vehicle_images', maxCount: 10 } ,
+    { name: 'receiver_signature', maxCount: 1 } ,
 
 
 

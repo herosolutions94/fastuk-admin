@@ -147,6 +147,7 @@ class PageModel extends BaseModel {
             address,
             city,
             via_pickup_time_option,
+            via_delivery_option,
             via_pickup_time,
             via_pickup_date,
             via_pickup_start_date,
@@ -154,7 +155,7 @@ class PageModel extends BaseModel {
             via_pickup_end_date,
             via_pickup_end_time
             )
-            VALUES(?,?,?,?,?,?,?,?,?,?,?,?, ?)
+            VALUES(?,?,?,?,?,?,?,?,?,?,?,?, ?, ?)
             
         `;
         for (const via of vias) {
@@ -167,6 +168,7 @@ class PageModel extends BaseModel {
                 via.address,
                 via.city,
                 via.via_pickup_time_option,
+                via.via_delivery_option,
                 via.via_pickup_time || null,
                 via.via_pickup_date || null,
                 via.via_pickup_start_date || null,

@@ -4,7 +4,7 @@
       <div class="text">
         <h3>Request Quote</h3>
         <ul>
-           <li><a href="/admin/dashboard">Dashboard</a></li>
+          <li><a href="/admin/dashboard">Dashboard</a></li>
           <!-- <li class="active"><a href="">Booking ID: <%= order.booking_id %></a></li> -->
         </ul>
       </div>
@@ -27,20 +27,20 @@
                         <strong>Rider: </strong>
                         <div class="flex u_flex">
                           <div class="img">
-                          <img src="<%= helpers.getImage(order.rider_dp) %>" alt="User Image" class="user-image"
-                            style="width: 50px; height: 50px; border-radius: 50%;">
-                        </div>
-                        <div class="name">
+                            <img src="<%= helpers.getImage(order.rider_dp) %>" alt="User Image" class="user-image"
+                              style="width: 50px; height: 50px; border-radius: 50%;">
+                          </div>
+                          <div class="name">
                             <%= order.rider_name %>
-                          <p style="margin: 0;">
-                            <%= order.rider_email %>
-                          </p>
-                          <p style="margin: 0;">
-                            <%= order.rider_phone %>
-                          </p>
+                              <p style="margin: 0;">
+                                <%= order.rider_email %>
+                              </p>
+                              <p style="margin: 0;">
+                                <%= order.rider_phone %>
+                              </p>
                           </div>
                         </div>
-                        
+
                       </a>
                     </div>
                   </div>
@@ -73,21 +73,21 @@
                       <div class=" flex u_flex">
                         <div class="img">
                           <img src="<%= helpers.getImage(order.member_dp) %>" alt="User Image" class="user-image"
-                          style="width: 50px; height: 50px; border-radius: 50%;">
+                            style="width: 50px; height: 50px; border-radius: 50%;">
                         </div>
-                         <div class="name">
-                        
-                        <%= order.member_name %>
-                        <p style="margin: 0;">
-                            <%= order.mem_email %>
-                          </p>
-                          <p style="margin: 0;">
-                            <%= order.mem_phone %>
-                          </p>
+                        <div class="name">
+
+                          <%= order.member_name %>
+                            <p style="margin: 0;">
+                              <%= order.mem_email %>
+                            </p>
+                            <p style="margin: 0;">
+                              <%= order.mem_phone %>
+                            </p>
+                        </div>
                       </div>
-                      </div>
-                     
-                       
+
+
                     </a>
                   </div>
                 </div>
@@ -331,9 +331,25 @@
                                   </div>
                                   <% } %>
 
-                                    <% if (stage.status) { %>
-                                      <p>
-                                        <span class="badge mt-3
+                                    <!-- Receiver Info -->
+                                    <% if (stage.receiver_name) { %>
+                                      <p class="mt-2">
+                                        <strong>Receiver Name:</strong>
+                                        <%= stage.receiver_name %>
+                                      </p>
+                                      <% } %>
+
+                                        <% if (stage.receiver_signature) { %>
+                                          <p class="mt-2">
+                                            <strong>Receiver Signature:</strong>
+                                          </p>
+                                          <img src="/uploads/<%= stage.receiver_signature %>" alt="Receiver Signature"
+                                            class="img-thumbnail" style="max-width: 150px;">
+                                          <% } %>
+
+                                            <% if (stage.status) { %>
+                                              <p>
+                                                <span class="badge mt-3
                         <%= stage.status === 'pending' ? 'badge-secondary' : 
                             stage.status === 'arrived' ? 'badge-primary' :
                             stage.status === 'on-way-pickup' ? 'badge-warning' :
@@ -341,44 +357,44 @@
                             stage.status === 'loaded' ? 'badge-info' : 
                             stage.status === 'completed' ? 'badge-success' : 
                             'badge-dark' %>">
-                                          <% if (stage.status==='arrived' ) { %>
-                                            ARRIVED
-                                            <% } else if (stage.status==='on-way-pickup' ) { %>
-                                              ON WAY TO (COLLECTION/PICKUP)
-                                              <% } else if (stage.status==='on-site-pickup' ) { %>
-                                                ON SITE (COLLECTION/PICKUP)
-                                                <% } else if (stage.status==='loaded' ) { %>
-                                                  LOADED
-                                                  <% } else if (stage.status==='completed' ) { %>
-                                                    COMPLETED
-                                                    <% } else { %>
-                                                      <%= stage.status.toUpperCase() %>
-                                                        <% } %>
-                                        </span>
-                                      </p>
-                                      <% } %>
-
-                                        <!-- Display arrival and loaded times -->
-                                        <% if (stage.arrived_time_formatted) { %>
-                                          <p class="text-info mt-2">
-                                            <strong>Arrived at:</strong>
-                                            <%= stage.arrived_time_formatted %>
-                                          </p>
-                                          <% } %>
-
-                                            <% if (stage.loaded_time_formatted) { %>
-                                              <p class="text-success mt-2">
-                                                <strong>Loaded at:</strong>
-                                                <%= stage.loaded_time_formatted %>
+                                                  <% if (stage.status==='arrived' ) { %>
+                                                    ARRIVED
+                                                    <% } else if (stage.status==='on-way-pickup' ) { %>
+                                                      ON WAY TO (COLLECTION/PICKUP)
+                                                      <% } else if (stage.status==='on-site-pickup' ) { %>
+                                                        ON SITE (COLLECTION/PICKUP)
+                                                        <% } else if (stage.status==='loaded' ) { %>
+                                                          LOADED
+                                                          <% } else if (stage.status==='completed' ) { %>
+                                                            COMPLETED
+                                                            <% } else { %>
+                                                              <%= stage.status.toUpperCase() %>
+                                                                <% } %>
+                                                </span>
                                               </p>
                                               <% } %>
 
-                                                <% if (stage.completed_time_formatted) { %>
-                                                  <p class="text-primary mt-2">
-                                                    <strong>Completed at:</strong>
-                                                    <%= stage.completed_time_formatted %>
+                                                <!-- Display arrival and loaded times -->
+                                                <% if (stage.arrived_time_formatted) { %>
+                                                  <p class="text-info mt-2">
+                                                    <strong>Arrived at:</strong>
+                                                    <%= stage.arrived_time_formatted %>
                                                   </p>
                                                   <% } %>
+
+                                                    <% if (stage.loaded_time_formatted) { %>
+                                                      <p class="text-success mt-2">
+                                                        <strong>Loaded at:</strong>
+                                                        <%= stage.loaded_time_formatted %>
+                                                      </p>
+                                                      <% } %>
+
+                                                        <% if (stage.completed_time_formatted) { %>
+                                                          <p class="text-primary mt-2">
+                                                            <strong>Completed at:</strong>
+                                                            <%= stage.completed_time_formatted %>
+                                                          </p>
+                                                          <% } %>
 
 
                       </div>
@@ -613,137 +629,244 @@
 
 
       </div>
-     <div class="details">
-  <div class="heading mth">
-    <h4>Address Information</h4>
-  </div>
 
-  <div class="quote-section three-cols">
-
-  
-    <div class="quote-card accordion-item">
-      <div class="accordion-header">
-        <h4>Source Details</h4>
-        <span class="icon">+</span>
-      </div>
-
-      <div class="accordion-body">
-        <p><strong>Postcode:</strong> <%= order.source_postcode %></p>
-        <p><strong>Address:</strong> <%= order.source_address %></p>
-        <p><strong>Name:</strong> <%= order.source_name %></p>
-        <p><strong>Phone Number:</strong> <%= order.source_phone_number %></p>
-        <p><strong>City:</strong> <%= order.source_city %></p>
-        <p><strong>Pickup Time Option:</strong> <%= order.pickup_time_option %></p>
-
-        <% if (['at','before'].includes(order.pickup_time_option)) { %>
-          <p><strong>Pickup Date:</strong> <%= helpers.toUKDateFormat(order.pickup_date) %></p>
-          <p><strong>Pickup Time:</strong> <%= helpers.formatUKTime(order.pickup_time) %></p>
-        <% } else if (order.pickup_time_option === 'between') { %>
-          <p><strong>Start Date:</strong> <%= helpers.toUKDateFormat(order.pickup_start_date) %></p>
-          <p><strong>Start Time:</strong> <%= helpers.formatUKTime(order.pickup_start_time) %></p>
-          <p><strong>End Date:</strong> <%= helpers.toUKDateFormat(order.pickup_end_date) %></p>
-          <p><strong>End Time:</strong> <%= helpers.formatUKTime(order.pickup_end_time) %></p>
-        <% } %>
-      </div>
-    </div>
-
-   
-    <div class="quote-card accordion-item">
-      <div class="accordion-header">
-        <h4>Destination Details</h4>
-        <span class="icon">+</span>
-      </div>
-
-      <div class="accordion-body">
-        <p><strong>Postcode:</strong> <%= order.dest_postcode %></p>
-        <p><strong>Address:</strong> <%= order.dest_address %></p>
-        <p><strong>Name:</strong> <%= order.dest_name %></p>
-        <p><strong>Phone Number:</strong> <%= order.dest_phone_number %></p>
-        <p><strong>City:</strong> <%= order.dest_city %></p>
-        <p><strong>Delivery Time Option:</strong> <%= order.delivery_time_option %></p>
-
-        <% if (['at','by'].includes(order.delivery_time_option)) { %>
-          <p><strong>Delivery Date:</strong> <%= helpers.toUKDateFormat(order.delivery_date) %></p>
-          <p><strong>Delivery Time:</strong> <%= helpers.formatUKTime(order.delivery_time) %></p>
-        <% } else if (order.delivery_time_option === 'between') { %>
-          <p><strong>Start Date:</strong> <%= helpers.toUKDateFormat(order.delivery_start_date) %></p>
-          <p><strong>Start Time:</strong> <%= helpers.formatUKTime(order.delivery_start_time) %></p>
-          <p><strong>End Date:</strong> <%= helpers.toUKDateFormat(order.delivery_end_date) %></p>
-          <p><strong>End Time:</strong> <%= helpers.formatUKTime(order.delivery_end_time) %></p>
-        <% } %>
-      </div>
-    </div>
-
-   
-    <div class="quote-card accordion-item">
-      <div class="accordion-header">
-        <h4>Via Stops</h4>
-        <span class="icon">+</span>
-      </div>
-
-      <div class="accordion-body">
-        <% if (order.vias && order.vias.length > 0) { %>
-          <% order.vias.forEach((via, index) => { %>
-            <div class="via-stop">
-              <h5>Via Stop <%= index + 1 %></h5>
-              <p><strong>Postcode:</strong> <%= via.post_code %></p>
-              <p><strong>Address:</strong> <%= via.address %></p>
-              <p><strong>Name:</strong> <%= via.full_name %></p>
-              <p><strong>Phone:</strong> <%= via.phone_number %></p>
-              <p><strong>City:</strong> <%= via.city %></p>
+      <div class="row">
+        <div class="col-md-12">
+          <div class="card">
+            <div class="card-header">
+              <h5>Rider Notes:</h5>
             </div>
-          <% }) %>
-        <% } else { %>
-          
-          <p>No via stops available. </p>
 
-        <% } %>
+            <div class="card-body">
+              
+              <% if (order?.riderNotes.length> 0) { %>
+                <table class="table">
+                  <thead>
+                    <tr>
+                      <th>Notes</th>                     
+                      <th>Created Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <% order?.riderNotes.forEach(note=> { %>
+                      <tr>
+                        <td>
+                          <%= note.notes %>
+                        </td>
+                        
+                        <td>
+                          <%= helpers.convertUtcToUkFormat(note?.created_at) %>
+                        </td>
+                      </tr>
+                      <% }); %>
+                  </tbody>
+                </table>
+                <% } else { %>
+                  <p>No rider notes found for this order.</p>
+                  <% } %>
 
-        
-      </div>
-    </div>
-
-  </div>
-</div>
-
-
-      <% if(order?.is_cancelled === 'requested') { %>
-  <div class="row">
-    <div class="col-md-12">
-      <div class="card">
-        <div class="card-header">
-          <h5>Cancellation Request</h5>
+            </div>
+          </div>
         </div>
-        <div class="card-body">
-          <p>A cancellation request has been received.</p>
-          <p><strong>Reason:</strong> <%= order.cancel_reason || 'No reason provided' %></p>
 
-          <form class="cancel-request-form" action="/admin/cancelled-quotes/handle" method="POST">
-            <input type="hidden" name="request_id" value="<%= order.id %>">
 
-           
-              <div class="form-group">
-                <label for="payment_charges">Payment Charges (£):</label>
-                <input type="number" step="0.01" name="cancellation_payment_charges" id="cancellation_payment_charges" class="form-control" placeholder="Enter amount to refund" required>
+
+
+      </div>
+      <div class="details">
+        <div class="heading mth">
+          <h4>Address Information</h4>
+        </div>
+
+        <div class="quote-section three-cols">
+
+
+          <div class="quote-card accordion-item">
+            <div class="accordion-header">
+              <h4>Source Details</h4>
+              <span class="icon">+</span>
+            </div>
+
+            <div class="accordion-body">
+              <p><strong>Postcode:</strong>
+                <%= order.source_postcode %>
+              </p>
+              <p><strong>Address:</strong>
+                <%= order.source_address %>
+              </p>
+              <p><strong>Name:</strong>
+                <%= order.source_name %>
+              </p>
+              <p><strong>Phone Number:</strong>
+                <%= order.source_phone_number %>
+              </p>
+              <p><strong>City:</strong>
+                <%= order.source_city %>
+              </p>
+              <p><strong>Pickup Time Option:</strong>
+                <%= order.pickup_time_option %>
+              </p>
+
+              <% if (['at','before'].includes(order.pickup_time_option)) { %>
+                <p><strong>Pickup Date:</strong>
+                  <%= helpers.toUKDateFormat(order.pickup_date) %>
+                </p>
+                <p><strong>Pickup Time:</strong>
+                  <%= helpers.formatUKTime(order.pickup_time) %>
+                </p>
+                <% } else if (order.pickup_time_option==='between' ) { %>
+                  <p><strong>Start Date:</strong>
+                    <%= helpers.toUKDateFormat(order.pickup_start_date) %>
+                  </p>
+                  <p><strong>Start Time:</strong>
+                    <%= helpers.formatUKTime(order.pickup_start_time) %>
+                  </p>
+                  <p><strong>End Date:</strong>
+                    <%= helpers.toUKDateFormat(order.pickup_end_date) %>
+                  </p>
+                  <p><strong>End Time:</strong>
+                    <%= helpers.formatUKTime(order.pickup_end_time) %>
+                  </p>
+                  <% } %>
+            </div>
+          </div>
+
+
+          <div class="quote-card accordion-item">
+            <div class="accordion-header">
+              <h4>Destination Details</h4>
+              <span class="icon">+</span>
+            </div>
+
+            <div class="accordion-body">
+              <p><strong>Postcode:</strong>
+                <%= order.dest_postcode %>
+              </p>
+              <p><strong>Address:</strong>
+                <%= order.dest_address %>
+              </p>
+              <p><strong>Name:</strong>
+                <%= order.dest_name %>
+              </p>
+              <p><strong>Phone Number:</strong>
+                <%= order.dest_phone_number %>
+              </p>
+              <p><strong>City:</strong>
+                <%= order.dest_city %>
+              </p>
+              <p><strong>Delivery Time Option:</strong>
+                <%= order.delivery_time_option %>
+              </p>
+
+              <% if (['at','by'].includes(order.delivery_time_option)) { %>
+                <p><strong>Delivery Date:</strong>
+                  <%= helpers.toUKDateFormat(order.delivery_date) %>
+                </p>
+                <p><strong>Delivery Time:</strong>
+                  <%= helpers.formatUKTime(order.delivery_time) %>
+                </p>
+                <% } else if (order.delivery_time_option==='between' ) { %>
+                  <p><strong>Start Date:</strong>
+                    <%= helpers.toUKDateFormat(order.delivery_start_date) %>
+                  </p>
+                  <p><strong>Start Time:</strong>
+                    <%= helpers.formatUKTime(order.delivery_start_time) %>
+                  </p>
+                  <p><strong>End Date:</strong>
+                    <%= helpers.toUKDateFormat(order.delivery_end_date) %>
+                  </p>
+                  <p><strong>End Time:</strong>
+                    <%= helpers.formatUKTime(order.delivery_end_time) %>
+                  </p>
+                  <% } %>
+            </div>
+          </div>
+
+
+          <div class="quote-card accordion-item">
+            <div class="accordion-header">
+              <h4>Via Stops</h4>
+              <span class="icon">+</span>
+            </div>
+
+            <div class="accordion-body">
+              <% if (order.vias && order.vias.length> 0) { %>
+                <% order.vias.forEach((via, index)=> { %>
+                  <div class="via-stop">
+                    <h5>Via Stop <%= index + 1 %>
+                    </h5>
+                    <p><strong>Postcode:</strong>
+                      <%= via.post_code %>
+                    </p>
+                    <p><strong>Address:</strong>
+                      <%= via.address %>
+                    </p>
+                    <p><strong>Name:</strong>
+                      <%= via.full_name %>
+                    </p>
+                    <p><strong>Phone:</strong>
+                      <%= via.phone_number %>
+                    </p>
+                    <p><strong>City:</strong>
+                      <%= via.city %>
+                    </p>
+                  </div>
+                  <% }) %>
+                    <% } else { %>
+
+                      <p>No via stops available. </p>
+
+                      <% } %>
+
+
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+
+      <% if(order?.is_cancelled==='requested' ) { %>
+        <div class="row">
+          <div class="col-md-12">
+            <div class="card">
+              <div class="card-header">
+                <h5>Cancellation Request</h5>
               </div>
-           
+              <div class="card-body">
+                <p>A cancellation request has been received.</p>
+                <p><strong>Reason:</strong>
+                  <%= order.cancel_reason || 'No reason provided' %>
+                </p>
 
-            <div class="form-group">
-              <label for="action">Action:</label>
-              <select name="action" id="action" class="form-control" required>
-                <option value="">Select</option>
-                <option value="approved">Approve</option>
-                <option value="rejected">Reject</option>
-              </select>
+                <form class="cancel-request-form" action="/admin/cancelled-quotes/handle" method="POST">
+                  <input type="hidden" name="request_id" value="<%= order.id %>">
+
+
+                  <div class="form-group">
+                    <label for="payment_charges">Payment Charges (£):</label>
+                    <input type="number" step="0.01" name="cancellation_payment_charges"
+                      id="cancellation_payment_charges" class="form-control" placeholder="Enter amount to refund"
+                      required>
+                  </div>
+
+
+                  <div class="form-group">
+                    <label for="action">Action:</label>
+                    <select name="action" id="action" class="form-control" required>
+                      <option value="">Select</option>
+                      <option value="approved">Approve</option>
+                      <option value="rejected">Reject</option>
+                    </select>
+                  </div>
+
+                  <button type="submit" class="btn btn-primary mt-2">Submit</button>
+                </form>
+              </div>
             </div>
-
-            <button type="submit" class="btn btn-primary mt-2">Submit</button>
-          </form>
+          </div>
         </div>
-      </div>
-    </div>
-  </div>
-<% } %>
+        <% } %>
 
 
     </div>

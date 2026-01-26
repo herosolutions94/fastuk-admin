@@ -34,17 +34,19 @@ class VehicleModel extends BaseModel {
     //     }
     // }
 
-    async insertMultipleImage(data) {
-    const { vehicle_id, image } = data;
-    const query = `INSERT INTO vehicle_multiple_images (vehicle_id, image) VALUES (?, ?)`;
+    async insertMultipleImages(vehicleId, images) {
+  if (!images || !images.length) return;
 
-    return new Promise((resolve, reject) => {
-        pool.query(query, [vehicle_id, image], (err, result) => {
-            if (err) return reject(err);
-            resolve(result.insertId); // MySQL returns insertId
-        });
-    });
+  const values = images.map(img => [vehicleId, img]);
+
+  const query = `
+    INSERT INTO vehicle_multiple_images (vehicle_id, image)
+    VALUES ?
+  `;
+
+  await pool.query(query, [values]);
 }
+
 
 
 
@@ -61,6 +63,7 @@ class VehicleModel extends BaseModel {
                 vehicle_categories vc
             ON 
                 v.vehicle_category_id = vc.id
+                ORDER BY v.id DESC
         `;
 
             const [rows] = await pool.query(query);

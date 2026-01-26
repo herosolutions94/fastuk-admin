@@ -24,6 +24,7 @@ router.post('/complete-order-stage', upload,riderController.completeOrderStage.b
 router.get('/get-invoices-detail', upload,riderController.getInvoiceDetails.bind(riderController));
 // router.post('/test-notification', upload,riderController.testNotification.bind(riderController));
 router.post('/test-notification-rider', upload, (req, res) => riderController.testNotification(req, res));
+router.post('/add-update-notes', upload, (req, res) => riderController.addOrUpdateRiderNotes(req, res));
 
 router.post('/update-order-completed', upload,riderController.updateRequestStatusToCompleted.bind(riderController));
 router.post('/get-rider-dashboard-orders', upload,riderController.getRiderDashboardOrders.bind(riderController));

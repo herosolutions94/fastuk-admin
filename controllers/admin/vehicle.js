@@ -62,8 +62,8 @@ class VehicleController extends BaseController {
             const vehicleImage = req.files && req.files["vehicle_image"] ? req.files["vehicle_image"][0].filename : '';
 
             // Multiple images
-            const vehicleImages = req.files && req.files["vehicle_images"] ? req.files["vehicle_images"] : [];
-
+            const vehicleMultipleImages =
+                req.files?.vehicle_images?.map(file => file.filename) || [];
 
             if (vehicleImage) {
                 const sourceDir = path.join(__dirname, '../../uploads');
@@ -112,33 +112,29 @@ class VehicleController extends BaseController {
             }
             // Create the rider
             const vehicleId = await this.vehicle.createVehicle(cleanedData);
-            // console.log('Created Vehicle ID:', vehicleId); // Log the created rider ID
-            // Insert multiple images into vehicle_multiple_images
-            if (vehicleImages.length > 0) {
-                const imageInsertPromises = vehicleImages.map(async (file) => {
-                    // Optional: generate thumbnail
-                    await helpers.generateThumbnail(file.filename, path.join(__dirname, '../../uploads'), 'thumbnails', 300, 300);
 
-                    // Insert into vehicle_multiple_images table
-                    return this.vehicle.insertMultipleImage({
-                        vehicle_id: vehicleId,
-                        image: file.filename
-                    });
-                });
 
-                await Promise.all(imageInsertPromises);
+            if (vehicleMultipleImages.length > 0) {
+                await this.vehicle.insertMultipleImages(
+                    vehicleId,
+                    vehicleMultipleImages
+                );
             }
-
-
-
-            // Verify OTP was stored properly
-            const createdVehicle = await this.vehicle.findById(vehicleId);
-            // console.log('Created vehicle:', createdVehicle); // Log the created rider
+            for (const img of vehicleMultipleImages) {
+                await helpers.generateThumbnail(
+                    img,
+                    path.join(__dirname, "../../uploads"),
+                    "thumbnails",
+                    300,
+                    300
+                );
+            }
             res.json({
                 status: 1,
                 message: 'Vehicle added successfully!',
                 redirect_url: '/admin/vehicles-list'
             });
+            // res.redirect('/admin/vehicles-list');
 
 
         } catch (error) {
@@ -281,19 +277,25 @@ class VehicleController extends BaseController {
             }
 
             // 4️⃣ Handle multiple images
-        const newImages = req.files && req.files["vehicle_images"] ? req.files["vehicle_images"] : [];
+            const newMultipleImages =
+                req.files?.vehicle_images?.map(f => f.filename) || [];
 
-        if (newImages.length > 0) {
-            const promises = newImages.map(async (file) => {
-                await helpers.generateThumbnail(file.filename, path.join(__dirname, '../../uploads'), 'thumbnails', 300, 300);
-                return this.vehicle.insertMultipleImage({ vehicle_id: vehicleId, image: file.filename });
-            });
-            await Promise.all(promises);
-        }
+            for (const img of newMultipleImages) {
+                await helpers.generateThumbnail(
+                    img,
+                    path.join(__dirname, "../../uploads"),
+                    "thumbnails",
+                    300,
+                    300
+                );
+            }
 
-
-            // Update the service in the database
+           // Update the service in the database
             await Vehicle.updateVehicle(vehicleId, vehicleData);
+
+            if (newMultipleImages.length > 0) {
+  await this.vehicle.insertMultipleImages(vehicleId, newMultipleImages);
+}
 
             // Respond with success
             res.json({
@@ -375,41 +377,41 @@ class VehicleController extends BaseController {
     }
 
     async deleteVehicleImage(req, res) {
-    try {
-        const imageId = req.params.id;
-        let imagePath, thumbPath;
+        try {
+            const imageId = req.params.id;
+            let imagePath, thumbPath;
 
-        // Try to fetch image from DB
-        const image = await Vehicle.getVehicleImageById(imageId);
+            // Try to fetch image from DB
+            const image = await Vehicle.getVehicleImageById(imageId);
 
-        if (image && image.image) {
-            // ✅ Image exists in DB
-            imagePath = path.join(__dirname, '../../uploads/', image.image);
-            thumbPath = path.join(__dirname, '../../uploads/thumbnails/', image.image);
+            if (image && image.image) {
+                // ✅ Image exists in DB
+                imagePath = path.join(__dirname, '../../uploads/', image.image);
+                thumbPath = path.join(__dirname, '../../uploads/thumbnails/', image.image);
 
-            if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
-            if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+                if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
+                if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
 
-            // Delete from DB
-            await Vehicle.deleteVehicleImageById(imageId);
-        } else {
-            // ❌ Image not in DB → maybe temporary upload
-            // Assume imageId is actually the filename in this case
-            imagePath = path.join(__dirname, '../../uploads/', imageId);
-            thumbPath = path.join(__dirname, '../../uploads/thumbnails/', imageId);
+                // Delete from DB
+                await Vehicle.deleteVehicleImageById(imageId);
+            } else {
+                // ❌ Image not in DB → maybe temporary upload
+                // Assume imageId is actually the filename in this case
+                imagePath = path.join(__dirname, '../../uploads/', imageId);
+                thumbPath = path.join(__dirname, '../../uploads/thumbnails/', imageId);
 
-            if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
-            if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
-            // No DB operation
+                if (fs.existsSync(imagePath)) fs.unlinkSync(imagePath);
+                if (fs.existsSync(thumbPath)) fs.unlinkSync(thumbPath);
+                // No DB operation
+            }
+
+            res.json({ status: 1, message: 'Image deleted successfully' });
+
+        } catch (error) {
+            console.error(error);
+            res.json({ status: 0, message: 'Failed to delete image' });
         }
-
-        res.json({ status: 1, message: 'Image deleted successfully' });
-
-    } catch (error) {
-        console.error(error);
-        res.json({ status: 0, message: 'Failed to delete image' });
     }
-}
 
 
 

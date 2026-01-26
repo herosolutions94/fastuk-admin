@@ -5,6 +5,11 @@ const fs = require("fs"); // Importing the file system module
 
 const path = require("path");
 
+const { processRiderCharges } = require("../../services/riderChargeService");
+
+
+
+
 const Rider = require("../../models/riderModel");
 const RiderModel = require("../../models/rider");
 const Token = require("../../models/tokenModel");
@@ -1053,13 +1058,27 @@ class RiderController extends BaseController {
       // Step 6: Send notification to the user
       const notificationText = `Your request #${request_id} has been assigned to a rider.`;
 
-      await helpers.storeNotification(
-        request_row.user_id, // The user ID from request_quote
-        userRow?.mem_type, // The user's member type
-        loggedInUser.id,
-        notificationText,
-        orderDetailsLink
+      const exists = await helpers.notificationExists(
+        request_row.user_id,
+        userRow.mem_type,
+        'request_assigned',
+        request_id
       );
+
+      // console.log("exists:", exists)
+
+      if (!exists) {
+
+        await helpers.storeNotification(
+          request_row.user_id, // The user ID from request_quote
+          userRow?.mem_type, // The user's member type
+          loggedInUser.id,
+          notificationText,
+          orderDetailsLink,
+          'request_assigned',
+          request_id
+        );
+      }
 
       let adminData = res.locals.adminData;
       const user = await this.member.findById(request_row.user_id);
@@ -1658,6 +1677,10 @@ class RiderController extends BaseController {
       const dueAmount = await RequestQuoteModel.calculateDueAmount(order.id);
       const reviews = await this.rider.getOrderReviews(order.id);
       // console.log(paidAmount,dueAmount)
+      const riderNotes = await this.rider.getRiderNotes(
+        rider.id,
+        decodedId
+      );
 
       const formattedPaidAmount = helpers.formatAmount(paidAmount);
       const formattedDueAmount = helpers.formatAmount(dueAmount);
@@ -1683,6 +1706,7 @@ class RiderController extends BaseController {
         order_stages: order_stages,
         vias: vias,
         invoices: invoices,
+        riderNotes: riderNotes,
         viasCount: viasCount,
         formattedPaidAmount,
         formattedDueAmount,
@@ -2364,7 +2388,7 @@ class RiderController extends BaseController {
 
         }
       );
-      let notificationText = `Your rider has reached the pickup location: ${stage_row.address}.`;
+      let notificationText = `Your rider is on the way to the pickup location: ${stage_row.address}.`;
       const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
 
 
@@ -2412,6 +2436,8 @@ class RiderController extends BaseController {
       stage_id,
       handball_charges,
       waiting_charges,
+      receiver_name,
+      receiver_signature,
       attachments
     } = req.body;
     // console.log("chargesin api", req.body)
@@ -2423,6 +2449,13 @@ class RiderController extends BaseController {
       if (!order_id) {
         return res.status(200).json({ status: 0, msg: "Invalid request ID." });
       }
+      if (!receiver_name || !receiver_signature) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Receiver name and signature are required"
+        });
+      }
+
       const request = await this.rider.getRequestById(
         order_id,
         rider.user.id
@@ -2469,6 +2502,20 @@ class RiderController extends BaseController {
       else {
         return res.status(200).json({ status: 0, msg: "Add atleast one attachment to continue" });
       }
+
+      let signatureFileName = null;
+
+      if (receiver_signature && receiver_signature.startsWith("data:image")) {
+        const mime = receiver_signature.substring(receiver_signature.indexOf("/") + 1, receiver_signature.indexOf(";"));
+        const ext = mime === "jpeg" ? "jpg" : mime;
+        signatureFileName = `signature_${Date.now()}.${ext}`;
+        const base64Data = receiver_signature.replace(/^data:image\/\w+;base64,/, "");
+        const filePath = path.join(__dirname, "../../uploads", signatureFileName);
+        fs.writeFileSync(filePath, Buffer.from(base64Data, "base64"));
+      } else if (receiver_signature) {
+        signatureFileName = receiver_signature; // multer uploaded file
+      }
+
 
 
       // Fetch updated stage row
@@ -2622,18 +2669,20 @@ class RiderController extends BaseController {
       let updateData = {
         status: newStatus,
         updated_time: completedTime,
-        completed_time: completedTime
+        completed_time: completedTime,
+        receiver_name: receiver_name || null,          // add receiver name
+        receiver_signature: signatureFileName || null
       };
 
       let autoWaitingCharge = 0;  // IMPORTANT so it can be used outside IF
 
       if (arrivalTime > 0 && !existingWaitingInvoice) {
 
-        console.log("arrivalTime:", arrivalTime);
+        // console.log("arrivalTime:", arrivalTime);
 
         // 1: Get waiting minutes using your function
         const diffMinutes = await this.getWaitingMinutes(arrivalTime);
-        console.log("diffMinutes:", diffMinutes);
+        // console.log("diffMinutes:", diffMinutes);
 
         // If no waiting → stop
         if (diffMinutes <= 0) {
@@ -2643,18 +2692,18 @@ class RiderController extends BaseController {
 
           // 2: Convert minutes → 15-minute slots
           const slots = Math.ceil(diffMinutes / 15);
-          console.log("slots:", slots);
+          // console.log("slots:", slots);
 
           // 3: Get vehicle waiting charge
           const vehicle = await this.rider.getVehicleById(requestData.selected_vehicle);
-          console.log("vehicle:", vehicle);
+          // console.log("vehicle:", vehicle);
 
           const perSlotCharge = parseFloat(vehicle?.waiting_charges || 0);
-          console.log("perSlotCharge:", perSlotCharge);
+          // console.log("perSlotCharge:", perSlotCharge);
 
           // 4: Final waiting charge
           autoWaitingCharge = slots * perSlotCharge;
-          console.log("autoWaitingCharge:", autoWaitingCharge);
+          // console.log("autoWaitingCharge:", autoWaitingCharge);
 
           updateData.waiting_charges = autoWaitingCharge;
           // 5️⃣ Create waiting invoice ONLY if charges > 0
@@ -2708,6 +2757,13 @@ class RiderController extends BaseController {
         );
 
 
+        await processRiderCharges({
+          order_id: order_id,
+          rider_id: requestData?.assigned_rider,
+          adminData: res.locals.adminData
+        });
+
+
         // Assuming requestData contains distance and selected_vehicle/rider price info
         const distance = parseFloat(requestData.distance || 0); // in km
         const riderPrice = parseFloat(requestData.rider_price || 0); // price per km
@@ -2720,7 +2776,8 @@ class RiderController extends BaseController {
             amount: formattedAmount,
             type: "credit",
             status: "pending",
-            created_time
+            created_time,
+            order_id: order_id
           };
 
           const insertedEarnings = await helpers.insertEarnings(earningsData);
@@ -2784,6 +2841,12 @@ class RiderController extends BaseController {
 
     return diffMinutes;
   }
+
+
+
+
+
+
 
   markAsCompleted = async (req, res) => {
     const {
@@ -3361,6 +3424,14 @@ class RiderController extends BaseController {
         id,
         "completed"
       );
+
+      await processRiderCharges({
+        order_id: request[0]?.id,
+        rider_id: rider.user.id,
+        adminData: res.locals.adminData
+      });
+
+
       // console.log("updatedRequest:",updatedRequest)
 
       if (!updatedRequest) {
@@ -3383,7 +3454,8 @@ class RiderController extends BaseController {
           amount: formattedAmount,
           type: "credit",
           status: "pending",
-          created_time: created_time // UTC time in seconds
+          created_time: created_time, // UTC time in seconds,
+          order_id: request[0].id
         };
         // console.log(rider.user.id,amount,created_time);return;
 
@@ -3664,7 +3736,8 @@ class RiderController extends BaseController {
         amount: formattedBalance, // Store available balance
         type: "debit", // Debit entry
         status: "cleared", // Cleared status
-        created_time: created_time
+        created_time: created_time,
+        // order_id: null // No associated order
       });
 
       if (!debitEntry) {
@@ -3944,6 +4017,9 @@ class RiderController extends BaseController {
         return res.status(200).json({ status: 0, msg: "Order not found" });
       }
 
+      const member_row = await this.member.findById(request_row?.user_id);
+
+
       // ❗ NEW — Block rider from updating cancelled-approved orders
       if (request_row?.is_cancelled === "approved") {
         return res.status(200).json({
@@ -3978,6 +4054,20 @@ class RiderController extends BaseController {
 
 
       await this.rider.updateParcelStatus(stageRow.id, status);
+
+      let notificationText = `Your rider has arrived at the location: ${stageRow.address}.`;
+      const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
+
+
+      // const notificationText = `Your request #${order.id} has been marked as completed.`;
+
+      await helpers.storeNotification(
+        request_row.user_id, // The user ID from request_quote
+        member_row?.mem_type, // The user's member type
+        riderId,
+        notificationText,
+        orderDetailsLink
+      );
 
       const selectedVehicle = request_row?.selected_vehicle
         ? await VehicleModel.getSelectedVehicleById(request_row?.selected_vehicle)
@@ -4038,6 +4128,67 @@ class RiderController extends BaseController {
       });
     }
   };
+
+  addOrUpdateRiderNotes = async (req, res) => {
+    const {
+      memType,
+      notes,
+      token,
+      order_id
+    } = req.body;
+
+    try {
+      const rider = await this.validateTokenAndGetMember(token, "rider");
+      if (!rider) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Unauthorized access."
+        });
+      }
+
+      if (!order_id) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid order ID."
+        });
+      }
+
+      // ✅ Derive rider_id from token result
+      const rider_id = rider.user.id;
+
+      await this.rider.addOrUpdateRiderNotes({
+        memType,
+        notes,
+        rider_id,
+        order_id
+      });
+
+      const encodedId = helpers.doEncode(String(order_id));
+      const orderDetails = await this.getCompleteOrderObject(
+        rider.user.id,
+        order_id,
+        encodedId
+      );
+
+      return res.json({
+        status: 1,
+        msg: "Rider Notes saved successfully",
+        order: orderDetails
+      });
+
+    } catch (error) {
+      console.error("Error in addOrUpdateRiderNotes:", error);
+      return res.status(200).json({
+        status: 0,
+        msg: "Server error"
+      });
+    }
+  }
+
+
+
+
+
 
 
 }
