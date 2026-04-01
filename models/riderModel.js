@@ -424,6 +424,28 @@ AND COALESCE(rq.is_cancelled, '') NOT IN ('approved', 'requested')
     return rows[0]; // Return the first row if it exists
   }
 
+  async getRequestQuoteByAssignedRiderId(userId) {
+    // console.log("userId:",userId)
+    const query = `SELECT * FROM request_quote WHERE assigned_rider = ?`;
+    const [rows] = await pool.query(query, [userId]);
+    // console.log("Request:",rows)
+    return rows[0]; // Return the first row if it exists
+  }
+
+
+  async getActiveRequestByRiderId(riderId) {
+  const query = `
+    SELECT id 
+    FROM request_quote 
+    WHERE assigned_rider = ? 
+    AND status IN ('accepted', 'in_progress')
+    LIMIT 1
+  `;
+
+  const [rows] = await pool.query(query, [riderId]);
+  return rows.length > 0 ? rows[0] : null;
+}
+
   async assignRiderAndUpdateStatus(riderId, requestId) {
     // console.log(requestId,riderId)
 
@@ -524,7 +546,7 @@ AND COALESCE(rq.is_cancelled, '') NOT IN ('approved', 'requested')
     return result;
   }
 
-  async getOrdersByRiderAndStatus({ riderId, status }) {
+  async getOrdersByRiderAndStatus({ riderId, status, search }) {
     try {
       let query = `
             SELECT 
@@ -566,11 +588,31 @@ AND COALESCE(rq.is_cancelled, '') NOT IN ('approved', 'requested')
         }
       }
 
+          if (search && search.trim() !== "") {
+      query += `
+        AND (
+          rq.booking_id LIKE ?
+          OR m.full_name LIKE ?
+          OR rq.source_address LIKE ?
+          OR rq.dest_address LIKE ?
+        )
+      `;
+
+      const searchValue = `%${search}%`;
+
+      values.push(
+        searchValue,
+        searchValue,
+        searchValue,
+        searchValue
+      );
+    }
+
       query += `
       GROUP BY 
         rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
       ORDER BY 
-        rq.id DESC
+        rq.updated_time DESC
     `;
 
       // console.log("Fetching orders for rider:", riderId, "with status:", status);
@@ -586,7 +628,20 @@ AND COALESCE(rq.is_cancelled, '') NOT IN ('approved', 'requested')
     }
   }
 
-  async getOrderDetailsById({ assignedRiderId, requestId }) {
+  async getActiveJobByRider(riderId) {
+  const query = `
+    SELECT id 
+    FROM request_quote
+    WHERE assigned_rider = ?
+    AND status != 'completed'
+    LIMIT 1
+  `;
+
+  const [rows] = await pool.query(query, [riderId]);
+  return rows[0] || null;
+}
+
+  async getOrderDetailsById({ requestId, assignedRiderId  }) {
     try {
       // Query to fetch the order by ID
       const query = `SELECT 
@@ -607,14 +662,14 @@ LEFT JOIN
 ON 
     rq.id = rp.request_id
 WHERE 
-    rq.assigned_rider = ? 
-    AND rq.id = ?  
+     rq.id = ?  
+     AND (rq.assigned_rider IS NULL OR rq.assigned_rider = ?)
 GROUP BY 
     rq.id, m.full_name, m.mem_image, m.email, m.mem_phone;
 `;
 
       // Execute the query using the connection pool
-      const [rows, fields] = await pool.query(query, [assignedRiderId, requestId]);
+      const [rows, fields] = await pool.query(query, [requestId, assignedRiderId]);
       // console.log("assignedRiderId:",assignedRiderId,"requestId:",requestId)
       // console.log("rows:",rows)
       // console.log("query:",query)
@@ -680,6 +735,14 @@ GROUP BY
     const [rows] = await pool.query(query, [request_id]);
     return rows; // Returns an array of reviews with member details
   }
+
+  async getRequestReviewByUserAndRequest(user_id, request_id) {
+  const [rows] = await pool.query(
+    "SELECT id FROM request_reviews WHERE user_id = ? AND request_id = ? LIMIT 1",
+    [user_id, request_id]
+  );
+  return rows[0];
+}
 
   async getWithdrawalPamentMethodRow(mem_id, id) {
     const query = `SELECT * FROM mem_withdrawal_methods WHERE mem_id = ? and id = ?`;

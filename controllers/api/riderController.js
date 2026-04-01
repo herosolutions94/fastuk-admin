@@ -792,6 +792,8 @@ class RiderController extends BaseController {
       const enrichedQuotes = [];
       for (let quote of requestQuotes) {
         const user = await this.member.findById(quote.user_id);
+        const encodedId = helpers.doEncode(String(quote.id));
+
         const vias = await this.rider.getViasByQuoteId(quote.id);
         // const parcels = await this.rider.getParcelsByQuoteId(quote.id);
         const parcels = await this.rider.getParcelDetailsByQuoteId(quote.id);
@@ -812,6 +814,7 @@ class RiderController extends BaseController {
         }
         enrichedQuotes.push({
           ...quote,
+          encodedId,
           categoryInfo,
           formatted_start_date: helpers.formatDateToUK(quote?.start_date),
           booking_id: quote.booking_id,
@@ -1005,6 +1008,16 @@ class RiderController extends BaseController {
       // }
       // console.log("riderRow:",riderRow)
 
+      // 🚨 CHECK: Rider already has active job
+      const activeJob = await this.rider.getActiveJobByRider(loggedInUser.id);
+
+      if (activeJob) {
+        return res.status(200).json({
+          status: 0,
+          msg: "You already have an active job. Complete it before accepting a new one."
+        });
+      }
+
       // Step 4: Assign the user ID to the assigned_rider column
       const updateStatus = await this.rider.assignRiderAndUpdateStatus(
         loggedInUser.id,
@@ -1117,7 +1130,7 @@ class RiderController extends BaseController {
 
   async getRiderOrders(req, res) {
     try {
-      const { token, memType, status } = req.body;
+      const { token, memType, status, search } = req.body;
 
       if (!token) {
         return res.status(200).json({ status: 0, msg: "Token is required." });
@@ -1142,7 +1155,8 @@ class RiderController extends BaseController {
       // Fetch requests for which the assigned rider is this user and status is 'accepted'
       const riderOrders = await this.rider.getOrdersByRiderAndStatus({
         riderId: rider.id,
-        status: status
+        status: status,
+        search: search
       });
 
       // console.log("riderOrders:",riderOrders)
@@ -1639,13 +1653,18 @@ class RiderController extends BaseController {
       }
 
       // Check if the assigned rider matches the logged-in rider
-      if (order.assigned_rider !== rider.id) {
+      if (
+        order.assigned_rider !== null &&
+        order.assigned_rider !== rider.id
+      ) {
         return res.status(200).json({
           status: 0,
           msg: "This order is not assigned to the logged-in rider."
         });
       }
       // console.log(order, "order")
+      // console.log("Assigned Rider:", order.assigned_rider, "Logged Rider:", rider.id);
+      // console.log("Final Order:", order);
 
       // 🔥 NEW — Get updated job status based on stages
       const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
@@ -1697,10 +1716,14 @@ class RiderController extends BaseController {
         via.attachments = via_attachments; // Add attachments array to each via
       }
 
+      const formatted_end_date = order?.end_date
+        ? helpers.formatDateToUK(order.end_date)
+        : "Will be available after rider accepts the order";
+
       order = {
         ...order,
         formatted_start_date: helpers.formatDateToUK(order?.start_date),
-        formatted_end_date: helpers.formatDateToUK(order?.end_date),
+        formatted_end_date: formatted_end_date,
         encodedId: encodedId,
         parcels: parcels,
         order_stages: order_stages,
@@ -2449,12 +2472,6 @@ class RiderController extends BaseController {
       if (!order_id) {
         return res.status(200).json({ status: 0, msg: "Invalid request ID." });
       }
-      if (!receiver_name || !receiver_signature) {
-        return res.status(200).json({
-          status: 0,
-          msg: "Receiver name and signature are required"
-        });
-      }
 
       const request = await this.rider.getRequestById(
         order_id,
@@ -2479,7 +2496,22 @@ class RiderController extends BaseController {
         return res.status(200).json({ status: 0, msg: "Request is not found." });
       }
 
+      const vias = await this.rider.getViasByQuoteId(order_id);
 
+      const normalize = (str) => (str || "").trim().toLowerCase();
+
+      const isReceiverRequired = vias?.some(
+        (via) =>
+          normalize(via?.address) === normalize(stage_row?.address) &&
+          via?.via_delivery_option === "delivery"
+      );
+
+      if (isReceiverRequired && (!receiver_name || !receiver_signature)) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Receiver name and signature are required"
+        });
+      }
 
       // ✅ Prevent marking a stage as completed if it is already completed
       if (stage_row.status === "completed") {
@@ -3650,8 +3682,10 @@ class RiderController extends BaseController {
       const paypal_payment_methods =
         await this.rider.getWithdrawalPamentMethods(riderId, "paypal");
 
+
       const formattedEarnings = earningsData.earnings.map((earning) => ({
         ...earning,
+encodedId: helpers.doEncode(String(earning.order_id)), // Encode the earning ID
         amount: helpers.formatAmount(earning.amount) // Assuming each earning has an `amount` field
       }));
 

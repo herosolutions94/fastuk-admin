@@ -39,6 +39,7 @@ socketServer = http.createServer(app);
 //   socketServer = http.createServer(app);
 //   console.log('HTTP server setup complete');
 // }
+
   
 
 const io = new Server(socketServer, {
@@ -146,15 +147,17 @@ const allowedOrigins = ['http://localhost:3000', 'http://localhost:4000','https:
 
 app.use(cors({
     origin: (origin, callback) => {
-      // console.log("CORS origin:", origin);
+    // console.log("Incoming Origin:", origin); // ✅ THIS LINE
         if (!origin || allowedOrigins.includes(origin)) {
             callback(null, origin);
         } else {
+                console.log("Blocked Origin:", origin); // optional debug
+
             callback(new Error('Not allowed by CORS'));
         }
     },
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization','accept', 'Webhook-Signature'],
+    allowedHeaders: ['Content-Type', 'Authorization','accept', 'Webhook-Signature', "x-api-key", "x-app-id"],
     credentials: true // Allows cookies and other credentials
 }));
 
@@ -282,6 +285,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(siteInfoMiddleware)
 app.use(authenticationMiddleware)
+
 app.use('/api', riderRoutes);
 app.use('/api', memberRoutes);
 app.use('/api', messageRoutes);

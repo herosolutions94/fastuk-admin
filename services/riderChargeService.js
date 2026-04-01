@@ -23,7 +23,7 @@ module.exports.processRiderCharges = async ({
 
     if (totalHandballCharges > 0) {
         riderHandballEarning =
-            (totalHandballCharges * riderPercentage) / 100;
+            Number(totalHandballCharges);;
 
         await helpers?.insertEarnings({
             user_id: rider_id,

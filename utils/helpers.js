@@ -148,7 +148,7 @@ module.exports = {
     }
 
     // Sort the rest alphabetically by address
-    rest.sort((a, b) => a.address.localeCompare(b.address));
+    // rest.sort((a, b) => a.address.localeCompare(b.address));
 
     // Put the top addresses first
     return [...top, ...rest];
@@ -455,7 +455,7 @@ module.exports = {
     }
 
   },
-  calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_price, selectedVehicle) {
+  calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_price, selectedVehicle, handball_work) {
     try {
       // 1️⃣ Fetch vehicle row using selectedVehicleId
       const vehicle = await vehicleModel.findById(selectedVehicle);
@@ -464,6 +464,9 @@ module.exports = {
 
       const minMileage = parseFloat(vehicle.min_mileage || 0);
       const minPrice = parseFloat(vehicle.min_price || 0);
+          const handballCharges = parseFloat(vehicle.handball_charges || 0);
+          // console.log("handballCharges from vehicle:", handballCharges);
+
 
       // 2️⃣ Handle remote_price
       if (remote_price === null || remote_price === 'null' || remote_price === '' || remote_price === undefined) {
@@ -475,14 +478,38 @@ module.exports = {
       // 3️⃣ Apply mileage condition
       let totalAmount;
       if (totalDistance > minMileage) {
-        // Normal calculation
-        totalAmount = parseFloat(price) * parseFloat(totalDistance);
+        // First minMileage → fixed minPrice
+    const minMileageCharge = minPrice;
+
+     // Remaining miles → normal per-mile calculation
+    const remainingMiles = totalDistance - minMileage;
+    const remainingCharge = remainingMiles * price;
+
+     totalAmount = minMileageCharge + remainingCharge + remote_price;
+        
       } else {
-        // Use minimum price
-        totalAmount = parseFloat(minPrice);
+         // Total distance <= minMileage → use minPrice
+    totalAmount = minPrice+ remote_price;
       }
 
-      totalAmount += parseFloat(remote_price);
+      // totalAmount += parseFloat(remote_price);
+
+      // console.log("Initial totalAmount (without handball):", totalAmount);
+
+      // 3️⃣ ✅ Add handball charges if checkbox was checked
+  // Ensure numeric addition
+let handballAmount = 0;
+if (
+  handball_work === true ||
+  handball_work === "true" ||
+  handball_work === 1 ||
+  handball_work === "1"
+) {
+  handballAmount = handballCharges;
+}
+
+// console.log("handball_work:", handball_work, "handballCharges:", handballCharges, "totalAmount after handball:", totalAmount);
+
 
       // 4️⃣ Apply tax
       const taxPercentage = parseFloat(siteSettings?.site_processing_fee || 0);
@@ -490,7 +517,10 @@ module.exports = {
 
       const taxAmount = parseFloat((totalAmount * taxPercentage) / 100);
       const vatAmount = parseFloat((totalAmount * vatPercentage) / 100);
-      const grandTotal = parseFloat(totalAmount + vatAmount);
+      // console.log("vatAmount:", vatAmount);
+      const grandTotal = parseFloat(totalAmount + vatAmount+ handballAmount);
+
+      console.log("grandTotal:", grandTotal);
 
       // console.log("Total Amount:", totalAmount,taxAmount,vatAmount,grandTotal);
 
@@ -1314,6 +1344,30 @@ toMySQLDateTime: function (date) {
     return promoCode;
   },
 
+  calculateRiderPrice : async ({
+  totalMiles = 0,
+  minMiles = 0,
+  minPrice = 0,
+  riderPrice = 0,
+}) => {
+  const total = Number(totalMiles);
+  const minimumMiles = Number(minMiles);
+  const minimumPrice = Number(minPrice);
+  const perMilePrice = Number(riderPrice);
+
+  if (total <= 0) return 0;
+
+  if (total <= minimumMiles) {
+    return minimumPrice;
+  }
+
+  const remainingMiles = total - minimumMiles;
+  const extraCost = remainingMiles * perMilePrice;
+  console.log("remainingMiles:", remainingMiles, "extraCost:", extraCost, minimumMiles, minimumPrice, perMilePrice);
+
+  return Number((minimumPrice + extraCost).toFixed(2));
+},
+
 
   insertEarnings: async function (data) {
     try {
@@ -1731,5 +1785,6 @@ toMySQLDateTime: function (date) {
 
 
 };
+
 
 
