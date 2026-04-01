@@ -254,7 +254,7 @@ class MemberModel extends BaseModel {
             GROUP BY 
                 rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
             ORDER BY 
-                rq.id DESC
+                rq.updated_time DESC
         `;
 
       // console.log("Fetching orders for user:", userId, "with status:", status);
@@ -721,5 +721,50 @@ WHERE n.user_id = ? AND n.mem_type = ?
       throw error;
     }
   }
+
+  async getDeliveryFeedbackByOrderIdAndMemberId(order_id, member_id) {
+        try {
+            const [rows] = await pool.query('SELECT id FROM delivery_feedback WHERE order_id = ? AND member_id = ?', [order_id, member_id]);
+            return rows; // Ensure this returns an array
+        } catch (error) {
+            console.error('Database error:', error);
+            throw new Error('Failed to fetch delivery feedback');
+        }
+    }
+
+    async insertDeliveryFeedback(order_id, member_id, rating, recommend, comments) {
+      try {
+        const query = `INSERT INTO delivery_feedback 
+      (order_id, member_id, rating, recommend, comments)
+      VALUES (?, ?, ?, ?, ?)`
+      ;
+
+        const values = [order_id, member_id, rating, recommend, comments];
+
+        const [result] = await pool.query(query, values);
+        return result; // Returning result for debugging
+    } catch (error) {
+    console.error("Insert feedback error:", error);
+    throw error;
+  }
+}
+
+
+    async insertFeedbackService(review_id, service_name) {
+      try {
+        const query = `INSERT INTO feedback_services 
+          (review_id, service_name)
+          VALUES (?, ?)`
+      ;
+
+        const values = [review_id, service_name];
+
+        const [result] = await pool.query(query, values);
+        return result; // Returning result for debugging
+     } catch (error) {
+    console.error("Insert service error:", error);
+    throw error;
+  }
+    }
 }
 module.exports = MemberModel;

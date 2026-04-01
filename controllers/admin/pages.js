@@ -80,7 +80,7 @@ class PagesController extends BaseController {
                     'image1', 'sec1_image_0', 'sec1_image_1', 'sec1_image_2', 'sec1_image_3',
                     'sec2_image_0', 'sec2_image_1', 'sec2_image_2', 'sec2_image_3', 'image10', 'image11', 'video',
                     'sec5_image_0', 'sec5_image_1', 'sec5_image_2', 'sec5_image_3', 'sec6_image_0', 'sec6_image_1', 'sec6_image_2', 'sec6_image_3',
-                    'sec7_image_0', 'sec7_image_1', 'sec7_image_2', 'sec7_image_3', 'image20'
+                    'sec7_image_0', 'sec7_image_1', 'sec7_image_2', 'sec7_image_3', 'image20', 'image21'
                 ];
 
                 const sourceDir = path.join(__dirname, '../../uploads');
@@ -379,6 +379,9 @@ class PagesController extends BaseController {
                     abt_image3: { width: 750, height: 650 },
                     abt_image5: { width: 800, height: 600 },
                     abt_image10: { width: 800, height: 560 },
+                    abt_image11: { width: 800, height: 560 },
+                    abt_image12: { width: 800, height: 560 },
+                    abt_image13: { width: 800, height: 560 },
                     default: { width: 600, height: 400 },
                 };
 

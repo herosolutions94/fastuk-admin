@@ -87,7 +87,7 @@ class MemberController extends BaseController {
   }
   async createReviewForRequest(req, res) {
     try {
-      const { token, memType, review, rating, request_id } = req.body;
+      const { token, memType, review, rider_review, rating, request_id } = req.body;
 
       if (!token) {
         return res.status(200).json({ status: 0, msg: "Token is required." });
@@ -111,6 +111,7 @@ class MemberController extends BaseController {
       const created_at = helpers.getUtcTimeInSeconds();
       let cleanedData = {
         review: typeof review === "string" ? review.trim() : "",
+        rider_review: typeof rider_review === "string" ? rider_review.trim() : "",
         rating: rating.trim(),
         created_at: created_at,
         user_id: user?.id,
@@ -131,6 +132,19 @@ class MemberController extends BaseController {
             .json({ status: 0, msg: "Request quote not found." });
         }
         const userRow = await this.rider.findById(requestQuote.assigned_rider);
+
+        const existingReview = await this.rider.getRequestReviewByUserAndRequest(
+          user.id,
+          request_id
+        );
+
+        if (existingReview) {
+          return res.status(200).json({
+            status: 0,
+            msg: "Review already submitted for this request.",
+          });
+        }
+
         const requestReview = await this.rider.createRequestReview(cleanedData);
         const orderDetailsLink = `/rider-dashboard/order-details/${helpers.doEncode(
           request_id
@@ -617,8 +631,11 @@ class MemberController extends BaseController {
       promo_code,
       totalDistance,
       remote_price,
-      price
+      price,
+      handball_work
     } = req.body;
+
+    // console.log("Received paymentIntent request with body:", req.body.handball_work);
 
     // console.log("paymentIntent called with body:", req.body);
 
@@ -666,7 +683,8 @@ class MemberController extends BaseController {
         siteSettings,
         price,
         remote_price,
-        selectedVehicle
+        selectedVehicle,
+        handball_work
       );
       const total_distance = order_amount_details?.totalDistance;
       let total_amount = order_amount_details?.totalAmount;
@@ -2182,13 +2200,6 @@ class MemberController extends BaseController {
 
 
 
-
-
-
-
-
-
-
   async createRequestQuote(req, res) {
     this.tokenModel = new Token();
 
@@ -2256,8 +2267,11 @@ class MemberController extends BaseController {
         via_pickup_date,
         via_pickup_start_date,
         via_pickup_end_date,
-        round_trip
+        round_trip,
+        handball_work
       } = req.body;
+
+      // console.log("handball_work:", req.body.handball_work);
 
       const requiredFields = [
         "selectedVehicle",
@@ -2427,8 +2441,10 @@ class MemberController extends BaseController {
         siteSettings,
         price,
         remote_price,
-        selectedVehicle
+        selectedVehicle,
+        handball_work
       );
+
       // console.log("order_amount_details:", order_amount_details);return;
       let total_distance = order_amount_details?.totalDistance;
       let total_amount = Number(order_amount_details.totalAmount);
@@ -2508,7 +2524,6 @@ class MemberController extends BaseController {
       let payment_intent = frontend_payment_intent_id;
       let requestQuoteId = "";
       // console.log("payment_method:", payment_method);return;
-
       if (payment_method === "credit-card") {
         let requestData = {
           user_id: userId, // Save the userId in the request
@@ -2557,7 +2572,8 @@ class MemberController extends BaseController {
               ? "yes"
               : "no",
 
-          total_distance: total_distance
+          total_distance: total_distance,
+          handball_work: Number(handball_work) === 1 ? 1 : 0
 
           // Pass start_date from the frontend
         };
@@ -2613,7 +2629,6 @@ class MemberController extends BaseController {
             ),
           };
         }
-        // console.log("Round trip:", requestData?.round_trip);
         requestQuoteId = await this.pageModel.createRequestQuote(requestData);
 
       } else if (payment_method === "saved-card") {
@@ -2754,6 +2769,8 @@ class MemberController extends BaseController {
               round_trip === "yes"
               ? "yes"
               : "no",
+          handball_work: Number(handball_work) === 1 ? 1 : 0,
+
 
           delivery_time_option,
           total_distance: total_distance
@@ -2869,6 +2886,8 @@ class MemberController extends BaseController {
               round_trip === "yes"
               ? "yes"
               : "no",
+          handball_work: Number(handball_work) === 1 ? 1 : 0,
+
           total_distance: total_distance
         };
 
@@ -2969,6 +2988,8 @@ class MemberController extends BaseController {
               round_trip === "yes"
               ? "yes"
               : "no",
+          handball_work: Number(handball_work) === 1 ? 1 : 0,
+
 
           delivery_time_option,
           total_distance: total_distance
@@ -3069,6 +3090,8 @@ class MemberController extends BaseController {
               round_trip === "yes"
               ? "yes"
               : "no",
+          handball_work: Number(handball_work) === 1 ? 1 : 0,
+
 
           delivery_time_option,
           total_distance: total_distance
@@ -3174,6 +3197,8 @@ class MemberController extends BaseController {
                 round_trip === "yes"
                 ? "yes"
                 : "no",
+            handball_work: Number(handball_work) === 1 ? 1 : 0,
+
             total_distance: total_distance
           };
           if (
@@ -3409,7 +3434,7 @@ class MemberController extends BaseController {
 
       // const unique_addresses = helpers.getUniqueAddresses(orderDetailsRecords);
       const unique_addresses = helpers.getUniqueAddresses(orderDetailsRecords, source_full_address);
-
+      console.log(unique_addresses);
 
       await this.pageModel.insertRequestStages(unique_addresses, requestQuoteId);
 
@@ -4363,9 +4388,14 @@ class MemberController extends BaseController {
           const encodedId = helpers.doEncode(String(order.id));
 
           const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
+          const formatted_end_date = order?.end_date
+        ? helpers.formatDateToUK(order.end_date)
+        : "Will be available after rider accepts the order";
 
           return {
             ...order,
+            formatted_start_date: helpers.formatDateToUK(order?.start_date),
+        formatted_end_date: formatted_end_date,
             encodedId,
             jobStatus
           };
@@ -4436,9 +4466,14 @@ class MemberController extends BaseController {
       for (const order of memberOrders) {
         const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
         const encodedId = helpers.doEncode(String(order.id));
+        const formatted_end_date = order?.end_date
+        ? helpers.formatDateToUK(order.end_date)
+        : "Will be available after rider accepts the order";
 
         ordersWithEncodedIds.push({
           ...order,
+          formatted_start_date: helpers.formatDateToUK(order?.start_date),
+        formatted_end_date: formatted_end_date,
           encodedId,
           jobStatus,
         });
@@ -4760,7 +4795,6 @@ class MemberController extends BaseController {
 
       const siteSettings = res.locals.adminData;
 
-      // console.log("order:",order)
 
 
       // Return the order details along with parcels and vias
@@ -5725,7 +5759,16 @@ class MemberController extends BaseController {
         const distance = parseFloat(order.distance || 0); // in km
         const riderPrice = parseFloat(order.rider_price || 0); // price per km
 
-        const formattedRiderAmount = parseFloat((distance * riderPrice)); // multiply and format
+        // const formattedRiderAmount = parseFloat((distance * riderPrice)); // multiply and format'
+
+
+        const formattedRiderAmount = await helpers.calculateRiderPrice({
+          totalMiles: distance,
+          minMiles: order?.selectedVehicle?.rider_min_mileage,
+          minPrice: order?.selectedVehicle?.rider_min_price,
+          riderPrice: order?.rider_price,
+        });
+
         if (formattedAmount > 0) {
           const created_time = Math.floor(Date.now() / 1000); // UTC seconds
           const earningsData = {
@@ -6189,6 +6232,100 @@ class MemberController extends BaseController {
     } catch (error) {
       console.error("Error fetching invoices:", error);
       res.status(200).json({ error: "Internal server error" });
+    }
+  }
+
+  async submitDeliveryFeedback(req, res) {
+    try {
+      const { token, memType, order_id, rating, services, recommend, comments } = req.body;
+
+      if (!token || !memType || !order_id) {
+        return res.status(400).json({
+          status: 0,
+          msg: "Token, member type and order id are required."
+        });
+      }
+
+      // Validate member type
+      if (memType === "rider") {
+        return res.status(400).json({ status: 0, msg: "Invalid member type." });
+      }
+
+      // Validate token and get member
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+      if (userResponse.status === 0) {
+        return res.status(400).json(userResponse);
+      }
+
+      const member = userResponse.user;
+      if (!member) {
+        return res.status(404).json({ status: 0, msg: "Invalid token." });
+      }
+
+      if (!token) {
+        return res.json({
+          status: 0,
+          msg: "Token missing",
+        });
+      }
+
+      const userId = member?.id;
+
+      if (!order_id) {
+        return res.json({
+          status: 0,
+          msg: "Order ID required",
+        });
+      }
+
+      const orderCheck = await RequestQuoteModel.getRequestQuoteById(order_id);
+      if (!orderCheck) {
+        return res
+          .status(200)
+          .json({ status: 0, msg: "Order not found." });
+      }
+
+
+      // prevent duplicate review
+      const reviewCheck = await this.member.getDeliveryFeedbackByOrderIdAndMemberId(order_id, userId);
+
+      if (reviewCheck && reviewCheck.length > 0) {
+        return res.json({
+          status: 0,
+          msg: "Feedback already submitted",
+        });
+      }
+
+      // insert review
+      const reviewInsert = await this.member.insertDeliveryFeedback(
+        order_id,
+        userId,
+        rating || null,
+        recommend || null,
+        comments || null
+      );
+
+      const review_id = reviewInsert.insertId;
+
+      // Insert services
+      if (services && Array.isArray(services) && services.length > 0) {
+        for (const service of services) {
+          await this.member.insertFeedbackService(review_id, service);
+        }
+      }
+
+      return res.json({
+        status: 1,
+        msg: "Review submitted successfully",
+      });
+    } catch (error) {
+      console.error(error);
+
+      return res.json({
+        status: 0,
+        msg: "Something went wrong",
+      });
     }
   }
 

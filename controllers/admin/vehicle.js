@@ -54,7 +54,9 @@ class VehicleController extends BaseController {
                 max_height,
                 max_length,
                 max_width,
-                cancellation_charges
+                cancellation_charges,
+                rider_min_mileage,
+                rider_min_price
             } = req.body;
             // console.log("req.body",req.body);  // To check if name and description are being sent
 
@@ -87,9 +89,11 @@ class VehicleController extends BaseController {
                 business_user_price: typeof business_user_price === 'string' ? business_user_price.trim().toLowerCase() : '',
                 admin_price: typeof admin_price === 'string' ? admin_price.trim().toLowerCase() : '',
                 weight: typeof weight === 'string' ? weight.trim().toLowerCase() : '',
-                distance: typeof distance === 'string' ? distance.trim().toLowerCase() : '',
+                // distance: typeof distance === 'string' ? distance.trim().toLowerCase() : '',
                 min_mileage: typeof min_mileage === 'string' ? min_mileage.trim().toLowerCase() : '',
                 min_price: typeof min_price === 'string' ? min_price.trim().toLowerCase() : '',
+                rider_min_mileage: typeof rider_min_mileage === 'string' ? rider_min_mileage.trim().toLowerCase() : '',
+                rider_min_price: typeof rider_min_price === 'string' ? rider_min_price.trim().toLowerCase() : '',
                 waiting_charges: typeof waiting_charges === 'string' ? waiting_charges.trim().toLowerCase() : '',
                 handball_charges: typeof handball_charges === 'string' ? handball_charges.trim().toLowerCase() : '',
                 cancellation_charges: typeof cancellation_charges === 'string' ? cancellation_charges.trim().toLowerCase() : '',

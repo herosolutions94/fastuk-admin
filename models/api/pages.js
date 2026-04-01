@@ -21,8 +21,8 @@ class PageModel extends BaseModel {
             payment_method, payment_method_id, status, start_date, created_date, notes, rider_price, promo_code, discount, 
             pickup_time_option, pickup_start_time, pickup_start_date, pickup_end_date, pickup_end_time, delivery_time_option, 
             delivery_start_date, delivery_start_time, delivery_end_date, delivery_end_time, pickup_time, pickup_date, delivery_time, 
-            delivery_date,round_trip,distance,source_lat,source_long,vat,is_ready,ready_time,refund_response,is_refunded)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?,?,?,?,?,?,?,?,?,?,?)
+            delivery_date,round_trip,distance,source_lat,source_long,vat,is_ready,ready_time,refund_response,is_refunded,handball_work)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?, ?, ?, ?, ?, ?, ?,?, ?, ?, ?,?,?,?,?,?,?,?,?,?,?,?)
         `;
         const values = [
             data.user_id ?? null,
@@ -78,6 +78,7 @@ class PageModel extends BaseModel {
             data.ready_time || null,
             data.refund_response || null,
             data.is_refunded || 0,
+            data.handball_work || 0,
         ];
         // console.log("Rount trip model:", data.round_trip);
 

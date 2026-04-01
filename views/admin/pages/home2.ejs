@@ -156,37 +156,26 @@
                                 </div>
 
                                 <div class="row">
-                                    
-                                        <div class="col-md-6">
-                                            <div class="txtGrp">
-                                                <label class="form-label">Number</label>
-                                                <input type="text" name="banner_number1"
-                                                    value="<%= contentData?.banner_number1 || '' %>"
-                                                    class="input">
+                                         <% for (let i=0; i < 6; i++) { %>
+                                            <div class="col-md-6">
+
+                                                <div class="txtGrp">
+                                                    <label class="form-label">Heading</label>
+                                                    <input name="banner_heading_<%= i %>"
+                                                        value="<%= contentData[`banner_heading_${i}`] || '' %>"
+                                                        class="input">
+                                                </div>
+
+                                                <div class="txtGrp">
+                                                    <label class="form-label">Text</label>
+                                                     <input name="banner_text_<%= i %>"
+                                                        value="<%= contentData[`banner_text_${i}`] || '' %>"
+                                                        class="input">
+                                                </div>
+
                                             </div>
-                                            <div class="txtGrp">
-                                                <label class="form-label">Heading</label>
-                                                <input name="banner_heading1"
-                                                    value="<%= contentData?.banner_heading1 || '' %>"
-                                                    class="input">
-                                            </div>
-                                        </div>
-                                         <div class="col-md-6">
-                                            <div class="txtGrp">
-                                                <label class="form-label">Number</label>
-                                                <input type="text" name="banner_number2"
-                                                    value="<%= contentData?.banner_number2 || '' %>"
-                                                    class="input">
-                                            </div>
-                                            <div class="txtGrp">
-                                                <label class="form-label">Heading</label>
-                                                <input name="banner_heading2"
-                                                     value="<%= contentData.banner_heading2 || '' %>" 
-                                                    class="input">
-                                            </div>
-                                        </div>
-                                        
-                                </div>
+                                            <% } %>
+                                    </div>
                             </div>
                         </div>
                     </div>
@@ -569,6 +558,80 @@
                         <div class="card">
                             <div class="card-header">
                                 <h5>Section 6</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="row">
+                                        <div class="col-md-4">
+                                            <div class="card">
+                                                <div class="card-body preview">
+                                                    <h5 class="card-title">Image</h5>
+                                                    <div class="blog_img">
+                                                        <img src="<%=/uploads/+ contentData.image21 %>"
+                                                            class="card-img-top" alt="" />
+                                                    </div>
+                                                    <div class="in-upload">
+                                                        <button type="button" class="uploadImg">
+                                                            <i class="fa-regular fa-image"></i>choose
+                                                            another
+                                                            image
+                                                        </button>
+                                                        <input type="file" name="image21" class="uploadFile" />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-8">
+                                            <div class="row">
+                                                <div class="col-md-12">
+                                                    <div class="txtGrp">
+                                                        <label class="form-label" for="detail">Description</label>
+                                                        <textarea class="ckeditor" name="description5"
+                                                            id="description5"><%= contentData.description5 || '' %></textarea>
+                                                    </div>
+                                                </div>
+
+                                            </div>
+                                        </div>
+                                        <div class="clearfix"></div>
+
+                                    </div>
+                                <div class="col-md-12 full_width">
+                                    <div class="row">
+                                        <div class="col-md-12">
+                                            <div class="row">
+                                                
+                                                <div class="clearfix"></div>
+                                                <div class="col-md-6">
+                                                    <div class="txtGrp">
+                                                        <label class="form-label">Link Text
+                                                        </label>
+                                                        <input type="text" name="link_text3"
+                                                            value="<%= contentData.link_text3 || '' %>" class="input">
+                                                    </div>
+                                                </div>
+                                                <div class="col-md-6">
+                                                    <div class="txtGrp">
+                                                        <label class="form-label">Link URL
+                                                        </label>
+                                                        <input type="text" name="link_url3"
+                                                            value="<%= contentData.link_url3 || '' %>" class="input">
+                                                    </div>
+                                                </div>
+                                                <div class="clearfix"></div>
+                                            </div>
+                                        </div>
+                                       
+                                    </div>
+                                </div>
+                                <div class="clearfix"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-12">
+                        <div class="card">
+                            <div class="card-header">
+                                <h5>Section 7</h5>
                             </div>
                             <div class="card-body">
                                 <div class="col-md-12 full_width">
