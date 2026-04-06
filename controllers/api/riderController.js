@@ -1174,9 +1174,14 @@ class RiderController extends BaseController {
         const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
         // console.log("jobStatus:", jobStatus)
         const encodedId = helpers.doEncode(String(order.id));
+        const formatted_end_date = order?.end_date
+          ? helpers.formatDateToUK(order.end_date)
+          : "Will be available after rider accepts the order";
 
         ordersWithEncodedIds.push({
           ...order,
+          formatted_start_date: helpers.formatDateToUK(order?.start_date),
+          formatted_end_date: formatted_end_date,
           encodedId,
           jobStatus,
         });
@@ -2472,6 +2477,7 @@ class RiderController extends BaseController {
       if (!order_id) {
         return res.status(200).json({ status: 0, msg: "Invalid request ID." });
       }
+      // console.log(rider, "rider")
 
       const request = await this.rider.getRequestById(
         order_id,
@@ -2667,32 +2673,10 @@ class RiderController extends BaseController {
       const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
 
       const newStatus = 'completed';
+             
 
-
-      const notificationText = `Parcel has been marked as "${newStatus}" for booking ${requestData.booking_id}`;
-      await helpers.storeNotification(
-        user?.id, // The user ID from request_quote
-        "user", // The user's member type
-        rider.user.id, // Use rider's ID as the sender
-        notificationText,
-        orderDetailsLink
-      );
-
-      let adminData = res.locals.adminData;
-
-
-      const result = await helpers.sendEmail(
-        user?.email,
-        `Parcel marked as "${newStatus}" for booking ${requestData.booking_id}`,
-        "mark-as-completed",
-
-        {
-          adminData,
-          order,
-          stage: updatedStage,
-          type: "user",
-        }
-      );
+      // ✅ Only send stage email if NOT last stage
+     
 
       // arrival_time stored in DB
       const arrivalTime = parseInt(stage_row.arrival_time || 0);   // seconds
@@ -2761,6 +2745,37 @@ class RiderController extends BaseController {
       // ✅ Update stage once with all data
       await this.rider.updateOrderStageData(stage_id, updateData);
 
+       const allStages = await this.rider.getOrderStages(order_id);
+
+      const allCompleted = allStages.every((s) => s.status === "completed");
+
+       if (!allCompleted) {
+        const notificationText = `Your rider has completed a delivery stage for booking ${requestData.booking_id}.`;
+        await helpers.storeNotification(
+          user?.id, // The user ID from request_quote
+          "user", // The user's member type
+          rider.user.id, // Use rider's ID as the sender
+          notificationText,
+          orderDetailsLink
+        );
+
+        let adminData = res.locals.adminData;
+
+
+        const result = await helpers.sendEmail(
+          user?.email,
+          `Delivery update: Stage completed for booking ${requestData.booking_id}`,
+          "mark-as-completed",
+
+          {
+            adminData,
+            order,
+            stage: updatedStage,
+            type: "user",
+          }
+        );
+      }
+
       // const newStatus = 'completed';
       // await this.rider.updateOrderStageData(stage_id, {
       //   status: newStatus,
@@ -2769,8 +2784,8 @@ class RiderController extends BaseController {
       // });
 
       // 🔥 FIRST: check and update job status
-      const allStages = await this.rider.getOrderStages(order_id);
-      const allCompleted = allStages.every((s) => s.status === "completed");
+      // const allStages = await this.rider.getOrderStages(order_id);
+      // const allCompleted = allStages.every((s) => s.status === "completed");
 
       const dueAmount = await RequestQuoteModel.calculateDueAmount(order_id);
       const noDueLeft = parseFloat(dueAmount) <= 0;
@@ -2786,6 +2801,36 @@ class RiderController extends BaseController {
         const updatedRequest = await helpers.updateRequestStatus(
           order_id,
           "completed"
+        );
+
+        // ✅ NEW: Notify user that job is fully completed
+        const jobCompletedText = `Your rider has completed your delivery for booking ${requestData.booking_id}.`;
+
+        await helpers.storeNotification(
+          user?.id,
+          "user",
+          rider.user.id,
+          jobCompletedText,
+          orderDetailsLink
+        );
+
+        const allStages = await this.rider.getOrderStages(order_id);
+        await this.rider.attachStageAttachments(allStages);
+        order.stages = allStages;
+
+        // ✅ OPTIONAL: Send completion email
+        await helpers.sendEmail(
+          user?.email,
+          `Delivery completed for booking ${requestData.booking_id}`,
+          "job-completed", // create template if needed
+          {
+            adminData: res.locals.adminData,
+            order,
+            rider: rider.user,
+            stages: allStages, // ✅ VERY IMPORTANT
+            BASE_URL: process.env.BASE_URL, // optional
+            type: "user",
+          }
         );
 
 
@@ -3685,7 +3730,7 @@ class RiderController extends BaseController {
 
       const formattedEarnings = earningsData.earnings.map((earning) => ({
         ...earning,
-encodedId: helpers.doEncode(String(earning.order_id)), // Encode the earning ID
+        encodedId: helpers.doEncode(String(earning.order_id)), // Encode the earning ID
         amount: helpers.formatAmount(earning.amount) // Assuming each earning has an `amount` field
       }));
 

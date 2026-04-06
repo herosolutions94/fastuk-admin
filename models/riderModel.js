@@ -179,7 +179,20 @@ class RiderModel extends BaseModel {
     return rider;
   }
 
+async attachStageAttachments(stages) {
+  for (let stage of stages) {
+    const attachments = await helpers.getDataFromDB(
+      "order_stages_attachments",
+      { stage_id: stage.id }
+    );
 
+    stage.attachments = attachments.map((att) => ({
+      ...att,
+      file_url: `${process.env.BASE_URL}/uploads/${att.file_name}`
+    }));
+  }
+  return stages;
+}
 
 
 
@@ -593,6 +606,8 @@ AND COALESCE(rq.is_cancelled, '') NOT IN ('approved', 'requested')
         AND (
           rq.booking_id LIKE ?
           OR m.full_name LIKE ?
+          OR m.email LIKE ?
+          OR m.mem_phone LIKE ?
           OR rq.source_address LIKE ?
           OR rq.dest_address LIKE ?
         )
@@ -601,6 +616,8 @@ AND COALESCE(rq.is_cancelled, '') NOT IN ('approved', 'requested')
       const searchValue = `%${search}%`;
 
       values.push(
+        searchValue,
+        searchValue,
         searchValue,
         searchValue,
         searchValue,
