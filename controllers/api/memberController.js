@@ -1,4 +1,4 @@
-// controllers/api/RiderController.js
+// controllers/api/MemberController.js
 const BaseController = require("../baseController");
 const Member = require("../../models/memberModel");
 const Rider = require("../../models/riderModel");
@@ -4143,11 +4143,20 @@ class MemberController extends BaseController {
             : {};
         const attachments = [];
 
-        if (attachments_ob?.driving_license) {
-          attachments.push({
-            rider_id: userId,
-            filename: attachments_ob?.driving_license,
-            type: "driving_license",
+        // if (attachments_ob?.driving_license) {
+        //   attachments.push({
+        //     rider_id: userId,
+        //     filename: attachments_ob?.driving_license,
+        //     type: "driving_license",
+        //   });
+        // }
+         if (Array.isArray(attachments_ob.driving_license)) {
+          attachments_ob.driving_license.forEach((pic) => {
+            attachments.push({
+              rider_id: userId,
+              filename: pic,
+              type: "driving_license",
+            });
           });
         }
         if (attachments_ob?.insurance_certificate) {
@@ -4389,13 +4398,13 @@ class MemberController extends BaseController {
 
           const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
           const formatted_end_date = order?.end_date
-        ? helpers.formatDateToUK(order.end_date)
-        : "Will be available after rider accepts the order";
+            ? helpers.formatDateToUK(order.end_date)
+            : "Will be available after rider accepts the order";
 
           return {
             ...order,
             formatted_start_date: helpers.formatDateToUK(order?.start_date),
-        formatted_end_date: formatted_end_date,
+            formatted_end_date: formatted_end_date,
             encodedId,
             jobStatus
           };
@@ -4425,7 +4434,7 @@ class MemberController extends BaseController {
   };
   getUserOrders = async (req, res) => {
     try {
-      const { token, memType, status } = req.body;
+      const { token, memType, status, search } = req.body;
       // console.log(req.body)
 
       if (!token) {
@@ -4449,6 +4458,7 @@ class MemberController extends BaseController {
       const memberOrders = await this.member.getOrdersByUserAndStatus({
         userId: member.id,
         status: status,
+        search: search,
       });
       // console.log("status:", status);
       // console.log("memberOrders:", memberOrders);
@@ -4467,13 +4477,13 @@ class MemberController extends BaseController {
         const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
         const encodedId = helpers.doEncode(String(order.id));
         const formatted_end_date = order?.end_date
-        ? helpers.formatDateToUK(order.end_date)
-        : "Will be available after rider accepts the order";
+          ? helpers.formatDateToUK(order.end_date)
+          : "Will be available after rider accepts the order";
 
         ordersWithEncodedIds.push({
           ...order,
           formatted_start_date: helpers.formatDateToUK(order?.start_date),
-        formatted_end_date: formatted_end_date,
+          formatted_end_date: formatted_end_date,
           encodedId,
           jobStatus,
         });
@@ -5728,12 +5738,23 @@ class MemberController extends BaseController {
         });
 
 
-        const notificationText = `Invoice is paid by the user.Now mark the request as completed`;
+        const riderNotification = `Customer has completed payment for booking ${order?.booking_id}. The job is now completed.`;
+
         await helpers.storeNotification(
-          order.assigned_rider, // The user ID from request_quote
-          "rider", // The user's member type
-          userId, // Use rider's ID as the sender
-          notificationText,
+          order.assigned_rider, // ✅ rider
+          "rider",
+          userId,               // ✅ user is sender
+          riderNotification,
+          orderDetailsLink
+        );
+
+        const userNotification = `Your payment has been received and your delivery for booking ${order?.booking_id} is now completed.`;
+
+        await helpers.storeNotification(
+          userId,               // ✅ user
+          "user",
+          order.assigned_rider, // ✅ rider is sender
+          userNotification,
           orderDetailsLink
         );
         // console.log(
@@ -5742,16 +5763,36 @@ class MemberController extends BaseController {
         //   "User ID:",
         //   userId
         // );
-        const result = await helpers.sendEmail(
-          userRow.email,
-          "Invoice paid for: " + order?.booking_id,
-          "request-invoice-paid",
-          {
-            adminData,
-            order: requestRow,
-            type: "user",
-          }
-        );
+
+        const allStages = await this.rider.getOrderStages(order.id);
+await this.rider.attachStageAttachments(allStages);
+order.stages = allStages;
+
+        await helpers.sendEmail(
+  rider.user.email,
+  `Payment received for booking ${order?.booking_id}`,
+  "request-invoice-paid",
+  {
+    adminData,
+    order,
+    rider: userRow,
+    type: "rider",
+  }
+);
+
+await helpers.sendEmail(
+  userRow.email,
+  `Delivery completed for booking ${order?.booking_id}`,
+  "job-completed",
+  {
+    adminData,
+    order,
+    rider: userRow,
+    stages: allStages, // ✅ attachments included
+    BASE_URL: process.env.BASE_URL,
+    type: "user",
+  }
+);
       }
 
       if (parseFloat(dueAmountchk) <= 0) {

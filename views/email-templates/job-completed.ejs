@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Your Delivery is Completed</title>
+  </head>
+  <body style="margin: 0; padding: 20px; background-color: #f4f4f4">
+    <div
+      style="
+        max-width: 900px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        border: 1px solid #d4e0df;
+      ">
+
+      <!-- Logo -->
+      <table style="width: 100%; text-align: center">
+        <tr>
+          <td>
+            <img src="<%= adminData.logo %>" style="width: 100px" />
+          </td>
+        </tr>
+      </table>
+
+      <!-- Message -->
+      <table style="width: 100%; margin-top: 30px">
+        <tr>
+          <td>
+            <h2 style="color: #28a745">
+              Your Delivery is Completed ✅
+            </h2>
+
+            <p>
+              Your rider has successfully completed your delivery.
+            </p>
+
+            <p>
+              Thank you for using our service!
+            </p>
+
+            <p><strong>Tracking ID:</strong> <%= order.tracking_id %></p>
+            <p><strong>Booking ID:</strong> <%= order.booking_id %></p>
+            <p><strong>Completed By:</strong> <%= rider.full_name %></p>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Locations -->
+      <table style="width: 100%; margin-top: 10px">
+        <tr>
+          <td style="width: 50%; padding: 10px">
+            <strong>Pickup Location</strong><br />
+            <%= order.source_address %>, <%= order.source_city %><br />
+            <%= order.source_postcode %>
+          </td>
+          <td style="width: 50%; padding: 10px">
+            <strong>Drop-off Location</strong><br />
+            <%= order.dest_address %>, <%= order.dest_city %><br />
+            <%= order.dest_postcode %>
+          </td>
+        </tr>
+      </table>
+
+      <!-- Parcels -->
+      <table style="width: 100%; margin-top: 20px; border: 1px solid #ddd">
+        <thead>
+          <tr style="background: #28a745; color: white">
+            <th style="padding: 12px">Parcel</th>
+            <th style="padding: 12px">Source</th>
+            <th style="padding: 12px">Destination</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% order.parcels.forEach(parcel => { %>
+          <tr>
+            <td style="padding: 12px">
+              <%= parcel.parcel_number %>
+            </td>
+            <td style="padding: 12px">
+              <%= parcel.source_address %>
+            </td>
+            <td style="padding: 12px">
+              <%= parcel.destination_address %>
+            </td>
+          </tr>
+          <% }) %>
+        </tbody>
+      </table>
+
+      <!-- Delivery Proof (Attachments per Stage) -->
+<% if (stages && stages.length > 0) { %>
+  <div style="margin-top: 30px;">
+    <h3 style="color:#333;">Delivery Proof</h3>
+
+    <% stages.forEach(stage => { %>
+      <% if (stage.attachments && stage.attachments.length > 0) { %>
+
+        <!-- Stage Heading -->
+        <div style="margin-top: 20px;">
+          <p style="font-weight:600; margin-bottom:10px;">
+            Stage <%= stage.id %>
+          </p>
+
+          <p style="font-size:13px; color:#555;">
+  <%= stage.address || '' %>
+</p>
+
+          <!-- Images -->
+          <div>
+            <% stage.attachments.forEach(att => { %>
+              <img 
+                src="<%= att.file_url %>" 
+                alt="Attachment"
+                style="
+                  width:120px;
+                  height:auto;
+                  margin:5px;
+                  border-radius:6px;
+                  border:1px solid #ddd;
+                  display:inline-block;
+                "
+              />
+            <% }) %>
+          </div>
+        </div>
+
+      <% } %>
+    <% }) %>
+
+  </div>
+<% } %>
+
+      <p style="margin-top: 20px">
+        We hope to serve you again soon 🚚
+      </p>
+    </div>
+  </body>
+</html>

@@ -43,7 +43,7 @@ const upload = multer({
    
   },
 }).fields([
-  { name: 'driving_license', maxCount: 1 },
+  { name: 'driving_license', maxCount: 2 },
   { name: 'mem_image', maxCount: 1 },
   { name: 'logo_image', maxCount: 1 },
   { name: 'favicon_image', maxCount: 1 },

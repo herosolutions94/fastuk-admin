@@ -143,7 +143,7 @@ class MemberModel extends BaseModel {
 
     return result;
   }
-  
+
 
   async updateOtp(memberId, otp) {
     const query = "UPDATE members SET otp = ? WHERE id = ?";
@@ -177,7 +177,7 @@ class MemberModel extends BaseModel {
       throw new Error(`Error fetching grouped invoices: ${error.message}`);
     }
   }
-  async getOrdersByUserAndStatus({ userId, status = "", limit = null }) {
+  async getOrdersByUserAndStatus({ userId, status = "", search = "", limit = null }) {
     try {
       let query = `
             SELECT 
@@ -203,6 +203,21 @@ class MemberModel extends BaseModel {
 
       const values = [userId];
       const todayUK = helpers.formatDateToUK(new Date()); // e.g. "16/12/2025"
+
+      if (search) {
+        query += `
+    AND (
+      rq.booking_id LIKE ?
+      OR m.full_name LIKE ?
+      OR m.email LIKE ?
+      OR m.mem_phone LIKE ?
+      OR rq.source_address LIKE ?
+      OR rq.dest_address LIKE ?
+    )
+  `;
+        const searchValue = `%${search}%`;
+        values.push(searchValue, searchValue, searchValue, searchValue, searchValue, searchValue);
+      }
 
 
       // Add status condition if it's not empty
@@ -723,48 +738,48 @@ WHERE n.user_id = ? AND n.mem_type = ?
   }
 
   async getDeliveryFeedbackByOrderIdAndMemberId(order_id, member_id) {
-        try {
-            const [rows] = await pool.query('SELECT id FROM delivery_feedback WHERE order_id = ? AND member_id = ?', [order_id, member_id]);
-            return rows; // Ensure this returns an array
-        } catch (error) {
-            console.error('Database error:', error);
-            throw new Error('Failed to fetch delivery feedback');
-        }
+    try {
+      const [rows] = await pool.query('SELECT id FROM delivery_feedback WHERE order_id = ? AND member_id = ?', [order_id, member_id]);
+      return rows; // Ensure this returns an array
+    } catch (error) {
+      console.error('Database error:', error);
+      throw new Error('Failed to fetch delivery feedback');
     }
+  }
 
-    async insertDeliveryFeedback(order_id, member_id, rating, recommend, comments) {
-      try {
-        const query = `INSERT INTO delivery_feedback 
+  async insertDeliveryFeedback(order_id, member_id, rating, recommend, comments) {
+    try {
+      const query = `INSERT INTO delivery_feedback 
       (order_id, member_id, rating, recommend, comments)
       VALUES (?, ?, ?, ?, ?)`
-      ;
+        ;
 
-        const values = [order_id, member_id, rating, recommend, comments];
+      const values = [order_id, member_id, rating, recommend, comments];
 
-        const [result] = await pool.query(query, values);
-        return result; // Returning result for debugging
+      const [result] = await pool.query(query, values);
+      return result; // Returning result for debugging
     } catch (error) {
-    console.error("Insert feedback error:", error);
-    throw error;
+      console.error("Insert feedback error:", error);
+      throw error;
+    }
   }
-}
 
 
-    async insertFeedbackService(review_id, service_name) {
-      try {
-        const query = `INSERT INTO feedback_services 
+  async insertFeedbackService(review_id, service_name) {
+    try {
+      const query = `INSERT INTO feedback_services 
           (review_id, service_name)
           VALUES (?, ?)`
-      ;
+        ;
 
-        const values = [review_id, service_name];
+      const values = [review_id, service_name];
 
-        const [result] = await pool.query(query, values);
-        return result; // Returning result for debugging
-     } catch (error) {
-    console.error("Insert service error:", error);
-    throw error;
-  }
+      const [result] = await pool.query(query, values);
+      return result; // Returning result for debugging
+    } catch (error) {
+      console.error("Insert service error:", error);
+      throw error;
     }
+  }
 }
 module.exports = MemberModel;
