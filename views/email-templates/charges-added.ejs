@@ -199,7 +199,7 @@
           <tr>
             <td style="padding: 13px" width="80%">Updated Total Amount</td>
             <td style="padding: 13px" width="20%">
-              £<%= order.total_amount || 0 %>
+              £<%= (order.total_amount || 0) + (order.handball_charges || 0) + (order.waiting_charges || 0) || 0 %>
             </td>
           </tr>
         </tbody>

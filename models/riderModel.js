@@ -1374,6 +1374,26 @@ ORDER BY e.created_time DESC;
     }
   }
 
+async getCurrentOrdersByStatusforApp(riderId) {
+  const query = `
+    SELECT *
+    FROM request_quote
+    WHERE assigned_rider = ?
+      AND status != 'completed'
+      AND (is_cancelled IS NULL OR is_cancelled != 'approved')
+    ORDER BY id DESC
+    LIMIT 1
+  `;
+  const values = [riderId];
+
+  try {
+    const [rows] = await pool.query(query, values);
+    return rows[0] || null; // return single order object or null if none
+  } catch (error) {
+    console.error("Error fetching current order:", error.message);
+    throw new Error("Database query failed.");
+  }
+}
 
   // Get the total count of completed orders for a rider
   async getTotalCompletedOrders(riderId) {

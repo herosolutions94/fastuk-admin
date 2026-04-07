@@ -142,10 +142,12 @@ class RiderController extends BaseController {
         mem_address1,
         city,
         vehicle_owner,
+        vat_registered,
         vehicle_type,
         vehicle_id,
         mem_verified,
         vehicle_registration_num,
+        vat_number,
         driving_license_num,
         // driving_license,
 
@@ -157,6 +159,9 @@ class RiderController extends BaseController {
         signature,
         // national_insurance,
         company_certificate,
+        vat_registration_certificate,
+        vehicle_insurance,
+        good_transit_insurance,
         pictures,
         other_documents,
 
@@ -173,6 +178,7 @@ class RiderController extends BaseController {
         confirm_password:
           typeof confirm_password === "string" ? confirm_password.trim() : "",
         mem_phone: typeof mem_phone === "string" ? mem_phone.trim() : "",
+        vat_number: typeof vat_number === "string" ? vat_number.trim() : "",
         dob: typeof dob === "string" ? dob.trim() : "",
         national_insurance_num: typeof national_insurance_num === "string" ? national_insurance_num.trim() : "",
         utr_num: typeof utr_num === "string" ? utr_num.trim() : "",
@@ -180,6 +186,7 @@ class RiderController extends BaseController {
           typeof mem_address1 === "string" ? mem_address1.trim() : "",
         city: typeof city === "string" ? city.trim() : "",
         vehicle_owner: vehicle_owner || 0,
+        vat_registered: vat_registered || 0,
 
         created_date: new Date(),
         status: 1,
@@ -365,6 +372,15 @@ class RiderController extends BaseController {
       if (insurance_certificate) {
         attachments.push({ rider_id: riderId, filename: insurance_certificate, type: 'insurance_certificate' });
       }
+      if (vat_registration_certificate) {
+        attachments.push({ rider_id: riderId, filename: vat_registration_certificate, type: 'vat_registration_certificate' });
+      }
+      if (vehicle_insurance) {
+        attachments.push({ rider_id: riderId, filename: vehicle_insurance, type: 'vehicle_insurance' });
+      }
+      if (good_transit_insurance) {
+        attachments.push({ rider_id: riderId, filename: good_transit_insurance, type: 'good_transit_insurance' });
+      }
       if (passport_pic) {
         attachments.push({ rider_id: riderId, filename: passport_pic, type: 'passport_pic' });
       }
@@ -387,10 +403,13 @@ class RiderController extends BaseController {
 
       // Handle single file fields
       [
-        "driving_license",
+        // "driving_license",
         "address_proof",
         "self_picture",
         "insurance_certificate",
+        "vat_registration_certificate",
+        "vehicle_insurance",
+        "good_transit_insurance",
         "passport_pic",
         // "national_insurance",
         "company_certificate",
@@ -409,6 +428,12 @@ class RiderController extends BaseController {
       if (Array.isArray(documents.pictures)) {
         documents.pictures.forEach(pic => {
           attachments.push({ rider_id: riderId, filename: pic, type: 'pictures' });
+        });
+      }
+      // Handle driving_license array
+      if (Array.isArray(documents.driving_license)) {
+        documents.driving_license.forEach(pic => {
+          attachments.push({ rider_id: riderId, filename: pic, type: 'driving_license' });
         });
       }
 
@@ -543,6 +568,7 @@ class RiderController extends BaseController {
     try {
       let { email, password, fingerprint } = req.body;
       // console.log(req.body);
+      // return;
       // Clean and trim data
       email = typeof email === "string" ? email.trim().toLowerCase() : "";
       password = typeof password === "string" ? password.trim() : "";
@@ -2673,10 +2699,10 @@ class RiderController extends BaseController {
       const orderDetailsLink = `/dashboard/order-details/${encodedId}`;
 
       const newStatus = 'completed';
-             
+
 
       // ✅ Only send stage email if NOT last stage
-     
+
 
       // arrival_time stored in DB
       const arrivalTime = parseInt(stage_row.arrival_time || 0);   // seconds
@@ -2745,11 +2771,11 @@ class RiderController extends BaseController {
       // ✅ Update stage once with all data
       await this.rider.updateOrderStageData(stage_id, updateData);
 
-       const allStages = await this.rider.getOrderStages(order_id);
+      const allStages = await this.rider.getOrderStages(order_id);
 
       const allCompleted = allStages.every((s) => s.status === "completed");
 
-       if (!allCompleted) {
+      if (!allCompleted) {
         const notificationText = `Your rider has completed a delivery stage for booking ${requestData.booking_id}.`;
         await helpers.storeNotification(
           user?.id, // The user ID from request_quote
@@ -3592,9 +3618,34 @@ class RiderController extends BaseController {
         return res.status(200).json(userResponse); // Return validation error response
       }
 
+
       // Extract the logged-in rider ID from the token validation response
       const member = userResponse.user;
       const riderId = member.id; // Assuming the `id` field contains the rider's unique ID
+
+       const riderCityDetails = await this.rider.getCityLatLng(member.city);
+
+      if (!riderCityDetails) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Lat/Lng not found for the rider city."
+        });
+      }
+      // console.log("riderCityDetails:", riderCityDetails)
+
+      const { latitude, longitude } = riderCityDetails;
+      const latNum = parseFloat(latitude);
+      const lngNum = parseFloat(longitude);
+
+      if (isNaN(latNum) || isNaN(lngNum)) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid lat/lng values for the rider city."
+        });
+      }
+
+      const requestQuotes = await this.rider.getRequestQuotesByCity(assignedSubCategories, latNum,
+        lngNum);
 
       // Call the model function to get the completed orders
       const completedOrders = await this.rider.getCompletedOrdersByRider(
@@ -3619,6 +3670,7 @@ class RiderController extends BaseController {
 
 
       const currentOrders = await this.rider.getCurrentOrdersByStatus(riderId);
+      const currentOrdersForApp = await this.rider.getCurrentOrdersByStatusforApp(riderId);
 
       // Call the model function to get the total orders with status 'completed' or 'accepted'
       const totalOrders = await this.rider.getTotalOrdersByStatus(riderId);
@@ -3650,6 +3702,8 @@ class RiderController extends BaseController {
         totalOrders, // Total number of 'completed' or 'accepted' orders
         totalCompletedOrders, // Total number of 'completed' orders
         SumOfClearedEarnings,
+        currentOrdersForApp,
+        requestQuotes,
         availableBalance: formattedAvailableBalance,
 
       });

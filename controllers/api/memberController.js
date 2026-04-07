@@ -188,6 +188,69 @@ class MemberController extends BaseController {
       });
     }
   }
+
+  addAddressFromRequest = async (req, res) => {
+  try {
+    const { token, memType, address } = req.body;
+
+    if (!token || !memType || !address) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Token, memType and address are required",
+      });
+    }
+
+    const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+    if (userResponse.status === 0) {
+      return res.status(200).json(userResponse);
+    }
+
+    const member = userResponse.user;
+
+    const existingAddresses =
+      await this.addressModel.getAddressByIdAndAddress(
+        member.id,
+        address
+      );
+
+    if (existingAddresses.length > 0) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Address already exists",
+      });
+    }
+
+    // ✅ FIXED INSERT
+    await this.addressModel.insertAddress({
+      mem_id: member.id,
+      first_name: "",
+      last_name: "",
+      phone_number: "",
+      address: address,
+      post_code: "",
+      city: "",
+      default: 0, // ✅ REQUIRED
+    });
+
+    // ✅ FIXED VARIABLE
+    const addresses =
+      await this.addressModel.getAddressesByUserId(member.id);
+
+    return res.status(200).json({
+      status: 1,
+      msg: "Address added successfully",
+      addresses,
+    });
+
+  } catch (err) {
+    console.error("Add address error:", err);
+    return res.status(200).json({
+      status: 0,
+      msg: "Internal server error",
+    });
+  }
+};
   async getAndInsertAddress(req, res) {
     try {
       const {
@@ -4054,6 +4117,11 @@ class MemberController extends BaseController {
         memType,
         vehicle_owner,
         vehicle_type,
+        vat_registered,
+        vat_number,
+        vat_registration_certificate,
+        vehicle_insurance,
+        good_transit_insurance,
         city,
         vehicle_registration_num,
         driving_license_num,
@@ -4130,6 +4198,8 @@ class MemberController extends BaseController {
         updatedData.dob = dob;
         updatedData.national_insurance_num = national_insurance_num;
         updatedData.utr_num = utr_num;
+        updatedData.vat_registered = vat_registered;
+        updatedData.vat_number = vat_number;
         await this.rider.updateRiderData(userId, updatedData); // Update rider data
 
         // 🔽 NEW: Handle attachments
@@ -4150,13 +4220,34 @@ class MemberController extends BaseController {
         //     type: "driving_license",
         //   });
         // }
-         if (Array.isArray(attachments_ob.driving_license)) {
+        if (Array.isArray(attachments_ob.driving_license)) {
           attachments_ob.driving_license.forEach((pic) => {
             attachments.push({
               rider_id: userId,
               filename: pic,
               type: "driving_license",
             });
+          });
+        }
+         if (attachments_ob?.vat_registration_certificate) {
+          attachments.push({
+            rider_id: userId,
+            filename: attachments_ob?.vat_registration_certificate,
+            type: "vat_registration_certificate",
+          });
+        }
+         if (attachments_ob?.good_transit_insurance) {
+          attachments.push({
+            rider_id: userId,
+            filename: attachments_ob?.good_transit_insurance,
+            type: "good_transit_insurance",
+          });
+        }
+         if (attachments_ob?.vehicle_insurance) {
+          attachments.push({
+            rider_id: userId,
+            filename: attachments_ob?.vehicle_insurance,
+            type: "vehicle_insurance",
           });
         }
         if (attachments_ob?.insurance_certificate) {
@@ -5765,34 +5856,34 @@ class MemberController extends BaseController {
         // );
 
         const allStages = await this.rider.getOrderStages(order.id);
-await this.rider.attachStageAttachments(allStages);
-order.stages = allStages;
+        await this.rider.attachStageAttachments(allStages);
+        order.stages = allStages;
 
         await helpers.sendEmail(
-  rider.user.email,
-  `Payment received for booking ${order?.booking_id}`,
-  "request-invoice-paid",
-  {
-    adminData,
-    order,
-    rider: userRow,
-    type: "rider",
-  }
-);
+          userRow?.email,
+          `Payment received for booking ${order?.booking_id}`,
+          "request-invoice-paid",
+          {
+            adminData,
+            order: requestRow,
+            rider: userRow,
+            type: "rider",
+          }
+        );
 
-await helpers.sendEmail(
-  userRow.email,
-  `Delivery completed for booking ${order?.booking_id}`,
-  "job-completed",
-  {
-    adminData,
-    order,
-    rider: userRow,
-    stages: allStages, // ✅ attachments included
-    BASE_URL: process.env.BASE_URL,
-    type: "user",
-  }
-);
+        await helpers.sendEmail(
+          userRow.email,
+          `Delivery completed for booking ${order?.booking_id}`,
+          "job-completed",
+          {
+            adminData,
+            order: requestRow,
+            rider: userRow,
+            stages: allStages, // ✅ attachments included
+            BASE_URL: process.env.BASE_URL,
+            type: "user",
+          }
+        );
       }
 
       if (parseFloat(dueAmountchk) <= 0) {
