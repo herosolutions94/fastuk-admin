@@ -56,6 +56,15 @@ class AddressModel extends BaseModel {
             throw new Error('Failed to fetch address');
         }
     }
+    async getAddressByIdAndAddress(mem_id,address) {
+        try {
+            const [rows] = await pool.query(`SELECT id FROM ${this.tableName} WHERE mem_id = ? AND address = ?`, [mem_id,address]);
+            return rows; // Ensure this returns an array
+        } catch (error) {
+            console.error('Database error:', error);
+            throw new Error('Failed to fetch address');
+        }
+    }
     async updateData(address_id, data) {
         // console.log(data)
         try {

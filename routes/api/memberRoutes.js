@@ -12,6 +12,7 @@ const memberController = new MemberController();
 
 router.post('/get-addresses', upload, memberController.getAddresses.bind(memberController));
 router.post('/add-addresses', upload,memberController.getAndInsertAddress.bind(memberController));
+router.post('/add-addresses-from-request', upload,memberController.addAddressFromRequest.bind(memberController));
 router.post('/update-addresses', upload,memberController.updateAddress.bind(memberController));
 router.post('/delete-addresses', upload,memberController.deleteAddress.bind(memberController));
 router.post('/set-as-default-addresses', upload,memberController.setAsDefaultAddress.bind(memberController));
