@@ -15,6 +15,7 @@ app.js
 /uploads
 uploads
 
+
 # production
 /build
 
@@ -33,3 +34,6 @@ yarn-error.log*
 
 # vercel
 .vercel
+
+
+config/firebase-service-account.json
