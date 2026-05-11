@@ -18,8 +18,7 @@
           <h5>Vehicle Block</h5>
         </div>
         <div class="card-body full_width">
-          <form class="frmAjax" action="/admin/add-vehicles" method="post"
-            enctype="multipart/form-data">
+          <form class="frmAjax" action="/admin/add-vehicles" method="post" enctype="multipart/form-data">
             <div class="row">
               <div class="col-md-3">
                 <div class="card">
@@ -39,7 +38,7 @@
               </div>
               <div class="col-md-9">
                 <div class="row switch-showcase">
-                
+
 
                   <div class="col-md-6">
                     <div class="txtGrp">
@@ -71,6 +70,30 @@
                       <label class="form-label" for="detail">Price<abbr class="required"
                           title="required">*</abbr></label>
                       <input class="input" id="price" type="text" name="price" />
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label" for="is_fastuk_property">
+                        FastUK Property
+                      </label>
+
+                      <select name="is_fastuk_property" id="is_fastuk_property" class="input">
+                        <option value="0">No</option>
+                        <option value="1">Yes</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  <!-- RENTAL PRICE FIELD -->
+                  <div class="col-md-6" id="rental_price_wrapper" style="display:none;">
+                    <div class="txtGrp">
+                      <label class="form-label" for="detail">
+                        Rental Price
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+
+                      <input class="input" id="vehicle_rental_price" type="text" name="vehicle_rental_price" />
                     </div>
                   </div>
                   <div class="col-md-6">
@@ -138,7 +161,7 @@
                       <input class="input" id="min_price" type="text" name="min_price" />
                     </div>
                   </div>
-                  
+
                   <!-- <div class="col-md-6">
                     <div class="txtGrp">
                       <label class="form-label" for="detail">Distance<abbr class="required"
@@ -205,37 +228,37 @@
                     <div class="txtGrp">
                       <label class="form-label" for="vehicle_images">Vehicle Images<abbr class="required"
                           title="required"></abbr></label>
-                        <input type="file" name="vehicle_images" class="input" multiple />
+                      <input type="file" name="vehicle_images" class="input" multiple />
                     </div>
                   </div>
 
                 </div>
 
-                
-                    <div class="col-md-6">
-                    <div class="txtGrp media st_sp">
-                      <label class="form-label">Status</label>
-                      <div class="txtGrp-body text-end icon-state switch-outline">
-                        <!-- <label class="switch">
+
+                <div class="col-md-6">
+                  <div class="txtGrp media st_sp">
+                    <label class="form-label">Status</label>
+                    <div class="txtGrp-body text-end icon-state switch-outline">
+                      <!-- <label class="switch">
                           <span
                             class="switch-state bg-primary"></span>
                         </label> -->
-                        <select name="status" class="txtBox input" required>
-                          <option value="1">Active</option>
-                          <option value="0">Inactive</option>
-                        </select>
-                      </div>
+                      <select name="status" class="txtBox input" required>
+                        <option value="1">Active</option>
+                        <option value="0">Inactive</option>
+                      </select>
                     </div>
                   </div>
+                </div>
 
-                  <div class="col-md-6">
+                <div class="col-md-6">
 
-                    <div class="txtGrp">
-                      <label class="form-label" for="detail">Weight<abbr class="required"
-                          title="required">*</abbr></label>
-                      <input class="input" id="weight" type="text" name="weight" />
-                    </div>
+                  <div class="txtGrp">
+                    <label class="form-label" for="detail">Weight<abbr class="required"
+                        title="required">*</abbr></label>
+                    <input class="input" id="weight" type="text" name="weight" />
                   </div>
+                </div>
                 <div class="clearfix"></div>
               </div>
             </div>
@@ -252,3 +275,28 @@
   </div>
   </div>
 </section>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+
+    const fastUkField = document.getElementById("is_fastuk_property");
+    const rentalWrapper = document.getElementById("rental_price_wrapper");
+    const rentalPrice = document.getElementById("vehicle_rental_price");
+
+    function toggleRentalPrice() {
+      if (fastUkField.value === "1") {
+        rentalWrapper.style.display = "block";
+      } else {
+        rentalWrapper.style.display = "none";
+        rentalPrice.value = "";
+      }
+    }
+
+    // Initial check
+    toggleRentalPrice();
+
+    // On change
+    fastUkField.addEventListener("change", toggleRentalPrice);
+
+  });
+</script>

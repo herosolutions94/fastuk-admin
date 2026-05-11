@@ -27,6 +27,9 @@
             <th width="20%">
               <p>Sub Category</p>
             </th>
+            <th width="20%">
+              <p>Vehicle Rental Price</p>
+            </th>
 
             <th width="10%">
               <p>Action</p>
@@ -47,6 +50,9 @@
 
             <td>
               <p><%= category.sub_category_name %></p>
+            </td>
+            <td>
+              <p>£<%= helpers.formatAmount(category.vehicle_rent) %></p>
             </td>
             <td>
               <div class="btn-group">

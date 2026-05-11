@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Pickup Reminder</title>
+</head>
+
+<body style="margin:0;padding:20px;background:#f4f4f4;">
+  <div style="max-width:900px;margin:auto;background:#fff;padding:20px;border-radius:8px;border:1px solid #ddd;">
+
+    <!-- Logo -->
+    <div style="text-align:center;">
+      <img src="<%= adminData.logo %>" style="width:100px;" />
+    </div>
+
+    <!-- Title -->
+    <h2 style="color:#077eff;margin-top:20px;">
+      ⏰ Pickup Reminder (1 Hour Left)
+    </h2>
+
+    <p>Hi <strong><%= type === 'rider' ? 'Rider' : 'Admin' %></strong>,</p>
+
+    <p><%= message %></p>
+
+    <!-- Job Info -->
+    <table style="width:100%;margin-top:20px;border-collapse:collapse;">
+      <tr>
+        <td><strong>Job ID:</strong></td>
+        <td><%= job.id %></td>
+      </tr>
+      <tr>
+        <td><strong>Pickup Type:</strong></td>
+        <td><%= job.pickup_time_option %></td>
+      </tr>
+      <tr>
+        <td><strong>Status:</strong></td>
+        <td><%= job.status %></td>
+      </tr>
+    </table>
+
+    <!-- Action -->
+    <div style="text-align:center;margin-top:25px;">
+      <a href="https://fastukcouriers.com/rider-dashboard/order-details/<%= job.id %>"
+         style="background:#077eff;color:#fff;padding:10px 25px;border-radius:5px;text-decoration:none;">
+        View Pickup Details
+      </a>
+    </div>
+
+    <p style="margin-top:30px;font-size:12px;color:#888;text-align:center;">
+      This reminder is sent 1 hour before scheduled pickup time.
+    </p>
+
+  </div>
+</body>
+</html>

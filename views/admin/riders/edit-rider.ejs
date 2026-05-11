@@ -52,29 +52,7 @@
                   <input type="text" class="input" name="city" value="<%= rider.city %>" required />
                 </div>
               </div>
-              <div class="col-md-6">
-                <div class="txtGrp">
-                  <label class="form-label" for="vehicle_type">Vehicle
-                    Type:</label>
-                  <input type="text" class="input" name="vehicle_type" value="<%= rider.vehicle_type %>" required />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="txtGrp">
-                  <label class="form-label" for="vehicle_registration_num">Vehicle Registration
-                    Number:</label>
-                  <input type="text" class="input" name="vehicle_registration_num"
-                    value="<%= rider.vehicle_registration_num %>" required />
-                </div>
-              </div>
-              <div class="col-md-6">
-                <div class="txtGrp">
-                  <label class="form-label" for="driving_license_num">Driving
-                    License Number:</label>
-                  <input type="text" class="input" name="driving_license_num" value="<%= rider.driving_license_num %>"
-                    required />
-                </div>
-              </div>
+
               <div class="col-md-6">
                 <div class="txtGrp">
                   <label class="form-label" for="national_insurance_num">National Insurance
@@ -96,10 +74,8 @@
                     <span class="switch-state bg-primary"></span>
                   </label>
                   <select name="status" class="input">
-                    <option value="1" <%=rider.status==1 ? 'selected' : ''
-                      %>>Active</option>
-                    <option value="0" <%=rider.status==0 ? 'selected' : ''
-                      %>>Inactive</option>
+                    <option value="1" <%=rider.status==1 ? 'selected' : '' %>>Active</option>
+                    <option value="0" <%=rider.status==0 ? 'selected' : '' %>>Inactive</option>
                   </select>
                 </div>
               </div>
@@ -110,13 +86,111 @@
                   <label class="switch">
                     <span class="switch-state bg-primary"></span>
                   </label>
-                  <select name="vehicle_owner" class="form-control" style="padding-left: 10px;">
-                    <option value="yes" <%=rider.vehicle_owner=="yes" ?
-                      'selected' : '' %>>Yes</option>
-                    <option value="no" <%=rider.vehicle_owner=="no" ? 'selected'
-                      : '' %>>No</option>
+                  <select id="vehicleOwner" name="vehicle_owner" class="form-control" style="padding-left: 10px;">
+                    <option value="yes" <%=rider.vehicle_owner=="yes" ? 'selected' : '' %>>Yes</option>
+                    <option value="no" <%=rider.vehicle_owner=="no" ? 'selected' : '' %>>No</option>
                   </select>
                 </div>
+              </div>
+              <div id="vehicleFields">
+                <div class="col-md-4">
+                  <div class="txtGrp">
+                    <label class="form-label">Vehicle Type:</label>
+                    <input type="text" class="input" name="vehicle_type" value="<%= rider.vehicle_type %>" />
+                  </div>
+                </div>
+
+                <div class="col-md-4">
+                  <div class="txtGrp">
+                    <label class="form-label">Vehicle Registration Number:</label>
+                    <input type="text" class="input" name="vehicle_registration_num"
+                      value="<%= rider.vehicle_registration_num %>" />
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="txtGrp">
+                    <label class="form-label">Driving License Number:</label>
+                    <input type="text" class="input" name="driving_license_num"
+                      value="<%= rider.driving_license_num %>" />
+                  </div>
+                </div>
+                <div class="row mt-3">
+                  <div class="col-md-4">
+                    <div class="card h-100">
+                      <div class="card-body preview text-center">
+
+                        <h5 class="card-title mb-3">Driving License</h5>
+                        <div class="blog_img mb-3">
+                          <% if (attachments.driving_license) { %>
+                            <img src="<%= helpers.getImage(attachments.driving_license) %>" alt="Main Image"
+                              class="card-img-top" />
+
+                            <% } %>
+                        </div>
+                        <div class="in-upload">
+                          <button type="button" class="uploadImg">
+                            <i class="fa-regular fa-image"></i>choose another image
+                          </button>
+                          <input type="file" class="uploadFile" name="driving_license"
+                            value="<%= attachments.driving_license ? attachments.driving_license : '' %>" />
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="col-md-12">
+                <div class="txtGrp">
+                  <label class="form-label" for="state">Are You a VAT Registered?:</label>
+                  <label class="switch">
+                    <span class="switch-state bg-primary"></span>
+                  </label>
+                  <select id="vatRegistered" name="vat_registered" class="form-control" style="padding-left: 10px;">
+                    <option value="yes" <%=rider.vat_registered=="yes" ? 'selected' : '' %>>Yes</option>
+                    <option value="no" <%=rider.vat_registered=="no" ? 'selected' : '' %>>No</option>
+                  </select>
+                </div>
+              </div>
+              <div id="vatFields">
+
+                <!-- ✅ VAT Input Row -->
+                <div class="row">
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label class="form-label">VAT Number:</label>
+                      <input type="text" class="input" name="vat_number" value="<%= rider.vat_number %>" />
+                    </div>
+                  </div>
+                </div>
+
+                <!-- ✅ VAT Certificate Card Row -->
+                <div class="row mt-3">
+                  <div class="col-md-6">
+                    <div class="card h-100">
+                      <div class="card-body preview text-center">
+
+                        <h5 class="card-title mb-3">VAT Registration Certificate</h5>
+
+                        <div class="blog_img mb-3">
+                          <% if (attachments.vat_registration_certificate) { %>
+                            <img src="<%= helpers.getImage(attachments.vat_registration_certificate) %>"
+                              class="img-fluid rounded" />
+                            <% } %>
+                        </div>
+
+                        <div class="in-upload">
+                          <button type="button" class="uploadImg btn btn-light">
+                            <i class="fa-regular fa-image"></i> Choose Image
+                          </button>
+                          <input type="file" class="uploadFile d-none" name="vat_registration_certificate" />
+                        </div>
+
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
               </div>
 
             </div>
@@ -130,120 +204,118 @@
           <div class="dashTable inc_desktop">
             <div class="inc_width " id="basic-1_wrapper">
               <table class="dataTable display" id="basic-1">
-              <thead>
+                <thead>
 
-                <tr class="table-scnd-row">
-                  <th width="23%">
-                    <p>#</p>
-                  </th>
-                  <th width="12%">
-                    <p>Booking id</p>
-                  </th>
+                  <tr class="table-scnd-row">
+                    <th width="23%">
+                      <p>#</p>
+                    </th>
+                    <th width="12%">
+                      <p>Booking id</p>
+                    </th>
 
-                  <th width="10%">
-                    <p>Distance</p>
-                  </th>
-                  <th width="20%">
-                    <p>Pickup Location</p>
-                  </th>
-                  <th width="17%">
-                    <p>Drop-off Location</p>
-                  </th>
-                  <th width="8%">
-                    <p>Status</p>
-                  </th>
-                  <th width="9%">
-                    <p>Action</p>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                <% if (liveJobs && liveJobs.length> 0) { %> <%
-                  liveJobs.forEach((job, index)=> { %>
-                <tr class="bottom-cntnt" id="rider-<%= editRiderId %>">
-                  <td>
-                    <a href="/admin/members/edit/<%= job.user_id %>" target="_blank" rel="noopener noreferrer"
-                      style="text-decoration: none; color: inherit;">
-                      <div class="flex">
-                        <div class="image">
-                          <img src="<%= helpers.getImage(job.member_image) %>" alt="User Image" />
-                        </div>
-                        <div class="custm-cntnt">
-                          <p><strong>
-                              <%= job.member_name %>
-                            </strong></p>
-                          <p>
-                            <%= job.member_email %>
-                          </p>
-                          <p>
-                            <%= job.member_phone %>
-                          </p>
-                          <p><small>
-                              Updated at <%=
-                                helpers.timesAgo(job.updated_time) %>
-                            </small></p>
-                        </div>
-                      </div>
-                    </a>
-                  </td>
-
-                  <td>
-                    <p>
-                      <%= job.booking_id %>
-                    </p>
-                  </td>
-
-                  <td>
-                    <p>
-                      <%= job.distance %>km
-                    </p>
-                  </td>
-
-                  <td>
-                    <p>
-                      <%= job.source_address %>
-                    </p>
-                  </td>
-
-                  <td>
-                    <p>
-                      <%= job.dest_address %>
-                    </p>
-                  </td>
-
-                  <td>
-                    <p>
-                      <%= job.status %>
-                    </p>
-                  </td>
-                  <td>
-                    <div class="btn-group">
-                      <button type="button" class="dropdown-toggle" data-toggle="dropdown">
-                        <i class="fa fa-ellipsis-h"></i>
-                      </button>
-                      <ul class="dropdown-menu dropdown-primary" role="menu">
-
-                        <li>
-                          <a href="/admin//job-detail/<%= job.id %>" class="btn btn-danger">
-                            View Job Details
+                    <th width="10%">
+                      <p>Distance</p>
+                    </th>
+                    <th width="20%">
+                      <p>Pickup Location</p>
+                    </th>
+                    <th width="17%">
+                      <p>Drop-off Location</p>
+                    </th>
+                    <th width="8%">
+                      <p>Status</p>
+                    </th>
+                    <th width="9%">
+                      <p>Action</p>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (liveJobs && liveJobs.length> 0) { %> <% liveJobs.forEach((job, index)=> { %>
+                      <tr class="bottom-cntnt" id="rider-<%= editRiderId %>">
+                        <td>
+                          <a href="/admin/members/edit/<%= job.user_id %>" target="_blank" rel="noopener noreferrer"
+                            style="text-decoration: none; color: inherit;">
+                            <div class="flex">
+                              <div class="image">
+                                <img src="<%= helpers.getImage(job.member_image) %>" alt="User Image" />
+                              </div>
+                              <div class="custm-cntnt">
+                                <p><strong>
+                                    <%= job.member_name %>
+                                  </strong></p>
+                                <p>
+                                  <%= job.member_email %>
+                                </p>
+                                <p>
+                                  <%= job.member_phone %>
+                                </p>
+                                <p><small>
+                                    Updated at <%= helpers.timesAgo(job.updated_time) %>
+                                  </small></p>
+                              </div>
+                            </div>
                           </a>
-                        </li>
+                        </td>
 
-                      </ul>
-                    </div>
-                  </td>
-                </tr>
+                        <td>
+                          <p>
+                            <%= job.booking_id %>
+                          </p>
+                        </td>
 
-                <% }) %>
-                <% } else { %>
-                <tr>
-                  <td colspan="8">
-                    <p>No live jobs found.</p>
-                  </td>
-                </tr>
-                <% } %>
-              </tbody>
-            </table>
+                        <td>
+                          <p>
+                            <%= job.distance %>km
+                          </p>
+                        </td>
+
+                        <td>
+                          <p>
+                            <%= job.source_address %>
+                          </p>
+                        </td>
+
+                        <td>
+                          <p>
+                            <%= job.dest_address %>
+                          </p>
+                        </td>
+
+                        <td>
+                          <p>
+                            <%= job.status %>
+                          </p>
+                        </td>
+                        <td>
+                          <div class="btn-group">
+                            <button type="button" class="dropdown-toggle" data-toggle="dropdown">
+                              <i class="fa fa-ellipsis-h"></i>
+                            </button>
+                            <ul class="dropdown-menu dropdown-primary" role="menu">
+
+                              <li>
+                                <a href="/admin/job-detail/<%= job.id %>" class="btn btn-danger" target="_blank">
+                                  View Job Details
+                                </a>
+                              </li>
+
+                            </ul>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <% }) %>
+                        <% } else { %>
+                          <tr>
+                            <td colspan="8">
+                              <p>No live jobs found.</p>
+                            </td>
+                          </tr>
+                          <% } %>
+                </tbody>
+              </table>
             </div>
           </div>
 
@@ -256,35 +328,34 @@
           <div class="dashTable">
             <div class="inc_width" id="basic-1_wrapper">
               <table class="dataTable display" id="basic-1">
-              <thead>
-                <tr class="table-scnd-row">
-                  <th width="20%">
-                    <p>#</p>
-                  </th>
-                  <!-- <th width="10%">
+                <thead>
+                  <tr class="table-scnd-row">
+                    <th width="20%">
+                      <p>#</p>
+                    </th>
+                    <!-- <th width="10%">
                             <p>User</p>
                         </th> -->
 
-                  <th width="20%">
-                    <p>Amount</p>
-                  </th>
-                  <th width="20%">
-                    <p>Type</p>
-                  </th>
-                  <th width="20%">
-                    <p>Status</p>
-                  </th>
-                  <th width="20%">
-                    <p>Created Time</p>
-                  </th>
+                    <th width="20%">
+                      <p>Amount</p>
+                    </th>
+                    <th width="20%">
+                      <p>Type</p>
+                    </th>
+                    <th width="20%">
+                      <p>Status</p>
+                    </th>
+                    <th width="20%">
+                      <p>Created Time</p>
+                    </th>
 
-                </tr>
-              </thead>
-              <tbody>
-                <% if (earnings && earnings.length> 0) { %> <%
-                earnings.forEach((earning, index)=> { %>
-                <tr class="bottom-cntnt" id="rider-<%= editRiderId %>">
-                  <!-- <td>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% if (earnings && earnings.length> 0) { %> <% earnings.forEach((earning, index)=> { %>
+                      <tr class="bottom-cntnt" id="rider-<%= editRiderId %>">
+                        <!-- <td>
                                   
                                     <div class="flex">
                                         <div class="image">
@@ -295,400 +366,437 @@
                                    
                                 </td> -->
 
-                  <!-- <td>
+                        <!-- <td>
                                     <p>
                                         <%= earning.rider_name %>
                                     </p>
                                 </td> -->
-                  <td>
-                    <p>
-                      <%= index + 1 %>
-                    </p>
-                  </td>
+                        <td>
+                          <p>
+                            <a href="/admin/job-detail/<%= earning.order_id %>" target="_blank"
+                              rel="noopener noreferrer">
+                              <%= earning.order_id %>
+                            </a>
+                          </p>
+                        </td>
 
-                  <td>
-                    <p>
-                      <%= earning.amount %>
-                    </p>
-                  </td>
+                        <td>
+                          <p>
+                            <%= earning.amount %>
+                          </p>
+                        </td>
 
-                  <td>
-                    <p>
-                      <%= earning.type %>
-                    </p>
-                  </td>
+                        <td>
+                          <p>
+                            <%= earning.earning_type ? earning.earning_type : earning.type %>
+                          </p>
+                        </td>
 
-                  <td>
-                    <p>
-                      <%- helpers.getEarningStatus(earning.status) %>
-                    </p>
-                  </td>
+                        <td>
+                          <p>
+                            <%- helpers.getEarningStatus(earning.status) %>
+                          </p>
+                        </td>
 
-                  <td>
-                    <p>
-                      <%= helpers.convertUtcToUkFormat(earning.created_time)
-                      %>
-                    </p>
-                  </td>
+                        <td>
+                          <p>
+                            <%= helpers.convertUtcToUkFormat(earning.created_time) %>
+                          </p>
+                        </td>
 
-                </tr>
+                      </tr>
 
-                <% }) %>
-                <% } else { %>
-                <tr>
-                  <td colspan="8">
-                    <p>No earnings found.</p>
-                  </td>
-                </tr>
-                <% } %>
-              </tbody>
-            </table>
+                      <% }) %>
+                        <% } else { %>
+                          <tr>
+                            <td colspan="8">
+                              <p>No earnings found.</p>
+                            </td>
+                          </tr>
+                          <% } %>
+                </tbody>
+              </table>
             </div>
-            
+
           </div>
         </div>
         <div class="card1">
           <div class="row">
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-body preview">
-                <div class="row">
-                  <div class="col-md-12">
-                    <h5 class="card-title">Driving License</h5>
-                    <div class="blog_img">
-                      <% if (attachments.driving_license) { %>
-                      <img src="<%= helpers.getImage(attachments.driving_license) %>" alt="Main Image"
-                        class="card-img-top" />
-
-                      <% } %>
-                    </div>
-                    <div class="in-upload">
-                      <button type="button" class="uploadImg">
-                        <i class="fa-regular fa-image"></i>choose another image
-                      </button>
-                      <input type="file" class="uploadFile" name="driving_license"
-                        value="<%= attachments.driving_license ? attachments.driving_license : '' %>" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-body preview">
-                <div class="row">
-                  <div class="col-md-12">
-                    <h5 class="card-title">Address Proof</h5>
-                    <div class="blog_img">
-                      <% if (attachments.address_proof) { %>
-                      <img src="<%= helpers.getImage(attachments.address_proof) %>" alt="Main Image"
-                        class="card-img-top" />
-
-                      <% } %>
-                    </div>
-                    <div class="in-upload">
-                      <button type="button" class="uploadImg">
-                        <i class="fa-regular fa-image"></i>choose Address Proof
-                      </button>
-                      <input type="file" class="uploadFile" name="address_proof"
-                        value="<%= attachments.address_proof ? attachments.address_proof : '' %>" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-body preview">
-                <div class="row">
-                  <div class="col-md-12">
-                    <h5 class="card-title">Signature</h5>
-
-                    <div class="blog_img">
-                      <% if (attachments.signature) { %>
-                      <img src="<%= helpers.getImage(attachments.signature) %>" alt="Signature Image"
-                        class="card-img-top" />
-                      <% } %>
-                    </div>
-
-                    <!-- Upload disabled -->
-                    <div class="in-upload">
-                      <button type="button" class="uploadImg" disabled style="cursor:not-allowed; opacity:0.5;">
-                        <i class="fa-regular fa-image"></i> Address Proof (Not
-                        Editable)
-                      </button>
-
-                      <input type="file" class="uploadFile" name="signature" disabled />
-                    </div>
-
-                  </div>
-                </div>
-              </div>
-            </div>
-
-          </div>
-
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-body preview">
-                <div class="row">
-                  <div class="col-md-12">
-                    <h5 class="card-title">Self Picture</h5>
-                    <div class="blog_img">
-                      <% if (attachments.self_picture) { %>
-                      <img src="<%= helpers.getImage(attachments.self_picture) %>" alt="Main Image"
-                        class="card-img-top" />
-
-                      <% } %>
-                    </div>
-                    <div class="in-upload">
-                      <button type="button" class="uploadImg">
-                        <i class="fa-regular fa-image"></i>choose Self Picture
-                      </button>
-                      <input type="file" class="uploadFile" name="self_picture"
-                        value="<%= attachments.self_picture ? attachments.self_picture : '' %>" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-body preview">
-                <div class="row">
-                  <div class="col-md-12">
-                    <h5 class="card-title">QR code</h5>
-                    <div class="blog_img">
-                      <% if (attachments.qr_code) { %>
-                      <img src="/uploads/qr_codes/<%= attachments.qr_code %>" alt="QR Code" class="card-img-top" />
-
-                      <% } %>
-                    </div>
-                    <div class="in-upload">
-                      <button type="button" class="uploadImg">
-                        <i class="fa-regular fa-image"></i>QR code(Not Editable)
-                      </button>
-                      <input type="file" class="uploadFile" name="qr_code" disabled />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-body preview">
-                <div class="row">
-                  <div class="col-md-12">
-                    <h5 class="card-title">Insurance Certificate Document</h5>
-                    <div class="blog_img">
-                      <% if (attachments.insurance_certificate) { %>
-                      <img src="<%= helpers.getImage(attachments.insurance_certificate) %>" alt="Main Image"
-                        class="card-img-top" />
-
-                      <% } %>
-                    </div>
-                    <div class="in-upload">
-                      <button type="button" class="uploadImg">
-                        <i class="fa-regular fa-image"></i>choose Insurance
-                        Certificate
-                      </button>
-                      <input type="file" class="uploadFile" name="insurance_certificate"
-                        value="<%= attachments.insurance_certificate ? attachments.insurance_certificate : '' %>" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        </div>
-        <div class="clearfix"></div>
-        <div class="card1">
-          <div class="row">
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-body preview">
-                <div class="row">
-                  <div class="col-md-12">
-                    <h5 class="card-title">Passport Picture</h5>
-                    <div class="blog_img">
-                      <% if (attachments.passport_pic) { %>
-                      <img src="<%= helpers.getImage(attachments.passport_pic) %>" alt="Main Image"
-                        class="card-img-top" />
-
-                      <% } %>
-                    </div>
-                    <div class="in-upload">
-                      <button type="button" class="uploadImg">
-                        <i class="fa-regular fa-image"></i>choose Passport
-                        Picture
-                      </button>
-                      <input type="file" class="uploadFile" name="passport_pic"
-                        value="<%= attachments.passport_pic ? attachments.passport_pic : '' %>" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- <div class="col-md-4">
+            <div class="col-md-4">
               <div class="card">
-                  <div class="card-body preview">
-                    <div class="row">
-                      <div class="col-md-12">
-                        <h5 class="card-title">National Insurance</h5>
-                        <div class="blog_img">
-                          <% if (attachments.national_insurance) { %>
-                          <img
-                            src="<%= helpers.getImage(attachments.national_insurance) %>"
-                            alt="Main Image"
+                <div class="card-body preview">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h5 class="card-title">Passport Picture</h5>
+                      <div class="blog_img">
+                        <% if (attachments.passport_pic) { %>
+                          <img src="<%= helpers.getImage(attachments.passport_pic) %>" alt="Main Image"
                             class="card-img-top" />
 
                           <% } %>
-                        </div>
-                        <div class="in-upload">
-                          <button type="button" class="uploadImg">
-                            <i class="fa-regular fa-image"></i>choose National Insurance
-                          </button>
-                          <input type="file" class="uploadFile" name="national_insurance"                         
-                          value="<%= attachments.national_insurance ? attachments.national_insurance : '' %>"
-                          />
-                        </div>
+                      </div>
+                      <div class="in-upload">
+                        <button type="button" class="uploadImg">
+                          <i class="fa-regular fa-image"></i>choose Passport
+                          Picture
+                        </button>
+                        <input type="file" class="uploadFile" name="passport_pic"
+                          value="<%= attachments.passport_pic ? attachments.passport_pic : '' %>" />
                       </div>
                     </div>
+                  </div>
                 </div>
               </div>
-          </div> -->
-          <div class="col-md-4">
-            <div class="card">
-              <div class="card-body preview">
-                <div class="row">
-                  <div class="col-md-12">
-                    <h5 class="card-title">Company Certificate</h5>
-                    <div class="blog_img">
-                      <% if (attachments.company_certificate) { %>
-                      <img src="<%= helpers.getImage(attachments.company_certificate) %>" alt="Main Image"
-                        class="card-img-top" />
+            </div>
+           
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-body preview">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h5 class="card-title">Company Certificate</h5>
+                      <div class="blog_img">
+                        <% if (attachments.company_certificate) { %>
+                          <img src="<%= helpers.getImage(attachments.company_certificate) %>" alt="Main Image"
+                            class="card-img-top" />
 
-                      <% } %>
+                          <% } %>
+                      </div>
+                      <div class="in-upload">
+                        <button type="button" class="uploadImg">
+                          <i class="fa-regular fa-image"></i>choose Company
+                          Certificate
+                        </button>
+                        <input type="file" class="uploadFile" name="company_certificate"
+                          value="<%= attachments.company_certificate ? attachments.company_certificate : '' %>" />
+                      </div>
                     </div>
-                    <div class="in-upload">
-                      <button type="button" class="uploadImg">
-                        <i class="fa-regular fa-image"></i>choose Company
-                        Certificate
-                      </button>
-                      <input type="file" class="uploadFile" name="company_certificate"
-                        value="<%= attachments.company_certificate ? attachments.company_certificate : '' %>" />
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-body preview">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h5 class="card-title">Vehicle Insurance Certificate</h5>
+                      <div class="blog_img">
+                        <% if (attachments.vehicle_insurance) { %>
+                          <img src="<%= helpers.getImage(attachments.vehicle_insurance) %>" alt="Main Image"
+                            class="card-img-top" />
+
+                          <% } %>
+                      </div>
+                      <div class="in-upload">
+                        <button type="button" class="uploadImg">
+                          <i class="fa-regular fa-image"></i>choose another image
+                        </button>
+                        <input type="file" class="uploadFile" name="vehicle_insurance"
+                          value="<%= attachments.vehicle_insurance ? attachments.vehicle_insurance : '' %>" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-body preview">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h5 class="card-title">Good Transit Insurance</h5>
+                      <div class="blog_img">
+                        <% if (attachments.good_transit_insurance) { %>
+                          <img src="<%= helpers.getImage(attachments.good_transit_insurance) %>" alt="Main Image"
+                            class="card-img-top" />
+
+                          <% } %>
+                      </div>
+                      <div class="in-upload">
+                        <button type="button" class="uploadImg">
+                          <i class="fa-regular fa-image"></i>choose another image
+                        </button>
+                        <input type="file" class="uploadFile" name="good_transit_insurance"
+                          value="<%= attachments.good_transit_insurance ? attachments.good_transit_insurance : '' %>" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-body preview">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h5 class="card-title">Address Proof</h5>
+                      <div class="blog_img">
+                        <% if (attachments.address_proof) { %>
+                          <img src="<%= helpers.getImage(attachments.address_proof) %>" alt="Main Image"
+                            class="card-img-top" />
+
+                          <% } %>
+                      </div>
+                      <div class="in-upload">
+                        <button type="button" class="uploadImg">
+                          <i class="fa-regular fa-image"></i>choose Address Proof
+                        </button>
+                        <input type="file" class="uploadFile" name="address_proof"
+                          value="<%= attachments.address_proof ? attachments.address_proof : '' %>" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-body preview">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h5 class="card-title">Signature</h5>
+
+                      <div class="blog_img">
+                        <% if (attachments.signature) { %>
+                          <img src="<%= helpers.getImage(attachments.signature) %>" alt="Signature Image"
+                            class="card-img-top" />
+                          <% } %>
+                      </div>
+
+                      <!-- Upload disabled -->
+                      <div class="in-upload">
+                        <button type="button" class="uploadImg" disabled style="cursor:not-allowed; opacity:0.5;">
+                          <i class="fa-regular fa-image"></i> Address Proof (Not
+                          Editable)
+                        </button>
+
+                        <input type="file" class="uploadFile" name="signature" disabled />
+                      </div>
+
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-body preview">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h5 class="card-title">Self Picture</h5>
+                      <div class="blog_img">
+                        <% if (attachments.self_picture) { %>
+                          <img src="<%= helpers.getImage(attachments.self_picture) %>" alt="Main Image"
+                            class="card-img-top" />
+
+                          <% } %>
+                      </div>
+                      <div class="in-upload">
+                        <button type="button" class="uploadImg">
+                          <i class="fa-regular fa-image"></i>choose Self Picture
+                        </button>
+                        <input type="file" class="uploadFile" name="self_picture"
+                          value="<%= attachments.self_picture ? attachments.self_picture : '' %>" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-body preview">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h5 class="card-title">QR code</h5>
+                      <div class="blog_img">
+                        <% if (attachments.qr_code) { %>
+                          <img src="/uploads/qr_codes/<%= attachments.qr_code %>" alt="QR Code" class="card-img-top" />
+
+                          <% } %>
+                      </div>
+                      <div class="in-upload">
+                        <button type="button" class="uploadImg">
+                          <i class="fa-regular fa-image"></i>QR code(Not Editable)
+                        </button>
+                        <input type="file" class="uploadFile" name="qr_code" disabled />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="card">
+                <div class="card-body preview">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h5 class="card-title">Insurance Certificate Document</h5>
+                      <div class="blog_img">
+                        <% if (attachments.insurance_certificate) { %>
+                          <img src="<%= helpers.getImage(attachments.insurance_certificate) %>" alt="Main Image"
+                            class="card-img-top" />
+
+                          <% } %>
+                      </div>
+                      <div class="in-upload">
+                        <button type="button" class="uploadImg">
+                          <i class="fa-regular fa-image"></i>choose Insurance
+                          Certificate
+                        </button>
+                        <input type="file" class="uploadFile" name="insurance_certificate"
+                          value="<%= attachments.insurance_certificate ? attachments.insurance_certificate : '' %>" />
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-        </div>
+        </div>        
+            
+          
         <div class="clearfix"></div>
         <div class="card1">
           <div class="row">
-          <div class="col-md-12">
-            <div class="card">
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-12">
-                    <h5 class="card-title">Other Documents</h5>
-                    <div class="blog_img multiple_rider_attachments"
-                      style="overflow-x:auto; white-space:nowrap; padding-bottom:1em;">
-                      <% if (Array.isArray(attachments.other_documents)) { %>
-                      <% attachments.other_documents.forEach((doc_pic, index)=>
-                      { %>
-                      <div class="img_show" style="display:inline-block; position:relative; margin-right:8px">
-                        <div class="inner">
-                          <img src="/uploads/<%= doc_pic.filename %>" style="width:150px; height:auto;" />
-                          <span class="x_btn deleteServerImage crosBtn" data-id="<%= doc_pic.id %>"
-                            data-rider_id="<%= doc_pic.rider_id %>">
-                          </span>
-                        </div>
+            <div class="col-md-12">
+              <div class="card">
+                <div class="card-body">
+                  <div class="row">
+                    <div class="col-md-12">
+                      <h5 class="card-title">Other Documents</h5>
+                      <div class="blog_img multiple_rider_attachments"
+                        style="overflow-x:auto; white-space:nowrap; padding-bottom:1em;">
+                        <% if (Array.isArray(attachments.other_documents)) { %>
+                          <% attachments.other_documents.forEach((doc_pic, index)=>
+                            { %>
+                            <div class="img_show" style="display:inline-block; position:relative; margin-right:8px">
+                              <div class="inner">
+                                <img src="/uploads/<%= doc_pic.filename %>" style="width:150px; height:auto;" />
+                                <span class="x_btn deleteServerImage crosBtn" data-id="<%= doc_pic.id %>"
+                                  data-rider_id="<%= doc_pic.rider_id %>">
+                                </span>
+                              </div>
+                            </div>
+                            <% }) %>
+                              <% } %>
+
                       </div>
-                      <% }) %>
-                      <% } %>
+                      <div class="in-upload">
+                        <button type="button" class="uploadImg">
+                          <i class="fa-regular fa-image"></i>choose Passport
+                          Picture
+                        </button>
+                        <input type="file" id="rider_pictures" name="other_documents"
+                          value="<%= attachments.other_documents ? attachments.other_documents : '' %>"
+                          class="uploadFile" multiple accept="image/*" />
+                        <div id="picturesPreview" class="d-flex flex-wrap gap-2 mt-3"></div>
 
-                    </div>
-                    <div class="in-upload">
-                      <button type="button" class="uploadImg">
-                        <i class="fa-regular fa-image"></i>choose Passport
-                        Picture
-                      </button>
-                      <input type="file" id="rider_pictures" name="other_documents"
-                        value="<%= attachments.other_documents ? attachments.other_documents : '' %>" class="uploadFile"
-                        multiple accept="image/*" />
-                      <div id="picturesPreview" class="d-flex flex-wrap gap-2 mt-3"></div>
-
-                      <div id="uploadLoader"></div>
+                        <div id="uploadLoader"></div>
+                      </div>
                     </div>
                   </div>
                 </div>
+
+                <hr />
+
               </div>
-
-              <hr />
-
             </div>
-          </div>
-          <div class="col-md-12">
-            <% if (rider.vehicle_type &&
-            rider.vehicle_type.toLowerCase()==="van" ) { %>
+            <div class="col-md-12">
+              <% if (rider.vehicle_type && rider.vehicle_type.toLowerCase()==="van" ) { %>
 
-            <div class="card">
-              <div class="card-body">
-                <div class="row">
-                  <div class="col-md-12">
-                    <h5 class="card-title">Front/Back and Side Pictures</h5>
-                    <div class="blog_img multiple_rider_attachments"
-                      style="overflow-x:auto; white-space:nowrap; padding-bottom:1em;">
-                      <% if (Array.isArray(attachments.pictures)) { %>
-                      <% attachments.pictures.forEach((att_pic, index)=> { %>
-                      <div class="img_show" style="display:inline-block; position:relative; margin-right:8px">
-                        <div class="inner">
-                          <img src="/uploads/<%= att_pic.filename %>" style="width:150px; height:auto;" />
-                          <span class="x_btn deleteServerImage crosBtn" data-id="<%= att_pic.id %>"
-                            data-rider_id="<%= att_pic.rider_id %>">
-                          </span>
+                <div class="card">
+                  <div class="card-body">
+                    <div class="row">
+                      <div class="col-md-12">
+                        <h5 class="card-title">Front/Back and Side Pictures</h5>
+                        <div class="blog_img multiple_rider_attachments"
+                          style="overflow-x:auto; white-space:nowrap; padding-bottom:1em;">
+                          <% if (Array.isArray(attachments.pictures)) { %>
+                            <% attachments.pictures.forEach((att_pic, index)=> { %>
+                              <div class="img_show" style="display:inline-block; position:relative; margin-right:8px">
+                                <div class="inner">
+                                  <img src="/uploads/<%= att_pic.filename %>" style="width:150px; height:auto;" />
+                                  <span class="x_btn deleteServerImage crosBtn" data-id="<%= att_pic.id %>"
+                                    data-rider_id="<%= att_pic.rider_id %>">
+                                  </span>
+                                </div>
+                              </div>
+                              <% }) %>
+                                <% } %>
+
+                        </div>
+                        <div class="in-upload">
+
+                          <input type="file" id="rider_pictures" name="pictures"
+                            value="<%= attachments.pictures ? attachments.pictures : '' %>" class multiple
+                            accept="image/*" />
+                          <div id="picturesPreview" class="d-flex flex-wrap gap-2 mt-3"></div>
+
+                          <div id="uploadLoader"></div>
                         </div>
                       </div>
-                      <% }) %>
-                      <% } %>
-
-                    </div>
-                    <div class="in-upload">
-
-                      <input type="file" id="rider_pictures" name="pictures"
-                        value="<%= attachments.pictures ? attachments.pictures : '' %>" class multiple
-                        accept="image/*" />
-                      <div id="picturesPreview" class="d-flex flex-wrap gap-2 mt-3"></div>
-
-                      <div id="uploadLoader"></div>
                     </div>
                   </div>
+
+                  <hr />
+
                 </div>
-              </div>
+                <% } %>
 
-              <hr />
-
-            </div>
-            <% } %>
-
-            <div class="card-footer text-end">
-              <button class="webBtn" type="submit">
-                Update <i class="spinner hidden"></i>
-              </button>
+                  <div class="card-footer text-end">
+                    <button class="webBtn" type="submit">
+                      Update <i class="spinner hidden"></i>
+                    </button>
+                  </div>
             </div>
           </div>
-        </div>
         </div>
       </form>
     </div>
   </div>
 </section>
+
+<script>
+  function toggleVehicleFields() {
+    const owner = document.getElementById("vehicleOwner").value;
+    const fields = document.getElementById("vehicleFields");
+
+    if (owner === "no") {
+      fields.style.display = "none";
+    } else {
+      fields.style.display = "block";
+    }
+  }
+
+  // Run on page load
+  document.addEventListener("DOMContentLoaded", function () {
+    toggleVehicleFields();
+  });
+
+  // Run on change
+  document.getElementById("vehicleOwner").addEventListener("change", toggleVehicleFields);
+</script>
+<script>
+  function toggleVehicleFields() {
+    const vat = document.getElementById("vatRegistered").value;
+    const fields = document.getElementById("vatFields");
+
+    if (vat === "no") {
+      fields.style.display = "none";
+    } else {
+      fields.style.display = "block";
+    }
+  }
+
+  // Run on page load
+  document.addEventListener("DOMContentLoaded", function () {
+    toggleVehicleFields();
+  });
+
+  // Run on change
+  document.getElementById("vatRegistered").addEventListener("change", toggleVehicleFields);
+</script>

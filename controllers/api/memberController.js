@@ -190,67 +190,87 @@ class MemberController extends BaseController {
   }
 
   addAddressFromRequest = async (req, res) => {
-  try {
-    const { token, memType, address } = req.body;
+    try {
+      const { first_name,
+        last_name,
+        email,
+        phone_number,
+        address,
+        post_code,
+        city } = req.body;
 
-    if (!token || !memType || !address) {
-      return res.status(200).json({
-        status: 0,
-        msg: "Token, memType and address are required",
-      });
-    }
+      // 🔥 REQUIRED FIELD VALIDATION
+      if (
 
-    const userResponse = await this.validateTokenAndGetMember(token, memType);
+        !first_name ||
 
-    if (userResponse.status === 0) {
-      return res.status(200).json(userResponse);
-    }
+        !phone_number
+      ) {
+        return res.status(200).json({
+          status: 0,
+          msg: "All fields (name, phone, address, token) are required",
+        });
+      }
 
-    const member = userResponse.user;
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
 
-    const existingAddresses =
-      await this.addressModel.getAddressByIdAndAddress(
-        member.id,
-        address
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse);
+      }
+
+      const member = userResponse.user;
+
+      const existingAddresses =
+        await this.addressModel.getAddressByIdAndAddress(
+          member.id,
+          address
+        );
+
+      if (existingAddresses.length > 0) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Address already exists",
+        });
+      }
+
+      // Check if user already has addresses
+      const existingAddressesfordefault = await this.addressModel.getAddressesByUserId(
+        member.id
       );
 
-    if (existingAddresses.length > 0) {
+      const isDefault = existingAddressesfordefault.length === 0 ? 1 : 0;
+
+
+      // ✅ FIXED INSERT
+      await this.addressModel.insertAddress({
+        mem_id: member.id,
+        first_name: first_name,
+        last_name: last_name,
+        phone_number: phone_number,
+        address: address,
+        post_code: post_code,
+        city: city,
+        default: isDefault, // ✅ REQUIRED
+      });
+
+      // ✅ FIXED VARIABLE
+      const addresses =
+        await this.addressModel.getAddressesByUserId(member.id);
+
+      return res.status(200).json({
+        status: 1,
+        msg: "Address added successfully",
+        addresses,
+      });
+
+    } catch (err) {
+      console.error("Add address error:", err);
       return res.status(200).json({
         status: 0,
-        msg: "Address already exists",
+        msg: "Internal server error",
       });
     }
-
-    // ✅ FIXED INSERT
-    await this.addressModel.insertAddress({
-      mem_id: member.id,
-      first_name: "",
-      last_name: "",
-      phone_number: "",
-      address: address,
-      post_code: "",
-      city: "",
-      default: 0, // ✅ REQUIRED
-    });
-
-    // ✅ FIXED VARIABLE
-    const addresses =
-      await this.addressModel.getAddressesByUserId(member.id);
-
-    return res.status(200).json({
-      status: 1,
-      msg: "Address added successfully",
-      addresses,
-    });
-
-  } catch (err) {
-    console.error("Add address error:", err);
-    return res.status(200).json({
-      status: 0,
-      msg: "Internal server error",
-    });
-  }
-};
+  };
   async getAndInsertAddress(req, res) {
     try {
       const {
@@ -612,6 +632,7 @@ class MemberController extends BaseController {
 
         // Fetch user addresses
         addressesData = await this.addressModel.getAddressesByUserId(member.id);
+        // console.log("Fetched addresses:", addressesData);
 
         // Decode ID (quote ID) and fetch quote details
         let decodedId = id ? helpers.doDecode(id) : null;
@@ -698,7 +719,7 @@ class MemberController extends BaseController {
       handball_work
     } = req.body;
 
-    // console.log("Received paymentIntent request with body:", req.body.handball_work);
+    // console.log("Received paymentIntent request with body:", req.body.remote_price);
 
     // console.log("paymentIntent called with body:", req.body);
 
@@ -749,12 +770,14 @@ class MemberController extends BaseController {
         selectedVehicle,
         handball_work
       );
+      // console.log("Calculated order amount details:", order_amount_details);
       const total_distance = order_amount_details?.totalDistance;
       let total_amount = order_amount_details?.totalAmount;
       let taxAmount = order_amount_details?.taxAmount;
       let vatAmount = order_amount_details?.vatAmount;
 
       let grandTotal = order_amount_details?.grandTotal;
+      // console.log("Grand total before promo code:", grandTotal);
 
       let userId;
       let token_arr = {};
@@ -896,6 +919,7 @@ class MemberController extends BaseController {
         promo_code !== undefined
       ) {
         const promo = await this.promoCodeModel.findByCode(promo_code);
+        console.log("Promo code lookup result:", promo);
 
         if (!promo) {
           return res
@@ -904,6 +928,7 @@ class MemberController extends BaseController {
         }
 
         const currentDate = new Date();
+        console.log("Checking promo code expiry:", promo.expiry_date, currentDate);
         if (promo.expiry_date && new Date(promo.expiry_date) < currentDate) {
           return res.status(200).json({ error: "Promo code has expired." });
         }
@@ -1244,7 +1269,7 @@ class MemberController extends BaseController {
             orderDetails?.total_amount || 0
           );
           // Insert Transaction Record
-          await helpers.storeTransaction({
+          await helpers.storeTransactionLogs({
             user_id: orderDetails?.user_id,
             amount: formattedTotalAmount,
             payment_method: "paypal",
@@ -1333,7 +1358,7 @@ class MemberController extends BaseController {
               }
             );
           if (updateResult.affectedRows > 0) {
-            await helpers.storeTransaction({
+            await helpers.storeTransactionLogs({
               user_id: userId,
               amount: formattedAmount,
               payment_method: "paypal",
@@ -1415,7 +1440,7 @@ class MemberController extends BaseController {
             invoiceDetails?.amount || 0
           );
           const created_time = helpers.getUtcTimeInSeconds();
-          await helpers.storeTransaction({
+          await helpers.storeTransactionLogs({
             user_id: orderDetails?.user_id,
             amount: formattedTotalAmount,
             payment_method: "paypal",
@@ -1558,7 +1583,7 @@ class MemberController extends BaseController {
                 const dbUserId = credit_invoice_row.user_id;
                 const formattedAmount = helpers.formatAmount(parseFloat(credit_invoice_row.amount));
 
-                await helpers.storeTransaction({
+                await helpers.storeTransactionLogs({
                   user_id: dbUserId,
                   amount: formattedAmount,
                   payment_method: "gocardless",
@@ -1592,7 +1617,7 @@ class MemberController extends BaseController {
                 const dbUserId = orderDetails.user_id;
                 const formattedAmount = helpers.formatAmount(parseFloat(orderDetails.total_amount));
 
-                await helpers.storeTransaction({
+                await helpers.storeTransactionLogs({
                   user_id: dbUserId,
                   amount: formattedAmount,
                   payment_method: "gocardless",
@@ -1686,7 +1711,7 @@ class MemberController extends BaseController {
       });
     // console.log("updateResult:", updateResult);
     if (updateResult.affectedRows > 0) {
-      await helpers.storeTransaction({
+      await helpers.storeTransactionLogs({
         user_id: dbUserId,
         amount: formattedAmount,
         payment_method: "gocardless",
@@ -1776,7 +1801,7 @@ class MemberController extends BaseController {
       const created_time = helpers.getUtcTimeInSeconds();
       const formattedTotalAmount = helpers.formatAmount(orderDetails?.total_amount || 0);
 
-      await helpers.storeTransaction({
+      await helpers.storeTransactionLogs({
         user_id: orderDetails?.user_id,
         amount: formattedTotalAmount,
         payment_method: "gocardless",
@@ -2323,6 +2348,7 @@ class MemberController extends BaseController {
         confirm_password,
         fingerprint,
         is_ready,
+        is_on_the_way,
         ready_time,
         via_pickup_time_option,
         via_delivery_option,
@@ -2335,6 +2361,8 @@ class MemberController extends BaseController {
       } = req.body;
 
       // console.log("handball_work:", req.body.handball_work);
+
+
 
       const requiredFields = [
         "selectedVehicle",
@@ -2434,6 +2462,15 @@ class MemberController extends BaseController {
         if (!token) {
           return res.status(200).json({ status: 0, msg: "Token is required." });
         }
+      }
+
+      const outstanding = await this.member.getOutstandingAmount(userId);
+
+      if (outstanding > 0) {
+        return res.status(200).json({
+          status: 0,
+          msg: `You have unpaid dues of ${outstanding}. Please clear before creating a job.`
+        });
       }
 
       // Generate token for user if not provided
@@ -2618,6 +2655,7 @@ class MemberController extends BaseController {
           source_long,
           payment_method,
           is_ready: 0,
+          is_on_the_way: 0,
           ready_time,
           payment_method_id: payment_methodid,
           created_date: new Date(), // Set current date as created_date
@@ -2816,6 +2854,7 @@ class MemberController extends BaseController {
           source_lat,
           source_long,
           is_ready: 0,
+          is_on_the_way: 0,
           ready_time,
           payment_method,
           saved_card_id, // Store the saved card ID
@@ -2932,6 +2971,7 @@ class MemberController extends BaseController {
           source_lat,
           source_long,
           is_ready: 0,
+          is_on_the_way: 0,
           ready_time,
           payment_method,
           created_date: new Date(),
@@ -3035,6 +3075,7 @@ class MemberController extends BaseController {
           source_lat,
           source_long,
           is_ready: 0,
+          is_on_the_way: 0,
           ready_time,
           payment_method,
           created_date: new Date(),
@@ -3243,6 +3284,7 @@ class MemberController extends BaseController {
             source_lat,
             source_long,
             is_ready: 0,
+            is_on_the_way: 0,
             ready_time,
             payment_method,
             created_date: new Date(),
@@ -3618,7 +3660,7 @@ class MemberController extends BaseController {
         const created_time = helpers.getUtcTimeInSeconds();
 
         // Insert Transaction Record
-        await helpers.storeTransaction({
+        await helpers.storeTransactionLogs({
           user_id: userId,
           amount: formattedTotalAmount,
           payment_method: payment_method,
@@ -3673,6 +3715,14 @@ class MemberController extends BaseController {
             const riderId = rider.id;
             // console.log(riderId,member?.id);return;
 
+            // ✅ Get rider categories
+            const riderCategories = await this.rider.getRiderCategoriesById(riderId);
+
+            // ✅ Check if selected vehicle exists in rider categories
+            if (!riderCategories.includes(Number(selectedVehicle))) {
+              continue; // ❌ Skip this rider
+            }
+
             await helpers.storeNotification(
               riderId,
               "rider", // mem_type
@@ -3718,7 +3768,7 @@ class MemberController extends BaseController {
         const created_time = helpers.getUtcTimeInSeconds();
 
         // Insert Transaction Record
-        await helpers.storeTransaction({
+        await helpers.storeTransactionLogs({
           user_id: userId,
           amount: formattedTotalAmount,
           payment_method: payment_method,
@@ -4025,18 +4075,12 @@ class MemberController extends BaseController {
       }
 
       // FETCH ORDER MAIN DETAILS
-      let order = await this.member.getOrderDetailsByIdforcancelRequest({ requestId: order_id });
+      let order = await this.member.getOrderDetailsByIdforcancelRequest({
+        requestId: order_id
+      });
 
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Invalid order!" });
-      }
-
-      // ---------- CHECK IF CANCEL ALREADY REQUESTED ----------
-      if (order.is_cancelled === "requested") {
-        return res.status(200).json({
-          status: 0,
-          msg: "A cancel request has already been submitted for this order.",
-        });
       }
 
       // ---------- FETCH RELATED ORDER DETAILS ----------
@@ -4047,7 +4091,6 @@ class MemberController extends BaseController {
       const reviews = await this.rider.getOrderReviews(order.id);
       const order_stages_arr = await this.rider.getRequestOrderStages(order.id);
 
-      // ---------- MERGE DATA INTO ORDER ----------
       order = {
         ...order,
         formatted_start_date: helpers.formatDateToUK(order?.start_date),
@@ -4059,39 +4102,316 @@ class MemberController extends BaseController {
         order_stages: order_stages_arr,
       };
 
-      // ---------- SAVE CANCELLATION REQUEST ----------
-      const cancelResult = await this.member.updateRequestQuoteData(order_id, {
-        cancel_reason: reason,
-        is_cancelled: "requested",
-      });
-
-      if (!cancelResult) {
+      // ---------- CHECK IF ALREADY CANCELLED ----------
+      if (order.is_cancelled === "requested") {
         return res.status(200).json({
           status: 0,
-          msg: "Failed to submit cancel request.",
+          msg: "A cancel request has already been submitted for this order.",
         });
       }
 
-      // ---------- SEND EMAIL NOTIFICATION ----------
-      const adminData = res.locals.adminData;
+      if (order.is_cancelled === "approved") {
+        return res.status(200).json({
+          status: 0,
+          msg: "This order has already been cancelled.",
+        });
+      }
 
-      await helpers.sendEmail(
-        adminData.receiving_site_email,
-        "Cancel Request Received - FastUK",
-        "cancel-request",
-        {
-          adminData: adminData,
-          order: order,
-          reason: reason,
-          requestedBy: member,
+      // ===============================
+      // 🟢 FETCH RIDER DETAILS (if assigned)
+      // ===============================
+      let riderData = null;
+      if (order.assigned_rider) {
+        riderData = await this.rider.findById(order.assigned_rider);
+      }
+
+      // ===============================
+      // 🟢 FETCH VEHICLE CANCELLATION AMOUNT
+      // ===============================
+      let vehicleCancellationAmount = 0;
+      if (order.selected_vehicle) {
+        const vehicleData = await this.rider.getVehicleById(order.selected_vehicle);
+        if (vehicleData && vehicleData.cancellation_charges) {
+          vehicleCancellationAmount = parseFloat(vehicleData.cancellation_charges) || 0;
+          console.log(`Vehicle cancellation amount: £${vehicleCancellationAmount}`);
         }
+      }
+
+      // ===============================
+      // 🟢 CHECK IF RIDER HAS ARRIVED
+      // ===============================
+      const orderStages = await this.rider.getRequestOrderStages(order_id);
+      const hasArrived = orderStages?.some(stage =>
+        stage.status === "arrived" ||
+        stage.stage_name === "arrived" ||
+        stage.stage_status === "arrived"
       );
 
-      // ---------- FINAL API RESPONSE ----------
+      console.log(`Order Stages Check - Has Arrived: ${hasArrived}`);
+
+      // ===============================
+      // 🟢 REFUND / CANCELLATION LOGIC
+      // ===============================
+      const isRiderAssigned = !!order.assigned_rider;
+      let isWithin10Minutes = false;
+      let cancellationChargePercent = 0;
+      let cancellationReason = "";
+
+      // Case 1: Rider has arrived → 100% cancellation charge (no refund)
+      if (hasArrived) {
+        cancellationChargePercent = 100;
+        cancellationReason = "Rider has arrived on site";
+        console.log("Rider has arrived on site - 100% cancellation charge applies");
+      }
+      // Case 2: Rider assigned but not arrived yet
+      else if (isRiderAssigned && order.assigned_date) {
+        const now = new Date();
+        const assignedDate = new Date(order.assigned_date);
+        const diffMinutes = (now - assignedDate) / (1000 * 60);
+        isWithin10Minutes = diffMinutes <= 10;
+
+        console.log(`Rider assigned at: ${assignedDate}, Time elapsed: ${diffMinutes.toFixed(2)} minutes`);
+
+        // After 10 mins → 50% cancellation charges
+        if (!isWithin10Minutes) {
+          cancellationChargePercent = 50;
+          cancellationReason = `Cancellation after ${Math.floor(diffMinutes)} minutes of rider acceptance`;
+        } else {
+          cancellationReason = `Cancellation within ${Math.floor(diffMinutes)} minutes of rider acceptance`;
+        }
+      } else {
+        cancellationReason = "No rider assigned yet";
+      }
+
+      console.log(`Cancel Request - Order: ${order_id}, Rider Assigned: ${isRiderAssigned}, Has Arrived: ${hasArrived}, Within10Min: ${isWithin10Minutes}, CancellationCharge: ${cancellationChargePercent}%`);
+
+      // ===============================
+      // 🟢 AUTO APPROVE CANCELLATION
+      // ===============================
+      await this.member.updateRequestQuoteData(order_id, {
+        is_cancelled: "approved",
+        cancel_reason: reason,
+        cancelled_at: helpers.getUtcTimeInSeconds(),
+      });
+
+      const originalAmount = parseFloat(order.total_amount) || 0;
+      let refundAmount = originalAmount;
+
+      // Apply cancellation charges
+      if (cancellationChargePercent === 100) {
+        refundAmount = 0; // No refund
+      } else if (cancellationChargePercent === 50) {
+        refundAmount = originalAmount * 0.5; // 50% refund
+      }
+      // else: Full refund (100%)
+
+      let refundProcessed = false;
+      let responseMessage = "";
+
+      // ===============================
+      // 🟢 PROCESS REFUND (if applicable)
+      // ===============================
+      if (refundAmount > 0) {
+        // STRIPE REFUND
+        if (order.payment_method === "credit-card" && order.payment_intent) {
+          try {
+            const paymentIntent = await stripe.paymentIntents.retrieve(order.payment_intent);
+            const latestChargeId = paymentIntent.latest_charge;
+
+            if (latestChargeId) {
+              const refundResponse = await stripe.refunds.create({
+                charge: latestChargeId,
+                amount: Math.round(refundAmount * 100), // Convert to cents
+                reason: "requested_by_customer",
+              });
+
+              console.log("✅ Stripe refund success:", refundResponse.id);
+              refundAmount = refundResponse.amount / 100; // Convert back to pounds
+              refundProcessed = true;
+
+              // Save transaction
+              await helpers.storeTransaction({
+                user_id: order.user_id,
+                amount: refundAmount,
+                payment_method: "refund",
+                type: "credit",
+                transaction_id: order_id,
+                payment_intent: refundResponse.payment_intent,
+                created_time: helpers.getUtcTimeInSeconds(),
+                status: "refunded",
+                stripe_refund_id: refundResponse.id,
+              });
+            }
+          } catch (err) {
+            console.error("❌ Stripe refund error:", err.message);
+            // Continue even if Stripe refund fails
+          }
+        }
+        // Handle PayPal refunds
+        else if (order.payment_method === "paypal" && order.paypal_order_id) {
+          // TODO: Implement PayPal refund logic
+          console.log("PayPal refund not implemented yet");
+        }
+        // Handle GoCardless refunds
+        else if (order.payment_method === "gocardless") {
+          // TODO: Implement GoCardless refund logic
+          console.log("GoCardless refund not implemented yet");
+        }
+      }
+
+      // ===============================
+      // 🟢 PAY RIDER CANCELLATION AMOUNT
+      // ===============================
+      let riderCancellationPaid = false;
+      let riderCancellationAmount = 0;
+
+      // Only pay rider if 50% or 100% cancellation charges apply
+      if ((cancellationChargePercent === 50 || cancellationChargePercent === 100) &&
+        isRiderAssigned &&
+        vehicleCancellationAmount > 0) {
+
+        riderCancellationAmount = vehicleCancellationAmount;
+
+        try {
+          // Store earnings for rider cancellation payment
+          await helpers.insertEarnings({
+            user_id: order.assigned_rider,
+            amount: riderCancellationAmount,
+            type: "cancellation_fee",
+            status: "pending",
+            created_time: helpers.getUtcTimeInSeconds(),
+            order_id: order.id,
+            description: `Cancellation fee for order ${order.booking_id} (${cancellationChargePercent}% charge)`,
+          });
+
+
+          riderCancellationPaid = true;
+          console.log(`✅ Rider cancellation amount paid: £${riderCancellationAmount}`);
+        } catch (err) {
+          console.error("❌ Rider cancellation payment error:", err.message);
+        }
+      }
+
+      // ADD THIS: Round to 2 decimal places to avoid floating point issues
+      const roundedOriginalAmount = Math.round(originalAmount * 100) / 100;
+      const roundedRefundAmount = Math.round(refundAmount * 100) / 100;
+      const roundedRiderCancellationAmount = Math.round(riderCancellationAmount * 100) / 100;
+
+      // ===============================
+      // 🟢 BUILD RESPONSE MESSAGE
+      // ===============================
+      if (cancellationChargePercent === 100) {
+        // Case 1: Rider has arrived (100% charge, no refund)
+        responseMessage = `Order cancelled successfully. 100% cancellation charges apply as the rider has already arrived on site. No refund will be processed.`;
+      } else if (!isRiderAssigned) {
+        // Case 2: No rider assigned (full refund)
+        responseMessage = refundProcessed
+          ? `Order cancelled successfully. Full refund of £${roundedRefundAmount.toFixed(2)} has been processed.`
+          : "Order cancelled successfully. Full refund will be processed shortly.";
+      } else if (isWithin10Minutes) {
+        // Case 3: Rider assigned but within 10 minutes (full refund)
+        responseMessage = refundProcessed
+          ? `Order cancelled successfully. Full refund of £${roundedRefundAmount.toFixed(2)} has been processed.`
+          : "Order cancelled successfully. Full refund will be processed shortly.";
+      } else {
+        // Case 4: Rider assigned and after 10 minutes (50% charge)
+        responseMessage = refundProcessed
+          ? `Order cancelled successfully. 50% cancellation charges applied. Refund of £${roundedRefundAmount.toFixed(2)} (50% of £${roundedOriginalAmount.toFixed(2)}) has been processed.`
+          : `Order cancelled successfully. 50% cancellation charges applied. Refund of £${roundedRefundAmount.toFixed(2)} (50% of £${roundedOriginalAmount.toFixed(2)}) will be processed shortly.`;
+      }
+
+      // ===============================
+      // 🟢 SEND EMAIL NOTIFICATIONS
+      // ===============================
+      const adminData = res.locals.adminData;
+
+      // 1️⃣ Send email to USER
+      try {
+        await helpers.sendEmail(
+          member.email,
+          "Order Cancelled - FastUK",
+          "order-cancelled-user",
+          {
+            adminData,
+            order,
+            member,
+            reason,
+            refundAmount: roundedRefundAmount,
+            originalAmount: roundedOriginalAmount,
+            refundProcessed,
+            cancellationChargePercent,
+            hasArrived,
+            cancellationReason,
+          }
+        );
+      } catch (emailErr) {
+        console.error("User email send error:", emailErr.message);
+      }
+
+      // 2️⃣ Send email to RIDER (if cancellation amount paid)
+      if (riderCancellationPaid && riderData) {
+        try {
+          await helpers.sendEmail(
+            riderData.email,
+            "Cancellation Fee Received - FastUK",
+            "rider-cancellation-fee",
+            {
+              adminData,
+              order,
+              rider: riderData,
+              reason,
+              cancellationAmount: roundedRiderCancellationAmount,
+              cancellationChargePercent,
+              hasArrived,
+            }
+          );
+        } catch (emailErr) {
+          console.error("Rider email send error:", emailErr.message);
+        }
+      }
+
+      // 3️⃣ Send email to ADMIN
+      try {
+        const adminEmailData = {
+          adminData,
+          order,
+          user: member,
+          rider: riderData,
+          reason,
+          originalAmount: roundedOriginalAmount,
+          refundAmount: roundedRefundAmount,
+          cancellationChargePercent,
+          refundProcessed,
+          hasArrived,
+          cancellationReason,
+          isRiderAssigned,
+          riderCancellationAmount: roundedRiderCancellationAmount,
+          riderCancellationPaid,
+        };
+
+        await helpers.sendEmail(
+          adminData.receiving_site_email,
+          "Order Cancellation Alert - FastUK",
+          "order-cancelled-admin",
+          adminEmailData
+        );
+      } catch (emailErr) {
+        console.error("Admin email send error:", emailErr.message);
+      }
+
+      // ===============================
+      // 🟢 FINAL RESPONSE (ONLY ONE RETURN)
+      // ===============================
       return res.status(200).json({
         status: 1,
-        msg: "Your cancel request has been submitted successfully",
-        order: order,
+        msg: responseMessage,
+        refund_amount: roundedRefundAmount,
+        original_amount: roundedOriginalAmount,
+        cancellation_charge_percent: cancellationChargePercent,
+        refund_processed: refundProcessed,
+        has_arrived: hasArrived,
+        rider_cancellation_amount: roundedRiderCancellationAmount,
+        rider_cancellation_paid: riderCancellationPaid,
       });
 
     } catch (error) {
@@ -4103,6 +4423,10 @@ class MemberController extends BaseController {
       });
     }
   };
+
+
+
+
 
   updateProfile = async (req, res) => {
     try {
@@ -4132,6 +4456,7 @@ class MemberController extends BaseController {
         business_type,
         parcel_type,
         parcel_weight,
+        vat_num,
 
         shipment_volume,
         delivery_speed,
@@ -4156,14 +4481,14 @@ class MemberController extends BaseController {
           msg: "First name, last name, phone number, and address are required.",
         });
       }
-      let existingPhone = await this.member.findByPhone(mem_phone);
+      let existingPhone = await this.member.findByPhoneNumber(mem_phone);
 
-      if (existingPhone && existingPhone.id !== userId) {
-        return res
-          .status(200)
-          .json({ status: 0, msg: "Phone already exists." });
+      if (existingPhone && Number(existingPhone.id) !== Number(userId)) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Phone Number already exists."
+        });
       }
-
       // Save the updated member data
       let updatedData = {
         full_name: first_name + " " + last_name,
@@ -4186,6 +4511,7 @@ class MemberController extends BaseController {
             parcel_weight: parcel_weight,
             shipment_volume: shipment_volume,
             delivery_speed: delivery_speed,
+            vat_num: vat_num,
           };
         }
         await this.member.updateMemberData(userId, updatedData); // Update member data
@@ -4229,21 +4555,21 @@ class MemberController extends BaseController {
             });
           });
         }
-         if (attachments_ob?.vat_registration_certificate) {
+        if (attachments_ob?.vat_registration_certificate) {
           attachments.push({
             rider_id: userId,
             filename: attachments_ob?.vat_registration_certificate,
             type: "vat_registration_certificate",
           });
         }
-         if (attachments_ob?.good_transit_insurance) {
+        if (attachments_ob?.good_transit_insurance) {
           attachments.push({
             rider_id: userId,
             filename: attachments_ob?.good_transit_insurance,
             type: "good_transit_insurance",
           });
         }
-         if (attachments_ob?.vehicle_insurance) {
+        if (attachments_ob?.vehicle_insurance) {
           attachments.push({
             rider_id: userId,
             filename: attachments_ob?.vehicle_insurance,
@@ -4489,7 +4815,7 @@ class MemberController extends BaseController {
 
           const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
           const formatted_end_date = order?.end_date
-            ? helpers.formatDateToUK(order.end_date)
+            ? helpers.formatDateTimeToUK(order.end_date)
             : "Will be available after rider accepts the order";
 
           return {
@@ -4568,7 +4894,7 @@ class MemberController extends BaseController {
         const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
         const encodedId = helpers.doEncode(String(order.id));
         const formatted_end_date = order?.end_date
-          ? helpers.formatDateToUK(order.end_date)
+          ? helpers.formatDateTimeToUK(order.end_date)
           : "Will be available after rider accepts the order";
 
         ordersWithEncodedIds.push({
@@ -4597,7 +4923,182 @@ class MemberController extends BaseController {
       });
     }
   };
+
   async getUserTransactions(req, res) {
+    try {
+      const { token, memType } = req.body;
+
+      if (!token) {
+        return res.status(200).json({ status: 0, msg: "Token is required." });
+      }
+
+      if (memType === "rider") {
+        return res.status(200).json({ status: 0, msg: "Invalid member type." });
+      }
+
+      const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+      if (userResponse.status === 0) {
+        return res.status(200).json(userResponse);
+      }
+
+      const member = userResponse.user;
+      const userId = member.id;
+
+      const remotePostCodes = await RemotePostCodeModel.getRemotePostCodesInArray();
+      const siteSettings = res.locals.adminData;
+
+      const normalize = (v) =>
+        String(v || "").replace(/\s+/g, "").toLowerCase();
+
+      const getRemotePrice = (postcode) => {
+        const matches = remotePostCodes.filter(
+          (r) => normalize(r.title) === normalize(postcode)
+        );
+
+        if (matches.length === 0) return 0;
+
+        const highest = matches.reduce((max, curr) =>
+          Number(curr.remote_price) > Number(max.remote_price) ? curr : max
+        );
+
+        return Number(highest.remote_price || 0);
+      };
+
+
+
+      const transactions = await helpers.getTransaction(userId);
+
+
+      const enrichedTransactions = await Promise.all(
+        transactions.map(async (t) => {
+
+          const job = Number(t.total_amount || 0);
+          const handball = Number(t.total_handball_charges || 0);
+          const waiting = Number(t.total_waiting_charges || 0);
+
+          const subtotal = job + handball + waiting;
+
+          const request_id = t.request_id;
+          const vehicle = t.selected_vehicle
+            ? await Vehicle.getSelectedVehicleById(t.selected_vehicle)
+            : null;
+
+          if (!vehicle) {
+            console.warn("Vehicle not found for transaction:", t.id);
+            return t;
+          }
+
+          const vias = await this.rider.countViasBySourceCompleted(request_id);
+          const parcels = await this.rider.getParcelDetailsByQuoteId(request_id);
+          const stages = await this.rider.getRequestOrderStages(request_id);
+          const invoices = await this.rider.getInvoicesDetailsByRequestId(request_id);
+          const reviews = await this.rider.getOrderReviews(request_id);
+          const riderRow = await this.rider.findById(t.assigned_rider);
+          const jobStatus = await helpers.updateRequestQuoteJobStatus(request_id);
+
+          const remote_price =
+            getRemotePrice(t.source_postcode) +
+            getRemotePrice(t.dest_postcode);
+
+          const orderAmount = await helpers.calculateOrderTotal(
+            Number(t.distance || 0),
+            siteSettings,
+            vehicle.price,
+            remote_price,
+            vehicle.id,
+            t.handball_work
+          );
+
+
+          return {
+            ...t,
+            // subtotal: helpers.formatAmount(subtotal),
+            // grandTotal: helpers.formatAmount(subtotal),
+            // jobStatus,
+
+            // ✅ Use helper values
+            total_distance: orderAmount.totalDistance,
+            sub_total: helpers.formatAmount(orderAmount.totalAmount),
+            tax: helpers.formatAmount(orderAmount.taxAmount),
+            vat: helpers.formatAmount(orderAmount.vatAmount),
+            handball_charges: helpers.formatAmount(orderAmount.handballCharges),
+            remote_price: helpers.formatAmount(orderAmount.remote_price),
+
+            grandTotal: helpers.formatAmount(orderAmount.grandTotal),
+
+
+            formatted_start_date: helpers.formatDateToUK(t.job_start_date),
+            formatted_end_date: t.job_end_date
+              ? helpers.formatDateTimeToUK(t.job_end_date)
+              : "Pending",
+
+            vias,
+            parcels,
+            order_stages: stages,
+            invoices,
+            reviews,
+            riderRow
+          };
+        })
+      );
+      // ✅ PLACE IT HERE
+      if (!enrichedTransactions || enrichedTransactions.length === 0) {
+        return res.status(200).json({
+          status: 1,
+          transactions: []
+        });
+      }
+      const jobStatus = await helpers.updateRequestQuoteJobStatus(enrichedTransactions[0].request_id);
+
+      // Category info
+      // const categoryInfo = order.selected_vehicle
+      //   ? await Vehicle.getCategoryAndMainCategoryById(summary.selected_vehicle)
+      //   : null;
+
+      // Vias, parcels, stages, attachments, invoices, reviews, payments
+      const viasCount = await this.rider.countViasBySourceCompleted(enrichedTransactions[0].request_id);
+      const parcels = await this.rider.getParcelDetailsByQuoteId(enrichedTransactions[0].request_id);
+      const order_stages_arr = await this.rider.getRequestOrderStages(enrichedTransactions[0].request_id);
+      const vias = await this.rider.getViasByQuoteId(enrichedTransactions[0].request_id);
+      const invoices = await this.rider.getInvoicesDetailsByRequestId(enrichedTransactions[0].request_id);
+      const reviews = await this.rider.getOrderReviews(enrichedTransactions[0].request_id);
+      const paidAmount = await RequestQuoteModel.totalPaidAmount(enrichedTransactions[0].request_id);
+      const dueAmount = await RequestQuoteModel.calculateDueAmount(enrichedTransactions[0].request_id);
+      const riderRow = await this.rider.findById(
+        enrichedTransactions[0].assigned_rider
+      );
+
+
+
+
+      const job = Number(enrichedTransactions[0].total_amount || 0);
+      const handball = Number(enrichedTransactions[0].total_handball_charges || 0);
+      const waiting = Number(enrichedTransactions[0].total_waiting_charges || 0);
+
+      const formatted_start_date = helpers.formatDateToUK(enrichedTransactions[0]?.job_start_date) || "N/A";
+      const formatted_end_date = enrichedTransactions[0]?.job_end_date
+        ? helpers.formatDateTimeToUK(enrichedTransactions[0].job_end_date)
+        : "Will be available after rider accepts the order";
+
+
+      const subtotal = job + handball + waiting;
+      const grandTotal = subtotal;
+
+      // summary.category_name = categoryInfo?.category_name || null;
+      // summary.main_category_name = categoryInfo?.main_category_name || null; 
+
+      return res.status(200).json({
+        status: 1,
+        transactions: enrichedTransactions
+      });
+
+    } catch (error) {
+      console.error("Error fetching member transactions:", error);
+      return res.status(500).json({ status: 0, msg: "Internal Server Error" });
+    }
+  }
+  async getUserTransactionsprevious(req, res) {
     try {
       const { token, memType } = req.body;
 
@@ -4633,9 +5134,9 @@ class MemberController extends BaseController {
         if (order) {
           // Attach formatted dates
           t.formatted_start_date = helpers.formatDateToUK(order.start_date);
-          // t.formatted_end_date = helpers.formatDateToUK(order.end_date);
+          // t.formatted_end_date = helpers.formatDateTimeToUK(order.end_date);
           t.formatted_end_date = order.end_date
-            ? helpers.formatDateToUK(order.end_date)
+            ? helpers.formatDateTimeToUK(order.end_date)
             : "Will be available after rider accepts the order";
 
 
@@ -4687,7 +5188,7 @@ class MemberController extends BaseController {
             siteSettings,
             formatted_start_date: helpers.formatDateToUK(order.start_date),
             formatted_end_date: order.end_date
-              ? helpers.formatDateToUK(order.end_date)
+              ? helpers.formatDateTimeToUK(order.end_date)
               : "Will be available after rider accepts the order",
             parcels,
             order_stages: order_stages_arr,
@@ -4771,6 +5272,7 @@ class MemberController extends BaseController {
 
       const riderRow = await this.rider.findById(order.assigned_rider);
       const attachments = await this.rider.getRiderAttachments(riderRow?.id); // Add this method in your model
+      const pendingPayment = await this.rider.getPendingPaymentByRequestId(order.id); // Add this method in your model
       const qrCode = attachments.find(att => att.type === 'qr_code');
       // Organize attachments by type for easier access in EJS
 
@@ -4841,7 +5343,7 @@ class MemberController extends BaseController {
 
         via.attachments = via_attachments; // Add attachments array to each via
       }
-      // console.log("end",order?.end_date, helpers.formatDateToUK(order?.end_date))
+      // console.log("end",order?.end_date, helpers.formatDateTimeToUK(order?.end_date))
 
       const riderNotes = await this.rider.getRiderNotes(
         order?.assigned_rider,
@@ -4849,15 +5351,16 @@ class MemberController extends BaseController {
       );
 
       const formatted_end_date = order?.end_date
-        ? helpers.formatDateToUK(order.end_date)
+        ? helpers.formatDateTimeToUK(order.end_date)
         : "Will be available after rider accepts the order";
 
       order = {
         ...order,
         formatted_start_date: helpers.formatDateToUK(order?.start_date),
-        // formatted_end_date: helpers.formatDateToUK(order?.end_date),
+        // formatted_end_date: helpers.formatDateTimeToUK(order?.end_date),
         formatted_end_date: formatted_end_date,
         qrCode,
+        pendingPayment,
 
         encodedId: encodedId,
         parcels: parcels,
@@ -4877,7 +5380,7 @@ class MemberController extends BaseController {
       };
       // Fetch parcels and vias based on the quoteId from the order
       // Assuming order.quote_id is the relevant field
-      // console.log("formatted_end_date:",helpers.formatDateToUK(order?.end_date))
+      // console.log("formatted_end_date:",helpers.formatDateTimeToUK(order?.end_date))
 
       // Fetch payment methods for the user
       const fetchedPaymentMethods =
@@ -5612,6 +6115,7 @@ class MemberController extends BaseController {
         userId: userId,
         requestId: requestId,
       });
+      const selectedVehicle = await Vehicle.getSelectedVehicleById(order.selected_vehicle);
       if (!order) {
         return res.status(200).json({ status: 0, msg: "Invalid request!" });
       }
@@ -5786,20 +6290,91 @@ class MemberController extends BaseController {
         );
         invoice_id = result.insertId;
       }
+
+      const isPendingPayment = order.status === "pending_payment";
+
       if (payment_method !== "paypal") {
         const created_time = helpers.getUtcTimeInSeconds();
-        await helpers.storeTransaction({
-          user_id: userId,
-          amount: formattedAmount,
-          payment_method: payment_method,
-          transaction_id: requestId,
-          created_time: created_time,
-          status: "paid",
-          payment_intent_id: payment_intent_id,
-          payment_method_id: payment_method_id,
-          type: "Invoice",
-        });
 
+        if (isPendingPayment) {
+          // ── NEW: pending_payment flow ──────────────────────────────
+
+          // 1. Calculate total transaction amount:
+          //    original paid amount + all handball + all waiting charges
+
+
+          const invoiceEntries = await this.rider.getInvoicesByRequestId(requestId);
+
+          const totalHandball = invoiceEntries
+            .filter(inv => inv.amount_type === "handball")
+            .reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+
+          const totalWaiting = invoiceEntries
+            .filter(inv => inv.amount_type === "waiting")
+            .reduce((sum, inv) => sum + parseFloat(inv.amount || 0), 0);
+
+          const originalAmount = parseFloat(order.total_amount || 0);
+
+          const transactionAmount = helpers.formatAmount(
+            originalAmount + totalHandball + totalWaiting
+          );
+
+
+
+          // 2. Insert transaction entry with full amount
+          await helpers.storeTransaction({
+            user_id: userId,
+            amount: transactionAmount,
+            payment_method: payment_method,
+            transaction_id: requestId,
+            created_time: created_time,
+            status: "paid",
+            payment_intent_id: payment_intent_id,
+            payment_method_id: payment_method_id,
+            type: "Invoice",
+          });
+
+          await helpers.updateRequestQuoteJobStatus(order?.id);
+          // await helpers.updateRequestStatus(order?.id, "completed"); // update jobStatus too
+
+          //    rider base amount + handball charges + waiting charges
+          const riderBaseAmount = await helpers.calculateRiderPrice({
+            totalMiles: parseFloat(order.distance || 0),
+            minMiles: selectedVehicle?.rider_min_mileage,
+            minPrice: selectedVehicle?.rider_min_price,
+            riderPrice: order?.rider_price,
+          });
+
+          const riderTotalEarning = parseFloat(
+            (riderBaseAmount + totalHandball + totalWaiting).toFixed(2)
+          );
+
+          if (riderTotalEarning > 0) {
+            const earningsData = {
+              user_id: order?.assigned_rider,
+              amount: riderTotalEarning,
+              type: "credit",
+              status: "pending",
+              created_time: Math.floor(Date.now() / 1000),
+              order_id: order?.id,
+            };
+            await helpers.insertEarnings(earningsData);
+          }
+
+        } else {
+          // ── EXISTING: normal flow (unchanged) ─────────────────────
+          await helpers.storeTransactionLogs({
+            user_id: userId,
+            amount: formattedAmount,
+            payment_method: payment_method,
+            transaction_id: requestId,
+            created_time: created_time,
+            status: "paid",
+            payment_intent_id: payment_intent_id,
+            payment_method_id: payment_method_id,
+            type: "Invoice",
+          });
+        }
       }
       let adminData = res.locals.adminData;
       // const request = await this.rider.getRequestById(54, 9);
@@ -5896,12 +6471,12 @@ class MemberController extends BaseController {
 
         const formattedRiderAmount = await helpers.calculateRiderPrice({
           totalMiles: distance,
-          minMiles: order?.selectedVehicle?.rider_min_mileage,
-          minPrice: order?.selectedVehicle?.rider_min_price,
+          minMiles: selectedVehicle?.rider_min_mileage,
+          minPrice: selectedVehicle?.rider_min_price,
           riderPrice: order?.rider_price,
         });
 
-        if (formattedAmount > 0) {
+        if (formattedRiderAmount > 0) {
           const created_time = Math.floor(Date.now() / 1000); // UTC seconds
           const earningsData = {
             user_id: order?.assigned_rider,
@@ -5912,7 +6487,8 @@ class MemberController extends BaseController {
             order_id: order?.id,
           };
 
-          const insertedEarnings = await helpers.insertEarnings(earningsData);
+          const insertedEarnings = await helpers.insertEarningLogs(earningsData);
+          // console.log("Amount:", formattedRiderAmount);return;
 
           if (!insertedEarnings) {
             console.log("Failed to insert earnings for rider:", rider.user.id);
@@ -6120,7 +6696,7 @@ class MemberController extends BaseController {
             }
           );
         if (updateResult.affectedRows > 0) {
-          await helpers.storeTransaction({
+          await helpers.storeTransactionLogs({
             user_id: userId,
             amount: formattedAmount,
             payment_method,
@@ -6140,11 +6716,13 @@ class MemberController extends BaseController {
             e_type: "credit", // Debit type entry
           };
 
-          await this.pageModel.insertInCredits(creditEntry);
+          const result = await this.pageModel.insertInCredits(creditEntry);
+
+          await this.pageModel.markCreditsAsPaid(userId);
 
           return res.status(200).json({
             status: 1,
-            msg: "Credits added successfully.",
+            msg: "Payment successful & credits cleared.",
             invoiceId: result.insertId,
           });
         } else {
@@ -6253,12 +6831,13 @@ class MemberController extends BaseController {
           userId
         );
         if (!hasInvoice && !hasCreditsMonth) {
-          const totalDebitAmount = await this.member.getTotalDebitCredits(
-            userId
-          );
-          // console.log("totalDebitAmount:", totalDebitAmount);
-          if (totalDebitAmount > 0) {
-            await this.member.insertInvoice(userId, totalDebitAmount);
+          // const totalDebitAmount = await this.member.getTotalDebitCredits(
+          //   userId
+          // );
+          const totalAmount = await this.member.getTotalPendingCredits(userId);
+          // // console.log("totalDebitAmount:", totalDebitAmount);
+          if (totalAmount > 0) {
+            await this.member.insertInvoice(userId, totalAmount);
             insertedUsers.push(userId);
             const userRow = await this.member.findById(userId);
 
@@ -6270,8 +6849,8 @@ class MemberController extends BaseController {
               {
                 username: userRow?.full_name,
                 adminData,
-                credits: totalDebitAmount,
-                amount: helpers.formatAmount(totalDebitAmount),
+                credits: totalAmount,
+                amount: helpers.formatAmount(totalAmount),
                 previousMonth,
                 currentMonth,
               }
@@ -6476,7 +7055,7 @@ class MemberController extends BaseController {
     //   requestId: 1
     // });
     // const parcels = await this.rider.getParcelDetailsByQuoteId(order.id);
-    // order={...order,parcels:parcels,start_date:helpers.formatDateToUK(order.start_date)}
+    // order={...order,parcels:parcels,start_date:helpers.formatDateTimeToUK(order.start_date)}
     // const templateData = {
     //     username, // Pass username
     //     adminData,

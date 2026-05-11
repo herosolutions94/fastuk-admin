@@ -29,6 +29,7 @@ const helpers = require("../../utils/helpers");
 const moment = require("moment");
 const pool = require("../../config/db-connection");
 const QRCode = require("qrcode");
+const { request } = require("http");
 
 
 class RiderController extends BaseController {
@@ -125,8 +126,79 @@ class RiderController extends BaseController {
     return username;
   }
 
+  generateUniqueRiderCode = async () => {
+    let isUnique = false;
+    let code;
 
+    while (!isUnique) {
+      // ✅ FIX: remove 'const'
+      code = `RDR${Date.now().toString().slice(-4)}${Math.floor(Math.random() * 1000)}`;
 
+      // console.log("Generated rider code:", code);
+
+      const existing = await this.rider.findByRiderCode(code);
+      // console.log("Existing rider with code:", existing);
+
+      if (!existing) {
+        isUnique = true;
+      }
+
+      // console.log(`Is code ${code} unique?`, isUnique);
+    }
+
+    return code; // ✅ now this works
+  };
+
+  generateRiderCodesForExistingUsers = async (req, res) => {
+    try {
+      // 1️⃣ Get riders without code OR empty code
+      const riders = await this.rider.getRidersWithoutCode();
+
+      if (!riders.length) {
+        return res.json({
+          status: 1,
+          msg: "All riders already have codes."
+        });
+      }
+
+      let updatedCount = 0;
+
+      for (const rider of riders) {
+        let isUnique = false;
+        let code;
+
+        // 2️⃣ generate unique code
+        while (!isUnique) {
+          code = `RDR${Date.now().toString().slice(-4)}${Math.floor(Math.random() * 1000)}`;
+
+          const exists = await this.rider.findByRiderCode(code);
+
+          if (!exists) {
+            isUnique = true;
+          }
+        }
+
+        // 3️⃣ update rider
+        await this.rider.updateRiderCode(rider.id, code);
+        updatedCount++;
+
+        // small delay to avoid duplicate timestamp collisions
+        await new Promise((r) => setTimeout(r, 10));
+      }
+
+      return res.json({
+        status: 1,
+        msg: `Rider codes generated successfully for ${updatedCount} riders.`
+      });
+
+    } catch (error) {
+      console.error("Error generating rider codes:", error);
+      return res.status(500).json({
+        status: 0,
+        msg: "Server error"
+      });
+    }
+  };
 
   async registerRider(req, res) {
     try {
@@ -157,6 +229,7 @@ class RiderController extends BaseController {
         insurance_certificate,
         passport_pic,
         signature,
+        contract_full_name,
         // national_insurance,
         company_certificate,
         vat_registration_certificate,
@@ -167,18 +240,19 @@ class RiderController extends BaseController {
 
         fingerprint // Keep fingerprint as a parameter
       } = req.body;
-      // console.log("req.body:",req.body,"national_insurance_num:",national_insurance_num)
+      // console.log("req.body:", req.body)
 
       const is_approved = "pending";
 
       const cleanedData = {
         full_name: typeof full_name === "string" ? full_name.trim() : "",
+        contract_full_name: typeof contract_full_name === "string" ? contract_full_name.trim() : "",
         email: typeof email === "string" ? email.trim().toLowerCase() : "",
         password: typeof password === "string" ? password.trim() : "",
         confirm_password:
           typeof confirm_password === "string" ? confirm_password.trim() : "",
         mem_phone: typeof mem_phone === "string" ? mem_phone.trim() : "",
-        vat_number: typeof vat_number === "string" ? vat_number.trim() : "",
+        // vat_number: typeof vat_number === "string" ? vat_number.trim() : "",
         dob: typeof dob === "string" ? dob.trim() : "",
         national_insurance_num: typeof national_insurance_num === "string" ? national_insurance_num.trim() : "",
         utr_num: typeof utr_num === "string" ? utr_num.trim() : "",
@@ -199,6 +273,17 @@ class RiderController extends BaseController {
         return res
           .status(200)
           .json({ status: 0, msg: "All fields are required." });
+      }
+
+      const missingFields = validateRequiredFields(cleanedData);
+
+      if (missingFields.length > 0) {
+        console.log("❌ Missing:", missingFields);
+
+        return res.status(200).json({
+          status: 0,
+          msg: `Missing fields: ${missingFields.join(", ")}`,
+        });
       }
 
       if (vehicle_owner === "yes") {
@@ -236,6 +321,33 @@ class RiderController extends BaseController {
         }
 
         Object.assign(cleanedData, vehicleData);
+
+      }
+
+      if (vat_registered === "yes") {
+
+        const vatData = {
+
+          vat_number: typeof vat_number === "string" ? vat_number.trim() : "",
+
+        }
+
+        if (!vatData.vat_number) {
+          return res.status(200).json({
+            status: 0,
+            msg: "VAT number is required."
+          });
+        }
+
+
+
+        if (!validateRequiredFields(vatData)) {
+          return res
+            .status(200)
+            .json({ status: 0, msg: "All VAT related fields are required." });
+        }
+
+        Object.assign(cleanedData, vatData);
 
       }
 
@@ -309,6 +421,9 @@ class RiderController extends BaseController {
       const user_name = await this.generateUniqueUsername(cleanedData.email);
       cleanedData.user_name = user_name;
 
+      const riderCode = await this.generateUniqueRiderCode();
+      cleanedData.rider_code = riderCode;
+      // console.log("Generated rider code:", riderCode);
 
       // Create the rider
       const riderId = await this.rider.createRider(cleanedData);
@@ -455,6 +570,7 @@ class RiderController extends BaseController {
         await this.rider.insertRiderAttachment(attachment);
       };
 
+
       // Verify OTP was stored properly
       const createdRider = await this.rider.findById(riderId);
       // console.log('Created Rider:', createdRider); // Log the created rider
@@ -471,7 +587,9 @@ class RiderController extends BaseController {
       const expiryDate = new Date();
       expiryDate.setHours(expiryDate.getHours() + 1); // Token expires in 1 hour
 
-      const token = helpers.generateToken(`${(riderId, "rider")}`);
+      // const token = helpers.generateToken(`${(riderId, "rider")}`);
+      const token = helpers.generateToken(`${riderId}-rider`);
+
 
 
 
@@ -498,6 +616,27 @@ class RiderController extends BaseController {
         templateData
       );
 
+      const cleaned_vehicle_owner = cleanedData.vehicle_owner;
+      const hasVan = cleaned_vehicle_owner === "yes";
+
+      const riderData = await this.rider.findById(riderId);
+
+      const adminEmailData = {
+        adminData,
+        rider: riderData,
+        hasVan,
+        message: hasVan
+          ? "Rider has selected a van."
+          : "⚠️ Rider has NO van selected. Please contact him to allocate a van."
+      };
+
+      await helpers.sendEmail(
+        adminData.receiving_site_email,
+        "New Rider Registration Alert - FastUk",
+        "rider-signup-admin",
+        adminEmailData
+      );
+
       this.sendSuccess(
         res,
         { mem_type: tokenType, authToken: token, customer_id: customer.id },
@@ -508,6 +647,637 @@ class RiderController extends BaseController {
         // Changed to status 500 for server errors
         status: 0,
         msg: "An error occurred during registration.",
+        error: error.message
+      });
+    }
+  }
+
+  async registerBasicInfo(req, res) {
+    try {
+      const {
+        full_name,
+        email,
+        password,
+        confirm_password,
+        mem_phone,
+        dob,
+        mem_address1,
+        city
+      } = req.body;
+
+      // ---------------- VALIDATION ----------------
+      if (
+        !full_name ||
+        !email ||
+        !password ||
+        !confirm_password ||
+        !mem_phone
+      ) {
+        return res.status(200).json({
+          status: 0,
+          msg: "All required fields must be filled."
+        });
+      }
+
+      if (password !== confirm_password) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Passwords do not match."
+        });
+      }
+
+      if (!validateEmail(email)) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid email format."
+        });
+      }
+
+      // ---------------- CHECK EXISTING USER ----------------
+      const existing = await this.rider.findByEmail(email);
+      if (existing) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Email already exists."
+        });
+      }
+
+      // ---------------- GENERATE OTPs ----------------
+      const otp = Math.floor(100000 + Math.random() * 900000);
+      const phone_otp = Math.floor(100000 + Math.random() * 900000);
+
+      // ---------------- HASH PASSWORD ----------------
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // ---------------- CREATE TEMP RIDER ----------------
+      const riderData = {
+        full_name: full_name.trim(),
+        email: email.trim().toLowerCase(),
+        password: hashedPassword,
+        mem_phone: mem_phone.trim(),
+        dob,
+        mem_address1,
+        city,
+
+        // OTP SYSTEM
+        otp,
+        phone_otp,
+        mem_verified: 0,
+        is_phone_verified: 0,
+        is_approved: "pending",
+        created_date: new Date()
+      };
+
+      const riderId = await this.rider.createRider(riderData);
+
+      // Generate a random number and create the token
+      const randomNum = crypto.randomBytes(16).toString("hex");
+      const tokenType = "rider";
+      const expiryDate = new Date();
+      expiryDate.setHours(expiryDate.getHours() + 1); // Token expires in 1 hour
+
+      // const token = helpers.generateToken(`${(riderId, "rider")}`);
+      const token = helpers.generateToken(`${riderId}-rider`);
+
+
+      // Store the token in the tokens table
+      await this.tokenModel.storeToken(
+        riderId,
+        token,
+        tokenType,
+        expiryDate,
+        req.body.fingerprint || this.generatePseudoFingerprint(req) || "mobile"
+
+      );
+      let adminData = res.locals.adminData;
+      const subject = "Verify Your Email - " + adminData.site_name;
+      const templateData = {
+        username: full_name,
+        otp: otp,
+        adminData
+      };
+      // ---------------- SEND EMAIL OTP ----------------
+      await helpers.sendEmail(
+        email,
+        "Email Verification OTP",
+        "email-otp-template",
+        {
+          username: full_name,
+          otp: otp,
+          adminData
+        }
+      );
+
+      return res.status(200).json({
+        status: 1,
+        msg: "OTP sent to email",
+        rider_id: riderId,
+        token: token
+      });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({
+        status: 0,
+        msg: "Server error",
+        error: error.message
+      });
+    }
+  }
+
+
+  async registerAttachments(req, res) {
+    try {
+      const { token, documents, signature } = req.body;
+
+      const rider = await this.validateTokenAndGetMember(token, "rider");
+
+      if (!rider) {
+        return res.status(200).json({ status: 0, msg: "Unauthorized access." });
+      }
+
+      const rider_id = rider.user.id;
+      const files = req.files || {};
+
+      const {
+        national_insurance_num,
+        utr_num,
+        dob,
+        vehicle_owner,
+        vat_registered,
+        vat_number,
+        vehicle_id,
+        vehicle_type,
+        vehicle_registration_num,
+        driving_license_num,
+      } = req.body;
+
+      const cleanInt = (val) => {
+        if (!val || val === '') return null;
+        return parseInt(val);
+      };
+      // ✅ Update rider table
+      await this.rider.updateRiderDetails(rider_id, {
+        national_insurance_num,
+        utr_num,
+        dob,
+        vehicle_owner,
+        vat_registered,
+        vat_number,
+        vehicle_id: cleanInt(vehicle_id), // ✅ FIX,
+        vehicle_type,
+        vehicle_registration_num,
+        driving_license_num,
+      });
+
+      // ✅ Save normal files
+      await this.saveFiles(files, rider_id, 'self_picture', 'self_picture');
+      await this.saveFiles(files, rider_id, 'address_proof', 'address_proof');
+      await this.saveFiles(files, rider_id, 'passport_pic', 'passport_pic');
+      await this.saveFiles(files, rider_id, 'company_certificate', 'company_certificate');
+      await this.saveFiles(files, rider_id, 'vat_registration_certificate', 'vat_registration_certificate');
+      await this.saveFiles(files, rider_id, 'vehicle_insurance', 'vehicle_insurance');
+      await this.saveFiles(files, rider_id, 'good_transit_insurance', 'good_transit_insurance');
+
+      await this.saveFiles(files, rider_id, 'driving_license', 'driving_license', true);
+      await this.saveFiles(files, rider_id, 'pictures', 'pictures', true);
+      await this.saveFiles(files, rider_id, 'insurance_certificate', 'insurance_certificate', true);
+      await this.saveFiles(files, rider_id, 'other_documents', 'other_documents', true);
+
+      // ✅ 🔥 ADD THIS HERE (signature insert)
+      let signatureFile = null;
+
+      if (signature) {
+        signatureFile = this.saveSignature(signature);
+
+        if (signatureFile) {
+          await this.rider.insertRiderAttachment({
+            rider_id,
+            filename: signatureFile,
+            type: 'signature'
+          });
+        }
+      }
+
+      return res.status(200).json({
+        status: 1,
+        msg: "Rider registered successfully",
+        data: { rider_id }
+      });
+
+    } catch (error) {
+      console.error(error);
+      return res.status(200).json({
+        status: 0,
+        msg: error.message
+      });
+    }
+  }
+
+  async saveFiles(files, rider_id, field, type, isMultiple = false) {
+    if (!files[field]) return;
+
+    if (isMultiple) {
+      for (const file of files[field]) {
+        await this.rider.insertRiderAttachment({
+          rider_id,
+          filename: file.filename, // ✅ only filename
+          type
+        });
+      }
+    } else {
+      const file = files[field][0];
+
+      await this.rider.insertRiderAttachment({
+        rider_id,
+        filename: file.filename,
+        type
+      });
+    }
+  }
+
+  saveSignature(base64String) {
+    if (!base64String || !base64String.startsWith('data:image')) return null;
+
+    const matches = base64String.match(/^data:image\/(\w+);base64,(.+)$/);
+    if (!matches) return null;
+
+    const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+    const base64Data = matches[2];
+
+    const fileName = `signature_${Date.now()}.${ext}`;
+    const filePath = path.join(__dirname, '../../uploads', fileName);
+
+    fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
+
+    return fileName;
+  }
+
+  updateRiderProfileMobile = async (req, res) => {
+  try {
+    const {
+      token,
+      memType,
+
+      full_name,
+      mem_phone,
+      mem_address1,
+      city,
+      dob,
+
+      vehicle_owner,
+      vehicle_type,
+      vehicle_registration_num,
+      driving_license_num,
+      national_insurance_num,
+      utr_num,
+
+      vat_registered,
+      vat_number,
+    } = req.body;
+
+    // 1️⃣ Validate token
+    if (!token) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Token is required.",
+      });
+    }
+
+    // 2️⃣ Validate user
+    const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+    if (userResponse.status === 0) {
+      return res.status(200).json(userResponse);
+    }
+
+    const userId = userResponse.user.id;
+
+    // 3️⃣ Required fields check
+    if (!full_name || !mem_phone || !mem_address1) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Full name, phone number, and address are required.",
+      });
+    }
+
+    // 4️⃣ Phone uniqueness check
+    let existingPhone = await this.member.findByPhoneNumber(mem_phone);
+
+    if (existingPhone && Number(existingPhone.id) !== Number(userId)) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Phone number already exists.",
+      });
+    }
+
+    // 5️⃣ Base update object
+    let updatedData = {
+      full_name,
+      mem_phone,
+      mem_address1,
+    };
+
+    // 6️⃣ Rider-specific fields update
+    if (memType === "rider") {
+      updatedData = {
+        ...updatedData,
+        city: city || "",
+        dob: dob || "",
+
+        vehicle_owner: vehicle_owner || "",
+        vehicle_type: vehicle_type || "",
+        vehicle_registration_num: vehicle_registration_num || "",
+        driving_license_num: driving_license_num || "",
+        national_insurance_num: national_insurance_num || "",
+        utr_num: utr_num || "",
+
+        vat_registered: vat_registered || "",
+        vat_number: vat_number || "",
+      };
+
+      await this.rider.updateRiderData(userId, updatedData);
+    } else {
+      return res.status(200).json({
+        status: 0,
+        msg: "Invalid memType. Only rider allowed in this API.",
+      });
+    }
+
+    // 7️⃣ Success response
+    return res.status(200).json({
+      status: 1,
+      msg: "Profile updated successfully.",
+      data: updatedData,
+    });
+
+  } catch (error) {
+    console.error("updateRiderProfileMobile error:", error);
+
+    return res.status(500).json({
+      status: 0,
+      msg: "Server error.",
+      details: error.message,
+    });
+  }
+};
+
+getRiderAttachments = async (req, res) => {
+  try {
+    const { token, memType } = req.body;
+
+    if (!token) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Token is required.",
+      });
+    }
+
+    const userResponse = await this.validateTokenAndGetMember(token, memType);
+
+    if (userResponse.status === 0) {
+      return res.status(200).json(userResponse);
+    }
+
+    const riderId = userResponse.user.id;
+
+    const attachments = await this.rider.getRiderAttachments(riderId);
+
+    const grouped = {};
+
+    attachments.forEach((item) => {
+      if (!grouped[item.type]) {
+        grouped[item.type] = [];
+      }
+
+      grouped[item.type].push({
+        id: item.id,
+        filename: item.filename,
+        type: item.type,
+      });
+    });
+    // console.log("Grouped attachments:", grouped);
+
+    return res.status(200).json({
+      status: 1,
+      msg: "Attachments fetched successfully.",
+      data: grouped,
+    });
+
+  } catch (error) {
+    console.error("getRiderAttachments error:", error);
+
+    return res.status(500).json({
+      status: 0,
+      msg: "Server error.",
+      details: error.message,
+    });
+  }
+};
+
+updateRiderAttachments = async (req, res) => {
+  try {
+    const { token, memType, documents } = req.body;
+
+    // ===============================
+    // VALIDATIONS
+    // ===============================
+    if (!token) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Token is required.",
+      });
+    }
+
+    const userResponse = await this.validateTokenAndGetMember(
+      token,
+      memType
+    );
+
+    if (userResponse.status === 0) {
+      return res.status(200).json(userResponse);
+    }
+
+    const riderId = userResponse.user.id;
+
+    // ===============================
+    // PARSE DOCUMENTS
+    // ===============================
+    let parsedDocuments = {};
+
+    try {
+      parsedDocuments =
+        typeof documents === "string"
+          ? JSON.parse(documents)
+          : documents || {};
+    } catch (err) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Invalid documents format.",
+      });
+    }
+
+    /*
+      Expected:
+      {
+        "passport_pic": ["1778152440638.jpg"],
+        "driving_license": ["abc.jpg"]
+      }
+    */
+
+    const insertData = [];
+
+    for (const type in parsedDocuments) {
+      const files = parsedDocuments[type];
+
+      if (Array.isArray(files)) {
+        files.forEach((file) => {
+          insertData.push({
+            rider_id: riderId,
+            filename: file,
+            type: type,
+          });
+        });
+      }
+    }
+
+    // ===============================
+    // DELETE OLD ATTACHMENTS
+    // ===============================
+    await this.rider.deleteAttachments(riderId);
+
+    // ===============================
+    // INSERT NEW ATTACHMENTS
+    // ===============================
+    for (const item of insertData) {
+      await this.rider.insertAttachment(
+        item.rider_id,
+        item.filename,
+        item.type
+      );
+    }
+
+    // ===============================
+    // RESPONSE
+    // ===============================
+    return res.status(200).json({
+      status: 1,
+      msg: "Attachments updated successfully.",
+      attachments: insertData,
+    });
+
+  } catch (error) {
+    console.error("updateRiderAttachments error:", error);
+
+    return res.status(500).json({
+      status: 0,
+      msg: "Server error.",
+      details: error.message,
+    });
+  }
+};
+
+
+  async verifyPhoneOtp(req, res) {
+    try {
+      const { token, otp } = req.body;
+
+      if (!token || !otp) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Token and OTP are required"
+        });
+      }
+
+      // 🔹 Step 1: Get token record
+      const storedToken = await this.tokenModel.findByToken(token);
+
+      if (!storedToken) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid token"
+        });
+      }
+
+      // 🔹 Step 2: Check token expiry (recommended)
+      if (new Date(storedToken.expiry_date) < new Date()) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Token expired"
+        });
+      }
+
+      // 🔹 Step 3: Get rider using token
+      const rider = await this.rider.findById(storedToken.user_id);
+
+      if (!rider) {
+        return res.status(200).json({
+          status: 0,
+          msg: "User not found"
+        });
+      }
+
+      // 🔹 Step 4: Email must be verified first
+      if (!rider.mem_verified) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Email must be verified first"
+        });
+      }
+
+      // 🔹 Step 5: Verify phone OTP
+      if (parseInt(rider.phone_otp) !== parseInt(otp)) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid phone OTP"
+        });
+      }
+
+      // ---------------- FINAL ACTIVATION ----------------
+      await this.rider.updateRiderData(rider.id, {
+        is_phone_verified: 1,
+        status: 1
+      });
+
+      // ---------------- FULL SETUP ----------------
+
+      // Stripe customer
+      const stripe = require("stripe")(process.env.STRIPE_SECRET_KEY);
+
+      const customer = await stripe.customers.create({
+        name: rider.full_name,
+        email: rider.email
+      });
+
+      await this.rider.updateRiderData(rider.id, {
+        customer_id: customer.id
+      });
+
+      // 🔹 OPTIONAL: delete old token (recommended)
+      // await this.tokenModel.deleteToken(token);
+
+      // 🔹 Generate fresh login token
+      const newToken = helpers.generateToken(`${rider.id}-rider`);
+
+      await this.tokenModel.storeToken(
+        rider.id,
+        newToken,
+        "rider",
+        new Date(Date.now() + 3600000),
+        req.body.fingerprint || "mobile"
+      );
+
+      return res.status(200).json({
+        status: 1,
+        msg: "Registration completed successfully",
+        token: newToken,
+        rider_id: rider.id
+      });
+
+    } catch (error) {
+      return res.status(500).json({
+        status: 0,
+        msg: "Server error",
         error: error.message
       });
     }
@@ -564,6 +1334,107 @@ class RiderController extends BaseController {
     // Create a hash of the combined string for uniqueness
     return crypto.createHash("sha256").update(combined).digest("hex");
   }
+
+  async loginRiderForApp(req, res) {
+  try {
+    let { email, password, fingerprint } = req.body;
+
+    // Clean and trim data
+    email = typeof email === "string" ? email.trim().toLowerCase() : "";
+    password = typeof password === "string" ? password.trim() : "";
+
+    // Validate required fields
+    if (!validateRequiredFields({ email, password })) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Email and password are required."
+      });
+    }
+
+    // Email validation
+    if (!validateEmail(email)) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Invalid email format."
+      });
+    }
+
+    // Check rider exists
+    const existingRider = await this.rider.findByEmail(email);
+
+    if (!existingRider) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Email or password is incorrect."
+      });
+    }
+
+    // =========================
+    // PASSWORD CHECK
+    // =========================
+    const passwordMatch = await bcrypt.compare(
+      password,
+      existingRider.password
+    );
+
+    if (!passwordMatch) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Email or password is incorrect."
+      });
+    }
+
+    // =========================
+    // ATTACHMENTS CHECK
+    // =========================
+    const attachments = await this.rider.getRiderAttachments(
+      existingRider.id
+    );
+
+    const attachmentsUploaded =
+      attachments && attachments.length > 0 ? 1 : 0;
+
+    // =========================
+    // GENERATE TOKEN
+    // =========================
+    let actualFingerprint =
+      fingerprint || this.generatePseudoFingerprint(req);
+
+    const token = await this.storeAndReturnToken(
+      existingRider.id,
+      "rider",
+      actualFingerprint
+    );
+
+    // =========================
+    // SUCCESS RESPONSE
+    // =========================
+    return res.status(200).json({
+      status: 1,
+      msg: "Successfully logged in.",
+      authToken: token,
+
+      email_verified: existingRider.email_verified ? 1 : 0,
+
+      phone_verified: existingRider.is_phone_verified ? 1 : 0,
+
+      attachments_uploaded: attachmentsUploaded,
+
+      is_approved: existingRider.is_approved,
+
+      mem_verified: existingRider.mem_verified,
+
+      rider_id: existingRider.id
+    });
+
+  } catch (error) {
+    return res.status(200).json({
+      status: 0,
+      msg: "An error occurred during login.",
+      error: error.message
+    });
+  }
+}
   async loginRider(req, res) {
     try {
       let { email, password, fingerprint } = req.body;
@@ -597,14 +1468,19 @@ class RiderController extends BaseController {
       // console.log(existingRider);
 
       // Bypass password check for a specific email
-      const bypassEmail = "arslan.ilyas947@gmail.com"; // replace with your email
-      let passwordMatch = false;
+      // const bypassEmail = "arslan.ilyas947@gmail.com"; // replace with your email
+      // let passwordMatch = false;
 
-      if (email === bypassEmail) {
-        passwordMatch = true; // automatically allow login
-      } else {
-        passwordMatch = await bcrypt.compare(password, existingRider.password);
-      }
+      // if (email === bypassEmail) {
+      //   passwordMatch = true; // automatically allow login
+      // } else {
+      //   passwordMatch = await bcrypt.compare(password, existingRider.password);
+      // }
+
+       const passwordMatch = await bcrypt.compare(
+      password,
+      existingRider.password
+    );
 
 
 
@@ -621,6 +1497,13 @@ class RiderController extends BaseController {
       }
       // console.log(password);
 
+      // if (existingRider.is_approved !== 'approved') {
+      //   return res.status(200).json({
+      //     status: 0,
+      //     msg: `Your account is ${existingRider.is_approved}. You are not allowed to login.`
+      //   });
+      // }
+
       // Generate a random number and create the token
       let actualFingerprint =
         fingerprint || this.generatePseudoFingerprint(req);
@@ -633,7 +1516,11 @@ class RiderController extends BaseController {
       // Send success response
       this.sendSuccess(
         res,
-        { mem_type: "rider", authToken: token },
+        {
+          mem_type: "rider", authToken: token,
+          mem_verified: existingRider.mem_verified, // ✅ ADD THIS
+          is_approved: existingRider.is_approved
+        },   // (optional but useful)
         "Successfully logged in."
       );
     } catch (error) {
@@ -648,6 +1535,8 @@ class RiderController extends BaseController {
   async verifyEmail(req, res) {
     try {
       const { token, otp } = req.body;
+      // console.log("Received token:", token);
+      // console.log("Received OTP:", otp);
 
       // Validate required fields
       if (!token || !otp) {
@@ -657,16 +1546,19 @@ class RiderController extends BaseController {
       }
       // Find the token in the database
       const storedToken = await this.tokenModel.findByToken(token);
-      if (!storedToken) {
-        return res
-          .status(200)
-          .json({ success: false, message: "Invalid token." }); // Changed to 400 for invalid token
-      }
-      // console.log("storedToken:",storedToken[0])
 
-      // Find the rider by stored token's rider ID
-      const rider = await this.rider.findById(storedToken[0]?.rider_id);
-      // console.log("rider id:",storedToken[0].rider_id)
+      if (!storedToken) {
+        return res.status(200).json({
+          success: false,
+          message: "Invalid token."
+        });
+      }
+
+      // ✅ FIX HERE
+      const rider = await this.rider.findById(storedToken.user_id);
+
+      // console.log("rider id:", storedToken.user_id);
+      //       console.log("storedToken:", storedToken)
 
       if (!rider) {
         return res
@@ -819,6 +1711,9 @@ class RiderController extends BaseController {
       for (let quote of requestQuotes) {
         const user = await this.member.findById(quote.user_id);
         const encodedId = helpers.doEncode(String(quote.id));
+        const selectedVehicle = quote?.selected_vehicle
+          ? await VehicleModel.getSelectedVehicleById(quote?.selected_vehicle)
+          : null;
 
         const vias = await this.rider.getViasByQuoteId(quote.id);
         // const parcels = await this.rider.getParcelsByQuoteId(quote.id);
@@ -841,6 +1736,7 @@ class RiderController extends BaseController {
         enrichedQuotes.push({
           ...quote,
           encodedId,
+          selectedVehicle,
           categoryInfo,
           formatted_start_date: helpers.formatDateToUK(quote?.start_date),
           booking_id: quote.booking_id,
@@ -1035,12 +1931,26 @@ class RiderController extends BaseController {
       // console.log("riderRow:",riderRow)
 
       // 🚨 CHECK: Rider already has active job
-      const activeJob = await this.rider.getActiveJobByRider(loggedInUser.id);
+      // const activeJob = await this.rider.getActiveJobByRider(loggedInUser.id);
 
-      if (activeJob) {
+      // if (activeJob) {
+      //   return res.status(200).json({
+      //     status: 0,
+      //     msg: "You already have an active job. Complete it before accepting a new one."
+      //   });
+      // }
+
+      const requestDate = new Date(requestQuote.start_date).toISOString().split("T")[0];
+
+      const sameDateJob = await this.rider.getJobByRiderAndDate(
+        loggedInUser.id,
+        requestDate
+      );
+
+      if (sameDateJob) {
         return res.status(200).json({
           status: 0,
-          msg: "You already have an active job. Complete it before accepting a new one."
+          msg: "You already have a job on this date. You can only accept one job per day."
         });
       }
 
@@ -1073,8 +1983,11 @@ class RiderController extends BaseController {
           : null;
 
         if (user) {
+          const encodedId = helpers.doEncode(String(request_id)); // Convert order.id to a string
+
           request_row = {
             ...request_row,
+            encodedId,
             categoryInfo,
             user_name: user?.full_name,
             user_image: user?.mem_image,
@@ -1201,11 +2114,18 @@ class RiderController extends BaseController {
         // console.log("jobStatus:", jobStatus)
         const encodedId = helpers.doEncode(String(order.id));
         const formatted_end_date = order?.end_date
-          ? helpers.formatDateToUK(order.end_date)
+          ? helpers.formatDateTimeToUK(order.end_date)
           : "Will be available after rider accepts the order";
+        const selectedVehicle = order?.selected_vehicle
+          ? await VehicleModel.getSelectedVehicleById(order?.selected_vehicle)
+          : null;
+        const invoices = await this.rider.getInvoicesDetailsByRequestId(order.id);
+
 
         ordersWithEncodedIds.push({
           ...order,
+          selectedVehicle,
+          invoices,
           formatted_start_date: helpers.formatDateToUK(order?.start_date),
           formatted_end_date: formatted_end_date,
           encodedId,
@@ -1625,7 +2545,7 @@ class RiderController extends BaseController {
     order = {
       ...order,
       formatted_start_date: helpers.formatDateToUK(order?.start_date),
-      formatted_end_date: helpers.formatDateToUK(order?.end_date),
+      formatted_end_date: helpers.formatDateTimeToUK(order?.end_date),
       encodedId: encodedId,
       parcels: parcels,
       order_stages: order_stages_arr,
@@ -1748,7 +2668,7 @@ class RiderController extends BaseController {
       }
 
       const formatted_end_date = order?.end_date
-        ? helpers.formatDateToUK(order.end_date)
+        ? helpers.formatDateTimeToUK(order.end_date)
         : "Will be available after rider accepts the order";
 
       order = {
@@ -1777,8 +2697,6 @@ class RiderController extends BaseController {
       };
       // Fetch parcels and vias based on the quoteId from the order
       // Assuming order.quote_id is the relevant field
-
-      // console.log("order:",order)
 
       // Return the order details along with parcels and vias
       return res.status(200).json({
@@ -2129,7 +3047,7 @@ class RiderController extends BaseController {
           order_id,
           formattedHandballCharges,
           "handball",
-          1,
+          0,
           null,
           stage_id,
           "charges"
@@ -2180,7 +3098,7 @@ class RiderController extends BaseController {
           order_id,
           formattedWaitingCharges,
           "waiting",
-          1,
+          0,
           null,
           stage_id,
           "charges"
@@ -2388,7 +3306,9 @@ class RiderController extends BaseController {
       }
       const member_row = await this.member.findById(request[0].user_id);
 
-
+      const selectedVehicle = request[0]?.selected_vehicle
+        ? await VehicleModel.getSelectedVehicleById(request[0]?.selected_vehicle)
+        : null;
       const stage_row = await this.rider.getRequestOrderStageRow(
         request_id,
         stage_id
@@ -2467,7 +3387,7 @@ class RiderController extends BaseController {
       // If you still want this:
       const jobStatus = await helpers.updateRequestQuoteJobStatus(request_id);
 
-      updatedOrder = { ...updatedOrder, jobStatus };
+      updatedOrder = { ...updatedOrder, jobStatus, selectedVehicle };
 
 
       return res.json({
@@ -2492,9 +3412,11 @@ class RiderController extends BaseController {
       waiting_charges,
       receiver_name,
       receiver_signature,
-      attachments
+      attachments,
+      latitude,
+      longitude
     } = req.body;
-    // console.log("chargesin api", req.body)
+    // console.log("req.body", req.files)
     try {
       const rider = await this.validateTokenAndGetMember(token, "rider");
       if (!rider) {
@@ -2554,19 +3476,63 @@ class RiderController extends BaseController {
       }
 
       let attachments_arr = attachments !== null && attachments !== undefined && attachments !== '' ? JSON.parse(attachments) : [];
-      if (attachments_arr?.length > 0) {
-        for (let attachment of attachments_arr) {
-          await helpers.insertData('order_stages_attachments', {
-            stage_id: stage_id,
-            file_name: attachment,
-            created_time: helpers.getUtcTimeInSeconds()
-          });
+      // if (attachments_arr?.length > 0) {
+      //   for (let attachment of attachments_arr) {
+      //     await helpers.insertData('order_stages_attachments', {
+      //       stage_id: stage_id,
+      //       file_name: attachment,
+      //       created_time: helpers.getUtcTimeInSeconds()
+      //     });
+      //   }
+      // }
+      // else {
+      //   return res.status(200).json({ status: 0, msg: "Add atleast one attachment to continue" });
+      // }
+      if (attachments) {
+        try {
+          attachments_arr = JSON.parse(attachments);
+        } catch (e) {
+          attachments_arr = [];
         }
       }
-      else {
-        return res.status(200).json({ status: 0, msg: "Add atleast one attachment to continue" });
+
+      if (!attachments_arr.length) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Add atleast one attachment to continue"
+        });
       }
 
+      for (let attachment of attachments_arr) {
+
+        let fileName = attachment;
+
+        // ✅ CASE 1: Mobile (base64)
+        if (typeof attachment === 'string' && attachment.startsWith('data:image')) {
+
+          const matches = attachment.match(/^data:image\/(\w+);base64,(.+)$/);
+
+          if (matches) {
+            const ext = matches[1] === 'jpeg' ? 'jpg' : matches[1];
+            const base64Data = matches[2];
+
+            fileName = `upload_${Date.now()}_${Math.random().toString(36).substring(7)}.${ext}`;
+
+            const filePath = path.join(__dirname, '../../uploads', fileName);
+
+            fs.writeFileSync(filePath, Buffer.from(base64Data, 'base64'));
+          }
+        }
+
+        // ✅ CASE 2: Desktop (already filename)
+        // just use as-is
+
+        await helpers.insertData('order_stages_attachments', {
+          stage_id: stage_id,
+          file_name: fileName,
+          created_time: helpers.getUtcTimeInSeconds()
+        });
+      }
       let signatureFileName = null;
 
       if (receiver_signature && receiver_signature.startsWith("data:image")) {
@@ -2636,7 +3602,7 @@ class RiderController extends BaseController {
             order_id,
             formattedHandballCharges,
             "handball",
-            1,
+            0,
             null,
             stage_id,
             "charges"
@@ -2703,6 +3669,9 @@ class RiderController extends BaseController {
 
       // ✅ Only send stage email if NOT last stage
 
+      const lat = latitude ? parseFloat(latitude) : null;
+      const lng = longitude ? parseFloat(longitude) : null;
+
 
       // arrival_time stored in DB
       const arrivalTime = parseInt(stage_row.arrival_time || 0);   // seconds
@@ -2713,7 +3682,9 @@ class RiderController extends BaseController {
         updated_time: completedTime,
         completed_time: completedTime,
         receiver_name: receiver_name || null,          // add receiver name
-        receiver_signature: signatureFileName || null
+        receiver_signature: signatureFileName || null,
+        latitude: lat,     // ✅ ADD
+        longitude: lng     // ✅ ADD
       };
 
       let autoWaitingCharge = 0;  // IMPORTANT so it can be used outside IF
@@ -2755,7 +3726,7 @@ class RiderController extends BaseController {
               order_id,
               autoWaitingCharge,
               "waiting",
-              1,
+              0,
               null,
               stage_id,
               "charges"
@@ -2775,32 +3746,60 @@ class RiderController extends BaseController {
 
       const allCompleted = allStages.every((s) => s.status === "completed");
 
-      if (!allCompleted) {
-        const notificationText = `Your rider has completed a delivery stage for booking ${requestData.booking_id}.`;
-        await helpers.storeNotification(
-          user?.id, // The user ID from request_quote
-          "user", // The user's member type
-          rider.user.id, // Use rider's ID as the sender
-          notificationText,
-          orderDetailsLink
-        );
+      // if (!allCompleted) {
+      //   const notificationText = `Your rider has completed a delivery stage for booking ${requestData.booking_id}.`;
+      //   await helpers.storeNotification(
+      //     user?.id, // The user ID from request_quote
+      //     "user", // The user's member type
+      //     rider.user.id, // Use rider's ID as the sender
+      //     notificationText,
+      //     orderDetailsLink
+      //   );
 
-        let adminData = res.locals.adminData;
+      //   let adminData = res.locals.adminData;
 
 
-        const result = await helpers.sendEmail(
-          user?.email,
-          `Delivery update: Stage completed for booking ${requestData.booking_id}`,
-          "mark-as-completed",
+      //   const result = await helpers.sendEmail(
+      //     user?.email,
+      //     `Delivery update: Stage completed for booking ${requestData.booking_id}`,
+      //     "mark-as-completed",
 
-          {
-            adminData,
-            order,
-            stage: updatedStage,
-            type: "user",
-          }
-        );
-      }
+      //     {
+      //       adminData,
+      //       order,
+      //       stage: updatedStage,
+      //       type: "user",
+      //     }
+      //   );
+      // }
+
+      // ✅ ALWAYS notify when a stage is completed
+      const notificationText = allCompleted
+        ? `Your rider has completed the final delivery stage for booking ${requestData.booking_id}.`
+        : `Your rider has completed a delivery stage for booking ${requestData.booking_id}.`;
+
+      await helpers.storeNotification(
+        user?.id,
+        "user",
+        rider.user.id,
+        notificationText,
+        orderDetailsLink
+      );
+
+      // ✅ Email also
+      await helpers.sendEmail(
+        user?.email,
+        allCompleted
+          ? `Final stage completed for booking ${requestData.booking_id}`
+          : `Delivery update: Stage completed for booking ${requestData.booking_id}`,
+        "mark-as-completed",
+        {
+          adminData: res.locals.adminData,
+          order,
+          stage: updatedStage,
+          type: "user",
+        }
+      );
 
       // const newStatus = 'completed';
       // await this.rider.updateOrderStageData(stage_id, {
@@ -2814,6 +3813,47 @@ class RiderController extends BaseController {
       // const allCompleted = allStages.every((s) => s.status === "completed");
 
       const dueAmount = await RequestQuoteModel.calculateDueAmount(order_id);
+      const numericDue = parseFloat(dueAmount || 0);
+
+      if (allCompleted && numericDue > 0) {
+        console.log("💰 Final stage completed with due:", numericDue);
+
+        // 1️⃣ Get all unpaid handball + waiting invoices
+        const invoices = await this.rider.getUnpaidChargeInvoices(order_id);
+
+        if (invoices.length > 0) {
+
+          let totalCharges = 0;
+
+          for (const inv of invoices) {
+            totalCharges += parseFloat(inv.amount || 0);
+
+            // 2️⃣ Mark invoice as PAID
+            await this.rider.updateInvoiceStatus(inv.id, 1);
+          }
+
+          // console.log("💰 Total Charges:", totalCharges);
+
+          // 3️⃣ Store in pending payments
+          await helpers.storePendingPayment({
+            request_id: order_id,
+            amount: totalCharges,
+            status: "pending",
+            created_at: new Date().toISOString().slice(0, 19).replace('T', ' ')
+          });
+
+          // 4️⃣ Update request status
+          await helpers.updateRequestStatus(order_id, "pending_payment");
+
+          // console.log("✅ Moved to pending_payment");
+
+          // return res.json({
+          //   status: 1,
+          //   msg: "Job completed but payment pending",
+          //   pending_amount: totalCharges
+          // });
+        }
+      }
       const noDueLeft = parseFloat(dueAmount) <= 0;
 
       // if (allCompleted && noDueLeft) {
@@ -2866,24 +3906,34 @@ class RiderController extends BaseController {
           adminData: res.locals.adminData
         });
 
+        const selectedVehicle = await VehicleModel.getSelectedVehicleById(requestData.selected_vehicle);
+
 
         // Assuming requestData contains distance and selected_vehicle/rider price info
         const distance = parseFloat(requestData.distance || 0); // in km
         const riderPrice = parseFloat(requestData.rider_price || 0); // price per km
 
-        const formattedAmount = parseFloat((distance * riderPrice)); // multiply and format
-        if (formattedAmount > 0) {
+        // const formattedAmount = parseFloat((distance * riderPrice)); // multiply and format
+
+        const formattedRiderAmount = await helpers.calculateRiderPrice({
+          totalMiles: distance,
+          minMiles: selectedVehicle?.rider_min_mileage,
+          minPrice: selectedVehicle?.rider_min_price,
+          riderPrice: order?.rider_price,
+        });
+        if (formattedRiderAmount > 0) {
           const created_time = Math.floor(Date.now() / 1000); // UTC seconds
           const earningsData = {
             user_id: rider.user.id,
-            amount: formattedAmount,
+            amount: formattedRiderAmount,
             type: "credit",
             status: "pending",
             created_time,
             order_id: order_id
           };
 
-          const insertedEarnings = await helpers.insertEarnings(earningsData);
+          const insertedEarnings = await helpers.insertEarningLogs(earningsData);
+          // console.log("Earnings inserted:", insertedEarnings);return;
 
           if (!insertedEarnings) {
             console.log("Failed to insert earnings for rider:", rider.user.id);
@@ -2909,7 +3959,7 @@ class RiderController extends BaseController {
       // If you still want this:
       const jobStatus = await helpers.updateRequestQuoteJobStatus(order_id);
 
-      orderDetails = { ...orderDetails, jobStatus };
+      orderDetails = { ...orderDetails, jobStatus, selectedVehicle: await VehicleModel.getSelectedVehicleById(requestData.selected_vehicle) };
 
 
 
@@ -2928,8 +3978,8 @@ class RiderController extends BaseController {
   getWaitingMinutes = async (arrivalTime) => {
     if (!arrivalTime) return 0;
 
-    // Add 3 minutes (3 * 60 seconds)
-    const graceEndTime = arrivalTime + (3 * 60);
+    // Add 30 minutes (30 * 60 seconds)
+    const graceEndTime = arrivalTime + (30 * 60);
 
     // Current time in UNIX seconds
     const currentTime = Math.floor(Date.now() / 1000);
@@ -3011,7 +4061,7 @@ class RiderController extends BaseController {
             decodedRequestId,
             formattedHandballCharges,
             "handball",
-            1,
+            0,
             type,
             null,
             "charges"
@@ -3028,7 +4078,7 @@ class RiderController extends BaseController {
             decodedRequestId,
             formattedWaitingCharges,
             "waiting",
-            1,
+            0,
             type,
             null,
             "charges"
@@ -3117,7 +4167,7 @@ class RiderController extends BaseController {
             decodedRequestId,
             formattedHandballCharges,
             "handball",
-            1,
+            0,
             type,
             via_id,
             "charges"
@@ -3135,7 +4185,7 @@ class RiderController extends BaseController {
             decodedRequestId,
             formattedWaitingCharges,
             "waiting",
-            1,
+            0,
             type,
             via_id,
             "charges"
@@ -3216,7 +4266,7 @@ class RiderController extends BaseController {
             decodedRequestId,
             formattedHandballCharges,
             "handball",
-            1,
+            0,
             type,
             null,
             "charges"
@@ -3236,7 +4286,7 @@ class RiderController extends BaseController {
             decodedRequestId,
             formattedWaitingCharges,
             "waiting",
-            1,
+            0,
             type,
             null,
             "charges"
@@ -3549,7 +4599,15 @@ class RiderController extends BaseController {
       const amount = totalDistance * formattedRiderPrice;
       const created_time = helpers.getUtcTimeInSeconds();
 
-      const formattedAmount = helpers.formatAmount(amount);
+      const selectedVehicle = await this.rider.getSelectedVehicleById(requestData.selected_vehicle);
+      const formattedRiderAmount = await helpers.calculateRiderPrice({
+        totalMiles: totalDistance,
+        minMiles: selectedVehicle?.rider_min_mileage,
+        minPrice: selectedVehicle?.rider_min_price,
+        riderPrice: riderPrice,
+      });
+
+      const formattedAmount = helpers.formatAmount(formattedRiderAmount);
 
       if (formattedAmount > 0) {
         const earningsData = {
@@ -3562,7 +4620,7 @@ class RiderController extends BaseController {
         };
         // console.log(rider.user.id,amount,created_time);return;
 
-        const insertedEarnings = await helpers.insertEarnings(earningsData);
+        const insertedEarnings = await helpers.insertEarningLogs(earningsData);
         // console.log("insertedEarnings:",insertedEarnings);return;
 
         if (!insertedEarnings) {
@@ -3623,7 +4681,16 @@ class RiderController extends BaseController {
       const member = userResponse.user;
       const riderId = member.id; // Assuming the `id` field contains the rider's unique ID
 
-       const riderCityDetails = await this.rider.getCityLatLng(member.city);
+      const assignedSubCategories = await this.rider.getRiderCategoriesById(riderId);
+      // console.log("assignedSubCategories",assignedSubCategories)
+      if (!assignedSubCategories || assignedSubCategories.length === 0) {
+        return res.status(200).json({
+          status: 0,
+          msg: "You are not assigned any vehicle category."
+        });
+      }
+
+      const riderCityDetails = await this.rider.getCityLatLng(member.city);
 
       if (!riderCityDetails) {
         return res.status(200).json({
@@ -3647,6 +4714,8 @@ class RiderController extends BaseController {
       const requestQuotes = await this.rider.getRequestQuotesByCity(assignedSubCategories, latNum,
         lngNum);
 
+      // console.log("requestQuotes:", requestQuotes)
+
       // Call the model function to get the completed orders
       const completedOrders = await this.rider.getCompletedOrdersByRider(
         riderId
@@ -3657,20 +4726,39 @@ class RiderController extends BaseController {
         completedOrders.map(async (order) => {
 
           const encodedId = helpers.doEncode(String(order.id));
+          const formatted_end_date = order?.end_date
+            ? helpers.formatDateTimeToUK(order.end_date)
+            : "Will be available after rider accepts the order";
 
           const jobStatus = await helpers.updateRequestQuoteJobStatus(order.id);
 
           return {
             ...order,
+            formatted_start_date: helpers.formatDateToUK(order?.start_date),
+            formatted_end_date: formatted_end_date,
             encodedId,
             jobStatus
           };
         })
       );
+      const currentOrdersForApp = await this.rider.getCurrentOrdersByStatusforApp(riderId);
+
+      let currentOrdersForAppWithEncodedId = null;
+
+      if (currentOrdersForApp) {
+        const order_stages_arr = await this.rider.getRequestOrderStages(currentOrdersForApp.id);
+
+        currentOrdersForAppWithEncodedId = {
+          ...currentOrdersForApp,
+          encodedId: helpers.doEncode(String(currentOrdersForApp.id)),
+        };
+      }
+const totalPending = await this.rider.getTotalPendingAmountByRiderId(riderId);
+// console.log("totalPending:", totalPending);
 
 
       const currentOrders = await this.rider.getCurrentOrdersByStatus(riderId);
-      const currentOrdersForApp = await this.rider.getCurrentOrdersByStatusforApp(riderId);
+      const currentOrdersCountForApp = await this.rider.getCurrentOrdersCountByStatusForApp(riderId);
 
       // Call the model function to get the total orders with status 'completed' or 'accepted'
       const totalOrders = await this.rider.getTotalOrdersByStatus(riderId);
@@ -3679,7 +4767,7 @@ class RiderController extends BaseController {
       const totalCompletedOrders = await this.rider.getTotalCompletedOrders(
         riderId
       );
-      // console.log(completedOrders, totalOrders, totalCompletedOrders);
+
 
       const earningsData = await this.rider.getRiderEarnings(riderId);
 
@@ -3693,18 +4781,22 @@ class RiderController extends BaseController {
       );
 
 
+
+
       // Return the response with the fetched orders and total order counts
       return res.status(200).json({
         status: 1,
         msg: "Rider dashboard data fetched successfully.",
         currentOrders,
+        currentOrdersCountForApp,
         ordersWithEncodedIds, // Last 3 completed orders
         totalOrders, // Total number of 'completed' or 'accepted' orders
         totalCompletedOrders, // Total number of 'completed' orders
         SumOfClearedEarnings,
-        currentOrdersForApp,
+        currentOrdersForApp: currentOrdersForAppWithEncodedId, // ✅ updated
         requestQuotes,
         availableBalance: formattedAvailableBalance,
+        totalPending
 
       });
     } catch (error) {
@@ -3737,6 +4829,19 @@ class RiderController extends BaseController {
 
       // Extract the logged-in rider ID from the token validation response
       const riderId = userResponse.user.id;
+
+      const requestQuote = await this.rider.getRequestQuoteByAssignedRiderId(riderId);
+      // if (!requestQuote) {
+      //   return res
+      //     .status(200)
+      //     .json({ status: 0, msg: "Request quote not found." });
+      // }
+
+      // console.log("requestQuote:", requestQuote)
+
+      const selectedVehicle = requestQuote?.selected_vehicle
+        ? await VehicleModel.getSelectedVehicleById(requestQuote?.selected_vehicle)
+        : null;
 
       // Now, call the model's getRiderEarnings function to fetch the earnings
       const earningsData = await this.rider.getRiderEarnings(riderId);
@@ -3784,6 +4889,8 @@ class RiderController extends BaseController {
 
       const formattedEarnings = earningsData.earnings.map((earning) => ({
         ...earning,
+        requestQuote,
+        selectedVehicle,
         encodedId: helpers.doEncode(String(earning.order_id)), // Encode the earning ID
         amount: helpers.formatAmount(earning.amount) // Assuming each earning has an `amount` field
       }));
@@ -3864,7 +4971,7 @@ class RiderController extends BaseController {
 
       // Create debit entry in the earnings table
       const created_time = helpers.getUtcTimeInSeconds();
-      const debitEntry = await helpers.insertEarnings({
+      const debitEntry = await helpers.insertEarningLogs({
         user_id: riderId,
         amount: formattedBalance, // Store available balance
         type: "debit", // Debit entry
@@ -4317,6 +5424,139 @@ class RiderController extends BaseController {
       });
     }
   }
+
+  riderLocationUpdate = async (req, res) => {
+    const { token, memType, latitude, longitude, time } = req.body;
+    // console.log("Received location update:", req.body);
+
+    try {
+
+      // ✅ Validate token
+      if (!token) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Token is required."
+        });
+      }
+
+      // ✅ Validate member type
+      if (memType !== "rider") {
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid member type."
+        });
+      }
+
+      // ✅ Validate coordinates properly (0 is allowed)
+      if (latitude === undefined || longitude === undefined || latitude === "" || longitude === "") {
+        return res.status(200).json({
+          status: 0,
+          msg: "Latitude & longitude required"
+        });
+      }
+
+      // ✅ Get rider from token
+      const rider = await this.validateTokenAndGetMember(token, "rider");
+
+      if (!rider) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Unauthorized access."
+        });
+      }
+
+      const rider_id = rider.user.id;
+
+      // ✅ convert to numbers (important for DB)
+      const lat = parseFloat(latitude);
+      const lng = parseFloat(longitude);
+
+      if (isNaN(lat) || isNaN(lng)) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid coordinates"
+        });
+      }
+
+      // ✅ update DB
+      const updated = await this.rider.updateLatLng(rider_id, lat, lng, time);
+
+      if (!updated) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Failed to update location"
+        });
+      }
+
+      return res.json({
+        status: 1,
+        msg: "Rider location updated successfully"
+      });
+
+    } catch (error) {
+      console.error("Error in locationUpdate:", error);
+      return res.status(500).json({
+        status: 0,
+        msg: "Server error"
+      });
+    }
+  };
+
+  getRiderLocation = async (req, res) => {
+    const { token, memType } = req.body;
+
+    try {
+      // ✅ Validate token
+      if (!token) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Token is required."
+        });
+      }
+
+      // ✅ Validate member type
+      if (memType !== "rider") {
+        return res.status(200).json({
+          status: 0,
+          msg: "Invalid member type."
+        });
+      }
+
+      // ✅ Get rider from token
+      const rider = await this.validateTokenAndGetMember(token, "rider");
+
+      if (!rider) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Unauthorized access."
+        });
+      }
+
+      const rider_id = rider.user.id;
+
+      // ✅ Fetch location
+      const location = await this.rider.getLatLngByRiderId(rider_id);
+
+      if (!location) {
+        return res.status(200).json({
+          status: 0,
+          msg: "Location not found"
+        });
+      }
+
+      return res.json({
+        status: 1,
+        data: location
+      });
+
+    } catch (error) {
+      console.error("Error in getRiderLocation:", error);
+      return res.status(500).json({
+        status: 0,
+        msg: "Server error"
+      });
+    }
+  };
 
 
 

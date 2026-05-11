@@ -1,0 +1,88 @@
+<section id="dashbaord">
+    <div class="contain-fluid">
+        <div class="heading">
+            <div class="text">
+                <h3>Edit Category</h3>
+                <ul>
+                    <li><a href="">Home</a></li>
+                    <li class="active"><a href="">New Category</a></li>
+                </ul>
+            </div>
+            <div class="text text2">
+                <a href="/admin/rider/vehicles/assigned-vehicles/<%= rider_id %>" class="webBtn mdBtn greenBtn"><i
+                        class="fa-regular fa-arrow-left"></i>Cancel</a>
+            </div>
+        </div>
+        <div class="dashTable">
+            <div class="card editor_card">
+                <div class="card-header">
+                    <h5>Category Block</h5>
+                </div>
+                <div class="card-body full_width">
+                    <form id="addCategoryForm" action="/admin/rider/vehicle/update/<%= rider_id %>/<%= vehicle_id %>"
+                        method="POST">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <input type="hidden" id="riderId" value="<%= rider_id %>" />
+
+                                <div class="row switch-showcase">
+                                    <div class="col-md-6">
+                                        <div class="txtGrp">
+                                            <label>Select Vehicle</label>
+                                            <select id="vehicle_id" name="vehicle_id" class="form-select">
+                                                <option value="">-- Select Vehicle --</option>
+
+                                                <% vehicles.forEach(vehicle=> { %>
+                                                    <option value="<%= vehicle.id %>"
+                                                        data-price="<%= vehicle.vehicle_rental_price %>"
+                                                        <%=vehicle.id==vehicle_id ? 'selected' : '' %>>
+
+                                                        <%= vehicle.title %>
+                                                    </option>
+                                                    <% }) %>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="txtGrp">
+                                            <label>Vehicle Rental Price</label>
+                                            <input type="text" id="vehicle_rent" name="vehicle_rent"
+                                                class="form-control" value="<%= vehicleRent %>" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-end">
+                            <button class="webBtn" type="submit">
+                                Update Category <i class="spinner hidden"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <hr />
+            </div>
+        </div>
+    </div>
+</section>
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    const select = document.getElementById("vehicle_id");
+    const input = document.getElementById("vehicle_rent");
+
+    function updatePrice() {
+        const price = select.options[select.selectedIndex]
+            .getAttribute("data-price");
+
+        input.value = price || "";
+    }
+
+    // on change
+    select.addEventListener("change", updatePrice);
+
+    // on page load (IMPORTANT)
+    updatePrice();
+});
+</script>

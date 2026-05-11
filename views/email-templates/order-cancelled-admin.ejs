@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Cancellation Alert</title>
+</head>
+<body style="margin:0; padding:20px; background:#f4f4f4; font-family:Arial, sans-serif;">
+  <div style="max-width:900px; margin:auto; background:#fff; padding:20px; border-radius:8px; border:1px solid #d4e0df;">
+    
+    <!-- Logo -->
+    <table style="width:100%;">
+      <tr>
+        <td style="text-align:center;">
+          <img src="<%= adminData.logo %>" alt="Logo" style="width:100px;" />
+        </td>
+      </tr>
+    </table>
+
+    <!-- Heading -->
+    <table style="width:100%; margin-top:30px;">
+      <tr>
+        <td>
+          <h2 style="color:#ed1c24; margin-bottom:10px;">🚨 Order Cancellation Alert</h2>
+          <p style="font-size:14px; color:#333;">
+            An order has been cancelled by the customer. Please review the details below.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Order Details -->
+    <table style="width:100%; margin-top:20px; border-collapse:collapse;">
+      <tr style="background:#f8f9fa;">
+        <td colspan="2" style="padding:10px; font-weight:bold; border-bottom:2px solid #dee2e6;">
+          📦 Order Information
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Booking ID:</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><%= order.booking_id %></td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Tracking ID:</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><%= order.tracking_id %></td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Total Amount:</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;">£<%= originalAmount.toFixed(2) %></td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Pickup Location:</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><%= order.source_address %></td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Drop-off Location:</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><%= order.dest_address %></td>
+      </tr>
+    </table>
+
+    <!-- Customer Details -->
+    <table style="width:100%; margin-top:20px; border-collapse:collapse;">
+      <tr style="background:#f8f9fa;">
+        <td colspan="2" style="padding:10px; font-weight:bold; border-bottom:2px solid #dee2e6;">
+          👤 Customer Information
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Name:</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><%= user.full_name || user.name %></td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Email:</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><%= user.email %></td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Phone:</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><%= user.mem_phone || user.phone %></td>
+      </tr>
+    </table>
+
+    <!-- Rider Details (if assigned) -->
+    <% if (isRiderAssigned && rider) { %>
+    <table style="width:100%; margin-top:20px; border-collapse:collapse;">
+      <tr style="background:#f8f9fa;">
+        <td colspan="2" style="padding:10px; font-weight:bold; border-bottom:2px solid #dee2e6;">
+          🚗 Rider Information
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Name:</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><%= rider.full_name || rider.name %></td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Email:</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><%= rider.email %></td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Phone:</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><%= rider.mem_phone || rider.phone %></td>
+      </tr>
+    </table>
+    <% } else { %>
+    <table style="width:100%; margin-top:20px; border-collapse:collapse;">
+      <tr style="background:#f8f9fa;">
+        <td style="padding:10px; font-weight:bold; border-bottom:2px solid #dee2e6;">
+          🚗 Rider Information
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px; color:#666;">No rider was assigned to this order.</td>
+      </tr>
+    </table>
+    <% } %>
+
+    <hr style="margin:20px 0;" />
+
+    <!-- Cancellation Details -->
+    <table style="width:100%; margin-top:20px; border-collapse:collapse;">
+      <tr style="background:#fff3cd;">
+        <td colspan="2" style="padding:10px; font-weight:bold; border-bottom:2px solid #ffc107;">
+          ⚠️ Cancellation Details
+        </td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Cancellation Reason:</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><%= reason %></td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Cancellation Type:</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><%= cancellationReason %></td>
+      </tr>
+      <tr>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Cancellation Charges:</strong></td>
+        <td style="padding:8px; border-bottom:1px solid #dee2e6;"><%= cancellationChargePercent %>%</td>
+      </tr>
+    </table>
+
+    <!-- Refund Status -->
+    <% if (cancellationChargePercent === 100) { %>
+    <div style="background:#f8d7da; padding:15px; border-left:5px solid #dc3545; margin:20px 0;">
+      <p style="margin:0; font-weight:bold; color:#721c24;">❌ No Refund</p>
+      <p style="margin-top:5px; color:#721c24;">
+        100% cancellation charges applied. Rider has arrived on site. No refund will be processed.
+      </p>
+      <p style="margin-top:10px; color:#721c24;">
+        <strong>Original Amount:</strong> £<%= originalAmount.toFixed(2) %><br>
+        <strong>Refund Amount:</strong> £0.00
+      </p>
+    </div>
+    <% } else if (cancellationChargePercent === 50) { %>
+    <div style="background:#fff3cd; padding:15px; border-left:5px solid #ffc107; margin:20px 0;">
+      <p style="margin:0; font-weight:bold; color:#856404;">⚠️ Partial Refund</p>
+      <p style="margin-top:5px; color:#856404;">
+        50% cancellation charges applied. Cancellation occurred after 10 minutes of rider acceptance.
+      </p>
+      <p style="margin-top:10px; color:#856404;">
+        <strong>Original Amount:</strong> £<%= originalAmount.toFixed(2) %><br>
+        <strong>Refund Amount:</strong> £<%= refundAmount.toFixed(2) %> (50%)<br>
+        <strong>Refund Status:</strong> <%= refundProcessed ? '✅ Processed' : '⏳ Pending' %>
+      </p>
+    </div>
+    <% } else { %>
+    <div style="background:#d4edda; padding:15px; border-left:5px solid #28a745; margin:20px 0;">
+      <p style="margin:0; font-weight:bold; color:#155724;">✅ Full Refund</p>
+      <p style="margin-top:5px; color:#155724;">
+        No cancellation charges applied. Full refund will be processed.
+      </p>
+      <p style="margin-top:10px; color:#155724;">
+        <strong>Original Amount:</strong> £<%= originalAmount.toFixed(2) %><br>
+        <strong>Refund Amount:</strong> £<%= refundAmount.toFixed(2) %> (100%)<br>
+        <strong>Refund Status:</strong> <%= refundProcessed ? '✅ Processed' : '⏳ Pending' %>
+      </p>
+    </div>
+    <% } %>
+<!-- Add this section in order-cancelled-admin.ejs after the refund status -->
+
+<!-- Rider Cancellation Payment (if applicable) -->
+<% if (riderCancellationPaid && riderCancellationAmount > 0) { %>
+<table style="width:100%; margin-top:20px; border-collapse:collapse;">
+  <tr style="background:#d4edda;">
+    <td colspan="2" style="padding:10px; font-weight:bold; border-bottom:2px solid #28a745;">
+      💰 Rider Cancellation Payment
+    </td>
+  </tr>
+  <tr>
+    <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Cancellation Fee Paid to Rider:</strong></td>
+    <td style="padding:8px; border-bottom:1px solid #dee2e6;">£<%= riderCancellationAmount.toFixed(2) %></td>
+  </tr>
+  <tr>
+    <td style="padding:8px; border-bottom:1px solid #dee2e6;"><strong>Payment Status:</strong></td>
+    <td style="padding:8px; border-bottom:1px solid #dee2e6;">✅ Credited to rider account</td>
+  </tr>
+</table>
+<% } %>
+
+    <!-- Footer Note -->
+    <table style="width:100%; margin-top:20px;">
+      <tr>
+        <td style="font-size:13px; color:#666;">
+          This is an automated notification. Please review the cancellation in the admin panel and take any necessary actions.
+        </td>
+      </tr>
+    </table>
+
+  </div>
+</body>
+</html>

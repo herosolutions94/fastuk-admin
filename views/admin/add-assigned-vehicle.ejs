@@ -1,0 +1,89 @@
+<section id="dashbaord">
+    <div class="contain-fluid">
+        <div class="heading">
+            <div class="text">
+                <h3>Assign New Vehicle</h3>
+                <ul>
+                    <li><a href="">Home</a></li>
+                    <li class="active"><a href="">New Vehicle</a></li>
+                </ul>
+            </div>
+            <div class="text text2">
+                <a href="/admin/rider/vehicles/assigned-vehicles/<%= rider_id %>" class="webBtn mdBtn greenBtn"><i
+                        class="fa-regular fa-arrow-left"></i>Cancel</a>
+            </div>
+        </div>
+        <div class="dashTable">
+            <div class="card editor_card">
+                <div class="card-header">
+                    <h5>Vehicle Block</h5>
+                </div>
+                <div class="card-body full_width">
+                    <form id="addCategoryForm" action="/admin/rider/vehicles/assign-vehicle/<%= rider_id %>"
+                        method="post">
+                        <div class="row">
+                            <div class="col-md-12">
+                                <input type="hidden" id="riderId" value="<%= rider_id %>" />
+
+                                <div class="row switch-showcase">
+                                    <div class="col-md-6">
+                                        <div class="txtGrp">
+                                            <label>Select Vehicle</label>
+                                            <select id="vehicle_id" name="vehicle_id" class="form-select">
+                                                <option value="">-- Select Vehicle --</option>
+                                                <% vehicles.forEach(vehicle=> { %>
+                                                    <option value="<%= vehicle.id %>"
+                                                        data-price="<%= vehicle.vehicle_rental_price || '' %>">
+                                                        <%= vehicle.title %> - £<%= vehicle.vehicle_rental_price %>
+                                                    </option>
+                                                    <% }); %>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="col-md-6">
+                                        <div class="txtGrp">
+                                            <label>Vehicle Rental Price</label>
+                                            <input type="text" id="vehicle_rent" name="vehicle_rent"
+                                                class="form-control" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="card-footer text-end">
+                            <button class="webBtn" type="submit">
+                                Assign Vehicle <i class="spinner hidden"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+                <hr />
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+    const vehicleSelect = document.getElementById("vehicle_id");
+    const priceInput = document.getElementById("vehicle_rent");
+
+    let isManuallyEdited = false;
+
+    // detect manual change
+    priceInput.addEventListener("input", function () {
+        isManuallyEdited = true;
+    });
+
+    vehicleSelect.addEventListener("change", function () {
+        const selectedOption = this.options[this.selectedIndex];
+        const price = selectedOption.getAttribute("data-price");
+
+        // only auto-fill if user hasn't manually edited
+        if (!isManuallyEdited) {
+            priceInput.value = price || "";
+        }
+    });
+});
+</script>

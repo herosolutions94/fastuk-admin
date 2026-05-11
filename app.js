@@ -65,12 +65,14 @@ io.on('connection', (socket) => {
   });
 
   socket.on("registerUser", async(data) => {
-    console.log(users)
+    // console.log(users)
     token = data?.token;
     memType = data?.memType;
+    // console.log("Received registration data:", { token, memType }); // Debug log for received data
     try {
       // Call the helper function to get user_id from token
       const userId = await getUserIdFromToken(token, memType);
+      // console.log("Extracted user_id:", userId); // Debug log for extracted user_id
       
       if (userId) {
         // If user_id is found, register the user and associate the socket with this user_id
@@ -117,7 +119,8 @@ app.use((req, res, next) => {
     res.locals.helpers = helpers;
     next();
 });
-
+require("./scheduler/jobNotifier");
+require("./scheduler/rentDeduction");
 const bodyParser = require('body-parser');
 app.use(bodyParser.json()); // Use body-parser for parsing JSON
 
@@ -240,11 +243,15 @@ const serviceRoutes = require('./routes/admin/service');
 const subAdminRoutes = require('./routes/admin/sub-admin');
 const faqRoutes = require('./routes/admin/faq');
 const vehicleRoutes = require('./routes/admin/vehicle');
+const adminVehicleRoutes = require('./routes/admin/adminVehicle');
+const vehicleFuelRoutes = require('./routes/admin/addVehicleFuel');
+const assignedVehicleRoutes = require('./routes/admin/assignedVehicle');
 const remotePostCodeRoutes = require('./routes/admin/remote-post-code');
 const promoCodeRoutes = require('./routes/admin/promo-code');
 const pagesRoutes = require('./routes/admin/pages');
 const requestQuoteRoutes = require('./routes/admin/request-quote');
 const cancelledQuoteRoutes = require('./routes/admin/cancelled-quotes');
+const pendingPaymentQuoteRoutes = require('./routes/admin/pending-payment-quotes');
 const reviewRoutes = require('./routes/admin/reviews');
 const newsLetterRoutes = require('./routes/admin/news-letter');
 const WithdrawalRequestsRoutes = require('./routes/admin/withdraw-requests');
@@ -306,11 +313,15 @@ app.use('/admin', teamMemberRoutes);
 app.use('/admin', serviceRoutes);
 app.use('/admin', faqRoutes);
 app.use('/admin', vehicleRoutes);
+app.use('/admin', adminVehicleRoutes);
+app.use('/admin', assignedVehicleRoutes);
+app.use('/admin', vehicleFuelRoutes);
 app.use('/admin', remotePostCodeRoutes);
 app.use('/admin', promoCodeRoutes);
 app.use('/admin', pagesRoutes);
 app.use('/admin', requestQuoteRoutes);
 app.use('/admin', cancelledQuoteRoutes);
+app.use('/admin', pendingPaymentQuoteRoutes);
 app.use('/admin', newsLetterRoutes);
 app.use('/admin', WithdrawalRequestsRoutes);
 app.use('/admin', reviewRoutes);

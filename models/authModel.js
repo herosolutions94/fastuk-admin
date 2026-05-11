@@ -39,7 +39,7 @@ class AdminModel extends BaseModel {
             site_noreply_email = ?, site_phone = ?, footer_copyright = ?, site_facebook = ?, site_twitter = ?, 
             site_instagram = ?, site_linkedin = ?, site_youtube = ?, site_spotify = ?, site_etsy = ?, logo_image = ?, 
             favicon_image = ?, thumb_image = ?,
-            site_sandbox = ?, site_processing_fee=?, vat_amount=?, rider_percentage=?
+            site_sandbox = ?, site_processing_fee=?, vat_amount=?, rider_percentage=?, site_vat_number=?
         WHERE id = 1`;
 
         const values = [
@@ -48,7 +48,7 @@ class AdminModel extends BaseModel {
             data.site_instagram || '', data.site_linkedin || '', data.site_youtube || '', data.site_spotify || '', data.site_etsy || '', data.logo_image || null,
             data.favicon_image || null, data.thumb_image || null,
             data.site_sandbox ? parseInt(data.site_sandbox) : 0, data?.site_processing_fee ? data?.site_processing_fee : 0, data?.vat_amount ? data?.vat_amount : 0,
-            data?.rider_percentage ? data?.rider_percentage : 0
+            data?.rider_percentage ? data?.rider_percentage : 0, data?.site_vat_number ? data?.site_vat_number : 0
     
         ];
 

@@ -34,6 +34,87 @@ class RequestQuoteModel extends BaseModel {
     //     }
     // }
 
+    // in RequestQuoteModel
+static async getASAPJobsForNotification() {
+  const query = `
+    SELECT *
+    FROM request_quote
+    WHERE status = 'accepted'
+      AND is_ready = 0
+      AND pickup_time_option = 'asap'
+  `;
+
+  const [rows] = await pool.query(query);
+  return rows;
+}
+
+static async getTimedJobsForNotification() {
+  const query = `
+    SELECT *
+    FROM request_quote
+    WHERE status = 'accepted'
+      AND is_ready = 0
+      AND pickup_time_option != 'asap'
+      AND GREATEST(
+        COALESCE(pickup_time, '1970-01-01'),
+        COALESCE(pickup_start_time, '1970-01-01'),
+        COALESCE(pickup_end_time, '1970-01-01')
+      ) > UTC_TIMESTAMP()
+  `;
+
+  const [rows] = await pool.query(query);
+  return rows;
+}
+
+static async updatePendingPaymentByRequestId(requestId, amount, updateStatus = false) {
+  try {
+    let query = `
+      UPDATE pending_payments 
+      SET amount = ?, updated_at = NOW()
+    `;
+
+    if (updateStatus) {
+      query += `, status = 'paid'`;
+    }
+
+    query += ` WHERE request_id = ?`;
+
+    const [result] = await pool.query(query, [amount, requestId]);
+    return result.affectedRows > 0;
+
+  } catch (error) {
+    console.error("Error updating pending payment:", error);
+    throw error;
+  }
+}
+
+static async getPendingPaymentByRequestId (requestId) {
+  try {
+    const query = `
+      SELECT * 
+      FROM pending_payments 
+      WHERE request_id = ? 
+      LIMIT 1
+    `;
+
+    const [rows] = await pool.query(query, [requestId]);
+    return rows.length ? rows[0] : null;
+
+  } catch (error) {
+    console.error("Error fetching pending payment:", error);
+    throw error;
+  }
+};
+
+static async markPickupNotified (id) {
+  await pool.query(
+    `UPDATE request_quote SET pickup_notified = 1 WHERE id = ?`,
+    [id]
+  );
+};
+
+
+
     static async getRequestQuotesWithMembers(whereConditions) {
         try {
             let query = `

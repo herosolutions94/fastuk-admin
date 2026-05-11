@@ -3,8 +3,20 @@ const crypto = require('crypto');
 
 // Ensure no fields are empty
 const validateRequiredFields = (fields) => {
-    // console.log(fields)
-    return Object.values(fields).every(field => field !== '');
+  const missingFields = [];
+
+  Object.entries(fields).forEach(([key, value]) => {
+    if (
+      value === "" ||
+      value === null ||
+      value === undefined ||
+      (Array.isArray(value) && value.length === 0)
+    ) {
+      missingFields.push(key);
+    }
+  });
+
+  return missingFields;
 };
 function validateSignUPRequiredFields(data) {
     const requiredFields = ['full_name', 'email', 'password'];

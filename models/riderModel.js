@@ -194,6 +194,26 @@ async attachStageAttachments(stages) {
   return stages;
 }
 
+async getRidersWithoutCode() {
+  const [rows] = await pool.query(`
+    SELECT id 
+    FROM riders 
+    WHERE rider_code IS NULL OR rider_code = ''
+  `);
+
+  return rows;
+}
+
+async updateRiderCode(riderId, code) {
+  const query = `
+    UPDATE riders
+    SET rider_code = ?
+    WHERE id = ?
+  `;
+
+  return pool.query(query, [code, riderId]);
+}
+
 
 
 
@@ -215,6 +235,39 @@ async attachStageAttachments(stages) {
 
     return this.create(data);  // Call the BaseModel's create method
   }
+
+ async updateRiderDetails(rider_id, data) {
+  const query = `
+    UPDATE riders SET
+      national_insurance_num = ?,
+      utr_num = ?,
+      dob = ?,
+      vehicle_owner = ?,
+      vat_registered = ?,
+      vat_number = ?,
+      vehicle_id = ?,
+      vehicle_type = ?,
+      vehicle_registration_num = ?,
+      driving_license_num = ?
+    WHERE id = ?
+  `;
+
+  const values = [
+    data.national_insurance_num,
+    data.utr_num,
+    data.dob,
+    data.vehicle_owner,
+    data.vat_registered,
+    data.vat_number,
+    data.vehicle_id,
+    data.vehicle_type,
+    data.vehicle_registration_num,
+    data.driving_license_num,
+    rider_id
+  ];
+
+  await pool.query(query, values);
+}
   async findById(riderId) {
     const query = `SELECT * FROM ${this.tableName} WHERE id = ?`;
     const [rows] = await pool.query(query, [riderId]);
@@ -254,6 +307,50 @@ async attachStageAttachments(stages) {
       throw err;
     }
   }
+
+  async updateLatLng(riderId, latitude, longitude, time) {
+  const query = `
+  UPDATE riders
+  SET latitude = ?, longitude = ?, time = ?
+  WHERE id = ?
+`;
+
+  const [result] = await pool.query(query, [
+    latitude,
+    longitude,
+    time,
+    riderId
+  ]);
+
+  return result.affectedRows > 0;
+};
+
+getLatLngByRiderId = async (riderId) => {
+  try {
+    const query = `
+      SELECT latitude, longitude, time
+      FROM riders
+      WHERE id = ?
+      LIMIT 1
+    `;
+
+    const [rows] = await pool.query(query, [riderId]);
+
+    return rows.length ? rows[0] : null;
+
+  } catch (error) {
+    console.error("Error fetching rider location:", error);
+    throw error;
+  }
+};
+
+async findByRiderCode(code) {
+  const [rows] = await pool.query(
+    "SELECT id FROM riders WHERE rider_code = ?",
+    [code]
+  );
+  return rows.length > 0;
+}
 
 
 
@@ -391,6 +488,7 @@ AND COALESCE(rq.is_cancelled, '') NOT IN ('approved', 'requested')
         WHERE order_id = ?
     `;
     const [rows] = await pool.query(query, [quoteId]);
+    // console.log("Fetching parcels for request_id:", quoteId,rows);
     // console.log("parcels rows:", rows)
     return rows;
   };
@@ -465,7 +563,8 @@ AND COALESCE(rq.is_cancelled, '') NOT IN ('approved', 'requested')
     // ✅ Current date & time = job accepted moment
     const acceptedAt = new Date();
     // Get current date in YYYY-MM-DD format
-    const assignedDate = new Date().toISOString().split('T')[0];
+    // const assignedDate = new Date().toISOString().split('T')[0];
+    const assignedDate = helpers.toMySQLDateTime(new Date()); // ✅ DATETIME
     const updatedTime = helpers.getUtcTimeInSeconds();
     // const endTime = helpers.addTwoDaysToDate();
 
@@ -650,11 +749,30 @@ AND COALESCE(rq.is_cancelled, '') NOT IN ('approved', 'requested')
     SELECT id 
     FROM request_quote
     WHERE assigned_rider = ?
-    AND status != 'completed'
+    AND status IN ('accepted', 'in_progress')
     LIMIT 1
   `;
 
   const [rows] = await pool.query(query, [riderId]);
+  return rows[0] || null;
+}
+
+async getJobByRiderAndDate(riderId, date) {
+  const query = `
+    SELECT id
+    FROM request_quote
+    WHERE assigned_rider = ?
+    AND DATE(start_date) = ?
+    AND status IN ('accepted', 'in_progress')
+    AND (
+      is_cancelled IS NULL
+      OR is_cancelled != 'approved'
+    )
+    LIMIT 1
+  `;
+
+  const [rows] = await pool.query(query, [riderId, date]);
+
   return rows[0] || null;
 }
 
@@ -725,8 +843,11 @@ GROUP BY
 
 
   async getRidersByCity(city) {
-    const query = `SELECT id,email FROM riders WHERE city = ?`;
-    const [rows] = await pool.query(query, [city]);
+const query = `
+  SELECT id, email, city 
+  FROM riders 
+  WHERE LOWER(TRIM(city)) = LOWER(TRIM(?))
+`;    const [rows] = await pool.query(query, [city]);
     return rows; // Returns an array of riders
   }
   async getWithdrawalPamentMethods(mem_id, type) {
@@ -842,6 +963,66 @@ GROUP BY
       return null;
     }
   };
+
+  getUnpaidChargeInvoices = async (order_id) => {
+  const query = `
+    SELECT id, amount
+    FROM invoices
+    WHERE request_id = ?
+      AND amount_type IN ('handball', 'waiting')
+      AND status = 0
+  `;
+  const [rows] = await pool.query(query, [order_id]);
+  return rows;
+};
+
+updateInvoiceStatus = async (invoiceId, status) => {
+  const query = `
+    UPDATE invoices 
+    SET status = ?
+    WHERE id = ?
+  `;
+  await pool.query(query, [status, invoiceId]);
+};
+
+getPendingPaymentByRequestId = async (requestId) => {
+  try {
+    const query = `
+      SELECT * 
+      FROM pending_payments 
+      WHERE request_id = ?
+      LIMIT 1
+    `;
+
+    const [rows] = await pool.query(query, [requestId]);
+    // console.log("Pending payment rows:", rows);
+    return rows.length ? rows[0] : null;
+
+  } catch (error) {
+    console.error("Error fetching pending payment:", error);
+    throw error;
+  }
+};
+
+getTotalPendingAmountByRiderId = async (riderId) => {
+  try {
+    const query = `
+      SELECT 
+        COALESCE(SUM(pp.amount), 0) AS total_pending
+      FROM pending_payments pp
+      JOIN request_quote rq ON rq.id = pp.request_id
+      WHERE rq.assigned_rider = ?
+    `;
+
+    const [rows] = await pool.query(query, [riderId]);
+
+    return rows.length ? parseFloat(rows[0].total_pending) : 0;
+
+  } catch (error) {
+    console.error("Error fetching rider pending amount:", error);
+    throw error;
+  }
+};
   createWithdrawanMethod = async (data) => {
     const columns = Object.keys(data);
     const values = Object.values(data);
@@ -959,6 +1140,35 @@ ORDER BY e.created_time DESC;
       return [];
     }
   };
+
+  getEarningsByUserId = async (userId) => {
+  const query = `
+    SELECT
+      e.id AS id,
+      e.user_id,
+      e.order_id,
+      e.amount,
+      e.type,
+      e.earning_type,
+      e.status,
+      e.created_time,
+      r.id AS rider_id,
+      r.full_name AS rider_name,
+      r.mem_image AS mem_image
+    FROM earnings e
+    JOIN riders r ON e.user_id = r.id
+    WHERE e.user_id = ?
+    ORDER BY e.created_time DESC;
+  `;
+
+  try {
+    const [results] = await pool.query(query, [userId]);
+    return results;
+  } catch (error) {
+    console.error('Error fetching earnings:', error);
+    return [];
+  }
+};
   static async getEarningById(id) {
     const [transaction] = await pool.query(
       `SELECT * FROM earnings WHERE id = ?`,
@@ -1374,23 +1584,48 @@ ORDER BY e.created_time DESC;
     }
   }
 
+  async getCurrentOrdersCountByStatusForApp(riderId) {
+  const query = `
+    SELECT COUNT(*) AS current_orders
+    FROM request_quote
+    WHERE assigned_rider = ?
+    AND status IN ('accepted', 'in_progress')
+    AND COALESCE(is_cancelled, '') != 'approved'
+  `;
+
+  const values = [riderId];
+
+  try {
+    const [rows] = await pool.query(query, values);
+
+    return rows[0].current_orders;
+  } catch (error) {
+    console.error("Error fetching total orders:", error.message);
+
+    throw new Error("Database query failed.");
+  }
+}
+
 async getCurrentOrdersByStatusforApp(riderId) {
   const query = `
     SELECT *
     FROM request_quote
     WHERE assigned_rider = ?
-      AND status != 'completed'
-      AND (is_cancelled IS NULL OR is_cancelled != 'approved')
+      AND status IN ('accepted', 'in_progress')
+      AND COALESCE(is_cancelled, '') != 'approved'
     ORDER BY id DESC
     LIMIT 1
   `;
+
   const values = [riderId];
 
   try {
     const [rows] = await pool.query(query, values);
-    return rows[0] || null; // return single order object or null if none
+
+    return rows[0] || null;
   } catch (error) {
     console.error("Error fetching current order:", error.message);
+
     throw new Error("Database query failed.");
   }
 }
@@ -1576,6 +1811,8 @@ async getCurrentOrdersByStatusforApp(riderId) {
   }
 
   async insertRiderAttachment({ rider_id, filename, type }) {
+      console.log("DB INSERT:", rider_id, filename, type);
+
     const query = `
       INSERT INTO rider_attachments (rider_id, filename, type)
       VALUES (?, ?, ?)
@@ -1585,6 +1822,11 @@ async getCurrentOrdersByStatusforApp(riderId) {
     await pool.query(query, values);
   }
 
+
+  async deleteAttachmentsByRiderId(rider_id) {
+  const query = `DELETE FROM rider_attachments WHERE rider_id = ?`;
+  await pool.query(query, [rider_id]);
+}
   async createAttachments(attachments) {
     const values = attachments.map(att => `('${att.rider_id}', '${att.filename}', '${att.type}')`).join(',');
     const query = `INSERT INTO rider_attachments (rider_id, filename, type) VALUES ${values}`;
@@ -1676,10 +1918,11 @@ async getCurrentOrdersByStatusforApp(riderId) {
   // Mark a single order as ready
   async markOrderReady(orderId) {
     const readyTime = helpers.getUtcTimeInSeconds();
-    await pool.query(
-      "UPDATE request_quote SET is_ready = 1, ready_time = ? WHERE id = ?",
+    const result = await pool.query(
+      "UPDATE request_quote SET is_ready = 1, is_on_the_way = 1, ready_time = ? WHERE id = ?",
       [readyTime, orderId]
     );
+    console.log("Update result:", result);
     return readyTime;
   }
   async getVehicleById(userId) {

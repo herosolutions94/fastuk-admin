@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Cancelled</title>
+</head>
+<body style="margin:0; padding:20px; background:#f4f4f4; font-family:Arial, sans-serif;">
+  <div style="max-width:700px; margin:auto; background:#fff; padding:30px; border-radius:8px; border:1px solid #d4e0df;">
+    
+    <!-- Logo -->
+    <table style="width:100%;">
+      <tr>
+        <td style="text-align:center;">
+          <img src="<%= adminData.logo %>" alt="<%= adminData.site_name %>" style="width:120px;" />
+        </td>
+      </tr>
+    </table>
+
+    <!-- Heading -->
+    <table style="width:100%; margin-top:30px;">
+      <tr>
+        <td style="text-align:center;">
+          <h2 style="color:#ed1c24; margin-bottom:10px;">Order Cancelled</h2>
+          <p style="font-size:15px; color:#333; line-height:1.6;">
+            Dear <strong><%= member.full_name || member.name %></strong>,<br>
+            Your order has been successfully cancelled as per your request.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Order Summary -->
+    <table style="width:100%; margin-top:30px; background:#f8f9fa; border-radius:6px; padding:20px;">
+      <tr>
+        <td>
+          <h3 style="margin:0 0 15px 0; color:#333; font-size:16px;">📦 Order Summary</h3>
+          <table style="width:100%; border-collapse:collapse;">
+            <tr>
+              <td style="padding:8px 0; color:#666;">Booking ID:</td>
+              <td style="padding:8px 0; text-align:right; font-weight:bold;"><%= order.booking_id %></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0; color:#666;">Tracking ID:</td>
+              <td style="padding:8px 0; text-align:right; font-weight:bold;"><%= order.tracking_id %></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0; color:#666; border-top:1px solid #dee2e6; padding-top:12px;">Pickup Location:</td>
+              <td style="padding:8px 0; text-align:right; border-top:1px solid #dee2e6; padding-top:12px;"><%= order.source_address %></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0; color:#666;">Drop-off Location:</td>
+              <td style="padding:8px 0; text-align:right;"><%= order.dest_address %></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Cancellation Reason -->
+    <table style="width:100%; margin-top:20px;">
+      <tr>
+        <td style="background:#fff3cd; padding:15px; border-radius:6px; border-left:4px solid #ffc107;">
+          <p style="margin:0; font-weight:bold; color:#856404; font-size:14px;">Cancellation Reason:</p>
+          <p style="margin:8px 0 0 0; color:#856404; font-size:14px; line-height:1.5;">
+            <%= reason %>
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Refund Information -->
+    <% if (cancellationChargePercent === 100) { %>
+    <!-- No Refund (100% Charge) -->
+    <table style="width:100%; margin-top:25px;">
+      <tr>
+        <td style="background:#f8d7da; padding:20px; border-radius:6px; border-left:4px solid #dc3545;">
+          <h3 style="margin:0 0 10px 0; color:#721c24; font-size:16px;">❌ Refund Information</h3>
+          <p style="margin:0; color:#721c24; font-size:14px; line-height:1.6;">
+            Unfortunately, <strong>no refund</strong> can be processed as the rider has already arrived at the pickup location. 100% cancellation charges apply.
+          </p>
+          <table style="width:100%; margin-top:15px; border-top:1px solid #f5c6cb; padding-top:15px;">
+            <tr>
+              <td style="color:#721c24; font-size:14px;">Order Amount:</td>
+              <td style="text-align:right; color:#721c24; font-size:14px; font-weight:bold;">£<%= originalAmount.toFixed(2) %></td>
+            </tr>
+            <tr>
+              <td style="color:#721c24; font-size:14px; padding-top:5px;">Cancellation Charges:</td>
+              <td style="text-align:right; color:#721c24; font-size:14px; font-weight:bold; padding-top:5px;">£<%= originalAmount.toFixed(2) %> (100%)</td>
+            </tr>
+            <tr>
+              <td style="color:#721c24; font-size:16px; padding-top:10px; border-top:1px solid #f5c6cb;"><strong>Refund Amount:</strong></td>
+              <td style="text-align:right; color:#721c24; font-size:16px; font-weight:bold; padding-top:10px; border-top:1px solid #f5c6cb;">£0.00</td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <% } else if (cancellationChargePercent === 50) { %>
+    <!-- Partial Refund (50% Charge) -->
+    <table style="width:100%; margin-top:25px;">
+      <tr>
+        <td style="background:#fff3cd; padding:20px; border-radius:6px; border-left:4px solid #ffc107;">
+          <h3 style="margin:0 0 10px 0; color:#856404; font-size:16px;">⚠️ Refund Information</h3>
+          <p style="margin:0; color:#856404; font-size:14px; line-height:1.6;">
+            A <strong>50% cancellation charge</strong> applies as the cancellation was made more than 10 minutes after the rider accepted your order.
+          </p>
+          <table style="width:100%; margin-top:15px; border-top:1px solid #ffeaa7; padding-top:15px;">
+            <tr>
+              <td style="color:#856404; font-size:14px;">Order Amount:</td>
+              <td style="text-align:right; color:#856404; font-size:14px; font-weight:bold;">£<%= originalAmount.toFixed(2) %></td>
+            </tr>
+            <tr>
+              <td style="color:#856404; font-size:14px; padding-top:5px;">Cancellation Charges:</td>
+              <td style="text-align:right; color:#856404; font-size:14px; font-weight:bold; padding-top:5px;">£<%= (originalAmount * 0.5).toFixed(2) %> (50%)</td>
+            </tr>
+            <tr>
+              <td style="color:#856404; font-size:16px; padding-top:10px; border-top:1px solid #ffeaa7;"><strong>Refund Amount:</strong></td>
+              <td style="text-align:right; color:#856404; font-size:16px; font-weight:bold; padding-top:10px; border-top:1px solid #ffeaa7;">£<%= refundAmount.toFixed(2) %></td>
+            </tr>
+          </table>
+          <p style="margin:15px 0 0 0; color:#856404; font-size:13px;">
+            <% if (refundProcessed) { %>
+              ✅ Your refund has been processed and will appear in your account within 5-10 business days.
+            <% } else { %>
+              ⏳ Your refund is being processed and will appear in your account within 5-10 business days.
+            <% } %>
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <% } else { %>
+    <!-- Full Refund (0% Charge) -->
+    <table style="width:100%; margin-top:25px;">
+      <tr>
+        <td style="background:#d4edda; padding:20px; border-radius:6px; border-left:4px solid #28a745;">
+          <h3 style="margin:0 0 10px 0; color:#155724; font-size:16px;">✅ Refund Information</h3>
+          <p style="margin:0; color:#155724; font-size:14px; line-height:1.6;">
+            Good news! You are eligible for a <strong>full refund</strong> with no cancellation charges.
+          </p>
+          <table style="width:100%; margin-top:15px; border-top:1px solid #c3e6cb; padding-top:15px;">
+            <tr>
+              <td style="color:#155724; font-size:14px;">Order Amount:</td>
+              <td style="text-align:right; color:#155724; font-size:14px; font-weight:bold;">£<%= originalAmount.toFixed(2) %></td>
+            </tr>
+            <tr>
+              <td style="color:#155724; font-size:14px; padding-top:5px;">Cancellation Charges:</td>
+              <td style="text-align:right; color:#155724; font-size:14px; font-weight:bold; padding-top:5px;">£0.00 (0%)</td>
+            </tr>
+            <tr>
+              <td style="color:#155724; font-size:16px; padding-top:10px; border-top:1px solid #c3e6cb;"><strong>Refund Amount:</strong></td>
+              <td style="text-align:right; color:#155724; font-size:16px; font-weight:bold; padding-top:10px; border-top:1px solid #c3e6cb;">£<%= refundAmount.toFixed(2) %></td>
+            </tr>
+          </table>
+          <p style="margin:15px 0 0 0; color:#155724; font-size:13px;">
+            <% if (refundProcessed) { %>
+              ✅ Your refund has been processed and will appear in your account within 5-10 business days.
+            <% } else { %>
+              ⏳ Your refund is being processed and will appear in your account within 5-10 business days.
+            <% } %>
+          </p>
+        </td>
+      </tr>
+    </table>
+    <% } %>
+
+    <!-- Cancellation Policy Info -->
+    <table style="width:100%; margin-top:25px; background:#f8f9fa; padding:15px; border-radius:6px;">
+      <tr>
+        <td>
+          <h4 style="margin:0 0 10px 0; color:#333; font-size:14px;">📋 Cancellation Policy</h4>
+          <ul style="margin:0; padding-left:20px; color:#666; font-size:13px; line-height:1.8;">
+            <li><strong>No rider assigned:</strong> Full refund (100%)</li>
+            <li><strong>Within 10 minutes of rider acceptance:</strong> Full refund (100%)</li>
+            <li><strong>After 10 minutes of rider acceptance:</strong> 50% cancellation charges apply</li>
+            <li><strong>After rider arrives on site:</strong> 100% cancellation charges apply (no refund)</li>
+          </ul>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Support Section -->
+    <table style="width:100%; margin-top:30px; border-top:1px solid #dee2e6; padding-top:20px;">
+      <tr>
+        <td style="text-align:center;">
+          <p style="margin:0; color:#666; font-size:14px; line-height:1.6;">
+            If you have any questions or concerns, please don't hesitate to contact us.
+          </p>
+          <p style="margin:10px 0 0 0; font-size:14px;">
+            <a href="mailto:<%= adminData.receiving_site_email %>" style="color:#ed1c24; text-decoration:none; font-weight:bold;">
+              <%= adminData.receiving_site_email %>
+            </a>
+          </p>
+          <p style="margin:15px 0 0 0;">
+            <a href="<%= adminData.site_url %>" style="display:inline-block; background:#ed1c24; color:#fff; padding:12px 30px; text-decoration:none; border-radius:5px; font-weight:bold; font-size:14px;">
+              Visit Our Website
+            </a>
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Footer -->
+    <table style="width:100%; margin-top:30px; border-top:1px solid #dee2e6; padding-top:20px;">
+      <tr>
+        <td style="text-align:center; color:#999; font-size:12px; line-height:1.6;">
+          <p style="margin:0;">Thank you for using <%= adminData.site_name %>!</p>
+          <p style="margin:5px 0 0 0;">We hope to serve you again in the future.</p>
+          <p style="margin:15px 0 0 0;">
+            © <%= new Date().getFullYear() %> <%= adminData.site_name %>. All rights reserved.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+  </div>
+</body>
+</html>
