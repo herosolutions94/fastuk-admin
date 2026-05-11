@@ -3731,6 +3731,16 @@ class MemberController extends BaseController {
               orderDetailsLink
             );
 
+            await helpers.sendNotification(
+              rider.fcm_token,
+              "New Delivery Job",
+              "You have received a new order",
+              {
+                order_id: orderRow.id,
+                screen: "OrderDetail"
+              }
+            );
+
             let orderRow = await this.member.getUserOrderDetailsById({
               userId: userId,
               requestId: requestQuoteId,
@@ -4968,6 +4978,7 @@ class MemberController extends BaseController {
 
 
       const transactions = await helpers.getTransaction(userId);
+      // console.log("Transactions:", transactions);
 
 
       const enrichedTransactions = await Promise.all(
@@ -4997,6 +5008,13 @@ class MemberController extends BaseController {
           const riderRow = await this.rider.findById(t.assigned_rider);
           const jobStatus = await helpers.updateRequestQuoteJobStatus(request_id);
 
+          const handballChargesNumeric = stages.reduce((sum, stage) => {
+            return sum + (Number(stage.handball_charges) || 0);
+          }, 0);
+          const waitingChargesNumeric = stages.reduce((sum, stage) => {
+            return sum + (Number(stage.waiting_charges) || 0);
+          }, 0);
+
           const remote_price =
             getRemotePrice(t.source_postcode) +
             getRemotePrice(t.dest_postcode);
@@ -5007,9 +5025,10 @@ class MemberController extends BaseController {
             vehicle.price,
             remote_price,
             vehicle.id,
-            t.handball_work
+            t.handball_work,
+            handballChargesNumeric,
+            waitingChargesNumeric
           );
-
 
           return {
             ...t,
@@ -5022,7 +5041,9 @@ class MemberController extends BaseController {
             sub_total: helpers.formatAmount(orderAmount.totalAmount),
             tax: helpers.formatAmount(orderAmount.taxAmount),
             vat: helpers.formatAmount(orderAmount.vatAmount),
-            handball_charges: helpers.formatAmount(orderAmount.handballCharges),
+            handball_charges: helpers.formatAmount(orderAmount.handballChargesNumeric),
+            waiting_charges: helpers.formatAmount(orderAmount.waitingChargesNumeric),
+
             remote_price: helpers.formatAmount(orderAmount.remote_price),
 
             grandTotal: helpers.formatAmount(orderAmount.grandTotal),
@@ -5084,7 +5105,7 @@ class MemberController extends BaseController {
 
       const subtotal = job + handball + waiting;
       const grandTotal = subtotal;
-
+      // console.log("enrichedTransactions[0]:", enrichedTransactions[0])
       // summary.category_name = categoryInfo?.category_name || null;
       // summary.main_category_name = categoryInfo?.main_category_name || null; 
 

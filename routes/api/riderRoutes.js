@@ -16,6 +16,7 @@ router.post('/update-member-settings', upload, verifyApiKeyAndOrigin, riderContr
 router.post('/get-rider-attachments', upload, verifyApiKeyAndOrigin, riderController.getRiderAttachments.bind(riderController));
 router.post('/upload-rider-attachment', upload, verifyApiKeyAndOrigin, riderController.updateRiderAttachments.bind(riderController));
   router.post('/verify-phone-otp', upload, verifyApiKeyAndOrigin, riderController.verifyPhoneOtp.bind(riderController));
+  router.post('/save-fcm-token', upload, verifyApiKeyAndOrigin, riderController.saveFcmToken.bind(riderController));
 router.post('/rider-login', upload, verifyApiKeyAndOrigin, riderController.loginRider.bind(riderController));
 router.post('/rider-login-app', upload, verifyApiKeyAndOrigin, riderController.loginRiderForApp.bind(riderController));
 router.post('/verify-email', upload, riderController.verifyEmail.bind(riderController));

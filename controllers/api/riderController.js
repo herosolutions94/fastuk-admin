@@ -1283,6 +1283,50 @@ updateRiderAttachments = async (req, res) => {
     }
   }
 
+  saveFcmToken = async (req, res) => {
+  try {
+    const { token, memType, fcm_token } = req.body;
+
+    // Validate fields
+    if (!token || !memType || !fcm_token) {
+      return res.status(200).json({
+        status: 0,
+        msg: "token, memType and fcm_token are required",
+      });
+    }
+
+    // Validate user from token
+    const userResponse = await this.validateTokenAndGetMember(
+      token,
+      memType
+    );
+
+    if (userResponse.status === 0) {
+      return res.status(200).json(userResponse);
+    }
+
+    const riderId = userResponse.user.id;
+
+    // Update FCM token
+    await this.rider.updateRiderData(riderId, {
+      fcm_token: fcm_token,
+    });
+
+    return res.status(200).json({
+      status: 1,
+      msg: "FCM token updated successfully",
+    });
+
+  } catch (error) {
+    console.log("saveFcmToken Error:", error);
+
+    return res.status(500).json({
+      status: 0,
+      msg: "Internal server error",
+    });
+  }
+};
+
   async getRiderByUsername(req, res) {
     try {
       const { user_name } = req.params;

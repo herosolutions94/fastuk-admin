@@ -6,6 +6,7 @@ const validator = require("validator"); // Importing validator for input validat
 const crypto = require("crypto"); // Importing crypto for encryption and hashing
 const pool = require("../config/db-connection");
 const RequestQuoteModel = require("../models/request-quote");
+const admin = require("../config/firebase");
 
 
 const Vehicle = require('../models/vehicle');
@@ -489,7 +490,10 @@ module.exports = {
     }
 
   },
-  calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_price, selectedVehicle, handball_work) {
+  calculateOrderTotal: async function (totalDistance, siteSettings, price, remote_price, selectedVehicle, handball_work,
+    handballCharges = 0,
+    waitingCharges = 0   
+  ) {
     try {
       // 1️⃣ Fetch vehicle row using selectedVehicleId
       const vehicle = await vehicleModel.findById(selectedVehicle);
@@ -498,7 +502,7 @@ module.exports = {
 
       const minMileage = parseFloat(vehicle.min_mileage || 0);
       const minPrice = parseFloat(vehicle.min_price || 0);
-      const handballCharges = parseFloat(vehicle.handball_charges || 0);
+      const vehicleHandballCharge = parseFloat(vehicle.handball_charges || 0);
       // console.log("handballCharges from vehicle:", handballCharges);
 
 
@@ -539,16 +543,17 @@ module.exports = {
 
       // 3️⃣ ✅ Add handball charges if checkbox was checked
       // Ensure numeric addition
-      let handballAmount = 0;
+      let vehicleHandballAmount = 0;
       if (
         handball_work === true ||
         handball_work === "true" ||
         handball_work === 1 ||
         handball_work === "1"
       ) {
-        handballAmount = handballCharges;
+        vehicleHandballAmount = vehicleHandballCharge;
       }
-
+      const stageHandballCharges = Number(handballCharges) || 0;
+const waitingChargesNumeric = Number(waitingCharges) || 0;
       // console.log("handball_work:", handball_work, "handballCharges:", handballCharges, "totalAmount after handball:", totalAmount);
 
 
@@ -563,19 +568,25 @@ module.exports = {
       const grandTotal =
         Number(totalAmount) +
         Number(vatAmount) +
-        Number(handballAmount);
+         Number(vehicleHandballAmount) +
+  Number(stageHandballCharges) +
+  Number(waitingChargesNumeric);
 
-      // console.log("grandTotal:", grandTotal);
+      console.log("grandTotal:", grandTotal);
 
-      // console.log("Total Amount:", totalAmount,taxAmount,vatAmount,grandTotal);
+      console.log("Total Amount:", totalAmount,taxAmount,vatAmount,grandTotal);
 
       return {
         totalDistance,
         totalAmount: totalAmount,
         taxAmount: taxAmount,
         vatAmount: vatAmount,
-        handballCharges: handballAmount,
+        vehicleHandballCharges: vehicleHandballAmount,   // from vehicle (conditional)
+  stageHandballCharges: stageHandballCharges,      // from DB
+
+  waitingCharges: waitingChargesNumeric,
         remote_price: remote_price,
+        
 
         grandTotal: grandTotal
       };
@@ -1183,6 +1194,30 @@ module.exports = {
       throw error;
     }
   },
+
+   sendNotification : async (fcmToken, title, body, data = {}) => {
+  try {
+    const message = {
+      token: fcmToken,
+
+      notification: {
+        title,
+        body,
+      },
+
+      data: {
+        ...data,
+      },
+    };
+
+    const response = await admin.messaging().send(message);
+    console.log("FCM Sent:", response);
+
+    return response;
+  } catch (error) {
+    console.log("FCM Error:", error);
+  }
+},
 
 
   storeNotification: async function (user_id, mem_type, sender, text, link = null, type = null,
