@@ -1,0 +1,10 @@
+<form method="POST" action="/admin/business-users/add-funds">
+
+  <input type="hidden" name="user_id" value="<%= user_id %>" />
+
+  <input type="number" name="amount" placeholder="Enter amount" required />
+
+  <textarea name="description" placeholder="Optional note"></textarea>
+
+  <button type="submit">Add Funds</button>
+</form>

@@ -25,17 +25,51 @@ const storage = multer.diskStorage({
 const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
-    // console.log(file)
-    const allowedExtensions = ['.webp', '.ico', '.jpg', '.jpeg', '.png', '.gif', '.svg', '.mp4', '.mov', '.avi','.mp3', '.ogg', '.wav'];
-    const extname = path.extname(file.originalname).toLowerCase();
-    // console.log("Final Stored Filename:", extname); // Debugging
+  console.log("📁 Field:", file.fieldname);
+  console.log("📄 Name:", file.originalname);
+  console.log("📦 MIME:", file.mimetype);
 
-    if (allowedExtensions.includes(extname)) {
-      return cb(null, true);
-    } else {
-      return cb(new Error('Only .webp, .jpg, .jpeg, .png, .gif, .svg, .mp4, .mov, .avi .mp3 .ogg .wav files are allowed!'));
-    }
-  },
+  const allowedMimeTypes = [
+    // Images
+    'image/jpeg',
+    'image/png',
+    'image/jpg',
+    'image/gif',
+    'image/webp',
+    'image/svg+xml',
+    'image/heic',   // 📱 iPhone
+    'image/heif',   // 📱 iPhone
+
+    // Videos
+    'video/mp4',
+    'video/quicktime', // .mov (iPhone)
+    'video/x-msvideo', // .avi
+
+    // Audio
+    'audio/mpeg',
+    'audio/ogg',
+    'audio/wav'
+  ];
+
+  const allowedExtensions = [
+    '.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg',
+    '.heic', '.heif', // 📱 mobile support
+    '.mp4', '.mov', '.avi',
+    '.mp3', '.ogg', '.wav'
+  ];
+
+  const extname = path.extname(file.originalname).toLowerCase();
+
+  const isMimeValid = allowedMimeTypes.includes(file.mimetype);
+  const isExtValid = extname ? allowedExtensions.includes(extname) : true; 
+  // if no extension → allow based on MIME
+
+  if (isMimeValid && isExtValid) {
+    return cb(null, true);
+  } else {
+    return cb(new Error('Unsupported file type (mobile/desktop mismatch).'));
+  }
+},
   limits: {
     fileSize: 1000 * 1024 * 1024, // 10 MB limit for each file
     fieldSize: 10 * 1024 * 1024, // Increase field size limit
@@ -143,6 +177,10 @@ const upload = multer({
     { name: 'signature', maxCount: 1 },
     { name: 'vehicle_images', maxCount: 10 } ,
     { name: 'receiver_signature', maxCount: 1 } ,
+    { name: 'vat_registration_certificate', maxCount: 1 } ,
+    { name: 'vehicle_insurance', maxCount: 1 } ,
+    { name: 'good_transit_insurance', maxCount: 1 } ,
+    { name: 'attachments', maxCount: 10 } ,
 
 
 

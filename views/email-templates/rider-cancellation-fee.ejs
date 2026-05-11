@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cancellation Fee Received</title>
+</head>
+<body style="margin:0; padding:20px; background:#f4f4f4; font-family:Arial, sans-serif;">
+  <div style="max-width:700px; margin:auto; background:#fff; padding:30px; border-radius:8px; border:1px solid #d4e0df;">
+    
+    <!-- Logo -->
+    <table style="width:100%;">
+      <tr>
+        <td style="text-align:center;">
+          <img src="<%= adminData.logo %>" alt="<%= adminData.site_name %>" style="width:120px;" />
+        </td>
+      </tr>
+    </table>
+
+    <!-- Heading -->
+    <table style="width:100%; margin-top:30px;">
+      <tr>
+        <td style="text-align:center;">
+          <h2 style="color:#28a745; margin-bottom:10px;">💰 Cancellation Fee Received</h2>
+          <p style="font-size:15px; color:#333; line-height:1.6;">
+            Dear <strong><%= rider.full_name || rider.name %></strong>,<br>
+            You have received a cancellation fee for a cancelled order.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Payment Summary -->
+    <table style="width:100%; margin-top:30px; background:#d4edda; border-radius:6px; padding:20px; border-left:4px solid #28a745;">
+      <tr>
+        <td>
+          <h3 style="margin:0 0 15px 0; color:#155724; font-size:18px;">✅ Payment Details</h3>
+          <table style="width:100%; border-collapse:collapse;">
+            <tr>
+              <td style="padding:8px 0; color:#155724; font-size:16px;">Cancellation Fee:</td>
+              <td style="padding:8px 0; text-align:right; font-weight:bold; color:#155724; font-size:18px;">
+                £<%= cancellationAmount.toFixed(2) %>
+              </td>
+            </tr>
+          </table>
+          <p style="margin:15px 0 0 0; color:#155724; font-size:13px;">
+            This amount has been credited to your account and will be included in your next payout.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Order Details -->
+    <table style="width:100%; margin-top:25px; background:#f8f9fa; border-radius:6px; padding:20px;">
+      <tr>
+        <td>
+          <h3 style="margin:0 0 15px 0; color:#333; font-size:16px;">📦 Order Information</h3>
+          <table style="width:100%; border-collapse:collapse;">
+            <tr>
+              <td style="padding:8px 0; color:#666;">Booking ID:</td>
+              <td style="padding:8px 0; text-align:right; font-weight:bold;"><%= order.booking_id %></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0; color:#666;">Tracking ID:</td>
+              <td style="padding:8px 0; text-align:right; font-weight:bold;"><%= order.tracking_id %></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0; color:#666; border-top:1px solid #dee2e6; padding-top:12px;">Pickup Location:</td>
+              <td style="padding:8px 0; text-align:right; border-top:1px solid #dee2e6; padding-top:12px;"><%= order.source_address %></td>
+            </tr>
+            <tr>
+              <td style="padding:8px 0; color:#666;">Drop-off Location:</td>
+              <td style="padding:8px 0; text-align:right;"><%= order.dest_address %></td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Cancellation Reason -->
+    <table style="width:100%; margin-top:20px;">
+      <tr>
+        <td style="background:#fff3cd; padding:15px; border-radius:6px; border-left:4px solid #ffc107;">
+          <p style="margin:0; font-weight:bold; color:#856404; font-size:14px;">Cancellation Reason:</p>
+          <p style="margin:8px 0 0 0; color:#856404; font-size:14px; line-height:1.5;">
+            <%= reason %>
+          </p>
+          <p style="margin:8px 0 0 0; color:#856404; font-size:13px; font-style:italic;">
+            <% if (hasArrived) { %>
+              (Customer cancelled after you arrived on site - 100% cancellation fee)
+            <% } else { %>
+              (Customer cancelled after 10 minutes of acceptance - 50% cancellation fee)
+            <% } %>
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Info Box -->
+    <table style="width:100%; margin-top:25px; background:#e7f3ff; padding:15px; border-radius:6px; border-left:4px solid #2196F3;">
+      <tr>
+        <td>
+          <h4 style="margin:0 0 10px 0; color:#1976D2; font-size:14px;">ℹ️ About Cancellation Fees</h4>
+          <p style="margin:0; color:#1976D2; font-size:13px; line-height:1.6;">
+            Cancellation fees compensate you for your time and effort when customers cancel orders after you've accepted them. These fees are automatically credited to your account.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Support Section -->
+    <table style="width:100%; margin-top:30px; border-top:1px solid #dee2e6; padding-top:20px;">
+      <tr>
+        <td style="text-align:center;">
+          <p style="margin:0; color:#666; font-size:14px; line-height:1.6;">
+            If you have any questions about this payment, please contact us.
+          </p>
+          <p style="margin:10px 0 0 0; font-size:14px;">
+            <a href="mailto:<%= adminData.receiving_site_email %>" style="color:#ed1c24; text-decoration:none; font-weight:bold;">
+              <%= adminData.receiving_site_email %>
+            </a>
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Footer -->
+    <table style="width:100%; margin-top:30px; border-top:1px solid #dee2e6; padding-top:20px;">
+      <tr>
+        <td style="text-align:center; color:#999; font-size:12px; line-height:1.6;">
+          <p style="margin:0;">Thank you for being a valued rider with <%= adminData.site_name %>!</p>
+          <p style="margin:15px 0 0 0;">
+            © <%= new Date().getFullYear() %> <%= adminData.site_name %>. All rights reserved.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+  </div>
+</body>
+</html>

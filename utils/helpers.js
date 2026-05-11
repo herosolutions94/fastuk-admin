@@ -269,19 +269,22 @@ module.exports = {
   },
 
   updateRequestStatus: async function (id, status) {
-    const query = `UPDATE request_quote SET status = ?, request_status = ? WHERE id = ?`;
-    const values = [status, status, id];
-    try {
-      const [result] = await pool.query(query, values);
+  const query = `UPDATE request_quote SET status = ?, request_status = ? WHERE id = ?`;
+  const values = [status, status, id];
 
-      if (result.affectedRows === 0) {
-        return null; // No rows updated, possibly because the ID doesn't exist
-      }
-      return true; // Return the updated status and ID    } catch (error) {
-    } catch (error) {
-      throw new Error('Error updating request quote status: ' + error.message);
+  try {
+    const [result] = await pool.query(query, values);
+
+    if (result.affectedRows === 0) {
+      return null; // No rows updated
     }
-  },
+
+    return true;
+
+  } catch (error) {
+    throw new Error('Error updating request quote status: ' + error.message);
+  }
+},
 
   timesAgo: function (utcSeconds) {
     const now = Math.floor(Date.now() / 1000); // Current time in seconds
@@ -332,7 +335,37 @@ module.exports = {
 
   ,
 
-  updateRequestQuoteJobStatus: async function (orderId) {
+  updateRequestQuoteJobStatus: async function (orderId, isAdminForceComplete = false) {
+
+     // ✅ ADMIN OVERRIDE (run first, skip all logic)
+  if (isAdminForceComplete) {
+
+    // 1️⃣ Clear pending amount
+    await pool.query(
+      `UPDATE pending_payments 
+       SET amount = 0, status = 'paid', updated_at = NOW()
+       WHERE request_id = ?`,
+      [orderId]
+    );
+
+    // 2️⃣ (Optional) mark all stages completed
+    await pool.query(
+      `UPDATE order_stages 
+       SET status = 'completed' 
+       WHERE order_id = ?`,
+      [orderId]
+    );
+
+    // 3️⃣ Force request status = completed
+    await pool.query(
+      `UPDATE request_quote 
+       SET status = 'completed' 
+       WHERE id = ?`,
+      [orderId]
+    );
+
+    return "completed";
+  }
 
     const dueAmount = await RequestQuoteModel.calculateDueAmount(orderId);
     // console.log("dueAmount:", dueAmount);
@@ -382,7 +415,10 @@ module.exports = {
       newStatus = "in_progress";
     }
     // Job accepted, all stages completed, payment pending
-    else if (currentStatus === "accepted" && allCompleted && dueAmount > 0) {
+    // else if (currentStatus === "accepted" && allCompleted && dueAmount > 0) {
+    //   newStatus = "pending_payment";
+    // }
+    else if (allCompleted && dueAmount > 0) {
       newStatus = "pending_payment";
     }
     // Job completed and no due left
@@ -403,19 +439,17 @@ module.exports = {
     // console.log("Determined newStatus:", newStatus);
 
 
-    // if (newStatus !== currentStatus) {
-    //     // 4. Update the job status in request_quote
-    //     await pool.query(
-    //         "UPDATE request_quote SET status = ? WHERE id = ?",
-    //         [newStatus, orderId]
-    //     );
-    // }
+    if (newStatus !== currentStatus) {
+      // 4. Update the job status in request_quote
+      await pool.query(
+        "UPDATE request_quote SET status = ? WHERE id = ?",
+        [newStatus, orderId]
+      );
+    }
 
     return newStatus; // return updated status
-  }
+  },
 
-
-  ,
   calculateOrderSummary: function (order_details, siteSettings) {
     try {
       // Parse the input as an array
@@ -464,32 +498,39 @@ module.exports = {
 
       const minMileage = parseFloat(vehicle.min_mileage || 0);
       const minPrice = parseFloat(vehicle.min_price || 0);
-          const handballCharges = parseFloat(vehicle.handball_charges || 0);
-          // console.log("handballCharges from vehicle:", handballCharges);
+      const handballCharges = parseFloat(vehicle.handball_charges || 0);
+      // console.log("handballCharges from vehicle:", handballCharges);
 
 
       // 2️⃣ Handle remote_price
-      if (remote_price === null || remote_price === 'null' || remote_price === '' || remote_price === undefined) {
-        remote_price = 0;
-      }
+      // if (remote_price === null || remote_price === 'null' || remote_price === '' || remote_price === undefined) {
+      //   remote_price = 0;
+      // }
+      remote_price = Number(remote_price) || 0;
       // console.log("remote_price:", remote_price);
-
+      const numericPrice = Number(price) || 0;
 
       // 3️⃣ Apply mileage condition
       let totalAmount;
       if (totalDistance > minMileage) {
         // First minMileage → fixed minPrice
-    const minMileageCharge = minPrice;
+        const minMileageCharge = minPrice;
 
-     // Remaining miles → normal per-mile calculation
-    const remainingMiles = totalDistance - minMileage;
-    const remainingCharge = remainingMiles * price;
 
-     totalAmount = minMileageCharge + remainingCharge + remote_price;
-        
+        // Remaining miles → normal per-mile calculation
+        const remainingMiles = totalDistance - minMileage;
+        const remainingCharge = remainingMiles * numericPrice;
+        totalAmount =
+          Number(minMileageCharge) +
+          Number(remainingCharge) +
+          Number(remote_price);
+        //  console.log("totalAmount with mileage calculation:", totalAmount);
+
       } else {
-         // Total distance <= minMileage → use minPrice
-    totalAmount = minPrice+ remote_price;
+        // Total distance <= minMileage → use minPrice
+        // totalAmount = minPrice+ remote_price;
+        totalAmount = Number(minPrice) + Number(remote_price);
+        // console.log("totalAmount with min price:", totalAmount);
       }
 
       // totalAmount += parseFloat(remote_price);
@@ -497,18 +538,18 @@ module.exports = {
       // console.log("Initial totalAmount (without handball):", totalAmount);
 
       // 3️⃣ ✅ Add handball charges if checkbox was checked
-  // Ensure numeric addition
-let handballAmount = 0;
-if (
-  handball_work === true ||
-  handball_work === "true" ||
-  handball_work === 1 ||
-  handball_work === "1"
-) {
-  handballAmount = handballCharges;
-}
+      // Ensure numeric addition
+      let handballAmount = 0;
+      if (
+        handball_work === true ||
+        handball_work === "true" ||
+        handball_work === 1 ||
+        handball_work === "1"
+      ) {
+        handballAmount = handballCharges;
+      }
 
-// console.log("handball_work:", handball_work, "handballCharges:", handballCharges, "totalAmount after handball:", totalAmount);
+      // console.log("handball_work:", handball_work, "handballCharges:", handballCharges, "totalAmount after handball:", totalAmount);
 
 
       // 4️⃣ Apply tax
@@ -518,9 +559,13 @@ if (
       const taxAmount = parseFloat((totalAmount * taxPercentage) / 100);
       const vatAmount = parseFloat((totalAmount * vatPercentage) / 100);
       // console.log("vatAmount:", vatAmount);
-      const grandTotal = parseFloat(totalAmount + vatAmount+ handballAmount);
+      // const grandTotal = parseFloat(totalAmount + vatAmount+ handballAmount);
+      const grandTotal =
+        Number(totalAmount) +
+        Number(vatAmount) +
+        Number(handballAmount);
 
-      console.log("grandTotal:", grandTotal);
+      // console.log("grandTotal:", grandTotal);
 
       // console.log("Total Amount:", totalAmount,taxAmount,vatAmount,grandTotal);
 
@@ -529,6 +574,8 @@ if (
         totalAmount: totalAmount,
         taxAmount: taxAmount,
         vatAmount: vatAmount,
+        handballCharges: handballAmount,
+        remote_price: remote_price,
 
         grandTotal: grandTotal
       };
@@ -913,6 +960,11 @@ if (
       .tz("Europe/London")  // ensure it's in UK timezone
       .format("DD/MM/YYYY"); // ✅ UK format
   },
+  formatDateTimeToUK: function (date) {
+    return moment(date)
+      .tz("Europe/London")
+      .format("DD/MM/YYYY HH:mm"); // includes time
+  },
 
   getRiderMessageForAddress: function (array, address) {
     return array
@@ -980,32 +1032,32 @@ if (
   //   return date.toISOString().split("T")[0]; // YYYY-MM-DD
   // }
 
-calculateEndDate: function (startDate, totalMiles, milesPerDay = 250) {
-  if (!startDate || !totalMiles) {
-    throw new Error("Invalid startDate or distance");
+  calculateEndDate: function (startDate, totalMiles, milesPerDay = 250) {
+    if (!startDate || !totalMiles) {
+      throw new Error("Invalid startDate or distance");
+    }
+
+    const daysRequired = Math.ceil(totalMiles / milesPerDay);
+
+    const date = new Date(startDate);
+    if (isNaN(date.getTime())) {
+      throw new Error("Invalid startDate format");
+    }
+
+    date.setDate(date.getDate() + daysRequired);
+
+    return date; // ✅ RETURN DATE OBJECT
+  },
+
+
+  toMySQLDateTime: function (date) {
+    if (!(date instanceof Date)) {
+      throw new Error("Expected Date object");
+    }
+    return date.toISOString().slice(0, 19).replace("T", " ");
   }
 
-  const daysRequired = Math.ceil(totalMiles / milesPerDay);
-
-  const date = new Date(startDate);
-  if (isNaN(date.getTime())) {
-    throw new Error("Invalid startDate format");
-  }
-
-  date.setDate(date.getDate() + daysRequired);
-
-  return date; // ✅ RETURN DATE OBJECT
-},
-
-
-toMySQLDateTime: function (date) {
-  if (!(date instanceof Date)) {
-    throw new Error("Expected Date object");
-  }
-  return date.toISOString().slice(0, 19).replace("T", " ");
-}
-
-,
+  ,
 
 
   convertUtcToUKTime: function (utcTimeInSeconds) {
@@ -1183,11 +1235,13 @@ toMySQLDateTime: function (date) {
         const userQuery = `SELECT id, full_name as sender_name, mem_image as sender_dp FROM riders WHERE id = ?`;
         const [userRows] = await pool.query(userQuery, [sender]);
         senderInfo = userRows[0];
+        console.log("senderInfo for user/business:", senderInfo);
       } else if (mem_type === "rider") {
         const riderQuery = `SELECT id, full_name as sender_name, mem_image as sender_dp FROM members WHERE id = ?`;
         // console.log(riderQuery,sender);
         const [riderRows] = await pool.query(riderQuery, [sender]);
         senderInfo = riderRows[0];
+        console.log("senderInfo for rider:", senderInfo, sender);
       }
 
       if (!senderInfo) {
@@ -1209,6 +1263,116 @@ toMySQLDateTime: function (date) {
       // Find all sockets associated with the user_id in the users array
       const userSockets = users.filter((user) => parseInt(user.user_id) === parseInt(user_id) && user?.mem_type === mem_type);
       // console.log(users,userSockets,'userSockets')
+      // Loop through each socket entry and emit the notification
+      userSockets.forEach((userSocket) => {
+        io.to(userSocket.socket).emit(
+          "receive-notification",
+          notificationObject
+        );
+      });
+      console.log(
+        `Notification sent to ${userSockets.length} sockets for user_id ${user_id}`
+      );
+      return true;
+    } catch (error) {
+      console.error("Error storing notification:", error.message);
+      throw error;
+    }
+  },
+
+  storeNotificationForCronJob: async function (user_id, mem_type, sender, text, link = null, type = null,
+    ref_id = null) {
+    // console.log("hi",users)
+    try {
+      // Prepare the query for inserting the notification
+      const insertQuery = `
+            INSERT INTO notifications (user_id, mem_type, sender, text, status, created_date, link, type, ref_id)
+            VALUES (?, ?, ?, ?, 0, ?, ?, ?, ?)
+        `;
+
+      // Get the current UTC timestamp
+      const created_date = this.getUtcTimeInSeconds();
+
+      // Insert the notification into the database
+      const [result] = await pool.query(insertQuery, [
+        user_id,
+        mem_type,
+        sender,
+        text,
+        created_date,
+        link,
+        type,
+        ref_id
+
+      ]);
+
+      // Check if the notification was successfully inserted
+      if (result.affectedRows !== 1) {
+        throw new Error("Failed to insert notification");
+      }
+
+      // Fetch the inserted notification's row
+      const fetchQuery = `SELECT * FROM notifications WHERE id = ?`;
+      const [notificationRows] = await pool.query(fetchQuery, [
+        result.insertId
+      ]);
+      const notification = notificationRows[0];
+
+      // Fetch sender details based on mem_type
+      let senderInfo = null;
+      if (sender === 0) {
+        // Fetch sender info from site settings if sender is 0
+        const siteSettingsQuery = `SELECT site_name as sender_name, logo_image as sender_dp FROM tbl_admin LIMIT 1`;
+        const [siteSettingsRows] = await pool.query(siteSettingsQuery, [sender]);
+        senderInfo = siteSettingsRows[0];
+        senderInfo.is_admin = 1;
+      } else if (mem_type === "user" || mem_type === "business") {
+        const userQuery = `SELECT id, full_name as sender_name, mem_image as sender_dp FROM riders WHERE id = ?`;
+        const [userRows] = await pool.query(userQuery, [sender]);
+        senderInfo = userRows[0];
+        console.log("senderInfo for user/business:", senderInfo);
+      } else if (mem_type === "rider") {
+        const riderQuery = `
+  SELECT 
+    id, 
+    full_name as sender_name, 
+    mem_image as sender_dp,
+    0 as is_admin
+  FROM riders 
+  WHERE id = ?
+`;
+
+        const [riderRows] = await pool.query(riderQuery, [sender]);
+        senderInfo = riderRows[0];
+
+        console.log("senderInfo for rider:", senderInfo, sender);
+      }
+
+      if (!senderInfo || typeof senderInfo.sender_name === "undefined") {
+  console.log("⚠️ Sender missing but continuing safely");
+  senderInfo = {
+    sender_name: "System",
+    sender_dp: null,
+    is_admin: 0
+  };
+}
+
+      // Prepare the notification object
+      const notificationObject = {
+        id: result.insertId,
+        sender_name: senderInfo.sender_name,
+        sender_dp: senderInfo.sender_dp,
+        is_admin: senderInfo.is_admin,
+        text: text,
+        time: created_date,
+        link: link
+      };
+      console.log(notificationObject, mem_type)
+
+      // Find all sockets associated with the user_id in the users array
+      const userSockets = users.filter((user) => parseInt(user.user_id) === parseInt(user_id) && user?.mem_type === mem_type);
+      // console.log(users,userSockets,'userSockets')
+      // console.log("ACTIVE SOCKET USERS:", users);
       // Loop through each socket entry and emit the notification
       userSockets.forEach((userSocket) => {
         io.to(userSocket.socket).emit(
@@ -1265,6 +1429,32 @@ toMySQLDateTime: function (date) {
     }
   },
 
+   storePendingPayment: async function (pendingPaymentData) {
+    // console.log("Transaction Data:", transactionData);
+    const query = `
+    INSERT INTO pending_payments (
+      request_id, amount, status, created_at
+    ) VALUES (?, ?, ?, ?)
+  `;
+
+    const values = [
+      pendingPaymentData.request_id,
+      pendingPaymentData.amount,
+      pendingPaymentData.status,
+      pendingPaymentData.created_at
+    ];
+
+    try {
+      const [result] = await pool.query(query, values);
+      // console.log('Transaction Data:', transactionData); // Debugging
+
+      // console.log(`Transaction stored successfully. Insert ID: ${result.insertId}`);
+    } catch (error) {
+      console.error('Error storing pending payment:', error.message);
+      throw new Error('Database query failed.');
+    }
+  },
+
   storeTransaction: async function (transactionData) {
     // console.log("Transaction Data:", transactionData);
     const query = `
@@ -1302,6 +1492,45 @@ toMySQLDateTime: function (date) {
       throw new Error('Database query failed.');
     }
   },
+
+  storeTransactionLogs: async function (transactionData) {
+    // console.log("Transaction Data:", transactionData);
+    const query = `
+    INSERT INTO transactions_logs (
+      user_id, amount, payment_method, transaction_id, created_time, status,
+      stripe_refund_id,
+      stripe_refund_json, payment_intent, payment_intent_id
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+  `;
+
+    const values = [
+      transactionData.user_id,
+      transactionData.amount,
+      transactionData.payment_method,
+      // transactionData.transaction_id ? parseInt(transactionData.transaction_id, 10) : null,
+      transactionData.transaction_id && !isNaN(transactionData.transaction_id)
+        ? parseInt(transactionData.transaction_id, 10)
+        : null,
+      transactionData.created_time,
+      transactionData.status,
+      // OPTIONAL FIELDS (NULL if not provided)
+      transactionData.stripe_refund_id || null,
+      transactionData.stripe_refund_json || null,
+      transactionData.payment_intent || null,
+      transactionData.payment_intent_id || null,
+    ];
+
+    try {
+      const [result] = await pool.query(query, values);
+      // console.log('Transaction Data:', transactionData); // Debugging
+
+      // console.log(`Transaction stored successfully. Insert ID: ${result.insertId}`);
+    } catch (error) {
+      console.error('Error storing transaction:', error.message);
+      throw new Error('Database query failed.');
+    }
+  },
+
   storeWebHookData: async function (transactionData) {
     const query = `
     INSERT INTO webhooks (
@@ -1326,10 +1555,47 @@ toMySQLDateTime: function (date) {
   },
   getTransaction: async function (user_id) {
     try {
-      const [rows] = await pool.query(`SELECT * FROM transactions WHERE user_id = ? ORDER BY id DESC`, [user_id]);
-      return rows; // Returns true if email exists, false otherwise
+      const [rows] = await pool.query(`
+      SELECT 
+  t.*,
+  rq.*,
+  rq.id AS request_id,
+  rq.total_amount,   -- ✅ NOT summed
+  rq.vat,
+  rq.status AS job_status,
+  rq.start_date AS job_start_date,
+  rq.end_date AS job_end_date,
+  rq.assigned_rider AS assigned_rider,
+
+  -- ✅ SUM ONLY FROM order_stages (per order)
+  (
+    SELECT COALESCE(SUM(os.handball_charges), 0)
+    FROM order_stages os
+    WHERE os.order_id = rq.id
+  ) AS total_handball_charges,
+
+  (
+    SELECT COALESCE(SUM(os.waiting_charges), 0)
+    FROM order_stages os
+    WHERE os.order_id = rq.id
+  ) AS total_waiting_charges
+
+FROM transactions t
+
+INNER JOIN request_quote rq 
+  ON rq.id = t.transaction_id
+
+WHERE t.user_id = ?
+  AND rq.status = 'completed'
+
+ORDER BY t.id DESC;
+    `, [user_id]);
+
+      return rows; // Return the first row containing the aggregated data
+
     } catch (error) {
-      throw new Error(`Error getting transactions!`);
+      console.error("SQL ERROR:", error);
+      throw error;
     }
   },
   generatePromoCode: async function () {
@@ -1344,47 +1610,49 @@ toMySQLDateTime: function (date) {
     return promoCode;
   },
 
-  calculateRiderPrice : async ({
-  totalMiles = 0,
-  minMiles = 0,
-  minPrice = 0,
-  riderPrice = 0,
-}) => {
-  const total = Number(totalMiles);
-  const minimumMiles = Number(minMiles);
-  const minimumPrice = Number(minPrice);
-  const perMilePrice = Number(riderPrice);
+  calculateRiderPrice: async ({
+    totalMiles = 0,
+    minMiles = 0,
+    minPrice = 0,
+    riderPrice = 0,
+  }) => {
+    const total = Number(totalMiles);
+    const minimumMiles = Number(minMiles);
+    const minimumPrice = Number(minPrice);
+    const perMilePrice = Number(riderPrice);
 
-  if (total <= 0) return 0;
+    if (total <= 0) return 0;
 
-  if (total <= minimumMiles) {
-    return minimumPrice;
-  }
+    if (total <= minimumMiles) {
+      return minimumPrice;
+    }
 
-  const remainingMiles = total - minimumMiles;
-  const extraCost = remainingMiles * perMilePrice;
-  console.log("remainingMiles:", remainingMiles, "extraCost:", extraCost, minimumMiles, minimumPrice, perMilePrice);
+    const remainingMiles = total - minimumMiles;
+    const extraCost = remainingMiles * perMilePrice;
+    // console.log("remainingMiles:", remainingMiles, "extraCost:", extraCost, minimumMiles, minimumPrice, perMilePrice);
 
-  return Number((minimumPrice + extraCost).toFixed(2));
-},
+    return Number((minimumPrice + extraCost).toFixed(2));
+  },
 
 
   insertEarnings: async function (data) {
     try {
 
-      const exists = await this.earningExists(
-        data.order_id,
-        data.user_id,
-        data.earning_type
-      );
+      if (data.earning_type !== 'rent') {
+  const exists = await this.earningExists(
+    data.order_id,
+    data.user_id,
+    data.earning_type
+  );
 
-      if (exists) {
-        return { skipped: true };
-      }
+  if (exists) {
+    return { skipped: true };
+  }
+}
 
       const query = `
-      INSERT INTO earnings (user_id, amount, type, status, created_time, order_id, earning_type)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO earnings (user_id, amount, type, status, created_time, order_id, earning_type, category_id)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       `;
       const values = [
         data.user_id,
@@ -1393,7 +1661,8 @@ toMySQLDateTime: function (date) {
         data.status,
         data.created_time,
         data.order_id,
-        data.earning_type || null
+        data.earning_type || null,
+        data.category_id || null
       ];
       const result = await pool.query(query, values);
       // console.log("Full Query Result:", result);
@@ -1429,7 +1698,66 @@ toMySQLDateTime: function (date) {
       return false;
     }
   },
+  insertEarningLogs: async function (data) {
+    try {
 
+      const exists = await this.earningLogsExists(
+        data.order_id,
+        data.user_id,
+        data.earning_type
+      );
+
+      if (exists) {
+        return { skipped: true };
+      }
+
+      const query = `
+      INSERT INTO earnings_logs (user_id, amount, type, status, created_time, order_id, earning_type)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+      `;
+      const values = [
+        data.user_id,
+        data.amount,
+        data.type || 'credit',
+        data.status,
+        data.created_time,
+        data.order_id,
+        data.earning_type || null
+      ];
+      const result = await pool.query(query, values);
+      // console.log("Full Query Result:", result);
+
+      return result; // Return the inserted row
+    } catch (error) {
+      console.error("Error inserting earnings:", error);
+      return null;
+    }
+  },
+
+  earningLogsExists: async function (
+    // order_id, 
+    rider_id, earning_type) {
+    try {
+      const query = `
+      SELECT id
+      FROM earnings_logs
+      WHERE user_id = ?
+        AND earning_type = ?
+      LIMIT 1
+    `;
+
+      const [rows] = await pool.query(query, [
+        // order_id,
+        rider_id,
+        earning_type
+      ]);
+
+      return rows.length > 0;
+    } catch (error) {
+      console.error("Error checking earning exists:", error);
+      return false;
+    }
+  },
 
   // Function to send an email
   sendEmail: async function (to, subject, templateName, templateData) {

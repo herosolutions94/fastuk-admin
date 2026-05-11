@@ -1,0 +1,90 @@
+<section id="dashbaord">
+    <div class="contain-fluid">
+
+        <div class="heading">
+            <div class="text">
+                <h3>Edit Fuel Record</h3>
+                <ul>
+                    <li><a href="/admin/dashbaord">Dashboard</a></li>
+                </ul>
+            </div>
+
+            <div class="text text2">
+                <a href="/admin/vehicle-fuel-list" class="webBtn mdBtn greenBtn">
+                    <i class="fa-regular fa-arrow-left"></i>Cancel
+                </a>
+            </div>
+        </div>
+
+        <div class="dashTable">
+            <div class="card editor_card">
+
+                <div class="card-header">
+                    <h5>Fuel Block</h5>
+                </div>
+
+                <div class="card-body full_width">
+
+                    <form class="frmAjax"
+                        action="/admin/fuel/update/<%= fuel.id %>"
+                        method="post" enctype="multipart/form-data">
+
+                        <div class="row">
+
+                            <!-- Fuel Litres -->
+                            <div class="col-md-6">
+                                <div class="txtGrp">
+                                    <label>Fuel Litres *</label>
+                                    <input class="input" type="number" step="0.01"
+                                        name="litres"
+                                        value="<%= fuel.litres %>">
+                                </div>
+                            </div>
+
+                            <!-- Price Per Litre -->
+                            <div class="col-md-6">
+                                <div class="txtGrp">
+                                    <label>Price Per Litre *</label>
+                                    <input class="input" type="number" step="0.01"
+                                        name="price_per_litre"
+                                        value="<%= fuel.price_per_litre %>">
+                                </div>
+                            </div>
+
+                            <!-- Status -->
+                            <div class="col-md-6">
+                                <div class="txtGrp">
+                                    <label>Status</label>
+                                    <select name="status" class="input">
+                                        <option value="1" <%= fuel.status==1 ? 'selected' : '' %>>Active</option>
+                                        <option value="0" <%= fuel.status==0 ? 'selected' : '' %>>Inactive</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Rider ID (readonly for safety) -->
+                            <div class="col-md-6">
+                                <div class="txtGrp">
+                                    <label>Rider ID</label>
+                                    <input class="input" type="text"
+                                        value="<%= fuel.rider_id %>"
+                                        readonly>
+                                </div>
+                            </div>
+
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button class="webBtn" type="submit">
+                                Update Fuel <i class="spinner hidden"></i>
+                            </button>
+                        </div>
+
+                    </form>
+
+                </div>
+            </div>
+        </div>
+
+    </div>
+</section>

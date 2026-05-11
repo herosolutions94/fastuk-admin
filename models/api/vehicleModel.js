@@ -11,16 +11,20 @@ class VehicleModel extends BaseModel {
         return rows;
     }
     async getActiveVehicles() {
-        try {
-            const [rows] = await pool.query(`SELECT * FROM ${this.tableName} WHERE status=1`); // Only take the first result
-            // console.log("rows",rows)
-            // console.log('Riders fetched successfully:', rows); // Log the data (only the rows)
-            return rows; // Return the fetched rows
-        } catch (error) {
-            console.error('Error fetching vehicle:', error);
-            throw error;
-        }
+    try {
+        const [rows] = await pool.query(`
+            SELECT * 
+            FROM ${this.tableName} 
+            WHERE status = 1 
+            AND is_fastuk_property != 1
+        `);
+
+        return rows;
+    } catch (error) {
+        console.error('Error fetching vehicle:', error);
+        throw error;
     }
+}
 
     async getVehicleCategoriesByWeight(totalWeight) {
   const query = `

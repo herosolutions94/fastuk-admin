@@ -50,6 +50,20 @@ class MemberModel extends BaseModel {
     }
   }
 
+  async findByPhoneNumber(mem_phone) {
+    try {
+      const [rows] = await pool.query(
+        `SELECT * FROM ${this.tableName} WHERE is_deleted != 1 AND mem_phone = ? LIMIT 1`,
+         [mem_phone]
+      );
+      return rows.length ? rows[0] : null; // Return the first result or null
+    } catch (error) {
+      throw new Error(
+        `Error fetching member by phone from ${this.tableName}: ${error.message}`
+      );
+    }
+  }
+
   async findByOtp(otp) {
     try {
       const [rows] = await pool.query(
@@ -268,8 +282,7 @@ class MemberModel extends BaseModel {
       query += `
             GROUP BY 
                 rq.id, m.full_name, m.mem_image, m.email, m.mem_phone
-            ORDER BY 
-                rq.updated_time DESC
+           ORDER BY rq.id DESC
         `;
 
       // console.log("Fetching orders for user:", userId, "with status:", status);
@@ -298,6 +311,7 @@ class MemberModel extends BaseModel {
     m.full_name AS user_name, 
     m.mem_image AS user_image,
     m.email AS user_email,
+    m.vehicle_registration_num AS vehicle_registration_num,
     m.mem_phone AS user_phone,
     COALESCE(SUM(rp.distance), 0) AS total_distance
 FROM 
@@ -695,6 +709,55 @@ WHERE n.user_id = ? AND n.mem_type = ?
     return rows[0].totalDebit || 0; // Return 0 if no debits found
   }
 
+  async hasPendingDues(userId) {
+  const [rows] = await pool.query(`
+    SELECT SUM(credits) as total
+    FROM credits
+    WHERE user_id = ?
+    AND status = 'pending'
+  `, [userId]);
+
+  return rows[0].total > 0;
+}
+
+async getPendingAmount(userId) {
+  const [rows] = await pool.query(`
+    SELECT SUM(credits) as total
+    FROM credits
+    WHERE user_id = ?
+    AND status = 'pending'
+  `, [userId]);
+
+  return rows[0].total || 0;
+}
+
+async getOutstandingAmount(userId) {
+  const [rows] = await pool.query(`
+    SELECT 
+      SUM(CASE WHEN e_type = 'debit' THEN credits ELSE 0 END) as total_debit,
+      SUM(CASE WHEN e_type = 'credit' THEN credits ELSE 0 END) as total_credit
+    FROM credits
+    WHERE user_id = ?
+    AND status = 'pending'
+  `, [userId]);
+
+  const totalDebit = rows[0].total_debit || 0;
+  const totalCredit = rows[0].total_credit || 0;
+
+  return totalDebit - totalCredit;
+}
+
+  async getTotalPendingCredits(userId) {
+  const [rows] = await pool.query(`
+    SELECT SUM(credits) as total
+    FROM credits
+    WHERE user_id = ?
+    AND status = 'pending'
+  `, [userId]);
+
+  return rows[0].total || 0;
+}
+
   async insertInvoice(userId, amount = 100) {
     const createdDate = helpers.getUtcTimeInSeconds();
     amount = amount.toFixed(2);
@@ -706,6 +769,23 @@ WHERE n.user_id = ? AND n.mem_type = ?
     };
     return pool.query("INSERT INTO credit_invoices SET ?", newInvoice);
   }
+
+  async insertCreditFunds(data) {
+    const createdDate = helpers.getUtcTimeInSeconds();
+  const query = `
+    INSERT INTO credits 
+    (user_id, credits, type, created_date, e_type)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  return pool.query(query, [
+    data.user_id,
+    data.credits,
+    'admin',
+    createdDate,
+    'credit'
+  ]);
+}
 
   async getInvoicesByUserId(userId) {
     try {

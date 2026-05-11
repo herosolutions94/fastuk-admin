@@ -9,9 +9,8 @@
         </ul>
       </div>
       <div class="text text2">
-        <a href="/admin/rider/category/selected-categories/<%= rider_id %>" class="webBtn mdBtn greenBtn"
-          ><i class="fa-regular fa-arrow-left"></i>Cancel</a
-        >
+        <a href="/admin/rider/category/selected-categories/<%= rider_id %>" class="webBtn mdBtn greenBtn"><i
+            class="fa-regular fa-arrow-left"></i>Cancel</a>
       </div>
     </div>
     <div class="dashTable">
@@ -20,10 +19,7 @@
           <h5>Category Block</h5>
         </div>
         <div class="card-body full_width">
-          <form
-            id="addCategoryForm"
-            action="/admin/rider/category/add-category-form/<%= rider_id %>"
-            method="post">
+          <form id="addCategoryForm" action="/admin/rider/category/add-category-form/<%= rider_id %>" method="post">
             <div class="row">
               <div class="col-md-12">
                 <input type="hidden" id="riderId" value="<%= rider_id %>" />
@@ -34,9 +30,11 @@
                       <label>Sub Category</label>
                       <select id="parent_id" name="parent_id" class="form-select">
                         <option value="">-- Select Sub Category --</option>
-                        <% mainCategories.forEach(cat => { %>
-                        <option value="<%= cat.id %>"><%= cat.title %></option>
-                        <% }); %>
+                        <% mainCategories.forEach(cat=> { %>
+                          <option value="<%= cat.id %>">
+                            <%= cat.title %>
+                          </option>
+                          <% }); %>
                       </select>
                     </div>
                   </div>
@@ -44,9 +42,25 @@
                   <div class="col-md-6">
                     <div class="txtGrp">
                       <label>Main Category</label>
+
                       <select id="category_id" name="category_id" class="form-select">
                         <option value="">-- Select Main Category --</option>
+
+                        <% vehicles.forEach(category=> { %>
+                          <option value="<%= category.id %>" data-rent="<%= category.vehicle_rental_price %>">
+
+                            <%= category.title %>
+                          </option>
+                          <% }) %>
+
                       </select>
+                    </div>
+                  </div>
+
+                  <div class="col-md-6">
+                    <div class="txtGrp">
+                      <label>Vehicle Rental Price</label>
+                      <input type="text" id="vehicle_rent" name="vehicle_rent" class="form-control" />
                     </div>
                   </div>
                 </div>
@@ -64,3 +78,29 @@
     </div>
   </div>
 </section>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+
+    const subCategory = document.getElementById("parent_id");
+    const categorySelect = document.getElementById("category_id");
+    const rentInput = document.getElementById("vehicle_rent");
+
+    // reset when sub category changes
+    subCategory.addEventListener("change", function () {
+      categorySelect.value = "";
+      rentInput.value = "";
+    });
+
+    // show rent when main category changes
+   categorySelect.addEventListener("change", function () {
+  const selected = this.options[this.selectedIndex];
+
+  const rent = selected.getAttribute("data-rent");
+
+  console.log("Rent:", rent);
+
+  rentInput.value = rent && rent !== "null" ? rent : "";
+});
+
+  });
+</script>

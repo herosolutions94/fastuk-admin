@@ -87,23 +87,23 @@ class RequestQuoteController extends BaseController {
   }
 
   async getLateRequestQuotes(req, res) {
-  try {
-    const requestQuotesWithMembers =
-      await RequestQuote.getRequestQuotesWithMembers([
-        "rq.end_date < CURDATE()",
-        "rq.status != 'completed'",
-        "(rq.is_cancelled IS NULL OR rq.is_cancelled NOT IN ('requested', 'approved'))"
-      ]);
+    try {
+      const requestQuotesWithMembers =
+        await RequestQuote.getRequestQuotesWithMembers([
+          "rq.end_date < CURDATE()",
+          "rq.status != 'completed'",
+          "(rq.is_cancelled IS NULL OR rq.is_cancelled NOT IN ('requested', 'approved'))"
+        ]);
 
-    res.render("admin/request-quotes", {
-      requestQuotes: requestQuotesWithMembers,
-      pageHeading: "Late Jobs"
-    });
-  } catch (error) {
-    console.error("Error fetching late request quotes:", error);
-    this.sendError(res, "Failed to fetch late jobs");
+      res.render("admin/request-quotes", {
+        requestQuotes: requestQuotesWithMembers,
+        pageHeading: "Late Jobs"
+      });
+    } catch (error) {
+      console.error("Error fetching late request quotes:", error);
+      this.sendError(res, "Failed to fetch late jobs");
+    }
   }
-}
 
 
   async getOrderDetails(req, res) {
@@ -115,6 +115,7 @@ class RequestQuoteController extends BaseController {
         return this.sendError(res, "Order not found");
       }
 
+      const pendingPayment = await this.rider.getPendingPaymentByRequestId(orderDetails.id); // Add this method in your model
       const parcels = await this.rider.getParcelDetailsByQuoteId(
         orderDetails.id
       );
@@ -264,6 +265,7 @@ class RequestQuoteController extends BaseController {
         order_stages: order_stages_arr,
         vias: vias,
         totalAmount,
+        pendingPayment: pendingPayment,
         // invoices: invoices,
         reviews: reviews,
         source_attachments: source_attachments,

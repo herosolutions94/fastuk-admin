@@ -1,0 +1,109 @@
+<section id="dashbaord">
+    <div class="contain-fluid">
+        <div class="heading">
+            <div class="text">
+                <h3>Add Vehicle Fuel</h3>
+                <ul>
+                    <li><a href="/admin/dashbaord">Dashboard</a></li>
+                </ul>
+            </div>
+            <!-- <div class="text text2">
+                <a href="/admin/vehicle-fuel-list" class="webBtn mdBtn greenBtn">
+                    <i class="fa-regular fa-arrow-left"></i>Cancel
+                </a>
+            </div> -->
+        </div>
+
+        <div class="dashTable">
+            <div class="card editor_card">
+                <div class="card-header">
+                    <h5>Fuel Block</h5>
+                </div>
+
+                <div class="card-body full_width">
+                    <form class="frmAjax" action="/admin/add-vehicle-fuel/<%= rider_id %>" method="post"  enctype="multipart/form-data">
+
+                        <!-- ✅ Hidden Rider ID -->
+                        <input type="hidden" name="rider_id" value="<%= rider_id %>">
+
+                        <div class="row">
+                            <div class="col-md-9">
+                                <div class="row switch-showcase">
+
+                                    <!-- Fuel Litres -->
+                                    <div class="col-md-6">
+                                        <div class="txtGrp">
+                                            <label>Fuel Litres <abbr class="required">*</abbr></label>
+                                            <input class="input" type="number" step="0.01" name="litres" required />
+                                        </div>
+                                    </div>
+
+                                    <!-- Price Per Litre -->
+                                    <div class="col-md-6">
+                                        <div class="txtGrp">
+                                            <label>Price Per Litre <abbr class="required">*</abbr></label>
+                                            <input class="input" type="number" step="0.01" name="price_per_litre" required />
+                                        </div>
+                                    </div>
+
+                                    <!-- Status -->
+                                    <div class="col-md-6">
+                                        <div class="txtGrp">
+                                            <label>Status</label>
+                                            <select name="status" class="input">
+                                                <option value="1">Active</option>
+                                                <option value="0">Inactive</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card-footer text-end">
+                            <button class="webBtn" type="submit">
+                                Add Fuel <i class="spinner hidden"></i>
+                            </button>
+                        </div>
+
+                    </form>
+                    <hr>
+
+<h4>Previous Fuel Records</h4>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th>Litres</th>
+            <th>Price/Litre</th>
+            <th>Total</th>
+            <th>Status</th>
+            <th>Date</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <% if (fuelLogs.length > 0) { %>
+            <% fuelLogs.forEach(fuel => { %>
+                <tr>
+                    <td><%= fuel.litres %></td>
+                    <td><%= fuel.price_per_litre %></td>
+                    <td><%= fuel.litres * fuel.price_per_litre %></td>
+                    <td><%= fuel.status == 1 ? 'Active' : 'Inactive' %></td>
+                    <td><%= fuel.created_at %></td>
+                </tr>
+            <% }) %>
+        <% } else { %>
+            <tr>
+                <td colspan="5">No fuel records found</td>
+            </tr>
+        <% } %>
+    </tbody>
+</table>
+                </div>
+            </div>
+            <hr />
+        </div>
+    </div>
+</section>

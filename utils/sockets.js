@@ -15,6 +15,7 @@ async function getUserIdFromToken(token, memType) {
           console.error('Decryption failed:', err.message);
           return null;
       }
+        //   console.log("Decrypted token:", decryptedToken);
 
       // Step 2: Split the decrypted token (assuming token is in a specific format like 'xxx-yyy-userId')
       const parts = decryptedToken.split("-");
@@ -24,7 +25,8 @@ async function getUserIdFromToken(token, memType) {
       }
 
       const userId = parts[2]; // Extract the userId from the token
-
+// console.log("Token parts:", parts);
+// console.log("Extracted userId:", userId);
       let query = '';
       let user = null; // Initialize user variable
 
@@ -37,6 +39,8 @@ async function getUserIdFromToken(token, memType) {
           query = `SELECT * FROM riders WHERE id = ?`;
           const [riderRows] = await pool.query(query, [userId, memType]);
           user = riderRows[0]; // Store the result in user variable
+            //   console.log("DB rows:", userRows);
+
       }
 
       if (user) {

@@ -152,26 +152,26 @@ class BusinessUserController extends BaseController {
             if (businessUserImage) {
                 const uploadsDir = path.join(__dirname, '../../uploads');
                 const imagePath = path.join(uploadsDir, businessUserImage);
-                 const thumbPath = path.join(uploadsDir, 'thumbnails', businessUserImage);
+                const thumbPath = path.join(uploadsDir, 'thumbnails', businessUserImage);
                 // console.log('Image Path:', imagePath); // Log the image path
 
                 // Check if the image file exists before trying to delete
                 if (fs.existsSync(imagePath)) {
-                console.log('Deleting main image:', imagePath);
-                fs.unlinkSync(imagePath);
-                console.log('Main image deleted successfully');
-            } else {
-                console.log('Main image not found:', imagePath);
-            }
+                    console.log('Deleting main image:', imagePath);
+                    fs.unlinkSync(imagePath);
+                    console.log('Main image deleted successfully');
+                } else {
+                    console.log('Main image not found:', imagePath);
+                }
 
-            // Delete thumbnail image
-            if (fs.existsSync(thumbPath)) {
-                console.log('Deleting thumbnail image:', thumbPath);
-                fs.unlinkSync(thumbPath);
-                console.log('Thumbnail image deleted successfully');
-            } else {
-                console.log('Thumbnail not found:', thumbPath);
-            }
+                // Delete thumbnail image
+                if (fs.existsSync(thumbPath)) {
+                    console.log('Deleting thumbnail image:', thumbPath);
+                    fs.unlinkSync(thumbPath);
+                    console.log('Thumbnail image deleted successfully');
+                } else {
+                    console.log('Thumbnail not found:', thumbPath);
+                }
 
             }
 
@@ -196,8 +196,10 @@ class BusinessUserController extends BaseController {
             // console.log("req.params:", req.params);
             // console.log("req.query:", req.query);
 
-            const { id } = req.params;
-            const { is_approved } = req.query;
+            const { id, status: is_approved } = req.params;
+            // const { is_approved } = req.query;
+            // console.log("Business User ID:", id);
+            // console.log("Approval Status:", is_approved);
 
             if (!id || !is_approved) {
                 return res.status(200).json({ status: 0, msg: "Missing parameters." });
@@ -241,13 +243,74 @@ class BusinessUserController extends BaseController {
                     await this.memberModel.updateMemberData(id, { total_credits: 200 });
                 }
 
-                return res.redirect('/admin/business-users');
+                // return res.redirect('/admin/business-users');
+                this.sendSuccess(res, {}, '200 credits added successfully!', 200, '/admin/business-users')
             } else {
                 return res.status(200).json({ status: 0, msg: "Failed to update business user status." });
             }
         } catch (error) {
             console.error("Error approving business user:", error);
             return res.status(200).json({ status: 0, msg: "Internal server error." });
+        }
+    }
+
+    async addFunds(req, res) {
+        try {
+            const businessUserId = req.params.id;
+
+            const businessUser = (await BusinessUser.getMemberById(businessUserId))[0]; // Extract the first rider if it's returned as an array
+
+
+            if (!businessUser) {
+                return res.status(404).send("User not found");
+            }
+
+            res.render('admin/business_users/add-funds', {
+                pageTitle: 'Add Funds',
+                user_id: businessUserId,     // ✅ pass this
+                businessUser                // optional (for name display)
+            });
+
+        } catch (error) {
+            console.error('Error loading page:', error);
+            res.status(500).send('Something went wrong');
+        }
+    }
+
+    async storeFunds(req, res) {
+        try {
+            const { user_id, amount } = req.body;
+
+            if (!user_id || !amount) {
+                return res.status(200).send("User and amount required");
+            }
+
+            const amt = parseFloat(amount);
+
+            if (isNaN(amt) || amt <= 0) {
+                return res.status(200).send("Invalid amount");
+            }
+
+            // ✅ Insert into credits table
+            await this.memberModel.insertCreditFunds({
+                user_id,
+                credits: amt,
+                type: "credit",
+                description: "Admin added funds"
+            });
+
+            // 2️⃣ ✅ ALSO UPDATE MEMBERS TABLE
+    const user = await this.memberModel.findById(user_id);
+
+    await this.memberModel.updateMemberData(user_id, {
+      total_credits: parseFloat(user.total_credits || 0) + amt
+    });
+
+            // return res.redirect(`/admin/business-users/edit/${user_id}`);
+this.sendSuccess(res, {}, 'Funds added successfully!', 200, `/admin/business-users/edit/${user_id}`)
+        } catch (error) {
+            console.error("Error adding funds:", error);
+            res.status(500).send("Something went wrong");
         }
     }
 

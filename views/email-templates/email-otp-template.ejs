@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <title>Email Verification</title>
+
+  <style type="text/css">
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap');
+  </style>
+</head>
+
+<body style="background:#f8f9ff; margin:0; padding:20px 0; font-family:'Poppins', sans-serif;">
+
+  <table style="width:600px; background:#fff; margin:0 auto; border-spacing:0; font-size:14px; color:#2f2a49; border-radius:6px; overflow:hidden; box-shadow:0 1rem 2rem -0.3rem rgba(47,42,73,0.05);">
+
+    <!-- LOGO -->
+    <tr>
+      <td style="text-align:center; padding:25px;">
+        <a href="#" style="text-decoration:none;">
+          <img src="<%= adminData.logo %>" alt="Logo" style="width:120px;" />
+        </a>
+      </td>
+    </tr>
+
+    <!-- BODY -->
+    <tr>
+      <td style="padding:20px 30px;">
+
+        <p style="margin:0 0 10px;">Hi <strong><%= username %></strong>,</p>
+
+        <p style="margin:0 0 20px; line-height:1.6;">
+          Thanks for creating an account with <strong><%= adminData.site_name %></strong>.
+          Please use the code below to verify your email address.
+        </p>
+
+        <!-- OTP BOX -->
+        <div style="text-align:center; margin:30px 0;">
+          <span style="display:inline-block; background:#077EFF; color:#fff; padding:12px 35px; font-size:20px; letter-spacing:4px; border-radius:50px; font-weight:600;">
+            <%= otp %>
+          </span>
+        </div>
+
+        <p style="margin:0 0 10px; line-height:1.6;">
+          This OTP will expire in a few minutes for security reasons.
+        </p>
+
+        <p style="margin:20px 0 0;">
+          If you didn’t request this, you can ignore this email.
+        </p>
+
+        <p style="margin-top:20px;">
+          Sincerely,<br />
+          <strong><%= adminData.site_name %></strong>
+        </p>
+
+      </td>
+    </tr>
+
+    <!-- FOOTER -->
+    <tr>
+      <td style="text-align:center; padding:15px; font-size:12px; color:#999;">
+        © <%= new Date().getFullYear() %> <%= adminData.site_name %>. All rights reserved.
+      </td>
+    </tr>
+
+  </table>
+
+</body>
+
+</html>

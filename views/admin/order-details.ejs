@@ -638,12 +638,12 @@
             </div>
 
             <div class="card-body">
-              
+
               <% if (order?.riderNotes.length> 0) { %>
                 <table class="table">
                   <thead>
                     <tr>
-                      <th>Notes</th>                     
+                      <th>Notes</th>
                       <th>Created Date</th>
                     </tr>
                   </thead>
@@ -653,7 +653,7 @@
                         <td>
                           <%= note.notes %>
                         </td>
-                        
+
                         <td>
                           <%= helpers.convertUtcToUkFormat(note?.created_at) %>
                         </td>
@@ -868,15 +868,58 @@
         </div>
         <% } %>
 
+          <% if(order?.pendingPayment && order?.pendingPayment?.status !=='paid' ) { %>
+            <div class="row">
+              <div class="col-md-12">
+                <div class="card">
+                  <div class="card-header">
+                    <h5>Pending Payment (Admin Action)</h5>
+                  </div>
+                  <div class="card-body">
 
+                    <p><strong>Original Amount:</strong> £<%= order?.pendingPayment?.amount %>
+                    </p>
+
+                    <form class="pending-payment-form" action="/admin/pending-payment/resolve" method="POST">
+                      <input type="hidden" name="request_id" value="<%= order.id %>">
+
+                      <!-- Editable Amount -->
+                      <div class="form-group">
+                        <label>Adjust Amount (£)</label>
+                        <input type="number" step="0.01" name="adjusted_amount" class="form-control"
+                          value="<%= order?.pendingPayment?.amount %>" required>
+                      </div>
+
+                      <!-- Admin Notes -->
+                      <!-- <div class="form-group">
+                        <label>Admin Note</label>
+                        <textarea name="admin_note" class="form-control"
+                          placeholder="e.g. Customer refused to pay, adjusted manually"></textarea>
+                      </div> -->
+
+                      <!-- Action -->
+                      <div class="form-group">
+                        <label>Action</label>
+                        <select name="action" class="form-control" required>
+                          <option value="">Select</option>
+                          <option value="">Update Amount Only</option>
+                          <option value="mark_paid">Mark as Paid</option>
+                          <option value="force_complete">Force Complete</option>
+                        </select>
+                      </div>
+
+                      <button type="submit" class="btn btn-success mt-2">
+                        Submit
+                      </button>
+                    </form>
+
+                  </div>
+                </div>
+              </div>
+            </div>
+            <% } %>
     </div>
-
   </div>
-
-
-
-
-
   </div>
   </div>
 </section>

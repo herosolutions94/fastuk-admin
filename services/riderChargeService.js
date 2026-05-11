@@ -25,7 +25,7 @@ module.exports.processRiderCharges = async ({
         riderHandballEarning =
             Number(totalHandballCharges);;
 
-        await helpers?.insertEarnings({
+        await helpers?.insertEarningLogs({
             user_id: rider_id,
             amount: riderHandballEarning,
             // type: "handball_charges",
@@ -48,7 +48,7 @@ module.exports.processRiderCharges = async ({
         riderWaitingEarning =
             (totalWaitingCharges * riderPercentage) / 100;
 
-        await helpers?.insertEarnings({
+        await helpers?.insertEarningLogs({
             user_id: rider_id,
             amount: riderWaitingEarning,
             // type: "waiting_charges",

@@ -2,7 +2,7 @@
 const express = require('express');
 const RiderController = require('../../controllers/api/riderController');
 const upload = require('../../file-upload');
-const {verifyApiKeyAndOrigin} = require('../../middleware/authKey');
+const { verifyApiKeyAndOrigin } = require('../../middleware/authKey');
 const multer = require('multer');
 
 const router = express.Router();
@@ -10,29 +10,36 @@ const riderController = new RiderController();
 
 // Route to register a rider
 router.post('/register-riders', upload, verifyApiKeyAndOrigin, riderController.registerRider.bind(riderController));
-router.post('/rider-login', upload,verifyApiKeyAndOrigin,riderController.loginRider.bind(riderController));
-router.post('/verify-email', upload,riderController.verifyEmail.bind(riderController));
-router.post('/rider-jobs', upload,riderController.getRequestQuotesByCity.bind(riderController));
-router.post('/accept-request-quote-by-rider', upload,riderController.assignRiderToRequest.bind(riderController));
+router.post('/register-basic-info', upload, verifyApiKeyAndOrigin, riderController.registerBasicInfo.bind(riderController));
+router.post('/register-attachments', upload, verifyApiKeyAndOrigin, riderController.registerAttachments.bind(riderController));
+router.post('/update-member-settings', upload, verifyApiKeyAndOrigin, riderController.updateRiderProfileMobile.bind(riderController));
+router.post('/get-rider-attachments', upload, verifyApiKeyAndOrigin, riderController.getRiderAttachments.bind(riderController));
+router.post('/upload-rider-attachment', upload, verifyApiKeyAndOrigin, riderController.updateRiderAttachments.bind(riderController));
+  router.post('/verify-phone-otp', upload, verifyApiKeyAndOrigin, riderController.verifyPhoneOtp.bind(riderController));
+router.post('/rider-login', upload, verifyApiKeyAndOrigin, riderController.loginRider.bind(riderController));
+router.post('/rider-login-app', upload, verifyApiKeyAndOrigin, riderController.loginRiderForApp.bind(riderController));
+router.post('/verify-email', upload, riderController.verifyEmail.bind(riderController));
+router.post('/rider-jobs', upload, riderController.getRequestQuotesByCity.bind(riderController));
+router.post('/accept-request-quote-by-rider', upload, riderController.assignRiderToRequest.bind(riderController));
 router.post('/get-rider-orders', upload, riderController.getRiderOrders.bind(riderController));
-router.post('/get-order-details/:encodedId', upload,riderController.getOrderDetailsByEncodedId.bind(riderController));
-router.post('/update-request-status', upload,riderController.updateRequestStatus.bind(riderController));
-router.post('/mark-as-completed', upload,riderController.markAsCompleted.bind(riderController));
-router.post('/update-stage-charges', upload,riderController.updateStageCharges.bind(riderController));
-router.post('/update-stage-status', upload,riderController.updateStageStatus.bind(riderController));
-router.post('/update-request-route-ready', upload,riderController.markRiderOrdersReady.bind(riderController));
-router.post('/complete-order-stage', upload,riderController.completeOrderStage.bind(riderController));
-router.get('/get-invoices-detail', upload,riderController.getInvoiceDetails.bind(riderController));
+router.post('/get-order-details/:encodedId', upload, riderController.getOrderDetailsByEncodedId.bind(riderController));
+router.post('/update-request-status', upload, riderController.updateRequestStatus.bind(riderController));
+router.post('/mark-as-completed', upload, riderController.markAsCompleted.bind(riderController));
+router.post('/update-stage-charges', upload, riderController.updateStageCharges.bind(riderController));
+router.post('/update-stage-status', upload, riderController.updateStageStatus.bind(riderController));
+router.post('/update-request-route-ready', upload, riderController.markRiderOrdersReady.bind(riderController));
+router.post('/complete-order-stage', upload, riderController.completeOrderStage.bind(riderController));
+router.get('/get-invoices-detail', upload, riderController.getInvoiceDetails.bind(riderController));
 // router.post('/test-notification', upload,riderController.testNotification.bind(riderController));
 router.post('/test-notification-rider', upload, (req, res) => riderController.testNotification(req, res));
 router.post('/add-update-notes', upload, (req, res) => riderController.addOrUpdateRiderNotes(req, res));
 
-router.post('/update-order-completed', upload,riderController.updateRequestStatusToCompleted.bind(riderController));
-router.post('/get-rider-dashboard-orders', upload,riderController.getRiderDashboardOrders.bind(riderController));
-router.post('/rider-payment-methods', upload,riderController.getRiderPaymentMethods.bind(riderController));
-router.post('/add-withdrawal-method', upload,riderController.AddWithdrawalMethod.bind(riderController));
-router.post('/update-withdrawal-method', upload,riderController.UpdateWithdrawalMethod.bind(riderController));
-router.post('/delete-withdrawal-method', upload,riderController.DeleteWithdrawalMethod.bind(riderController));
+router.post('/update-order-completed', upload, riderController.updateRequestStatusToCompleted.bind(riderController));
+router.post('/get-rider-dashboard-orders', upload, riderController.getRiderDashboardOrders.bind(riderController));
+router.post('/rider-payment-methods', upload, riderController.getRiderPaymentMethods.bind(riderController));
+router.post('/add-withdrawal-method', upload, riderController.AddWithdrawalMethod.bind(riderController));
+router.post('/update-withdrawal-method', upload, riderController.UpdateWithdrawalMethod.bind(riderController));
+router.post('/delete-withdrawal-method', upload, riderController.DeleteWithdrawalMethod.bind(riderController));
 router.post('/get-rider-earnings', upload, riderController.getRiderEarnings.bind(riderController));
 router.post('/save-withdrawal-request', upload, riderController.saveWithDrawalRequest.bind(riderController));
 router.get('/update-rider-earnings-status', riderController.getThreeDaysBeforeEarnings.bind(riderController));
@@ -45,6 +52,12 @@ router.post('/update-parcel-status', upload, riderController.updateParcelStatus.
 router.get('/clear-earnings', upload, riderController.clearOldEarnings.bind(riderController));
 router.get('/generate-missing-qrcodes', upload, riderController.generateMissingQRCodes.bind(riderController));
 router.post("/get-rider-info/:user_name", riderController.getRiderByUsername.bind(riderController));
+router.post("/user-location-update", upload, riderController.riderLocationUpdate.bind(riderController));
+router.post("/get-rider-location", upload, riderController.getRiderLocation.bind(riderController));
+router.get(
+  "/generate-rider-codes",
+  riderController.generateRiderCodesForExistingUsers.bind(riderController)
+);
 
 
 
@@ -54,22 +67,22 @@ router.post("/get-rider-info/:user_name", riderController.getRiderByUsername.bin
 
 
 
-const upload_file = multer({ 
-    dest: 'uploads/', 
-    limits: { fileSize: 5 * 1024 * 1024 }  // Set file size limit to 5MB
-  }).single('mem_image');
-  
-  router.post('/upload-rider-image', (req, res, next) => {
-    upload_file(req, res, (err) => {
-      if (err instanceof multer.MulterError) {
-        return res.status(200).json({ status: 0, msg: 'File upload error', error: err.message });
-      } else if (err) {
-        return res.status(200).json({ status: 0, msg: 'Server error', error: err.message });
-      }
-      // Continue with your logic if no error
-      riderController.uploadRiderLicense(req, res);
-    });
+const upload_file = multer({
+  dest: 'uploads/',
+  limits: { fileSize: 5 * 1024 * 1024 }  // Set file size limit to 5MB
+}).single('mem_image');
+
+router.post('/upload-rider-image', (req, res, next) => {
+  upload_file(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      return res.status(200).json({ status: 0, msg: 'File upload error', error: err.message });
+    } else if (err) {
+      return res.status(200).json({ status: 0, msg: 'Server error', error: err.message });
+    }
+    // Continue with your logic if no error
+    riderController.uploadRiderLicense(req, res);
   });
+});
 
 
 module.exports = router;

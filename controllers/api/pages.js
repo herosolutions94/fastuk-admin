@@ -458,6 +458,15 @@ class PagesController extends BaseController {
         return res.status(200).json({ status: 0, msg: "User ID not found." });
       }
 
+      //   const riderData = await this.rider.getRiderById(riderId);
+      const rider = userResponse?.user;
+
+      // 👉 Get selected vehicle using vehicle_id
+      let selectedVehicle = null;
+      if (rider?.vehicle_id) {
+        selectedVehicle = await VehicleAdminModel.getSelectedVehicleById(rider?.vehicle_id);
+      }
+
       const drivingLicense = await this.rider.getRiderLicenseById(riderId);
 
 
@@ -473,6 +482,7 @@ class PagesController extends BaseController {
         content: formData,
         cities,
         attachments,
+        selectedVehicle
         // drivingLicense: drivingLicense
       };
 
@@ -640,7 +650,7 @@ class PagesController extends BaseController {
         message,
       } = req.body;
 
-          email = email?.trim().toLowerCase();
+      email = email?.trim().toLowerCase();
 
 
       if (!email || email == '' || email == null || email == undefined) {
@@ -652,27 +662,27 @@ class PagesController extends BaseController {
         return res.status(200).json({ status: 0, msg: "Invalid email format." });
       }
       // Insert message
-    const messageId = await this.contact_messages.createMessage({
-      name,
-      email,
-      phone_number,
-      subject,
-      message,
-      created_date: new Date(),
-      status: 0,
-    });
+      const messageId = await this.contact_messages.createMessage({
+        name,
+        email,
+        phone_number,
+        subject,
+        message,
+        created_date: new Date(),
+        status: 0,
+      });
 
       // Construct message object manually (no need to fetch from DB again)
-    const messageObject = {
-      id: messageId,
-      name,
-      email,
-      phone_number,
-      subject,
-      message,
-      created_date: new Date(),
-      status: 0,
-    };
+      const messageObject = {
+        id: messageId,
+        name,
+        email,
+        phone_number,
+        subject,
+        message,
+        created_date: new Date(),
+        status: 0,
+      };
 
       const adminData = res.locals.adminData;
       const result = await helpers.sendEmail(
@@ -874,7 +884,7 @@ class PagesController extends BaseController {
         );
       });
 
-
+// console.log("matchingVehicles:", matchingVehicles);
 
       if (matchingVehicles.length === 0) {
         return res.status(200).json({

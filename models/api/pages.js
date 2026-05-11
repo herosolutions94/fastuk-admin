@@ -260,6 +260,18 @@ class PageModel extends BaseModel {
         return result; // Returning result for debugging
     }
 
+    async markCreditsAsPaid(userId) {
+  const query = `
+    UPDATE credits
+    SET status = 'paid'
+    WHERE user_id = ?
+    AND status = 'pending'
+  `;
+
+  const [result] = await pool.query(query, [userId]);
+  return result;
+}
+
     async findAllCities(query) {
         const sql = `SELECT name FROM cities WHERE name LIKE ? LIMIT 10`; // Use MySQL wildcard query
         const values = [`%${query}%`]; // Pass query value

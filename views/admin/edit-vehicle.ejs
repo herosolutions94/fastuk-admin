@@ -74,6 +74,32 @@
                         value="<%= editVehicleId ? vehicle.price : '' %>" />
                     </div>
                   </div>
+                  <div class="col-md-12">
+                    <div class="txtGrp media st_sp">
+                      <label class="form-label">FastUK Property</label>
+                      <div class="txtGrp-body text-end icon-state switch-outline">
+                        <!-- <label class="switch">
+                          <span
+                            class="switch-state bg-primary"></span>
+                        </label> -->
+                        <select name="is_fastuk_property" id="is_fastuk_property" class="input">
+                          <option value="1" <%=vehicle.is_fastuk_property==1 ? 'selected' : '' %>>Yes</option>
+                          <option value="0" <%=vehicle.is_fastuk_property==0 ? 'selected' : '' %>>No</option>
+                        </select>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="col-md-6" id="rental_price_wrapper" style="display:none;">
+                    <div class="txtGrp">
+                      <label class="form-label" for="detail">
+                        Rental Price
+                        <abbr class="required" title="required">*</abbr>
+                      </label>
+
+                      <input class="input" id="vehicle_rental_price" type="text" name="vehicle_rental_price" 
+                      value="<%= editVehicleId ? vehicle.vehicle_rental_price : '' %>" />
+                    </div>
+                  </div>
                   <div class="col-md-6">
                     <div class="txtGrp">
                       <label class="form-label" for="detail">Business User Price<abbr class="required"
@@ -288,3 +314,28 @@
   </div>
   </div>
 </section>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+
+    const fastUkField = document.getElementById("is_fastuk_property");
+    const rentalWrapper = document.getElementById("rental_price_wrapper");
+    const rentalPrice = document.getElementById("vehicle_rental_price");
+
+    function toggleRentalPrice() {
+      if (fastUkField.value === "1") {
+        rentalWrapper.style.display = "block";
+      } else {
+        rentalWrapper.style.display = "none";
+        rentalPrice.value = "";
+      }
+    }
+
+    // Initial check
+    toggleRentalPrice();
+
+    // On change
+    fastUkField.addEventListener("change", toggleRentalPrice);
+
+  });
+</script>

@@ -4,6 +4,8 @@ const path = require("path"); // For handling file paths
 
 const BaseController = require("../baseController");
 const Category = require("../../models/categoryModel");
+const Vehicle = require('../../models/vehicle');
+
 const { validateRequiredFields } = require("../../utils/validators");
 const helpers = require("../../utils/helpers");
 
@@ -11,6 +13,7 @@ class CategoriesController extends BaseController {
   constructor() {
     super();
     this.category = new Category();
+    this.vehicle = new Vehicle();
   }
 
   async renderAddCategoryPage(req, res) {
@@ -18,8 +21,11 @@ class CategoriesController extends BaseController {
 
     try {
       const mainCategories = await Category.getMainCategoriesArr();
+      const vehicles = await Vehicle.getAllVehicles();
+      // console.log("vehicles:",vehicles)
+
       // console.log("sub category:",mainCategories)
-      res.render("admin/add-category", { mainCategories, rider_id });
+      res.render("admin/add-category", { mainCategories, vehicles, rider_id });
     } catch (error) {
       console.error("Error rendering add Category page:", error);
       return this.sendError(res, "Failed to load add Category page");
@@ -28,12 +34,12 @@ class CategoriesController extends BaseController {
 
   async fetchSubCategories(req, res) {
     const parentId = req.body.parent_id;
-      // console.log('Fetching subcategories for parent_id:', parentId);
+    // console.log('Fetching subcategories for parent_id:', parentId);
 
 
     try {
       const subCategories = await Category.getVehiclesByParentId(parentId);
-          // console.log('Fetched subCategories:', subCategories);
+      // console.log('Fetched subCategories:', subCategories);
 
       res.json(subCategories);
     } catch (error) {
@@ -44,15 +50,15 @@ class CategoriesController extends BaseController {
 
   async saveCategoryForRider(req, res) {
     const { rider_id } = req.params;
-    const { category_id } = req.body;
-//     console.log(rider_id, category_id);
-//     console.log("Incoming category_id:", category_id);
-// console.log("Rider ID:", rider_id);
+    const { category_id,vehicle_rent } = req.body;
+    //     console.log(rider_id, category_id);
+    //     console.log("Incoming category_id:", category_id);
+    // console.log("req.body:", req.body);
 
     try {
       // Save in subtable
-      await Category.saveRiderCategory(rider_id, category_id);
-     return res.redirect(`/admin/rider/category/selected-categories/${rider_id}`);
+      await Category.saveRiderCategory(rider_id, category_id, vehicle_rent);
+      return res.redirect(`/admin/rider/category/selected-categories/${rider_id}`);
 
     } catch (error) {
       console.error("Error saving rider category:", error);
@@ -74,92 +80,92 @@ class CategoriesController extends BaseController {
   }
 
   async renderEditAssignedCategory(req, res) {
-  const { rider_id, category_id } = req.params; // category_id here is rider_vehicle_categories.id
+    const { rider_id, category_id } = req.params; // category_id here is rider_vehicle_categories.id
 
-  try {
-    // Fetch the rider_vehicle_categories row
-    const riderCategory = await Category.getRiderCategoryById(category_id);
-    if (!riderCategory) {
-      return this.sendError(res, "Invalid subcategory ID");
+    try {
+      // Fetch the rider_vehicle_categories row
+      const riderCategory = await Category.getRiderCategoryById(category_id);
+      if (!riderCategory) {
+        return this.sendError(res, "Invalid subcategory ID");
+      }
+
+      const subCategory = await Category.getVehicleById(riderCategory.category_id);
+      // subCategory.parent_id is vehicle_id (main category)
+      if (!subCategory) {
+        return this.sendError(res, "Invalid subcategory ID");
+      }
+
+
+
+      const parentCategoryId = subCategory.parent_id;
+      const mainCategories = await Category.getMainCategoriesArr();
+      // console.log("mainCategories:",mainCategories)
+      const subCategories = await Category.getVehiclesByParentId(subCategory.vehicle_category_id);
+      // console.log(subCategories)
+      res.render("admin/edit-category", {
+        mainCategories,
+        subCategories,
+        selectedId: parseInt(riderCategory.category_id),
+        rider_id,
+        category_id, // still passing rider_vehicle_categories.id
+        parentCategoryId,
+      });
+    } catch (error) {
+      console.error("Error rendering assigned category edit:", error);
+      this.sendError(res, "Failed to load category edit page");
+    }
+  }
+
+
+  async updateAssignedCategory(req, res) {
+    const { riderId, category_id } = req.params;
+    const { category_id: new_category_id } = req.body;
+
+    // console.log("Submitted Body:", req.body);
+    // console.log("New Category ID:", new_category_id);
+
+    if (!new_category_id) {
+      return res.json({ status: 0, msg: "Subcategory is required." });
     }
 
-const subCategory = await Category.getVehicleById(riderCategory.category_id);
-// subCategory.parent_id is vehicle_id (main category)
-   if (!subCategory) {
-      return this.sendError(res, "Invalid subcategory ID");
+    try {
+      await Category.updateRiderCategoryById(category_id, new_category_id);
+      return res.redirect(`/admin/rider/category/selected-categories/${riderId}`);
+    } catch (error) {
+      console.error("Error updating rider category:", error);
+      return this.sendError(res, "Failed to update rider category.");
     }
-
-
-
-    const parentCategoryId = subCategory.parent_id;
-    const mainCategories = await Category.getMainCategoriesArr();
-    // console.log("mainCategories:",mainCategories)
-    const subCategories = await Category.getVehiclesByParentId(subCategory.vehicle_category_id);
-    // console.log(subCategories)
-    res.render("admin/edit-category", {
-      mainCategories,
-      subCategories,
-      selectedId: parseInt(riderCategory.category_id),
-      rider_id,
-      category_id, // still passing rider_vehicle_categories.id
-      parentCategoryId,
-    });
-  } catch (error) {
-    console.error("Error rendering assigned category edit:", error);
-    this.sendError(res, "Failed to load category edit page");
-  }
-}
-
-
-async updateAssignedCategory(req, res) {
-  const { riderId, category_id } = req.params;
-  const { category_id: new_category_id } = req.body;
-
-  // console.log("Submitted Body:", req.body);
-  // console.log("New Category ID:", new_category_id);
-
-  if (!new_category_id) {
-    return res.json({ status: 0, msg: "Subcategory is required." });
   }
 
-  try {
-    await Category.updateRiderCategoryById(category_id, new_category_id);
-    return res.redirect(`/admin/rider/category/selected-categories/${riderId}`);
-  } catch (error) {
-    console.error("Error updating rider category:", error);
-    return this.sendError(res, "Failed to update rider category.");
-  }
-}
 
 
+  async deleteRiderCategory(req, res) {
+    const { id } = req.params;
+    // console.log("Attempting to delete row with ID:", id);
 
- async deleteRiderCategory(req, res) {
-  const { id } = req.params;
-  // console.log("Attempting to delete row with ID:", id);
+    try {
+      // console.log("ID received:", id);
+      const result = await Category.deleteRiderCategoryById(id);
 
-  try {
-// console.log("ID received:", id);
-const result = await Category.deleteRiderCategoryById(id);
+      //  console.log("Delete result:", result);
 
-//  console.log("Delete result:", result);
+      if (result.affectedRows === 0) {
+        // Nothing was deleted — likely invalid ID
+        return this.sendError(res, "No category found to delete.");
+      }
 
-    if (result.affectedRows === 0) {
-      // Nothing was deleted — likely invalid ID
-      return this.sendError(res, "No category found to delete.");
+      this.sendSuccess(
+        res,
+        {},
+        "Category deleted successfully!",
+        200,
+        req.get('referer') || '/'
+      );
+    } catch (error) {
+      console.error("Error deleting rider category:", error);
+      this.sendError(res, "Failed to delete rider category.");
     }
-
-    this.sendSuccess(
-      res,
-      {},
-      "Category deleted successfully!",
-      200,
-      req.get('referer') || '/'
-    );
-  } catch (error) {
-    console.error("Error deleting rider category:", error);
-    this.sendError(res, "Failed to delete rider category.");
   }
-}
 
 }
 

@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>New Rider Signup Notification</title>
+</head>
+
+<body style="margin:0; padding:20px; background:#f4f4f4; font-family:Arial, sans-serif;">
+
+  <div style="max-width:900px; margin:auto; background:#fff; padding:20px; border-radius:8px; border:1px solid #d4e0df;">
+
+    <!-- Logo -->
+    <table style="width:100%;">
+      <tr>
+        <td style="text-align:center;">
+          <img src="<%= adminData.logo %>" alt="Logo" style="width:100px;" />
+        </td>
+      </tr>
+    </table>
+
+    <!-- Heading -->
+    <table style="width:100%; margin-top:30px;">
+      <tr>
+        <td>
+          <h2 style="color:#ed1c24; margin-bottom:10px;">
+            🚨 New Rider Registration Alert
+          </h2>
+
+          <p style="font-size:14px; color:#333;">
+            A new rider has successfully registered on the system. Please review the details below.
+          </p>
+        </td>
+      </tr>
+    </table>
+
+    <!-- Rider Details -->
+    <table style="width:100%; margin-top:20px; border-collapse:collapse;">
+      
+      <tr>
+        <td style="padding:8px 0;">
+          <strong>Full Name:</strong> <%= rider.full_name %>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 0;">
+          <strong>Email:</strong> <%= rider.email %>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 0;">
+          <strong>Phone:</strong> <%= rider.mem_phone %>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 0;">
+          <strong>City:</strong> <%= rider.city %>
+        </td>
+      </tr>
+
+      <tr>
+        <td style="padding:8px 0;">
+          <strong>Vehicle Owner:</strong> <%= rider.vehicle_owner === 1 ? 'Yes' : 'No' %>
+        </td>
+      </tr>
+
+    </table>
+
+    <hr style="margin:20px 0;" />
+
+    <!-- VAN STATUS ALERT -->
+    <% if (!hasVan) { %>
+      <div style="background:#fff3cd; padding:15px; border-left:5px solid #ffcc00; margin-bottom:20px;">
+        <p style="margin:0; font-weight:bold; color:#856404;">
+          ⚠️ Important Notice
+        </p>
+        <p style="margin-top:5px; color:#856404;">
+          This rider has NOT selected any van. Please contact him for further discussion and allocate a suitable van.
+        </p>
+      </div>
+    <% } else { %>
+      <div style="background:#d4edda; padding:15px; border-left:5px solid #28a745; margin-bottom:20px;">
+        <p style="margin:0; font-weight:bold; color:#155724;">
+          ✔ Van Assigned
+        </p>
+        <p style="margin-top:5px; color:#155724;">
+          Rider has selected a van during registration.
+        </p>
+      </div>
+    <% } %>
+
+    <!-- Footer Note -->
+    <table style="width:100%; margin-top:20px;">
+      <tr>
+        <td style="font-size:13px; color:#666;">
+          Please review the rider profile in the admin panel and take necessary onboarding actions.
+        </td>
+      </tr>
+    </table>
+
+  </div>
+
+</body>
+</html>

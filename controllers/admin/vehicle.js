@@ -39,6 +39,7 @@ class VehicleController extends BaseController {
             const {
                 title,
                 price,
+                vehicle_rental_price,
                 business_user_price,
                 admin_price,
                 min_mileage,
@@ -46,6 +47,7 @@ class VehicleController extends BaseController {
                 weight,
                 distance,
                 status,
+                is_fastuk_property,
                 vehicle_category_id,
                 load_capacity,
                 no_of_pallets,
@@ -86,6 +88,7 @@ class VehicleController extends BaseController {
             const cleanedData = {
                 title: typeof title === 'string' ? title.trim() : '',
                 price: typeof price === 'string' ? price.trim().toLowerCase() : '',
+                vehicle_rental_price: typeof vehicle_rental_price === 'string' ? vehicle_rental_price.trim().toLowerCase() : '',
                 business_user_price: typeof business_user_price === 'string' ? business_user_price.trim().toLowerCase() : '',
                 admin_price: typeof admin_price === 'string' ? admin_price.trim().toLowerCase() : '',
                 weight: typeof weight === 'string' ? weight.trim().toLowerCase() : '',
@@ -105,6 +108,7 @@ class VehicleController extends BaseController {
                 max_height: max_height || 0,
                 max_length: max_length || 0,
                 max_width: max_width || 0,
+                is_fastuk_property: parseInt(is_fastuk_property) || 0,
                 vehicle_category_id: parseInt(vehicle_category_id) || null, // <- ensure it's an integer
 
             };

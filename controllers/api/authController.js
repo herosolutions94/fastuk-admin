@@ -209,6 +209,7 @@ class MemberController extends BaseController {
         full_name,
         email,
         password,
+        vat_num,
         confirm_password,
         mem_status,
         mem_verified,
@@ -224,6 +225,7 @@ class MemberController extends BaseController {
         full_name: typeof full_name === "string" ? full_name.trim() : "",
         email: typeof email === "string" ? email.trim().toLowerCase() : "",
         password: typeof password === "string" ? password.trim() : "",
+        vat_num: typeof vat_num === "string" ? vat_num.trim() : "",
         confirm_password:
           typeof confirm_password === "string" ? confirm_password.trim() : "",
         created_at: new Date(),
@@ -672,6 +674,23 @@ class MemberController extends BaseController {
         });
       }
     }
+
+      if (memType === "business") {
+  // Step 1: get raw numeric value for comparison
+  const totalCreditsRaw = Number(member.total_credits || 0);
+  // console.log(totalCreditsRaw, "totalCreditsRaw");
+
+  // Step 2: check if > 0
+  if (totalCreditsRaw > 0) {
+    // Step 3: format nicely for display
+    const totalCreditsFormatted = helpers.format_amount(totalCreditsRaw);
+
+    return res.status(200).json({
+      status: 0,
+      msg: `Cannot deactivate account. Your account still has a credit balance of ${totalCreditsFormatted}.`
+    });
+  }
+}
 
 
     // console.log("pendingInvoicesCount",pendingInvoicesCount);return;

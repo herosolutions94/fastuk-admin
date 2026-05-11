@@ -51,9 +51,19 @@
                                 </p>
                             </li>
                             <li>
-                                <strong>Vehicle Image:</strong>
-                                <img src="<%= helpers.getImage(selectedVehicle?.vehicle_image) %>" alt />
+                                <strong>Vehicle Registration Number:</strong>
+                                <p>
+                                    <%= rider?.vehicle_owner==='yes' ? (rider?.vehicle_registration_num || '' ) :
+                                        (selectedVehicle?.vehicle_registration_number || '' ) %>
+                                </p>
                             </li>
+
+                            <% if (selectedVehicle) { %>
+                                <li>
+                                    <strong>Vehicle Image:</strong>
+                                    <img src="<%= helpers.getImage(selectedVehicle.vehicle_image) %>" />
+                                </li>
+                                <% } %>
                         </ul>
                     </div>
                 </div>
@@ -67,9 +77,9 @@
     };
 </script>
 <script>
-  window.onload = function () {
-    setTimeout(() => {
-      window.print();
-    }, 300);
-  };
+    window.onload = function () {
+        setTimeout(() => {
+            window.print();
+        }, 300);
+    };
 </script>

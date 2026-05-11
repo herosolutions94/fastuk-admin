@@ -11,10 +11,18 @@ const  checkAccessMiddleware  = require('../../middleware/checkAccessMiddleware'
 //     RiderController.getRiders(req, res);
 // });
 router.get('/business-users', ensureAuthenticated,checkAccessMiddleware(4), BusinessUserController.getBusinessUsers.bind(BusinessUserController));
+router.get('/business-users/add-funds/:id', ensureAuthenticated, checkAccessMiddleware(3), BusinessUserController.addFunds.bind(BusinessUserController));
+router.post(
+  '/business-users/add-funds',
+  ensureAuthenticated,
+  checkAccessMiddleware(3),
+  BusinessUserController.storeFunds.bind(BusinessUserController)
+);
+
 router.get('/business-users/edit/:id', ensureAuthenticated,checkAccessMiddleware(4), upload, BusinessUserController.editBusinessUser.bind(BusinessUserController)); // Edit form
 router.post('/business-users/update/:id', ensureAuthenticated,checkAccessMiddleware(4), upload, BusinessUserController.updateBusinessUser.bind(BusinessUserController)); // Update rider
 router.delete('/business-users/delete/:id', ensureAuthenticated,checkAccessMiddleware(4), BusinessUserController.deleteBusinessUser.bind(BusinessUserController));
-router.get('/business-users/update-status/:id',ensureAuthenticated,checkAccessMiddleware(4), upload, BusinessUserController.handleBusinessUserApprove.bind(BusinessUserController));
+router.get('/business-users/update-status/:id/:status',ensureAuthenticated,checkAccessMiddleware(4), upload, BusinessUserController.handleBusinessUserApprove.bind(BusinessUserController));
 
 
 

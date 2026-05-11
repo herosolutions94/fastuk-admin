@@ -30,9 +30,9 @@ class VehicleCategoriesModel extends BaseModel {
   static async getVehiclesByParentId(parentId) {
   try {
     const [rows] = await pool.query(`
-      SELECT id,title as vehicle_name
+      SELECT id,title as vehicle_name, vehicle_rental_price
       FROM vehicles
-      WHERE vehicle_category_id = ?
+      WHERE vehicle_category_id = ? and status = 1 and is_fastuk_property=1
     `, [parentId]);
 
     return rows;
@@ -43,10 +43,10 @@ class VehicleCategoriesModel extends BaseModel {
 }
 
 
-  static async saveRiderCategory(riderId, categoryId) {
+  static async saveRiderCategory(riderId, categoryId, vehicleRent) {
   return pool.query(
-    `INSERT INTO rider_vehicle_categories (rider_id, category_id) VALUES (?, ?)`,
-    [riderId, categoryId]
+    `INSERT INTO rider_vehicle_categories (rider_id, category_id, vehicle_rent) VALUES (?, ?, ?)`,
+    [riderId, categoryId, vehicleRent]
   );
 }
 
@@ -73,7 +73,7 @@ static async getMainCategoriesArr() {
 static async getCategoriesByRiderId(riderId) {
   try {
     const [rows] = await pool.query(`
-      SELECT rvc.id AS rider_category_id, vc.vehicle_name AS sub_category_name, v.title AS main_category_name FROM rider_vehicle_categories rvc LEFT JOIN vehicles v ON rvc.category_id = v.id INNER JOIN vehicle_categories vc ON v.vehicle_category_id = vc.id WHERE rvc.rider_id= ?
+      SELECT rvc.id AS rider_category_id, rvc.vehicle_rent, vc.vehicle_name AS sub_category_name, v.title AS main_category_name FROM rider_vehicle_categories rvc LEFT JOIN vehicles v ON rvc.category_id = v.id INNER JOIN vehicle_categories vc ON v.vehicle_category_id = vc.id WHERE rvc.rider_id= ?
     `, [riderId]);
 
     return rows;
@@ -85,11 +85,11 @@ static async getCategoriesByRiderId(riderId) {
 
 
 
-static async saveRiderCategory(riderId, categoryId) {
-  return pool.query(`
-    INSERT INTO rider_vehicle_categories (rider_id, category_id)
-    VALUES (?, ?)`, [riderId, categoryId]);
-}
+// static async saveRiderCategory(riderId, categoryId) {
+//   return pool.query(`
+//     INSERT INTO rider_vehicle_categories (rider_id, category_id)
+//     VALUES (?, ?)`, [riderId, categoryId]);
+// }
 
 static async deleteRiderCategoryById(id) {
   const [result] = await pool.query(
@@ -136,6 +136,16 @@ static async updateRiderCategoryById(riderCategoryId, newCategoryId) {
     SET category_id = ?
     WHERE id = ?
   `, [newCategoryId, riderCategoryId]);
+
+  return result;
+}
+
+static async updateRiderCategoryByRiderId(riderId, vehicleId) {
+  const [result] = await pool.query(`
+    UPDATE rider_vehicle_categories
+    SET category_id = ?
+    WHERE rider_id = ?
+  `, [vehicleId, riderId]);
 
   return result;
 }

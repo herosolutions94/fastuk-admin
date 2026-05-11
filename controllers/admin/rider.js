@@ -82,7 +82,8 @@ class RiderController extends BaseController {
 
         // ✅ NEW: fetch rider live jobs
         const liveJobs = await Rider.getRiderLiveJobs(riderId);
-        const earnings = await this.riderModel.getAllEarnings();
+        // const earnings = await this.riderModel.getAllEarnings();
+        const earnings = await this.riderModel.getEarningsByUserId(riderId);
 
         // console.log("liveJobs:", liveJobs)
 
