@@ -245,6 +245,27 @@ class RequestQuoteController extends BaseController {
 
       const siteSettings = res.locals.adminData;
 
+      const lastCompletedStage = order_stages_arr
+  .filter(s => s.completed_time)
+  .sort((a, b) => b.completed_time - a.completed_time)[0];
+
+let canShowPendingPaymentBox = false;
+
+if (
+  pendingPayment &&
+  pendingPayment.status === "pending" &&
+  lastCompletedStage?.completed_time
+) {
+  const completedTime = lastCompletedStage.completed_time; // assuming unix seconds
+  const now = Math.floor(Date.now() / 1000);
+
+  const diffInMinutes = (now - completedTime) / 60;
+
+  if (diffInMinutes >= 10) {
+    canShowPendingPaymentBox = true;
+  }
+}
+
 
 
 
@@ -257,6 +278,7 @@ class RequestQuoteController extends BaseController {
         subtotal,
         invoices,
         riderNotes,
+        canShowPendingPaymentBox,
         formatted_start_date: helpers.formatDateToUK(orderDetails.start_date),
         category_name: categoryInfo?.category_name || null,
         main_category_name: categoryInfo?.main_category_name || null,

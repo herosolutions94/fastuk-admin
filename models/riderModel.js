@@ -988,7 +988,7 @@ updateInvoiceStatus = async (invoiceId, status) => {
 getPendingPaymentByRequestId = async (requestId) => {
   try {
     const query = `
-      SELECT * 
+      SELECT amount,status
       FROM pending_payments 
       WHERE request_id = ?
       LIMIT 1
@@ -1713,6 +1713,129 @@ async getCurrentOrdersByStatusforApp(riderId) {
     }
   }
 
+  async pendingEarnings(riderId) {
+  try {
+
+    const query = `
+      SELECT 
+        id,
+        order_id,
+        amount,
+        earning_type,
+        status,
+        type,
+        created_time
+      FROM earnings
+      WHERE user_id = ?
+        AND status = 'pending'
+      ORDER BY created_time DESC
+    `;
+
+    const [results] = await pool.query(query, [riderId]);
+
+    return results;
+
+  } catch (error) {
+
+    console.error("Error fetching pending earnings:", error);
+    return [];
+  }
+}
+
+// models/riderModel.js
+
+async insertRiderPayout(data) {
+  try {
+
+    const query = `
+      INSERT INTO rider_payouts
+      (
+        rider_id,
+        amount,
+        instructions,
+        attachment,
+        created_at
+      )
+      VALUES (?, ?, ?, ?, NOW())
+    `;
+
+    const values = [
+      data.rider_id,
+      data.amount,
+      data.instructions || null,
+      data.attachment || null
+    ];
+
+    const [result] = await pool.query(query, values);
+
+    return result;
+
+  } catch (error) {
+
+    console.error("insertRiderPayout error:", error);
+    return null;
+  }
+}
+
+// models/riderModel.js
+
+async markRiderEarningsPaid(riderId) {
+  try {
+
+    const query = `
+      UPDATE earnings
+      SET status = 'paid',
+          updated_at = NOW()
+      WHERE user_id = ?
+        AND status = 'pending'
+    `;
+
+    const [result] = await pool.query(query, [riderId]);
+
+    return result;
+
+  } catch (error) {
+
+    console.error("markRiderEarningsPaid error:", error);
+    return null;
+  }
+}
+
+async getPaidEarnings(riderId) {
+  try {
+
+    const query = `
+      SELECT
+        id,
+        order_id,
+        amount,
+        earning_type,
+        status,
+        created_time
+      FROM earnings
+      WHERE user_id = ?
+        AND status = 'paid'
+      ORDER BY created_time DESC
+    `;
+
+    const [results] = await pool.query(
+      query,
+      [riderId]
+    );
+
+    return results;
+
+  } catch (error) {
+
+    console.error(
+      "getPaidEarnings error:",
+      error
+    );
+
+    return [];
+  }
+}
+
   async createWithdrawalRequest({ riderId, earning_id, payment_method, account_details, paypal_details, amount }) {
     try {
       // console.log("Model Params:", {
@@ -1854,29 +1977,89 @@ async getCurrentOrdersByStatusforApp(riderId) {
     await pool.query(query, [riderId, filename, type]);
   }
 
+  // async getSubCategoriesByRiderId(riderId) {
+  //   const query = `
+  //   SELECT v.id
+  //   FROM rider_vehicle_categories rvc
+  //   JOIN vehicles v ON v.id = rvc.category_id
+  //   WHERE rvc.rider_id = ?
+  // `;
+  //   const [rows] = await pool.query(query, [riderId]);
+  //   // console.log("rows:",rows)
+
+  //   return rows.map(row => row.id); // Return only names in array
+  // }
+
   async getSubCategoriesByRiderId(riderId) {
-    const query = `
+  const query = `
     SELECT v.id
     FROM rider_vehicle_categories rvc
     JOIN vehicles v ON v.id = rvc.category_id
     WHERE rvc.rider_id = ?
   `;
-    const [rows] = await pool.query(query, [riderId]);
-    // console.log("rows:",rows)
 
-    return rows.map(row => row.id); // Return only names in array
-  }
+  const [rows] = await pool.query(query, [riderId]);
+
+  const assignedByAdmin = rows.map(row => row.id);
+
+  // Get rider's signup vehicle
+  const riderQuery = `
+    SELECT vehicle_id
+    FROM riders
+    WHERE id = ?
+    LIMIT 1
+  `;
+
+  const [riderRows] = await pool.query(riderQuery, [riderId]);
+
+  const signupVehicle = riderRows?.[0]?.vehicle_id
+    ? [riderRows[0].vehicle_id]
+    : [];
+
+  // Merge + remove duplicates
+  return [...new Set([...assignedByAdmin, ...signupVehicle])];
+}
+
+  // async getRiderCategoriesById(rider_id) {
+  //   const query = `
+  //   SELECT category_id 
+  //   FROM rider_vehicle_categories
+  //   WHERE rider_id = ?
+  // `;
+  //   // console.log(query,rider_id)
+  //   const [rows] = await pool.query(query, [rider_id]);
+  //   return rows.map(r => r.category_id);
+  // }
 
   async getRiderCategoriesById(rider_id) {
-    const query = `
+  // 1. Admin assigned categories
+  const query = `
     SELECT category_id 
     FROM rider_vehicle_categories
     WHERE rider_id = ?
   `;
-    // console.log(query,rider_id)
-    const [rows] = await pool.query(query, [rider_id]);
-    return rows.map(r => r.category_id);
-  }
+
+  const [rows] = await pool.query(query, [rider_id]);
+  const adminCategories = rows.map(r => r.category_id);
+
+  // 2. Signup vehicle from riders table
+  const riderQuery = `
+    SELECT vehicle_id
+    FROM riders
+    WHERE id = ?
+    LIMIT 1
+  `;
+
+  const [riderRows] = await pool.query(riderQuery, [rider_id]);
+
+  const signupVehicle = riderRows?.[0]?.vehicle_id
+    ? [riderRows[0].vehicle_id]
+    : [];
+// console.log("Admin Categories:", adminCategories);
+// console.log("Signup Vehicle:", signupVehicle);
+  // 3. Merge + remove duplicates
+  return [...new Set([...adminCategories, ...signupVehicle])];
+}
 
 
   async getOrderStages(orderId) {

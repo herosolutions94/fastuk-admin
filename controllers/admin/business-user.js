@@ -280,6 +280,7 @@ class BusinessUserController extends BaseController {
     async storeFunds(req, res) {
         try {
             const { user_id, amount } = req.body;
+            console.log("Adding funds - User ID:", user_id, "Amount:", amount);
 
             if (!user_id || !amount) {
                 return res.status(200).send("User and amount required");

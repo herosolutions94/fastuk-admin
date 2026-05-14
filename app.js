@@ -121,6 +121,7 @@ app.use((req, res, next) => {
 });
 require("./scheduler/jobNotifier");
 require("./scheduler/rentDeduction");
+require("./scheduler/clearEarnings");
 const bodyParser = require('body-parser');
 app.use(bodyParser.json()); // Use body-parser for parsing JSON
 
@@ -242,6 +243,7 @@ const teamMemberRoutes = require('./routes/admin/team');
 const serviceRoutes = require('./routes/admin/service');
 const subAdminRoutes = require('./routes/admin/sub-admin');
 const faqRoutes = require('./routes/admin/faq');
+const payoutsRoutes = require('./routes/admin/payoutsRoutes');
 const vehicleRoutes = require('./routes/admin/vehicle');
 const adminVehicleRoutes = require('./routes/admin/adminVehicle');
 const vehicleFuelRoutes = require('./routes/admin/addVehicleFuel');
@@ -312,6 +314,7 @@ app.use('/admin', testimonialRoutes);
 app.use('/admin', teamMemberRoutes);
 app.use('/admin', serviceRoutes);
 app.use('/admin', faqRoutes);
+app.use('/admin', payoutsRoutes);
 app.use('/admin', vehicleRoutes);
 app.use('/admin', adminVehicleRoutes);
 app.use('/admin', assignedVehicleRoutes);

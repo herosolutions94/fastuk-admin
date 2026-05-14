@@ -2937,7 +2937,7 @@ class MemberController extends BaseController {
             .status(200)
             .json({ status: 0, msg: "Insufficient balance!" });
         }
-        if (member?.total_credits <= parseFloat(formattedTotalAmount)) {
+        if (member?.total_credits < parseFloat(formattedTotalAmount)) {
           return res
             .status(200)
             .json({ status: 0, msg: "Insufficient balance!" });
@@ -3731,15 +3731,15 @@ class MemberController extends BaseController {
               orderDetailsLink
             );
 
-            await helpers.sendNotification(
-              rider.fcm_token,
-              "New Delivery Job",
-              "You have received a new order",
-              {
-                order_id: orderRow.id,
-                screen: "OrderDetail"
-              }
-            );
+            // await helpers.sendNotification(
+            //   rider.fcm_token,
+            //   "New Delivery Job",
+            //   "You have received a new order",
+            //   {
+            //     order_id: helpers.doEncode(String(orderRow.id)),
+            //     screen: "OrderDetail"
+            //   }
+            // );
 
             let orderRow = await this.member.getUserOrderDetailsById({
               userId: userId,
@@ -3876,14 +3876,22 @@ class MemberController extends BaseController {
         memType
       );
 
+      const attachments = await this.rider.getRiderAttachments(userId);
+
+      const selfPicture = attachments.find(
+        (item) => item.type === "self_picture"
+      );
+      // console.log("attachments:", attachments);
+
       const latestNotifications = await this.member.getLatestNotifications();
       // console.log("latestNotifications:",latestNotifications)
 
       const memberData = {
         ...userResponse?.user, // Spread existing user data
         latest_notifications: latestNotifications,
+        self_picture: selfPicture,
       };
-      // console.log("latestNotifications:",memberData?.latest_notifications)
+      // console.log("memberData:",memberData)
       const siteSettings = res.locals.adminData;
       // console.log("siteSettings:",siteSettings)
 
@@ -4072,13 +4080,35 @@ class MemberController extends BaseController {
         return res.status(200).json({ status: 0, msg: "Token is required." });
       }
 
-      // Validate user token
+      // // Validate user token
+      // const userResponse = await this.validateTokenAndGetMember(token, "user");
+      // if (userResponse.status === 0) {
+      //   return res.status(200).json(userResponse);
+      // }
+
+      // NEW (checks both "user" and "business" types):
+      let member = null;
+      let memberType = null;
+
       const userResponse = await this.validateTokenAndGetMember(token, "user");
-      if (userResponse.status === 0) {
-        return res.status(200).json(userResponse);
+      if (userResponse.status === 1) {
+        member = userResponse.user;
+        memberType = "user";
+      } else {
+        const businessResponse = await this.validateTokenAndGetMember(token, "business");
+        if (businessResponse.status === 1) {
+          member = businessResponse.user;
+          memberType = "business";
+        } else {
+          return res.status(200).json({
+            status: 0,
+            msg: "Invalid token or unauthorized access.",
+            not_logged_in: 1
+          });
+        }
       }
 
-      const member = userResponse.user;
+      // const member = userResponse.user;
 
       if (!order_id) {
         return res.status(200).json({ status: 0, msg: "Order ID is required." });
@@ -4219,53 +4249,37 @@ class MemberController extends BaseController {
       let responseMessage = "";
 
       // ===============================
-      // 🟢 PROCESS REFUND (if applicable)
+      // 🟢 ADD REFUND INTO USER CREDITS
       // ===============================
       if (refundAmount > 0) {
-        // STRIPE REFUND
-        if (order.payment_method === "credit-card" && order.payment_intent) {
-          try {
-            const paymentIntent = await stripe.paymentIntents.retrieve(order.payment_intent);
-            const latestChargeId = paymentIntent.latest_charge;
+        try {
+          // Fetch user details to get mem_type
+          const user = await this.member.findById(order.user_id);
 
-            if (latestChargeId) {
-              const refundResponse = await stripe.refunds.create({
-                charge: latestChargeId,
-                amount: Math.round(refundAmount * 100), // Convert to cents
-                reason: "requested_by_customer",
-              });
-
-              console.log("✅ Stripe refund success:", refundResponse.id);
-              refundAmount = refundResponse.amount / 100; // Convert back to pounds
-              refundProcessed = true;
-
-              // Save transaction
-              await helpers.storeTransaction({
-                user_id: order.user_id,
-                amount: refundAmount,
-                payment_method: "refund",
-                type: "credit",
-                transaction_id: order_id,
-                payment_intent: refundResponse.payment_intent,
-                created_time: helpers.getUtcTimeInSeconds(),
-                status: "refunded",
-                stripe_refund_id: refundResponse.id,
-              });
-            }
-          } catch (err) {
-            console.error("❌ Stripe refund error:", err.message);
-            // Continue even if Stripe refund fails
+          if (!user) {
+            throw new Error("User not found");
           }
-        }
-        // Handle PayPal refunds
-        else if (order.payment_method === "paypal" && order.paypal_order_id) {
-          // TODO: Implement PayPal refund logic
-          console.log("PayPal refund not implemented yet");
-        }
-        // Handle GoCardless refunds
-        else if (order.payment_method === "gocardless") {
-          // TODO: Implement GoCardless refund logic
-          console.log("GoCardless refund not implemented yet");
+
+          // Insert credit record with correct type based on mem_type
+          await this.member.insertUserCredits({
+            user_id: order.user_id,
+            credits: refundAmount,
+            mem_type: user.mem_type, // Pass mem_type to determine credit type
+          });
+
+          // Update member total credits
+          await this.member.updateMemberData(order.user_id, {
+            total_credits:
+              parseFloat(user?.total_credits || 0) +
+              parseFloat(refundAmount || 0),
+          });
+
+          refundProcessed = true;
+
+          const creditType = user.mem_type === "business" ? "user" : "simple_user";
+          console.log(`✅ Refund credits added successfully: £${refundAmount} (User Type: ${user.mem_type}, Credit Type: ${creditType})`);
+        } catch (err) {
+          console.error("❌ Credit refund error:", err.message);
         }
       }
 
@@ -4451,6 +4465,7 @@ class MemberController extends BaseController {
         memType,
         vehicle_owner,
         vehicle_type,
+        vehicle_id,
         vat_registered,
         vat_number,
         vat_registration_certificate,
@@ -4471,7 +4486,7 @@ class MemberController extends BaseController {
         shipment_volume,
         delivery_speed,
       } = req.body; // Assuming token and user data are sent in the request body
-      // console.log(req.body)
+      console.log(req.body.vehicle_id, "vehicle_id")
       // If no token is provided
       if (!token) {
         return res.status(200).json({ status: 0, msg: "Token is required." });
@@ -4534,10 +4549,11 @@ class MemberController extends BaseController {
         updatedData.dob = dob;
         updatedData.national_insurance_num = national_insurance_num;
         updatedData.utr_num = utr_num;
+        updatedData.vehicle_id = vehicle_id || null;
         updatedData.vat_registered = vat_registered;
         updatedData.vat_number = vat_number;
         await this.rider.updateRiderData(userId, updatedData); // Update rider data
-
+        console.log("Rider data updated:", updatedData);
         // 🔽 NEW: Handle attachments
         let { documents } = req.body;
         let attachments_ob =

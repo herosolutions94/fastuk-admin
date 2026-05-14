@@ -336,31 +336,58 @@ module.exports = {
 
   ,
 
-  updateRequestQuoteJobStatus: async function (orderId, isAdminForceComplete = false) {
+  updateRequestQuoteJobStatus: async function (
+  orderId,
+  isAdminForceComplete = false
+) {
 
-     // ✅ ADMIN OVERRIDE (run first, skip all logic)
+  // =====================================================
+  // FETCH REQUEST
+  // =====================================================
+  const [rqRows] = await pool.query(
+    `SELECT status, is_ready, is_cancelled, admin_force_completed
+     FROM request_quote
+     WHERE id = ?`,
+    [orderId]
+  );
+
+  if (!rqRows || rqRows.length === 0) return;
+
+  const currentStatus = rqRows[0].status;
+  const isReady = parseInt(rqRows[0].is_ready) || 0;
+  const isCancelled = rqRows[0].is_cancelled;
+
+  const adminForceCompleted =
+    parseInt(rqRows[0].admin_force_completed) || 0;
+
+  // =====================================================
+  // ADMIN FORCE COMPLETE
+  // =====================================================
   if (isAdminForceComplete) {
 
-    // 1️⃣ Clear pending amount
+    // 1️⃣ Clear pending payment
     await pool.query(
-      `UPDATE pending_payments 
-       SET amount = 0, status = 'paid', updated_at = NOW()
+      `UPDATE pending_payments
+       SET amount = 0,
+           status = 'paid',
+           updated_at = NOW()
        WHERE request_id = ?`,
       [orderId]
     );
 
-    // 2️⃣ (Optional) mark all stages completed
+    // 2️⃣ Complete all stages
     await pool.query(
-      `UPDATE order_stages 
-       SET status = 'completed' 
+      `UPDATE order_stages
+       SET status = 'completed'
        WHERE order_id = ?`,
       [orderId]
     );
 
-    // 3️⃣ Force request status = completed
+    // 3️⃣ Save permanent override flag
     await pool.query(
-      `UPDATE request_quote 
-       SET status = 'completed' 
+      `UPDATE request_quote
+       SET status = 'completed',
+           admin_force_completed = 1
        WHERE id = ?`,
       [orderId]
     );
@@ -368,88 +395,217 @@ module.exports = {
     return "completed";
   }
 
-    const dueAmount = await RequestQuoteModel.calculateDueAmount(orderId);
-    // console.log("dueAmount:", dueAmount);
+  // =====================================================
+  // KEEP ADMIN COMPLETED STATUS
+  // =====================================================
+  if (adminForceCompleted === 1) {
+    return "completed";
+  }
 
+  // =====================================================
+  // CANCELLED
+  // =====================================================
+  if (isCancelled === "approved") {
+    return "cancelled";
+  }
 
-    // 0. Fetch current job status first
-    const [rqRows] = await pool.query(
-      "SELECT status, is_ready, is_cancelled FROM request_quote WHERE id = ?",
-      [orderId]
+  // =====================================================
+  // DUE AMOUNT
+  // =====================================================
+  const dueAmount =
+    await RequestQuoteModel.calculateDueAmount(orderId);
+
+  // =====================================================
+  // STAGES
+  // =====================================================
+  const [stages] = await pool.query(
+    `SELECT id, status
+     FROM order_stages
+     WHERE order_id = ?
+     ORDER BY id ASC`,
+    [orderId]
+  );
+
+  if (!stages || stages.length === 0) return;
+
+  const hasStarted = stages.some(
+    s => s.status !== "pending"
+  );
+
+  const allCompleted = stages.every(
+    s => s.status === "completed"
+  );
+
+  let newStatus = currentStatus;
+
+  // =====================================================
+  // STATUS CONDITIONS
+  // =====================================================
+
+  if (currentStatus === "pending") {
+    return "pending";
+  }
+
+  else if (isReady === 1 && !allCompleted) {
+    newStatus = "in_progress";
+  }
+
+  else if (allCompleted && dueAmount > 0) {
+    newStatus = "pending_payment";
+  }
+
+  else if (
+    allCompleted &&
+    dueAmount === 0
+  ) {
+    newStatus = "completed";
+  }
+
+  else if (
+    currentStatus === "accepted" &&
+    !hasStarted
+  ) {
+    newStatus = "accepted";
+  }
+
+  else if (hasStarted) {
+    newStatus = "in_progress";
+  }
+
+  else {
+    newStatus = "new";
+  }
+
+  // =====================================================
+  // UPDATE STATUS
+  // =====================================================
+  if (newStatus !== currentStatus) {
+
+    await pool.query(
+      `UPDATE request_quote
+       SET status = ?
+       WHERE id = ?`,
+      [newStatus, orderId]
     );
+  }
 
-    if (!rqRows || rqRows.length === 0) return;
-    const currentStatus = rqRows[0].status;
-    const isReady = parseInt(rqRows[0].is_ready) || 0; // new check
-    const isCancelled = rqRows[0].is_cancelled;
-    // console.log("currentStatus:", currentStatus, "isReady:", isReady);
-    // 1. Fetch all stages for this order
-    const [stages] = await pool.query(
-      "SELECT id, status FROM order_stages WHERE order_id = ? ORDER BY id ASC",
-      [orderId]
-    );
-    // console.log("stages:", stages);
+  return newStatus;
+}
+,
+  // updateRequestQuoteJobStatus: async function (orderId, isAdminForceComplete = false) {
 
-    if (!stages || stages.length === 0) return;
+  //    // ✅ ADMIN OVERRIDE (run first, skip all logic)
+  // if (isAdminForceComplete) {
 
-    // 2. Determine stage progress
-    const hasStarted = stages.some(s => s.status !== "pending");
-    const allCompleted = stages.every(s => s.status === "completed");
-    // console.log("DB is_ready:", isReady, "allCompleted:", allCompleted);
+  //   // 1️⃣ Clear pending amount
+  //   await pool.query(
+  //     `UPDATE pending_payments 
+  //      SET amount = 0, status = 'paid', updated_at = NOW()
+  //      WHERE request_id = ?`,
+  //     [orderId]
+  //   );
 
+  //   // 2️⃣ (Optional) mark all stages completed
+  //   await pool.query(
+  //     `UPDATE order_stages 
+  //      SET status = 'completed' 
+  //      WHERE order_id = ?`,
+  //     [orderId]
+  //   );
 
-    // console.log(hasStarted, allCompleted)
+  //   // 3️⃣ Force request status = completed
+  //   await pool.query(
+  //     `UPDATE request_quote 
+  //      SET status = 'completed' 
+  //      WHERE id = ?`,
+  //     [orderId]
+  //   );
 
-    let newStatus = currentStatus;
+  //   return "completed";
+  // }
 
-    // ⭐ If cancelled → override everything and stop
-    if (isCancelled === "approved") {
-      return "cancelled";
-    }
-
-    // ⭐ NEW: If already pending → keep pending
-    if (currentStatus === "pending") {
-      return "pending";
-    }
-    // 3️⃣ Priority condition: if is_ready = 1 and job not completed → in_progress
-    if (isReady === 1 && !allCompleted) {
-      newStatus = "in_progress";
-    }
-    // Job accepted, all stages completed, payment pending
-    // else if (currentStatus === "accepted" && allCompleted && dueAmount > 0) {
-    //   newStatus = "pending_payment";
-    // }
-    else if (allCompleted && dueAmount > 0) {
-      newStatus = "pending_payment";
-    }
-    // Job completed and no due left
-    else if (allCompleted && dueAmount === 0 && currentStatus === "completed") {
-      newStatus = "completed";
-    }
-    // Job accepted but not started
-    else if (currentStatus === "accepted" && !hasStarted) {
-      newStatus = "accepted";
-    }
-    // Job started but not completed
-    else if (hasStarted) {
-      newStatus = "in_progress";
-    }
-    else {
-      newStatus = "new";
-    }
-    // console.log("Determined newStatus:", newStatus);
+  //   const dueAmount = await RequestQuoteModel.calculateDueAmount(orderId);
+  //   // console.log("dueAmount:", dueAmount);
 
 
-    if (newStatus !== currentStatus) {
-      // 4. Update the job status in request_quote
-      await pool.query(
-        "UPDATE request_quote SET status = ? WHERE id = ?",
-        [newStatus, orderId]
-      );
-    }
+  //   // 0. Fetch current job status first
+  //   const [rqRows] = await pool.query(
+  //     "SELECT status, is_ready, is_cancelled FROM request_quote WHERE id = ?",
+  //     [orderId]
+  //   );
 
-    return newStatus; // return updated status
-  },
+  //   if (!rqRows || rqRows.length === 0) return;
+  //   const currentStatus = rqRows[0].status;
+  //   const isReady = parseInt(rqRows[0].is_ready) || 0; // new check
+  //   const isCancelled = rqRows[0].is_cancelled;
+  //   // console.log("currentStatus:", currentStatus, "isReady:", isReady);
+  //   // 1. Fetch all stages for this order
+  //   const [stages] = await pool.query(
+  //     "SELECT id, status FROM order_stages WHERE order_id = ? ORDER BY id ASC",
+  //     [orderId]
+  //   );
+  //   // console.log("stages:", stages);
+
+  //   if (!stages || stages.length === 0) return;
+
+  //   // 2. Determine stage progress
+  //   const hasStarted = stages.some(s => s.status !== "pending");
+  //   const allCompleted = stages.every(s => s.status === "completed");
+  //   // console.log("DB is_ready:", isReady, "allCompleted:", allCompleted);
+
+
+  //   // console.log(hasStarted, allCompleted)
+
+  //   let newStatus = currentStatus;
+
+  //   // ⭐ If cancelled → override everything and stop
+  //   if (isCancelled === "approved") {
+  //     return "cancelled";
+  //   }
+
+  //   // ⭐ NEW: If already pending → keep pending
+  //   if (currentStatus === "pending") {
+  //     return "pending";
+  //   }
+  //   // 3️⃣ Priority condition: if is_ready = 1 and job not completed → in_progress
+  //   if (isReady === 1 && !allCompleted) {
+  //     newStatus = "in_progress";
+  //   }
+  //   // Job accepted, all stages completed, payment pending
+  //   // else if (currentStatus === "accepted" && allCompleted && dueAmount > 0) {
+  //   //   newStatus = "pending_payment";
+  //   // }
+  //   else if (allCompleted && dueAmount > 0) {
+  //     newStatus = "pending_payment";
+  //   }
+  //   // Job completed and no due left
+  //   else if (allCompleted && dueAmount === 0 && currentStatus === "completed") {
+  //     newStatus = "completed";
+  //   }
+  //   // Job accepted but not started
+  //   else if (currentStatus === "accepted" && !hasStarted) {
+  //     newStatus = "accepted";
+  //   }
+  //   // Job started but not completed
+  //   else if (hasStarted) {
+  //     newStatus = "in_progress";
+  //   }
+  //   else {
+  //     newStatus = "new";
+  //   }
+  //   // console.log("Determined newStatus:", newStatus);
+
+
+  //   if (newStatus !== currentStatus) {
+  //     // 4. Update the job status in request_quote
+  //     await pool.query(
+  //       "UPDATE request_quote SET status = ? WHERE id = ?",
+  //       [newStatus, orderId]
+  //     );
+  //   }
+
+  //   return newStatus; // return updated status
+  // },
 
   calculateOrderSummary: function (order_details, siteSettings) {
     try {

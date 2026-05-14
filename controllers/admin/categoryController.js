@@ -22,7 +22,8 @@ class CategoriesController extends BaseController {
     try {
       const mainCategories = await Category.getMainCategoriesArr();
       const vehicles = await Vehicle.getAllVehicles();
-      // console.log("vehicles:",vehicles)
+      console.log("vehicles:",vehicles)
+      console.log("mainCategories:",mainCategories)
 
       // console.log("sub category:",mainCategories)
       res.render("admin/add-category", { mainCategories, vehicles, rider_id });

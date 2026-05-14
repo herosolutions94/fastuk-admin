@@ -32,7 +32,7 @@ class VehicleCategoriesModel extends BaseModel {
     const [rows] = await pool.query(`
       SELECT id,title as vehicle_name, vehicle_rental_price
       FROM vehicles
-      WHERE vehicle_category_id = ? and status = 1 and is_fastuk_property=1
+      WHERE vehicle_category_id = ? and status = 1
     `, [parentId]);
 
     return rows;

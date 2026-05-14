@@ -5,7 +5,7 @@
         <h3>Request Quote</h3>
         <ul>
           <li><a href="/admin/dashboard">Dashboard</a></li>
-          <!-- <li class="active"><a href="">Booking ID: <%= order.booking_id %></a></li> -->
+          <li class="active"><a href="">Booking ID: <%= order.booking_id %></a></li>
         </ul>
       </div>
     </div>
@@ -123,7 +123,7 @@
                     <p>
                       <strong>Status: </strong>
 
-                      <%= order?.jobStatus %>
+                      <%= helpers?.getRequestOrderStatus(order?.jobStatus) %>
 
                     </p>
 
@@ -868,7 +868,7 @@
         </div>
         <% } %>
 
-          <% if(order?.pendingPayment && order?.pendingPayment?.status !=='paid' ) { %>
+          <% if(order?.canShowPendingPaymentBox) { %>
             <div class="row">
               <div class="col-md-12">
                 <div class="card">
@@ -887,7 +887,7 @@
                       <div class="form-group">
                         <label>Adjust Amount (£)</label>
                         <input type="number" step="0.01" name="adjusted_amount" class="form-control"
-                          value="<%= order?.pendingPayment?.amount %>" required>
+                          value="<%= order?.pendingPayment?.amount %>" max="<%= order?.pendingPayment?.amount %>">
                       </div>
 
                       <!-- Admin Notes -->
@@ -900,11 +900,9 @@
                       <!-- Action -->
                       <div class="form-group">
                         <label>Action</label>
-                        <select name="action" class="form-control" required>
-                          <option value="">Select</option>
+                        <select name="action" class="form-control">
                           <option value="">Update Amount Only</option>
-                          <option value="mark_paid">Mark as Paid</option>
-                          <option value="force_complete">Force Complete</option>
+                          <option value="force_complete">Complete Job</option>
                         </select>
                       </div>
 

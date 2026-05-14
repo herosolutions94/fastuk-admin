@@ -1,0 +1,104 @@
+<section id="dashboard">
+  <div class="contain-fluid">
+
+    <div class="heading">
+      <div class="text">
+        <h5>Pay Rider</h5>
+      </div>
+    </div>
+
+    <%
+      let totalAmount = 0;
+
+      if (earnings && earnings.length > 0) {
+        earnings.forEach((earning) => {
+          totalAmount += parseFloat(earning.amount || 0);
+        });
+      }
+    %>
+
+    <div class="card">
+      <div class="card-body">
+
+        <form
+          action="/admin/payout/pay" class = 'frmAjax'
+          method="POST"
+          enctype="multipart/form-data"
+        >
+
+          <!-- Rider ID -->
+          <input
+            type="hidden"
+            name="rider_id"
+            value="<%= riderId %>"
+          >
+
+          <!-- Total Amount -->
+          <div class="form-group mb-3">
+            <label>
+              <strong>Total Pending Amount</strong>
+            </label>
+
+            <input
+              type="text"
+              class="form-control"
+              value="£<%= totalAmount.toFixed(2) %>"
+              readonly
+            >
+
+            <input
+              type="hidden"
+              name="amount"
+              value="<%= totalAmount.toFixed(2) %>"
+            >
+          </div>
+
+          <!-- Instructions -->
+          <div class="form-group mb-3">
+            <label>
+              <strong>Instructions</strong>
+            </label>
+
+            <textarea
+              name="instructions"
+              class="form-control"
+              rows="5"
+              placeholder="Write payment instructions here..."
+            ></textarea>
+          </div>
+
+          <!-- Attachment -->
+          <div class="form-group mb-4">
+            <label>
+              <strong>Upload Attachment</strong>
+            </label>
+
+            <input
+              type="file"
+              name="attachment"
+              class="form-control"
+              accept=".jpg,.jpeg,.png,.pdf,.doc,.docx"
+            >
+
+            <small class="text-muted">
+              Allowed: JPG, PNG, PDF, DOC, DOCX
+            </small>
+          </div>
+
+          <!-- Submit -->
+          <div class="text-end">
+            <button
+              type="submit"
+              class="btn btn-success"
+            >
+              Pay Now
+            </button>
+          </div>
+
+        </form>
+
+      </div>
+    </div>
+
+  </div>
+</section>

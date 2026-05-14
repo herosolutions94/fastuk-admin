@@ -181,6 +181,7 @@ const upload = multer({
     { name: 'vehicle_insurance', maxCount: 1 } ,
     { name: 'good_transit_insurance', maxCount: 1 } ,
     { name: 'attachments', maxCount: 10 } ,
+    { name: 'attachment', maxCount: 1 } ,
 
 
 

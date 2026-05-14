@@ -931,6 +931,7 @@ class RiderController extends BaseController {
       driving_license_num,
       national_insurance_num,
       utr_num,
+      vehicle_id,
 
       vat_registered,
       vat_number,
@@ -991,6 +992,7 @@ class RiderController extends BaseController {
         driving_license_num: driving_license_num || "",
         national_insurance_num: national_insurance_num || "",
         utr_num: utr_num || "",
+        vehicle_id: vehicle_id || "",
 
         vat_registered: vat_registered || "",
         vat_number: vat_number || "",
@@ -1728,7 +1730,7 @@ updateRiderAttachments = async (req, res) => {
         });
       }
       const assignedSubCategories = await this.rider.getRiderCategoriesById(loggedInUser.id);
-      // console.log("assignedSubCategories",assignedSubCategories)
+      console.log("assignedSubCategories",assignedSubCategories)
       if (!assignedSubCategories || assignedSubCategories.length === 0) {
         return res.status(200).json({
           status: 0,
@@ -1925,7 +1927,7 @@ updateRiderAttachments = async (req, res) => {
           msg: "You are not assigned any vehicle category."
         });
       }
-
+console.log("assignedSubCategories:", assignedSubCategories)
 
       // Step 2: Fetch the request quote by ID
       const requestQuote = await this.rider.getRequestQuoteById(request_id);

@@ -1,0 +1,114 @@
+<section id="dashbaord">
+  <div class="contain-fluid">
+    <div class="heading">
+      <div class="text">
+        <h3>Riders</h3>
+        <ul>
+          <!-- <li><a href="">Home</a></li> -->
+          <!-- <li class="active"><a href="">Rider</a></li> -->
+        </ul>
+      </div>
+    </div>
+    <div class="dashTable">
+      <table class="dataTable display" id="basic-1">
+        <thead>
+          <tr class="table-scnd-row">
+            <th width="5%">
+              <p>#</p>
+            </th>
+            <th width="26%">
+              <p>Name</p>
+            </th>
+            <!-- <th width="15%">
+              <p>Email</p>
+            </th>
+            <th width="10%">
+              <p>Phone No</p>
+            </th> -->
+            <th width="20%">
+              <p>Amount</p>
+            </th>
+            <!-- <th width="10%">
+              <p>City</p>
+            </th>
+            <th width="10%">
+              <p>OTP</p>
+            </th>
+            <th width="20%">
+              <p>Available Balance</p>
+            </th> -->
+            <th width="9%">
+              <p>Action</p>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <% if (riders && riders.length > 0) { %> <% riders.forEach((rider,
+          index) => { %>
+          <tr class="bottom-cntnt" id="rider-<%= rider.id %>">
+            <td><p><%= index + 1 %></p></td>
+            <td>
+              <div class="flex">
+                <div class="image">
+                  <img
+                    src="<%= helpers.getImage(rider.mem_image) %>"
+                    alt="Driving License" />
+                </div>
+                <div class="custm-cntnt">
+                  <p><%= rider.full_name %><br /><%= rider.email %></p>
+                </div>
+              </div>
+            </td>
+            <td>
+              <!-- <p><%- helpers.getRiderApprovalStatus(rider.is_approved) %></p> -->
+            </td>
+            <td><p><%= rider.amount %></p></td>
+            <!-- <td><p><%= rider.otp %></p></td>
+            <td>
+              <p>£<%= helpers.formatAmount(rider.available_balance) %></p>
+            </td> -->
+
+            <td>
+              <div class="btn-group">
+                <button
+                  type="button"
+                  class="dropdown-toggle"
+                  data-toggle="dropdown">
+                  <i class="fa fa-ellipsis-h"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-primary" role="menu">
+                 
+                  <li>
+                    <a
+                      href="/admin/pending-earnings/<%= rider.id %>"
+                      class="btn btn-success">
+                      View
+                    </a>
+                  </li>
+                  
+                  <li>
+                    <a
+                      href="/admin/pay-rider-payout/<%= rider.id %>"
+                      class="btn btn-danger">
+                      Pay Now
+                    </a>
+                  </li>
+                  
+                  
+                </ul>
+              </div>
+            </td>
+          </tr>
+          <% }) %> <% } else { %>
+          <tr>
+            <td colspan="8"><p>No riders found.</p></td>
+          </tr>
+          <% } %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+
+

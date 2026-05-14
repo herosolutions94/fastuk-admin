@@ -787,6 +787,24 @@ async getOutstandingAmount(userId) {
   ]);
 }
 
+async insertUserCredits(data) {
+  const createdDate = helpers.getUtcTimeInSeconds();
+
+  const query = `
+    INSERT INTO credits 
+    (user_id, credits, type, created_date, e_type)
+    VALUES (?, ?, ?, ?, ?)
+  `;
+
+  return pool.query(query, [
+    data.user_id,
+    data.credits,
+    "simple_user",
+    createdDate,
+    "credit"
+  ]);
+}
+
   async getInvoicesByUserId(userId) {
     try {
       const [invoices] = await pool.query(

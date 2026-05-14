@@ -73,7 +73,7 @@ const handlePickupNotification = async (job, type) => {
   }
 };
 
-cron.schedule("*/5 * * * *", async () => {
+cron.schedule("* * * * *", async () => {
   console.log("Running job notifier...");
   console.log("CRON:", new Date().toISOString());
 

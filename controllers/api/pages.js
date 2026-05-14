@@ -462,9 +462,28 @@ class PagesController extends BaseController {
       const rider = userResponse?.user;
 
       // 👉 Get selected vehicle using vehicle_id
+      // let selectedVehicle = null;
+      // if (rider?.vehicle_id) {
+      //   selectedVehicle = await VehicleAdminModel.getSelectedVehicleById(rider?.vehicle_id);
+      // }
+
       let selectedVehicle = null;
+
+      // 1. First priority: rider's own vehicle (signup)
       if (rider?.vehicle_id) {
-        selectedVehicle = await VehicleAdminModel.getSelectedVehicleById(rider?.vehicle_id);
+        selectedVehicle = await VehicleAdminModel.getSelectedVehicleById(rider.vehicle_id);
+      }
+
+      // 2. Second priority: admin assigned vehicle(s)
+      if (!selectedVehicle) {
+        const assignedVehicles = await this.rider.getRiderCategoriesById(riderId);
+
+        if (assignedVehicles?.length) {
+          // take first assigned vehicle (or you can return all if needed)
+          selectedVehicle = await VehicleAdminModel.getSelectedVehicleById(
+            assignedVehicles[0]
+          );
+        }
       }
 
       const drivingLicense = await this.rider.getRiderLicenseById(riderId);
@@ -884,7 +903,7 @@ class PagesController extends BaseController {
         );
       });
 
-// console.log("matchingVehicles:", matchingVehicles);
+      // console.log("matchingVehicles:", matchingVehicles);
 
       if (matchingVehicles.length === 0) {
         return res.status(200).json({

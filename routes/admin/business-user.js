@@ -11,11 +11,11 @@ const  checkAccessMiddleware  = require('../../middleware/checkAccessMiddleware'
 //     RiderController.getRiders(req, res);
 // });
 router.get('/business-users', ensureAuthenticated,checkAccessMiddleware(4), BusinessUserController.getBusinessUsers.bind(BusinessUserController));
-router.get('/business-users/add-funds/:id', ensureAuthenticated, checkAccessMiddleware(3), BusinessUserController.addFunds.bind(BusinessUserController));
+router.get('/business-users/add-funds/:id', ensureAuthenticated, checkAccessMiddleware(4),upload, BusinessUserController.addFunds.bind(BusinessUserController));
 router.post(
   '/business-users/add-funds',
   ensureAuthenticated,
-  checkAccessMiddleware(3),
+  checkAccessMiddleware(4), upload,
   BusinessUserController.storeFunds.bind(BusinessUserController)
 );
 
