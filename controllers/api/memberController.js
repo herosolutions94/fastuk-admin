@@ -4812,6 +4812,7 @@ class MemberController extends BaseController {
         limit: 3,
       });
       // console.log("memberOrders:", memberOrders);
+      const withdrawal = await this.member.getLatestWithdrawal(member.id);
 
       const memberCurrentOrders = await this.member.getOrdersByUserAndStatus({
         userId: member.id,
@@ -4861,6 +4862,7 @@ class MemberController extends BaseController {
         status: 1,
         msg: "Orders fetched successfully.",
         orders: ordersWithEncodedIds,
+        withdrawal,
         memberCurrentOrders: memberCurrentOrders?.length,
         // total_active_orders: memberTotalAcceptedOrders?.length,
         total_orders: memberTotalOrders?.length,
@@ -7076,6 +7078,95 @@ class MemberController extends BaseController {
       });
     }
   }
+
+ async requestWithdraw(req, res) {
+  try {
+    const { token, mem_type, paypal_email, amount } = req.body;
+
+    // ===============================
+    // 1. Validate input
+    // ===============================
+    if (!token || !mem_type) {
+      return res.status(400).json({
+        status: 0,
+        msg: "Token and member type are required."
+      });
+    }
+
+    if (!paypal_email || !amount) {
+      return res.status(400).json({
+        status: 0,
+        msg: "Paypal email and amount are required"
+      });
+    }
+
+    const credits = parseFloat(amount);
+
+    if (isNaN(credits) || credits <= 0) {
+      return res.status(400).json({
+        status: 0,
+        msg: "Invalid amount"
+      });
+    }
+
+    // ===============================
+    // 2. Validate token
+    // ===============================
+    const userResponse = await this.validateTokenAndGetMember(token, mem_type);
+
+    if (userResponse.status === 0) {
+      return res.status(200).json(userResponse);
+    }
+
+    const member = userResponse.user;
+
+    if (!member) {
+      return res.status(200).json({
+        status: 0,
+        msg: "Invalid token."
+      });
+    }
+
+    const userId = member.id;
+
+    // ===============================
+    // 3. OPTIONAL: balance check (recommended)
+    // ===============================
+    // const balanceData = await this.member.getUserBalance(userId);
+
+    // if (balanceData.available_balance < credits) {
+    //   return res.status(400).json({
+    //     status: 0,
+    //     msg: "Insufficient balance"
+    //   });
+    // }
+
+    // ===============================
+    // 4. Create withdrawal
+    // ===============================
+    const withdrawal = await this.member.createWithdrawal(
+      userId,
+      paypal_email,
+      credits
+    );
+
+    return res.json({
+      status: 1,
+      msg: "Withdrawal request submitted successfully",
+      data: withdrawal
+    });
+
+  } catch (error) {
+    console.error("Withdraw error:", error);
+    return res.status(500).json({
+      status: 0,
+      msg: "Server error"
+    });
+  }
+}
+
+
+
 
   // app.post('/send-email', async (req, res) => {
   async sendMailApi(req, res) {

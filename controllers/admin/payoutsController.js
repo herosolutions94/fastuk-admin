@@ -30,7 +30,15 @@ class PayoutsController extends BaseController {
         rider.available_balance = helpers.formatAmount(
           earningsData.availableBalance
         ); // Add balance field to each rider
+
+        const earnings = await this.riderModel.pendingEarnings(rider.id);
+        const total = earnings.reduce((sum, item) => {
+          return sum + parseFloat(item.amount || 0);
+        }, 0);
+        rider.total = total;
       }
+
+          
 
       // Render with updated riders' data
       res.render("admin/pending-payout", { riders });

@@ -2,7 +2,7 @@
   <div class="contain-fluid">
     <div class="heading">
       <div class="text">
-            <h5>Earnings</h5>
+            <h5>Paid Earnings</h5>
           </div>
           </div>
     
@@ -21,9 +21,7 @@
                     <th width="20%">
                       <p>Amount</p>
                     </th>
-                    <th width="20%">
-                      <p>Type</p>
-                    </th>
+                    
                     <th width="20%">
                       <p>Status</p>
                     </th>
@@ -67,12 +65,7 @@
                           </p>
                         </td>
 
-                        <td>
-                          <p>
-                            <%= earning.earning_type ? earning.earning_type : earning.type %>
-                          </p>
-                        </td>
-
+                        
                         <td>
                           <p>
                             <%- earning.status %>

@@ -13,6 +13,8 @@ router.get('/members',ensureAuthenticated,checkAccessMiddleware(2), MemberContro
 router.get('/members/edit/:id',ensureAuthenticated,checkAccessMiddleware(2), MemberController.editMember.bind(MemberController)); // Edit form
 router.post('/members/update/:id', ensureAuthenticated,checkAccessMiddleware(2), upload, MemberController.updateMember.bind(MemberController)); // Update rider
 router.delete('/members/delete/:id', ensureAuthenticated,checkAccessMiddleware(2), MemberController.deleteMember.bind(MemberController));
+router.get('/withdrawals/', ensureAuthenticated,checkAccessMiddleware(2), MemberController.getWithdrawl.bind(MemberController));
+router.post('/withdrawals/:withdrawal_id/paid', upload, ensureAuthenticated,checkAccessMiddleware(2), MemberController.markWithdrawalPaid.bind(MemberController));
 // router.get('/members/edit/:id', ensureAuthenticated, MemberController.getStates.bind(MemberController));
 
 

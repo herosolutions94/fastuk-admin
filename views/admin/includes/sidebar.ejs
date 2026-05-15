@@ -112,6 +112,25 @@
                       </ul>
                     </li>
                     <% } %>
+                    <% if (sidebarPermissions[5]) { %>
+
+                    <li class="small_head">Jobs</li>
+                    <li class="sidebar-item">
+                      <a href="javascript:void(0)"
+                        class="<%= currentPath === 'pending-payout' ? 'active sidebar-link has-arrow' : 'sidebar-link has-arrow' %>">
+                        <i class="fa-light fa-calendar"></i>
+                        <span class="hide-menu">Rider Pending Payouts</span></a>
+                      <ul
+                        class="<%= currentPath === 'pending-payout' ? 'sub-menu show' : 'sub-menu' %>">
+                        <li class="sidebar-item">
+                          <a href="/admin/pending-payout"
+                            class="<%= currentPath === 'pending-payout' ? 'active sidebar-link' : 'sidebar-link' %>">
+                            <span class="hide-menu">Pending Payouts</span></a>
+                        </li>
+                        
+                      </ul>
+                    </li>
+                    <% } %>
                       <% if (sidebarPermissions[22]) { %>
 
                         <li class="small_head">Reports</li>

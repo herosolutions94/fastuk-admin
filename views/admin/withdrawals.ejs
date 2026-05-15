@@ -1,0 +1,122 @@
+<section id="dashboard">
+    <div class="contain-fluid">
+        <div class="heading">
+            <div class="text">
+                <h3>WithDrawls</h3>
+                <ul>
+                    <li><a href="/admin/dashboard">Dashboard</a></li>
+                    <!-- <li class="active"><a href="">Transactions</a></li> -->
+                </ul>
+            </div>
+        </div>
+        <div class="dashTable">
+            <table class="dataTable display" id="basic-1">
+                <thead>
+                    <tr class="table-scnd-row blog-table">
+                        <th width="10%">Sr#</th>
+                        <th width="10%">Paypal Email</th>
+                        <th width="25%">User Id</th>
+                        <th width="15%">Amount</th>
+                        <th width="15%">Status</th>
+                        <th width="15%">Created Time</th>
+                        <th width="10%">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (withdrawals && withdrawals.length> 0) { %>
+                        <% withdrawals.forEach((withdrawal, index)=> { %>
+                            <tr class="bottom-cntnt" id="transaction-<%= withdrawal.id %>">
+                                <td>
+                                    <p>
+                                        <%= index + 1 %>
+                                    </p>
+                                </td>
+                                <td>
+                                    <% if (withdrawal.paypal_email) { %>
+                                        <p>
+                                            <a href="/admin/job-detail/<%= withdrawal.paypal_email %>" target="_blank"
+                                                rel="noopener noreferrer"
+                                                style="text-decoration: none; color: inherit;">
+                                                <%= withdrawal?.paypal_email %>
+                                            </a>
+                                        </p>
+                                </td>
+                                <% } else{ %>
+                                    N/A
+                                    <% } %>
+                                        <td>
+                                            <a href="/admin/members/edit/<%= withdrawal?.user_id %>" target="_blank"
+                                                rel="noopener noreferrer"
+                                                style="text-decoration: none; color: inherit;">
+                                                <div class="flex">
+                                                    <div class="image-blog">
+                                                        <img src="<%= helpers.getImage(withdrawal.mem_image) %>"
+                                                            alt="User Image" class="img-responsive" />
+                                                    </div>
+                                                    <p>
+                                                        <%= withdrawal.member_name %>
+                                                    </p>
+                                                </div>
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <p>
+                                                <%= helpers?.format_amount(withdrawal.credits) %>
+                                            </p>
+                                        </td>
+                                        <td>
+                                            <% if (withdrawal.status==='paid' ) { %>
+                                                <span class="badge bg-success">Paid</span>
+                                                <% } else { %>
+                                                    <span class="badge bg-warning">Pending</span>
+                                                    <% } %>
+                                        </td>
+                                        <td>
+                                            <p>
+                                                <%= helpers.convertUtcToUkFormat(withdrawal.created_at) %>
+                                            </p>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <button type="button" class="dropdown-toggle" data-toggle="dropdown">
+                                                    <i class="fa fa-ellipsis-h"></i>
+                                                </button>
+
+                                                <ul class="dropdown-menu dropdown-primary" role="menu">
+
+                                                    <% if (withdrawal.status !=='paid' ) { %>
+                                                        <li>
+                                                            <form method="POST" class="frmAjax"
+                                                                action="/admin/withdrawals/<%= withdrawal.id %>/paid">
+
+                                                                <button type="submit"
+                                                                    style="background: none; border: none; width: 100%; text-align: left; padding: 8px 15px;">
+                                                                    Mark as Paid
+                                                                </button>
+
+                                                            </form>
+                                                        </li>
+                                                        <% } else { %>
+                                                            <li
+                                                                style="padding: 8px 15px; color: green; font-weight: bold;">
+                                                                Already Paid
+                                                            </li>
+                                                            <% } %>
+
+                                                </ul>
+                                            </div>
+                                        </td>
+                            </tr>
+                            <% }) %>
+                                <% } else { %>
+                                    <tr>
+                                        <td colspan="8">
+                                            <p>No withdrawals found.</p>
+                                        </td>
+                                    </tr>
+                                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

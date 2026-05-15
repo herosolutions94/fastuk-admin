@@ -17,17 +17,15 @@
               <p>#</p>
             </th>
             <th width="26%">
-              <p>Name</p>
+              <p>Riders</p>
             </th>
-            <!-- <th width="15%">
-              <p>Email</p>
-            </th>
-            <th width="10%">
-              <p>Phone No</p>
-            </th> -->
-            <th width="20%">
+            <th width="15%">
               <p>Amount</p>
             </th>
+            <!-- <th width="10%">
+              <p>Phone No</p>
+            </th> -->
+            
             <!-- <th width="10%">
               <p>City</p>
             </th>
@@ -60,9 +58,9 @@
               </div>
             </td>
             <td>
-              <!-- <p><%- helpers.getRiderApprovalStatus(rider.is_approved) %></p> -->
+              <p>£<%= rider.total.toFixed(2) %></p>
             </td>
-            <td><p><%= rider.amount %></p></td>
+            
             <!-- <td><p><%= rider.otp %></p></td>
             <td>
               <p>£<%= helpers.formatAmount(rider.available_balance) %></p>
@@ -82,7 +80,14 @@
                     <a
                       href="/admin/pending-earnings/<%= rider.id %>"
                       class="btn btn-success">
-                      View
+                      View Pending Earnings
+                    </a>
+                  </li>
+                  <li>
+                    <a
+                      href="/admin/paid-earnings/<%= rider.id %>"
+                      class="btn btn-success">
+                      View Paid Earnings
                     </a>
                   </li>
                   

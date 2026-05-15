@@ -2,6 +2,8 @@ const fs = require('fs'); // Import the file system module
 const path = require('path'); // For handling file paths
 
 const Member = require('../../models/member');
+const MemberModel = require("../../models/memberModel");
+
 const Rider = require("../../models/riderModel");
 const RequestQuoteModel = require("../../models/request-quote"); // Assuming you have this model
 
@@ -13,6 +15,7 @@ class MemberController extends BaseController {
     constructor() {
         super();
         this.addressModel = new Addresses();
+        this.member = new MemberModel();
         this.rider = new Rider();
         this.requestQuoteModel = new RequestQuoteModel();
 
@@ -22,13 +25,13 @@ class MemberController extends BaseController {
     async getMembers(req, res) {
         try {
             const members = await Member.getAllMembers([
-                { field: 'mem_type', operator: '=', value: 'user' }, 
+                { field: 'mem_type', operator: '=', value: 'user' },
                 { field: 'is_deleted', operator: '!=', value: 1 }
-            
+
             ]
-            ,
-            'id',  // order by id
-            'DESC' // newest first
+                ,
+                'id',  // order by id
+                'DESC' // newest first
             );
             // console.log('Fetched Riders:', riders); // Log the fetched riders
 
@@ -263,6 +266,86 @@ class MemberController extends BaseController {
     //         this.sendError(res, 'Failed to render edit member form');
     //     }
     // }
+
+    async getWithdrawl(req, res) {
+        try {
+            const withdrawals = await this.member.getAllWithdrawalsWithUsers();
+            console.log('Fetched Withdrawals:', withdrawals); // Log the fetched withdrawals
+
+
+            // if (members && members.length > 0) {
+            // Corrected res.render with only two arguments
+            res.render('admin/withdrawals', { withdrawals: withdrawals || [] });
+            // } else {
+            //     this.sendError(res, 'No members found');
+            // }
+        } catch (error) {
+            console.error('Error fetching members:', error); // Log the error for debugging
+            this.sendError(res, 'Failed to fetch members');
+        }
+    }
+
+    async markWithdrawalPaid(req, res) {
+  try {
+    const { withdrawal_id } = req.params;
+
+    // 1. Get withdrawal
+    const withdrawal = await this.member.getWithdrawalById(withdrawal_id);
+
+    if (!withdrawal) {
+      return this.sendError(res, "Withdrawal not found");
+    }
+
+    if (withdrawal.status === "paid") {
+      return this.sendError(res, "Already marked as paid");
+    }
+
+    const userId = withdrawal.user_id;
+    const credits = withdrawal.credits;
+
+    // 2. Update withdrawal status
+    await this.member.markWithdrawalPaid(withdrawal_id);
+
+    // 3. Reset user balance
+    await this.member.resetUserBalance(userId);
+
+    // 4. Get user
+    const user = await this.member.findById(userId);
+
+    if (!user) {
+      return this.sendError(res, "User not found");
+    }
+
+    // 5. Admin data (for email template)
+    const adminData = res.locals.adminData || null;
+
+    // 6. Send email (CLEAN)
+    const emailResult = await helpers.sendEmail(
+      user.email,
+      "Withdrawal Paid Successfully",
+      "withdrawal_paid",
+      {
+        adminData,
+        user,
+        credits,
+        paid_at: new Date()
+      }
+    );
+
+    if (!emailResult.success) {
+      console.error("Email failed:", emailResult.error);
+    }
+
+    // return res.json({
+    //   status: 1,
+    //   msg: "Withdrawal marked as paid successfully"
+    // });
+this.sendSuccess(res, {}, "Withdrawal marked as paid successfully!", 200, '/admin/withdrawals')
+  } catch (error) {
+    console.error("Mark paid error:", error);
+    return this.sendError(res, "Failed to update payout");
+  }
+}
 
 
 }

@@ -18,6 +18,7 @@ router.post('/delete-addresses', upload,memberController.deleteAddress.bind(memb
 router.post('/set-as-default-addresses', upload,memberController.setAsDefaultAddress.bind(memberController));
 router.post('/request-quote', upload,(req, res) => memberController.requestQuote(req, res));
 router.post('/member-settings', upload, (req, res) => memberController.getMemberFromToken(req, res));
+router.post('/withdraw-credits', upload, (req, res) => memberController.requestWithdraw(req, res));
 
 // router.post('/update-request-apple-pay-status', upload, (req, res) => memberController.updateApplePaymentStatus(req, res));
 router.post('/update-request-apple-pay-status', upload,express.raw({ type: 'application/json' }), (req, res) => {

@@ -862,6 +862,85 @@ async insertUserCredits(data) {
     }
   }
 
+  // ✅ Create withdrawal request
+  async createWithdrawal(user_id, paypal_email, credits) {
+    const query = `
+      INSERT INTO user_withdrawals (user_id, paypal_email, credits)
+      VALUES (?, ?, ?)
+    `;
+
+    const values = [user_id, paypal_email, credits];
+
+    const [result] = await pool.query(query, values);
+
+    return {
+      id: result.insertId,
+      user_id,
+      paypal_email,
+      credits
+    };
+  }
+
+   // ✅ Get all withdrawals of a user
+  async getAllWithdrawalsWithUsers() {
+    const query = `
+      SELECT 
+  w.*,
+  u.full_name AS member_name,
+  u.mem_image,
+  u.email AS user_email
+FROM user_withdrawals w
+LEFT JOIN members u ON u.id = w.user_id
+ORDER BY w.id DESC;
+    `;
+
+    const [rows] = await pool.query(query);
+    console.log("Withdrawal rows:", rows);
+
+    return rows;
+  }
+
+  async getLatestWithdrawal(user_id) {
+    const query = `
+      SELECT *
+      FROM user_withdrawals
+      WHERE user_id = ? and status = 'pending'
+      ORDER BY id DESC
+      LIMIT 1
+    `;
+
+    const [rows] = await pool.query(query, [user_id]);
+
+    return rows.length > 0 ? rows[0] : null;
+  }
+async markWithdrawalPaid(id) {
+  const query = `
+    UPDATE user_withdrawals
+    SET status = 'paid',
+        paid_at = NOW()
+    WHERE id = ?
+  `;
+  await pool.query(query, [id]);
+}
+
+async resetUserBalance(userId) {
+  const query = `
+    UPDATE members
+    SET total_credits = 0
+    WHERE id = ?
+  `;
+  await pool.query(query, [userId]);
+}
+
+async getWithdrawalById(id) {
+  const query = `
+    SELECT * FROM user_withdrawals WHERE id = ?
+  `;
+  const [rows] = await pool.query(query, [id]);
+  return rows[0];
+}
+
+
 
   async insertFeedbackService(review_id, service_name) {
     try {
